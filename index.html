@@ -75,14 +75,14 @@
         <h2 style="font-weight:300; letter-spacing:3px;">IDENTITY CHECK</h2>
         <input type="text" id="user-input" class="login-input" placeholder="USERNAME">
         <input type="password" id="pass-input" class="login-input" placeholder="PASSWORD">
-        <button id="loginBtn" class="save-btn" style="width:100%;">ACCESS LEDGER</button>
+        <button id="loginBtn" class="save-btn" style="width:100%;">ACCESS JOURNAL</button>
         <p id="login-err" style="color:var(--negative); font-size:0.7rem; margin-top:15px; display:none;">Invalid Credentials</p>
     </div>
 </div>
 
 <div class="app-container" id="main-content">
     <header class="header-top">
-        <h1 class="header-title">Ledger // <span id="display-user"></span></h1>
+        <h1 class="header-title">JOURNAL // <span id="display-user"></span></h1>
         <div style="display:flex; gap:10px">
             <button class="btn-action" onclick="ui.undoLast()">Undo</button>
             <button class="btn-action" onclick="ui.resetAll()">Reset Cloud</button>
@@ -369,4 +369,5 @@
     };
 </script>
 </body>
+
 </html>
