@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Ledger Pro // V5.0 Quantum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #05070a; --glass: rgba(15, 20, 30, 0.95); --border: rgba(255, 255, 255, 0.1);
+            --primary: #00fff0; --negative: #ff3366; --positive: #00ff88; --text: #e0e6ed;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; transition: color 0.3s ease; }
+        .app-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        /* COLOR CONTROL HEADER */
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .color-controls { display: flex; gap: 10px; align-items: center; background: var(--glass); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); }
+        .dot { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .dot:hover { border-color: #fff; }
+
+        /* TABS */
+        .tab-nav { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .tab-btn { background: transparent; border: none; color: var(--text); padding: 12px 25px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.75rem; opacity: 0.5; }
+        .tab-btn.active { opacity: 1; border-bottom: 2px solid var(--primary); color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* ANALYTICS GRID */
+        .analytics-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--glass); border: 1px solid var(--border); border-top: 3px solid var(--primary); padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-label { font-size: 0.6rem; color: var(--primary); text-transform: uppercase; font-weight: bold; }
+        .stat-val { display: block; font-family: 'Orbitron'; font-size: 1.1rem; margin-top: 5px; }
+
+        /* CALENDAR */
+        .calendar-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .cal-day { background: var(--glass); border: 1px solid var(--border); min-height: 90px; padding: 8px; border-radius: 8px; }
+        .cal-day.profit { border-color: var(--positive); background: rgba(0, 255, 136, 0.05); }
+        .cal-day.loss { border-color: var(--negative); background: rgba(255, 51, 102, 0.05); }
+
+        /* FORM */
+        .card { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+        .section-label { font-size: 0.65rem; color: var(--primary); text-transform: uppercase; margin: 15px 0 8px; display: block; opacity: 0.8; }
+        input, select, button { background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; font-size: 0.8rem; }
+        .hit-btn { padding: 5px; font-size: 0.6rem; cursor: pointer; flex: 1; margin-top: 4px; font-weight: bold; text-transform: uppercase; }
+        .tp-hit { color: var(--positive); border-color: var(--positive); }
+        .sl-hit { color: var(--negative); border-color: var(--negative); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { font-family: 'Orbitron'; color: var(--primary); padding: 12px; border-bottom: 2px solid var(--primary); font-size: 0.65rem; }
+        td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.8rem; text-align: center; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header class="header-top">
+        <h1 style="font-family:'Orbitron'; font-size: 1.2rem; color: var(--primary);">NEON_LEDGER // V5.0</h1>
+        <div class="color-controls">
+            <span style="font-size: 0.6rem; margin-right: 5px;">COLOR THEME:</span>
+            <div class="dot" style="background:#ff3366" onclick="ui.setColor('#ff3366')"></div>
+            <div class="dot" style="background:#ff9900" onclick="ui.setColor('#ff9900')"></div>
+            <div class="dot" style="background:#00fff0" onclick="ui.setColor('#00fff0')"></div>
+            <div class="dot" style="background:#ffffff" onclick="ui.setColor('#ffffff')"></div>
+        </div>
+    </header>
+
+    <nav class="tab-nav">
+        <button class="tab-btn active" onclick="ui.switchTab('journal')">JOURNAL</button>
+        <button class="tab-btn" onclick="ui.switchTab('calendar')">CALENDAR</button>
+        <button class="tab-btn" onclick="ui.switchTab('analytics')">ADVANCED ANALYTICS</button>
+    </nav>
+
+    <div id="tab-journal" class="tab-content active">
+        <div class="card">
+            <span class="section-label">1. Core Trade Data & Session</span>
+            <div class="form-grid">
+                <select id="t-asset"><option value="100000">Forex</option><option value="1000">Gold</option><option value="10">Indices</option></select>
+                <input type="text" id="t-symbol" placeholder="SYMBOL">
+                <input type="number" id="t-lots" placeholder="LOT SIZE" step="0.01">
+                <select id="t-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>
+                <select id="t-session">
+                    <option value="ASIAN">Asian Session</option>
+                    <option value="LONDON">London Session</option>
+                    <option value="NY">NY Session</option>
+                </select>
+            </div>
+
+            <span class="section-label">2. Pricing & Outcome (TP/SL Hit Logic)</span>
+            <div class="form-grid">
+                <input type="number" id="t-entry" placeholder="ENTRY">
+                <input type="number" id="t-sl" placeholder="STOP LOSS">
+                <input type="number" id="t-tp" placeholder="TAKE PROFIT">
+                <div style="display:flex; flex-direction:column;">
+                    <input type="number" id="t-exit" placeholder="EXIT PRICE">
+                    <div style="display:flex; gap:5px;">
+                        <button class="hit-btn tp-hit" onclick="ui.quickHit('TP')">TP Hit</button>
+                        <button class="hit-btn sl-hit" onclick="ui.quickHit('SL')">SL Hit</button>
+                    </div>
+                </div>
+            </div>
+
+            <span class="section-label">3. Trade Timeline (Time Taken / Close)</span>
+            <div class="form-grid">
+                <input type="datetime-local" id="t-start" title="Time Taken">
+                <input type="datetime-local" id="t-end" title="Close Time">
+                <button onclick="ui.handleNewTrade()" style="background:var(--primary); color:#000; font-weight:bold; grid-column: span 2;">SAVE EXECUTION</button>
+            </div>
+        </div>
+
+        <div class="card" style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr><th>DATE</th><th>SYMBOL</th><th>LOTS</th><th>SIDE</th><th>SESSION</th><th>P/L ($)</th><th>DUR.</th><th>ACTION</th></tr>
+                </thead>
+                <tbody id="tradeBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-calendar" class="tab-content">
+        <div class="card">
+            <div class="calendar-controls">
+                <select id="cal-month" onchange="ui.renderCalendar()"></select>
+                <select id="cal-year" onchange="ui.renderCalendar()"></select>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+    </div>
+
+    <div id="tab-analytics" class="tab-content">
+        <div class="analytics-dashboard">
+            <div class="stat-card"><span class="stat-label">Profit Factor</span><span id="s-pf" class="stat-val">0.00</span></div>
+            <div class="stat-card"><span class="stat-label">Gross Profit</span><span id="s-gp" class="stat-val" style="color:var(--positive)">$0</span></div>
+            <div class="stat-card"><span class="stat-label">Gross Loss</span><span id="s-gl" class="stat-val" style="color:var(--negative)">$0</span></div>
+            <div class="stat-card"><span class="stat-label">Avg Win / Loss</span><span id="s-awl" class="stat-val">$0 / $0</span></div>
+            <div class="stat-card"><span class="stat-label">Avg R:R</span><span id="s-arr" class="stat-val">1:0.0</span></div>
+            <div class="stat-card"><span class="stat-label">Avg Duration</span><span id="s-adur" class="stat-val">0m</span></div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+            <div class="card"><h3>Equity Curve</h3><canvas id="equityChart"></canvas></div>
+            <div class="card">
+                <h3>Profit/Loss Summary</h3>
+                <canvas id="pieChart"></canvas>
+                <hr style="opacity:0.1; margin: 15px 0;">
+                <div class="stat-label">Largest Profit Instrument:</div>
+                <div id="s-best-inst" class="stat-val" style="color:var(--positive); font-size:1.5rem">---</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const JournalStore = {
+    key: 'neon_v5_quantum',
+    fetch: () => JSON.parse(localStorage.getItem(JournalStore.key)) || [],
+    save: (d) => localStorage.setItem(JournalStore.key, JSON.stringify(d))
+};
+
+const ui = {
+    charts: {},
+    
+    init() {
+        const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        const monthSel = document.getElementById('cal-month');
+        const yearSel = document.getElementById('cal-year');
+        months.forEach((m, i) => monthSel.innerHTML += `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`);
+        for(let y=2024; y<=2026; y++) yearSel.innerHTML += `<option value="${y}" ${y === new Date().getFullYear() ? 'selected' : ''}>${y}</option>`;
+        this.renderAll();
+    },
+
+    setColor(c) { document.documentElement.style.setProperty('--text', c); document.body.style.color = c; },
+    
+    switchTab(id) {
+        document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(`tab-${id}`).classList.add('active');
+        event.currentTarget.classList.add('active');
+        this.renderAll();
+    },
+
+    quickHit(type) {
+        const val = type === 'TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value;
+        document.getElementById('t-exit').value = val;
+    },
+
+    handleNewTrade() {
+        const side = document.getElementById('t-side').value;
+        const entry = parseFloat(document.getElementById('t-entry').value);
+        const exit = parseFloat(document.getElementById('t-exit').value);
+        const lots = parseFloat(document.getElementById('t-lots').value);
+        const mult = parseFloat(document.getElementById('t-asset').value);
+        const start = new Date(document.getElementById('t-start').value);
+        const end = new Date(document.getElementById('t-end').value);
+        const riskVal = Math.abs(entry - (parseFloat(document.getElementById('t-sl').value) || entry)) * lots * mult;
+
+        const trade = {
+            id: Date.now(), symbol: document.getElementById('t-symbol').value.toUpperCase(),
+            side, lots, session: document.getElementById('t-session').value,
+            duration: Math.round((end - start)/60000), risk: riskVal,
+            profit: (exit - entry) * lots * mult * (side === 'BUY' ? 1 : -1),
+            date: new Date(document.getElementById('t-start').value || Date.now()).toISOString().split('T')[0]
+        };
+        const data = JournalStore.fetch(); data.push(trade); JournalStore.save(data); this.renderAll();
+    },
+
+    renderAll() {
+        const trades = JournalStore.fetch();
+        const body = document.getElementById('tradeBody'); body.innerHTML = '';
+        
+        let gProf = 0, gLoss = 0, winCount = 0, lossCount = 0, totalRR = 0, totalDur = 0, cumulative = [], eq = 0;
+        let instMap = {};
+
+        trades.forEach(t => {
+            eq += t.profit; cumulative.push(eq);
+            totalDur += t.duration;
+            if(t.profit > 0) { gProf += t.profit; winCount++; } else { gLoss += Math.abs(t.profit); lossCount++; }
+            totalRR += t.risk > 0 ? (Math.abs(t.profit) / t.risk) : 0;
+            instMap[t.symbol] = (instMap[t.symbol] || 0) + t.profit;
+
+            body.innerHTML += `<tr><td>${t.date}</td><td>${t.symbol}</td><td>${t.lots}</td><td>${t.side}</td><td><small>${t.session}</small></td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td><td>${t.duration}m</td><td><button onclick="ui.deleteTrade(${t.id})">X</button></td></tr>`;
+        });
+
+        // Analytics Updates
+        document.getElementById('s-pf').innerText = gLoss > 0 ? (gProf / gLoss).toFixed(2) : gProf.toFixed(2);
+        document.getElementById('s-gp').innerText = `$${gProf.toFixed(0)}`;
+        document.getElementById('s-gl').innerText = `$${gLoss.toFixed(0)}`;
+        document.getElementById('s-awl').innerText = `$${(winCount?gProf/winCount:0).toFixed(0)} / $${(lossCount?gLoss/lossCount:0).toFixed(0)}`;
+        document.getElementById('s-arr').innerText = `1:${(trades.length ? totalRR/trades.length : 0).toFixed(1)}`;
+        document.getElementById('s-adur').innerText = `${(trades.length ? totalDur/trades.length : 0).toFixed(0)}m`;
+        
+        const best = Object.entries(instMap).sort((a,b) => b[1] - a[1])[0];
+        document.getElementById('s-best-inst').innerText = best ? `${best[0]} (+$${best[1].toFixed(0)})` : "---";
+
+        this.updateCharts(cumulative, trades.map(t=>t.date), winCount, lossCount);
+        this.renderCalendar();
+    },
+
+    renderCalendar() {
+        const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
+        const m = parseInt(document.getElementById('cal-month').value);
+        const y = parseInt(document.getElementById('cal-year').value);
+        const days = new Date(y, m + 1, 0).getDate();
+        const trades = JournalStore.fetch();
+
+        for (let i = 1; i <= days; i++) {
+            const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+            const dayTrades = trades.filter(t => t.date === dStr);
+            const dayPL = dayTrades.reduce((s, t) => s + t.profit, 0);
+            const status = dayTrades.length > 0 ? (dayPL >= 0 ? 'profit' : 'loss') : '';
+            grid.innerHTML += `<div class="cal-day ${status}"><b>${i}</b>${dayTrades.length > 0 ? `<div style="font-size:0.75rem; color:${dayPL>=0?'var(--positive)':'var(--negative)'}">$${dayPL.toFixed(0)}</div>` : ''}</div>`;
+        }
+    },
+
+    updateCharts(eq, labels, wins, losses) {
+        if(this.charts.equity) this.charts.equity.destroy();
+        this.charts.equity = new Chart(document.getElementById('equityChart'), {
+            type: 'line', data: { labels, datasets: [{ label: 'Equity', data: eq, borderColor: '#00fff0', fill: true, backgroundColor: 'rgba(0,255,240,0.05)', tension: 0.2 }] }
+        });
+        if(this.charts.pie) this.charts.pie.destroy();
+        this.charts.pie = new Chart(document.getElementById('pieChart'), {
+            type: 'doughnut', data: { labels: ['Wins', 'Losses'], datasets: [{ data: [wins, losses], backgroundColor: ['#00ff88', '#ff3366'], borderWidth: 0 }] }
+        });
+    },
+
+    deleteTrade(id) { JournalStore.save(JournalStore.fetch().filter(t => t.id !== id)); this.renderAll(); }
+};
+
+window.onload = () => ui.init();
+</script>
+</body>
+</html>
