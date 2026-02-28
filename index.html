@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Ledger Pro // Pip-Engine V2.6</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #05070a; --glass: rgba(15, 20, 30, 0.95); --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #00fff0; --negative: #ff3366; --positive: #00ff88; --text: #e0e6ed;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; }
+        .app-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+        h1, h3 { font-family: 'Orbitron'; color: var(--primary); text-transform: uppercase; margin-top: 0; }
+        
+        /* Advanced Form */
+        .trade-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+        input, select, button { background: #000; border: 1px solid var(--glass-border); color: #fff; padding: 12px; border-radius: 6px; font-size: 0.85rem; }
+        
+        .real-time-stats { grid-column: 1 / -1; display: flex; justify-content: space-around; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; border: 1px dashed var(--primary); margin-top: 10px; }
+        .stat-box span { display: block; font-size: 0.65rem; color: var(--primary); font-family: 'Orbitron'; }
+        .stat-box b { font-size: 1.1rem; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { font-family: 'Orbitron'; color: var(--primary); padding: 12px; border-bottom: 2px solid var(--primary); font-size: 0.7rem; }
+        td { padding: 12px; border-bottom: 1px solid var(--glass-border); font-size: 0.85rem; text-align: center; }
+        tbody tr:nth-child(even) { background: rgba(255,255,255,0.03); }
+        
+        .btn-log { background: var(--primary); color: #000; font-weight: bold; cursor: pointer; border: none; }
+        .btn-log:hover { box-shadow: 0 0 15px var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h1>NEON_LEDGER // PIP_ENGINE</h1>
+        <button onclick="ui.exportData()">EXPORT BACKUP</button>
+    </header>
+
+    <div class="card">
+        <h3>Execution & Risk Engine</h3>
+        <div class="trade-form">
+            <select id="t-asset" onchange="ui.updateCalcs()">
+                <option value="100000">Forex (Standard Lot)</option>
+                <option value="1000">Gold / Silver</option>
+                <option value="10">Indices / Crypto</option>
+            </select>
+            <select id="t-side" onchange="ui.updateCalcs()">
+                <option value="BUY">BUY</option>
+                <option value="SELL">SELL</option>
+            </select>
+            <input type="text" id="t-symbol" placeholder="SYMBOL">
+            <input type="number" id="t-lots" placeholder="LOTS (0.01)" step="0.01" oninput="ui.updateCalcs()">
+            <input type="number" id="t-entry" placeholder="ENTRY PRICE" step="any" oninput="ui.updateCalcs()">
+            <input type="number" id="t-sl" placeholder="STOP LOSS" step="any" oninput="ui.updateCalcs()">
+            <input type="number" id="t-tp" placeholder="TAKE PROFIT" step="any" oninput="ui.updateCalcs()">
+            
+            <select id="t-outcome" onchange="ui.syncOutcome()">
+                <option value="MANUAL">Manual Close</option>
+                <option value="TP">Hit Take Profit</option>
+                <option value="SL">Hit Stop Loss</option>
+            </select>
+            <input type="number" id="t-exit" placeholder="FINAL EXIT PRICE" step="any" oninput="ui.updateCalcs()">
+            
+            <button onclick="ui.handleNewTrade()" class="btn-log">LOG TRADE</button>
+
+            <div class="real-time-stats">
+                <div class="stat-box"><span>Risk Amount</span><b id="v-risk" style="color:var(--negative)">$0.00</b></div>
+                <div class="stat-box"><span>Reward Amount</span><b id="v-reward" style="color:var(--positive)">$0.00</b></div>
+                <div class="stat-box"><span>Current P/L</span><b id="v-pl">$0.00</b></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card"><canvas id="mainChart" height="80"></canvas></div>
+
+    <div class="card" style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>SIDE</th>
+                    <th>SYMBOL</th>
+                    <th>ENTRY</th>
+                    <th>EXIT</th>
+                    <th>P/L ($)</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody id="tradeBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const JournalStore = {
+    key: 'neon_v26_storage',
+    fetch: () => JSON.parse(localStorage.getItem(JournalStore.key)) || [],
+    save: (d) => localStorage.setItem(JournalStore.key, JSON.stringify(d))
+};
+
+const ui = {
+    chart: null,
+
+    syncOutcome() {
+        const outcome = document.getElementById('t-outcome').value;
+        if(outcome === 'TP') document.getElementById('t-exit').value = document.getElementById('t-tp').value;
+        if(outcome === 'SL') document.getElementById('t-exit').value = document.getElementById('t-sl').value;
+        this.updateCalcs();
+    },
+
+    updateCalcs() {
+        const side = document.getElementById('t-side').value;
+        const entry = parseFloat(document.getElementById('t-entry').value) || 0;
+        const sl = parseFloat(document.getElementById('t-sl').value) || 0;
+        const tp = parseFloat(document.getElementById('t-tp').value) || 0;
+        const exit = parseFloat(document.getElementById('t-exit').value) || 0;
+        const lots = parseFloat(document.getElementById('t-lots').value) || 0;
+        const multiplier = parseFloat(document.getElementById('t-asset').value);
+
+        const direction = (side === 'BUY') ? 1 : -1;
+
+        const riskVal = Math.abs(entry - sl) * lots * multiplier;
+        const rewardVal = Math.abs(tp - entry) * lots * multiplier;
+        const plVal = (exit - entry) * lots * multiplier * direction;
+
+        document.getElementById('v-risk').innerText = `$${riskVal.toFixed(2)}`;
+        document.getElementById('v-reward').innerText = `$${rewardVal.toFixed(2)}`;
+        document.getElementById('v-pl').innerText = `$${plVal.toFixed(2)}`;
+        document.getElementById('v-pl').style.color = plVal >= 0 ? 'var(--positive)' : 'var(--negative)';
+    },
+
+    async handleNewTrade() {
+        const side = document.getElementById('t-side').value;
+        const entry = parseFloat(document.getElementById('t-entry').value);
+        const exit = parseFloat(document.getElementById('t-exit').value);
+        const lots = parseFloat(document.getElementById('t-lots').value);
+        const multiplier = parseFloat(document.getElementById('t-asset').value);
+        const direction = (side === 'BUY') ? 1 : -1;
+
+        const trade = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString(),
+            side, symbol: document.getElementById('t-symbol').value.toUpperCase(),
+            entry, exit, outcome: document.getElementById('t-outcome').value,
+            profit: (exit - entry) * lots * multiplier * direction
+        };
+
+        const data = JournalStore.fetch();
+        data.push(trade);
+        JournalStore.save(data);
+        this.renderAll();
+    },
+
+    renderAll() {
+        const trades = JournalStore.fetch();
+        const body = document.getElementById('tradeBody');
+        body.innerHTML = '';
+        let total = 0, cumulative = [];
+
+        trades.forEach(t => {
+            total += t.profit;
+            cumulative.push(total);
+            body.innerHTML += `
+                <tr>
+                    <td style="color:${t.side === 'BUY' ? 'var(--positive)' : 'var(--negative)'}">${t.side}</td>
+                    <td>${t.symbol}</td>
+                    <td>${t.entry}</td>
+                    <td>${t.exit}</td>
+                    <td style="color:${t.profit >= 0 ? 'var(--positive)' : 'var(--negative)'}">$${t.profit.toFixed(2)}</td>
+                    <td><span style="font-size:0.7rem; padding:3px 6px; border:1px solid;">${t.outcome}</span></td>
+                    <td><button onclick="ui.deleteTrade(${t.id})">DEL</button></td>
+                </tr>
+            `;
+        });
+        this.updateChart(cumulative, trades.map(t => t.date));
+    },
+
+    updateChart(data, labels) {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        if(this.chart) this.chart.destroy();
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets: [{ label: 'Equity', data, borderColor: '#00fff0', fill: true, backgroundColor: 'rgba(0,255,240,0.1)' }] },
+            options: { scales: { y: { ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } } }
+        });
+    },
+
+    exportData() {
+        const data = encodeURIComponent(localStorage.getItem(JournalStore.key));
+        const a = document.createElement('a');
+        a.href = "data:text/json;charset=utf-8," + data;
+        a.download = "journal_backup.json";
+        a.click();
+    },
+
+    deleteTrade(id) { JournalStore.save(JournalStore.fetch().filter(t => t.id !== id)); this.renderAll(); }
+};
+
+window.onload = () => ui.init();
+</script>
+</body>
+</html>
