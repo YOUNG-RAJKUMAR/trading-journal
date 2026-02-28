@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ledger // Pro Multi-User</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg: #000000; --surface: #0a0a0a; --border: #222222;
+            --primary: #ffffff; --negative: #ff4444; --positive: #44ff88; 
+            --text: #cccccc; --text-light: #ffffff;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; -webkit-font-smoothing: antialiased; }
+        
+        /* LOGIN OVERLAY */
+        #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: var(--surface); border: 1px solid var(--border); padding: 40px; width: 100%; max-width: 350px; text-align: center; }
+        .login-input { width: 100%; margin-bottom: 15px; box-sizing: border-box; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; font-family: inherit; }
+
+        .app-container { max-width: 1450px; margin: 0 auto; padding: 40px 20px; display: none; }
+        
+        /* HEADER */
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .header-title { font-weight: 300; font-size: 1.5rem; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; }
+        .btn-action { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 15px; font-size: 0.7rem; cursor: pointer; text-transform: uppercase; }
+
+        /* TABS */
+        .tab-nav { display: flex; gap: 20px; margin-bottom: 30px; border-bottom: 1px solid var(--border); }
+        .tab-btn { background: transparent; border: none; color: var(--text); padding: 10px 0; cursor: pointer; font-size: 0.85rem; text-transform: uppercase; opacity: 0.5; }
+        .tab-btn.active { opacity: 1; border-bottom: 2px solid var(--primary); color: var(--text-light); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* FORM */
+        .card { background: var(--surface); border: 1px solid var(--border); padding: 25px; margin-bottom: 25px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+        input, select, textarea, button { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; font-size: 0.8rem; font-family: inherit; }
+        textarea { grid-column: span 2; height: 60px; resize: none; }
+        .hit-btn { padding: 5px; font-size: 0.65rem; cursor: pointer; flex: 1; margin-top: 5px; }
+        .save-btn { background: #fff; color: #000; font-weight: 600; grid-column: span 2; cursor: pointer; border: none; padding: 15px; }
+
+        /* TABLE */
+        .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        th { color: #666; font-size: 0.65rem; text-transform: uppercase; padding: 15px; text-align: left; border-bottom: 1px solid var(--border); background: #050505; }
+        td { padding: 15px; font-size: 0.8rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .lot-badge { background: #1a1a1a; padding: 2px 6px; border-radius: 3px; font-weight: 600; color: #fff; border: 1px solid #333; }
+        
+        /* CALENDAR */
+        .calendar-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+        .cal-day { background: var(--surface); min-height: 90px; padding: 10px; border-top: 2px solid transparent; }
+        .cal-day.profit { border-top-color: var(--positive); }
+        .cal-day.loss { border-top-color: var(--negative); }
+
+        /* ANALYTICS */
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 30px; }
+        .stat-card { background: var(--surface); padding: 20px; }
+        .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-val { display: block; font-size: 1.4rem; color: #fff; margin-top: 5px; font-weight: 300; }
+
+        .img-preview { width: 45px; height: 32px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
+        .img-preview:hover { transform: scale(6); position: relative; z-index: 1000; border-color: #fff; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div class="login-card">
+        <h2 style="font-weight:300; letter-spacing:3px;">IDENTITY CHECK</h2>
+        <input type="text" id="user-input" class="login-input" placeholder="USERNAME">
+        <input type="password" id="pass-input" class="login-input" placeholder="PASSWORD">
+        <button id="loginBtn" class="save-btn" style="width:100%;">ACCESS LEDGER</button>
+        <p id="login-err" style="color:var(--negative); font-size:0.7rem; margin-top:15px; display:none;">Invalid Credentials</p>
+    </div>
+</div>
+
+<div class="app-container" id="main-content">
+    <header class="header-top">
+        <h1 class="header-title">Ledger // <span id="display-user"></span></h1>
+        <div style="display:flex; gap:10px">
+            <button class="btn-action" onclick="ui.undoLast()">Undo</button>
+            <button class="btn-action" onclick="ui.resetAll()">Reset Cloud</button>
+            <button class="btn-action" style="background:#fff; color:#000" onclick="ui.exportPDF()">Export PDF</button>
+            <button class="btn-action" onclick="location.reload()">Logout</button>
+        </div>
+    </header>
+
+    <nav class="tab-nav">
+        <button class="tab-btn active" id="btn-journal" onclick="ui.switchTab('journal')">Journal</button>
+        <button class="tab-btn" id="btn-calendar" onclick="ui.switchTab('calendar')">Performance Calendar</button>
+        <button class="tab-btn" id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
+    </nav>
+
+    <div id="tab-journal" class="tab-content active">
+        <div class="card">
+            <div class="form-grid">
+                <input type="date" id="t-date">
+                <input type="time" id="t-start">
+                <input type="time" id="t-end">
+                <select id="t-session"><option value="ASIAN">Asian</option><option value="LONDON">London</option><option value="NY">NY</option></select>
+                <input type="text" id="t-symbol" placeholder="Symbol">
+                <select id="t-asset"><option value="100000">Forex</option><option value="1000">Gold</option><option value="10">Indices</option></select>
+                <input type="number" id="t-lots" placeholder="Lots" step="0.01">
+                <select id="t-side"><option value="BUY">Long</option><option value="SELL">Short</option></select>
+                <input type="number" id="t-entry" placeholder="Entry Price">
+                <input type="number" id="t-sl" placeholder="Stop Loss">
+                <input type="number" id="t-tp" placeholder="Take Profit">
+                <div style="display:flex; flex-direction:column;">
+                    <input type="number" id="t-exit" placeholder="Exit Price">
+                    <div style="display:flex; gap:5px;">
+                        <button class="hit-btn" style="color:var(--positive)" onclick="ui.quickHit('TP')">TP Hit</button>
+                        <button class="hit-btn" style="color:var(--negative)" onclick="ui.quickHit('SL')">SL Hit</button>
+                    </div>
+                </div>
+                <input type="file" id="t-img" accept="image/*" style="font-size:0.6rem">
+                <textarea id="t-notes" placeholder="Notes..."></textarea>
+                <button onclick="ui.handleNewTrade()" class="save-btn" id="saveBtn">Log Execution</button>
+            </div>
+        </div>
+        
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>Session</th>
+                        <th>P/L ($)</th><th>Duration</th><th>Media/Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="tradeBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-calendar" class="tab-content">
+        <div class="calendar-layout">
+            <div>
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <select id="cal-month" onchange="ui.renderCalendar()"></select>
+                    <select id="cal-year" onchange="ui.renderCalendar()"></select>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+            <div class="side-stats">
+                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Daily P/L</span><div id="side-today" class="stat-val">$0</div><div id="wr-today" style="font-size:0.7rem">0% WR</div></div>
+                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Weekly P/L</span><div id="side-week" class="stat-val">$0</div><div id="wr-week" style="font-size:0.7rem">0% WR</div></div>
+                <div class="stat-card"><span class="stat-label">Monthly P/L</span><div id="side-month" class="stat-val">$0</div><div id="wr-month" style="font-size:0.7rem">0% WR</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-analytics" class="tab-content">
+        <div class="analytics-grid">
+            <div class="stat-card"><span class="stat-label">Profit Factor</span><span id="s-pf" class="stat-val">0.00</span></div>
+            <div class="stat-card"><span class="stat-label">Win Rate</span><span id="s-wr" class="stat-val">0%</span></div>
+            <div class="stat-card"><span class="stat-label">Avg R:R</span><span id="s-arr" class="stat-val">1:0.0</span></div>
+            <div class="stat-card"><span class="stat-label">Gross Profit</span><span id="s-gp" class="stat-val" style="color:var(--positive)">$0</span></div>
+            <div class="stat-card"><span class="stat-label">Gross Loss</span><span id="s-gl" class="stat-val" style="color:var(--negative)">$0</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+            <div class="card"><h3>Equity Curve</h3><canvas id="equityChart"></canvas></div>
+            <div class="card">
+                <h3>Top Performers</h3>
+                <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1rem; margin-bottom:15px">---</div>
+                <div class="stat-label">Best Session</div><div id="s-best-sess" class="stat-val" style="font-size:1rem; color:var(--positive); margin-bottom:15px">---</div>
+                <div style="margin-top:20px">
+                    <span class="stat-label">Win/Loss Ratio</span>
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, deleteDoc, doc, where, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBxnZaZYUFSmN8TY-_JXsTOq5hqf3rMkaI",
+        authDomain: "rk-journaling-trades.firebaseapp.com",
+        projectId: "rk-journaling-trades",
+        storageBucket: "rk-journaling-trades.firebasestorage.app",
+        messagingSenderId: "769348692241",
+        appId: "1:769348692241:web:804455307a5fedd82f84b0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const tradesCol = collection(db, "trades");
+
+    let currentUser = null;
+    let cachedTrades = [];
+
+    // --- AUTH LOGIC ---
+    document.getElementById('loginBtn').onclick = async () => {
+        const u = document.getElementById('user-input').value.trim().toUpperCase();
+        const p = document.getElementById('pass-input').value;
+        const btn = document.getElementById('loginBtn');
+        btn.innerText = "AUTHENTICATING...";
+
+        try {
+            const userRef = doc(db, "users", u);
+            const snap = await getDoc(userRef);
+            if (snap.exists() && snap.data().password === p) {
+                currentUser = u;
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('display-user').innerText = u;
+                ui.init();
+            } else {
+                document.getElementById('login-err').style.display = 'block';
+                btn.innerText = "ACCESS LEDGER";
+            }
+        } catch(e) { alert("Check Connection / Rules"); btn.innerText = "ACCESS LEDGER"; }
+    };
+
+    // --- UI LOGIC ---
+    window.ui = {
+        charts: {},
+        init() {
+            document.getElementById('t-date').valueAsDate = new Date();
+            const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+            document.getElementById('cal-month').innerHTML = months.map((m,i)=>`<option value="${i}" ${i===new Date().getMonth()?'selected':''}>${m}</option>`).join('');
+            document.getElementById('cal-year').innerHTML = [2025, 2026].map(y=>`<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`).join('');
+            this.renderAll();
+        },
+        switchTab(id) {
+            document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${id}`).classList.add('active');
+            document.getElementById(`btn-${id}`).classList.add('active');
+            this.renderAll();
+        },
+        quickHit(type) {
+            document.getElementById('t-exit').value = type === 'TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value;
+        },
+        async handleNewTrade() {
+            const btn = document.getElementById('saveBtn'); btn.innerText = "Syncing...";
+            const file = document.getElementById('t-img').files[0];
+            let imgData = "";
+            if(file) {
+                const reader = new FileReader();
+                imgData = await new Promise(r => { reader.readAsDataURL(file); reader.onload = e => r(e.target.result); });
+            }
+            
+            const entry = parseFloat(document.getElementById('t-entry').value), exit = parseFloat(document.getElementById('t-exit').value);
+            const sl = parseFloat(document.getElementById('t-sl').value), lots = parseFloat(document.getElementById('t-lots').value), mult = parseFloat(document.getElementById('t-asset').value);
+            const tStart = document.getElementById('t-start').value, tEnd = document.getElementById('t-end').value;
+            let dur = 0; if(tStart && tEnd) {
+                const [h1, m1] = tStart.split(':'), [h2, m2] = tEnd.split(':');
+                dur = (parseInt(h2)*60 + parseInt(m2)) - (parseInt(h1)*60 + parseInt(m1));
+                if(dur < 0) dur += 1440;
+            }
+
+            const trade = {
+                user_id: currentUser,
+                timestamp: Date.now(),
+                symbol: document.getElementById('t-symbol').value.toUpperCase() || 'N/A',
+                lots: lots || 0, side: document.getElementById('t-side').value, session: document.getElementById('t-session').value,
+                profit: (exit - entry) * lots * mult * (document.getElementById('t-side').value === 'BUY' ? 1 : -1),
+                risk: Math.abs(entry - sl) * lots * mult, duration: dur,
+                date: document.getElementById('t-date').value, notes: document.getElementById('t-notes').value, img: imgData
+            };
+            
+            await addDoc(tradesCol, trade);
+            btn.innerText = "Log Execution"; 
+            this.renderAll();
+        },
+        async renderAll() {
+            // COMPOSITE INDEX REQUIRED FOR THIS QUERY
+            const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("date", "desc"));
+            const snap = await getDocs(q);
+            const trades = snap.docs.map(d => ({...d.data(), id: d.id}));
+            cachedTrades = trades;
+
+            const body = document.getElementById('tradeBody'); body.innerHTML = '';
+            let cumulative = [0], gP = 0, gL = 0, wins = 0, totalRR = 0, sess = {}, inst = {};
+
+            // We reverse to calculate equity curve from oldest to newest
+            [...trades].reverse().forEach(t => {
+                const rr = (t.risk > 0) ? (Math.abs(t.profit) / t.risk) : 0;
+                if(t.profit > 0) { gP += t.profit; wins++; } else gL += Math.abs(t.profit);
+                cumulative.push(cumulative[cumulative.length-1] + t.profit);
+                totalRR += rr;
+                sess[t.session] = (sess[t.session] || 0) + t.profit;
+                inst[t.symbol] = (inst[t.symbol] || 0) + t.profit;
+
+                body.insertAdjacentHTML('afterbegin', `
+                    <tr>
+                        <td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td>
+                        <td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td>
+                        <td>${t.session}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td>
+                        <td>${t.duration}m</td><td>${t.img ? `<img src="${t.img}" class="img-preview">` : ''}<div style="font-size:0.6rem; color:#666">${t.notes}</div></td>
+                    </tr>`);
+            });
+
+            document.getElementById('s-pf').innerText = gL > 0 ? (gP/gL).toFixed(2) : gP.toFixed(2);
+            document.getElementById('s-wr').innerText = trades.length ? Math.round((wins/trades.length)*100)+'%' : '0%';
+            document.getElementById('s-arr').innerText = `1:${(trades.length ? totalRR/trades.length : 0).toFixed(1)}`;
+            document.getElementById('s-gp').innerText = `$${gP.toFixed(0)}`;
+            document.getElementById('s-gl').innerText = `-$${gL.toFixed(0)}`;
+
+            const sortedInst = Object.entries(inst).sort((a,b)=>b[1]-a[1]);
+            document.getElementById('s-best-inst').innerText = sortedInst[0] ? `${sortedInst[0][0]} (+$${sortedInst[0][1].toFixed(0)})` : '---';
+            const sortedSess = Object.entries(sess).sort((a,b)=>b[1]-a[1]);
+            document.getElementById('s-best-sess').innerText = sortedSess[0] ? `${sortedSess[0][0]} (+$${sortedSess[0][1].toFixed(0)})` : '---';
+
+            this.updateCharts(cumulative, ['0', ...trades.map(t=>t.date).reverse()], wins, trades.length - wins);
+            this.renderCalendar();
+            this.updateSideStats(trades);
+        },
+        updateSideStats(trades) {
+            const now = new Date(), todayStr = now.toISOString().split('T')[0];
+            const day = now.getDay(), diff = now.getDate() - day + (day === 0 ? -6 : 1);
+            const mondayStr = new Date(new Date(now).setDate(diff)).toISOString().split('T')[0];
+            
+            const calc = (list) => ({ pnl: list.reduce((s,t)=>s+t.profit, 0), wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0 });
+            const set = (id, wrId, d) => {
+                document.getElementById(id).innerText = (d.pnl>=0?'+$':'$')+d.pnl.toFixed(0);
+                document.getElementById(id).style.color = d.pnl>=0?'var(--positive)':'var(--negative)';
+                document.getElementById(wrId).innerText = d.wr+'% Win Rate';
+            };
+            set('side-today', 'wr-today', calc(trades.filter(t=>t.date===todayStr)));
+            set('side-week', 'wr-week', calc(trades.filter(t=>t.date >= mondayStr)));
+            set('side-month', 'wr-month', calc(trades.filter(t=>new Date(t.date).getMonth()===now.getMonth())));
+        },
+        renderCalendar() {
+            const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
+            const m = parseInt(document.getElementById('cal-month').value), y = parseInt(document.getElementById('cal-year').value);
+            const days = new Date(y, m + 1, 0).getDate();
+            for (let i = 1; i <= days; i++) {
+                const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                const dayPL = cachedTrades.filter(t => t.date === dStr).reduce((s, t) => s + t.profit, 0);
+                grid.innerHTML += `<div class="cal-day ${dayPL!==0?(dayPL>0?'profit':'loss'):''}"><b>${i}</b>${dayPL!==0?`<div style="font-size:0.7rem; color:${dayPL>0?'var(--positive)':'var(--negative)'}">$${dayPL.toFixed(0)}</div>`:''}</div>`;
+            }
+        },
+        updateCharts(data, labels, w, l) {
+            const ctxE = document.getElementById('equityChart').getContext('2d');
+            if(this.charts.equity) this.charts.equity.destroy();
+            this.charts.equity = new Chart(ctxE, { type: 'line', data: { labels, datasets: [{ data, borderColor: '#fff', fill: true, backgroundColor: 'rgba(255,255,255,0.05)', tension: 0.1, pointRadius: 0 }] }, options: { scales: { x: { display: false }, y: { grid: { color: '#111' } } }, plugins: { legend: { display: false } } } });
+            
+            const ctxP = document.getElementById('pieChart').getContext('2d');
+            if(this.charts.pie) this.charts.pie.destroy();
+            this.charts.pie = new Chart(ctxP, { type: 'doughnut', data: { labels: ['Win','Loss'], datasets: [{ data: [w, l], backgroundColor: ['#44ff88', '#ff4444'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#888' } } } } });
+        },
+        async undoLast() {
+            if(!confirm("Delete last entry?")) return;
+            const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("timestamp", "desc"), limit(1));
+            const snap = await getDocs(q);
+            if(!snap.empty) await deleteDoc(doc(db, "trades", snap.docs[0].id));
+            this.renderAll();
+        },
+        async resetAll() {
+            if(confirm("Wipe ALL cloud data for this user?")) {
+                const batch = writeBatch(db);
+                const q = query(tradesCol, where("user_id", "==", currentUser));
+                const snap = await getDocs(q);
+                snap.docs.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+                this.renderAll();
+            }
+        },
+        exportPDF() { html2pdf().from(document.getElementById('main-content')).set({ html2canvas: { scale: 2, backgroundColor: '#000' } }).save(`Report_${currentUser}.pdf`); }
+    };
+</script>
+</body>
+</html>
