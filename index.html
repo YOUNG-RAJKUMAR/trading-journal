@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Trading Journal Dashboard</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f8; }
+  h1 { color: #2c3e50; text-align: center; }
+  #login-container, #main-container { max-width: 800px; margin: auto; }
+  #login-container { background: #ecf0f1; padding: 20px; border-radius: 10px; text-align: center; }
+  #login-container input, #login-container button { padding: 10px; margin: 10px 0; width: 80%; }
+  #form-container, #filters, #stats, #symbol-summary { 
+    background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; 
+  }
+  input, button, select { padding: 7px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+  table { border-collapse: collapse; width: 100%; background-color: white; margin-top: 15px; }
+  th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+  th { background-color: #3498db; color: white; }
+  canvas { margin-top: 20px; background: white; border: 1px solid #ddd; border-radius: 5px; }
+  @media (min-width: 768px) { input, button, select { width: auto; display: inline-block; margin-right: 5px; } }
+</style>
+</head>
+<body>
+
+<div id="login-container">
+  <h1>🔒 Login to Trading Journal</h1>
+  <input type="password" id="login-password" placeholder="Enter Password">
+  <br>
+  <button onclick="checkLogin()">Login</button>
+  <p id="login-error" style="color:red;"></p>
+</div>
+
+<div id="main-container" style="display:none;">
+
+<h1>📈 Pro Trading Journal Dashboard</h1>
+
+<!-- Add Trade Form -->
+<div id="form-container">
+  <h3>Add New Trade</h3>
+  <input type="date" id="trade-date">
+  <input type="text" id="trade-symbol" placeholder="Symbol (e.g., BTC/USD)">
+  <input type="number" id="trade-entry" placeholder="Entry Price">
+  <input type="number" id="trade-exit" placeholder="Exit Price">
+  <button onclick="addTrade()">Add Trade</button>
+</div>
+
+<!-- Filters -->
+<div id="filters">
+  <h3>🔍 Filter Trades</h3>
+  <select id="filter-symbol" onchange="renderTrades()">
+    <option value="">All Symbols</option>
+  </select>
+  <input type="month" id="filter-month" onchange="renderTrades()">
+  <button onclick="clearFilters()">Clear Filters</button>
+</div>
+
+<!-- Stats -->
+<div id="stats">
+  <h3>📊 Overall Stats</h3>
+  <p>Total Trades: <span id="total-trades">0</span></p>
+  <p>Total Profit/Loss: <span id="total-profit">0</span></p>
+  <p>Win Rate: <span id="win-rate">0%</span></p>
+</div>
+
+<!-- Symbol Summary -->
+<div id="symbol-summary">
+  <h3>📝 Summary Per Symbol</h3>
+  <table id="summary-table">
+    <tr>
+      <th>Symbol</th>
+      <th>Total Trades</th>
+      <th>Profit/Loss</th>
+      <th>Win Rate</th>
+    </tr>
+  </table>
+</div>
+
+<!-- Trades Table -->
+<table id="trades-table">
+  <tr>
+    <th>Date</th>
+    <th>Symbol</th>
+    <th>Entry</th>
+    <th>Exit</th>
+    <th>Profit/Loss</th>
+    <th>Action</th>
+  </tr>
+</table>
+
+<!-- Profit Chart -->
+<canvas id="profitChart" width="400" height="200"></canvas>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// ========== LOGIN ==========
+const PASSWORD = "trader123"; // <-- change this to your own password
+
+function checkLogin() {
+  const input = document.getElementById('login-password').value;
+  if(input === PASSWORD){
+    document.getElementById('login-container').style.display = 'none';
+    document.getElementById('main-container').style.display = 'block';
+  } else {
+    document.getElementById('login-error').innerText = "Incorrect Password!";
+  }
+}
+
+// ========== TRADES LOGIC ==========
+let trades = JSON.parse(localStorage.getItem('trades')) || [];
+
+// Add trade
+function addTrade() {
+  const date = document.getElementById('trade-date').value;
+  const symbol = document.getElementById('trade-symbol').value.toUpperCase();
+  const entry = parseFloat(document.getElementById('trade-entry').value);
+  const exit = parseFloat(document.getElementById('trade-exit').value);
+
+  if(!date || !symbol || isNaN(entry) || isNaN(exit)) { alert('Fill all fields!'); return; }
+
+  trades.push({ date, symbol, entry, exit });
+  localStorage.setItem('trades', JSON.stringify(trades));
+  updateFilters();
+  renderTrades();
+
+  document.getElementById('trade-date').value = '';
+  document.getElementById('trade-symbol').value = '';
+  document.getElementById('trade-entry').value = '';
+  document.getElementById('trade-exit').value = '';
+}
+
+// Delete trade
+function deleteTrade(index) {
+  trades.splice(index, 1);
+  localStorage.setItem('trades', JSON.stringify(trades));
+  updateFilters();
+  renderTrades();
+}
+
+// Filters
+function updateFilters() {
+  const filterSelect = document.getElementById('filter-symbol');
+  const symbols = [...new Set(trades.map(t => t.symbol))];
+  filterSelect.innerHTML = '<option value="">All Symbols</option>';
+  symbols.forEach(s => { filterSelect.innerHTML += `<option value="${s}">${s}</option>`; });
+}
+
+function clearFilters() {
+  document.getElementById('filter-symbol').value = '';
+  document.getElementById('filter-month').value = '';
+  renderTrades();
+}
+
+// Render trades table
+function renderTrades() {
+  const table = document.getElementById('trades-table');
+  table.innerHTML = `<tr>
+    <th>Date</th><th>Symbol</th><th>Entry</th><th>Exit</th><th>Profit/Loss</th><th>Action</th>
+  </tr>`;
+
+  const symbolFilter = document.getElementById('filter-symbol').value;
+  const monthFilter = document.getElementById('filter-month').value;
+
+  const filtered = trades.filter(t => {
+    const matchSymbol = symbolFilter ? t.symbol === symbolFilter : true;
+    const matchMonth = monthFilter ? t.date.startsWith(monthFilter) : true;
+    return matchSymbol && matchMonth;
+  });
+
+  filtered.forEach((trade, index) => {
+    const profit = trade.exit - trade.entry;
+    const row = table.insertRow();
+    row.innerHTML = `
+      <td>${trade.date}</td>
+      <td>${trade.symbol}</td>
+      <td>${trade.entry}</td>
+      <td>${trade.exit}</td>
+      <td style="color:${profit>=0?'green':'red'}">${profit}</td>
+      <td><button onclick="deleteTrade(${trades.indexOf(trade)})">Delete</button></td>
+    `;
+  });
+
+  updateStats(filtered);
+  renderChart(filtered);
+  renderSymbolSummary(filtered);
+}
+
+// Overall stats
+function updateStats(filteredTrades) {
+  const totalTrades = filteredTrades.length;
+  const totalProfit = filteredTrades.reduce((sum, t) => sum + (t.exit - t.entry), 0);
+  const wins = filteredTrades.filter(t => t.exit - t.entry > 0).length;
+  const winRate = totalTrades ? ((wins/totalTrades)*100).toFixed(2) : 0;
+
+  document.getElementById('total-trades').innerText = totalTrades;
+  document.getElementById('total-profit').innerText = totalProfit.toFixed(2);
+  document.getElementById('win-rate').innerText = winRate + '%';
+}
+
+// Symbol summary table
+function renderSymbolSummary(filteredTrades) {
+  const summaryTable = document.getElementById('summary-table');
+  summaryTable.innerHTML = `<tr>
+    <th>Symbol</th><th>Total Trades</th><th>Profit/Loss</th><th>Win Rate</th>
+  </tr>`;
+
+  const symbols = [...new Set(filteredTrades.map(t => t.symbol))];
+  symbols.forEach(sym => {
+    const sTrades = filteredTrades.filter(t => t.symbol === sym);
+    const total = sTrades.length;
+    const profit = sTrades.reduce((sum, t) => sum + (t.exit - t.entry), 0);
+    const wins = sTrades.filter(t => t.exit - t.entry > 0).length;
+    const winRate = total ? ((wins/total)*100).toFixed(2) : 0;
+    const row = summaryTable.insertRow();
+    row.innerHTML = `<td>${sym}</td><td>${total}</td><td>${profit}</td><td>${winRate}%</td>`;
+  });
+}
+
+// Profit chart
+function renderChart(filteredTrades) {
+  const ctx = document.getElementById('profitChart').getContext('2d');
+  const labels = filteredTrades.map(t => t.date);
+  const data = filteredTrades.map(t => t.exit - t.entry);
+
+  if(window.profitChart) window.profitChart.destroy();
+
+  window.profitChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'Profit/Loss', data,
+      borderColor: 'green', backgroundColor: 'rgba(0,128,0,0.1)', fill: true, tension: 0.3
+    }]},
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+}
+
+// Initial setup
+updateFilters();
+renderTrades();
+</script>
+</body>
+</html>
