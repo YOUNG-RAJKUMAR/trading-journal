@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Ledger Pro // V3.0 Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #05070a; --glass: rgba(15, 20, 30, 0.95); --border: rgba(255, 255, 255, 0.1);
+            --primary: #00fff0; --negative: #ff3366; --positive: #00ff88; --text: #e0e6ed;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 50px; }
+        .app-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .card { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        h1, h3 { font-family: 'Orbitron'; color: var(--primary); text-transform: uppercase; margin-top: 0; letter-spacing: 1px; }
+
+        /* Multi-Row Stats Grid */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--glass); border: 1px solid var(--border); border-top: 3px solid var(--primary); padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-label { font-size: 0.65rem; color: var(--primary); text-transform: uppercase; font-weight: 600; }
+        .stat-val { display: block; font-family: 'Orbitron'; font-size: 1.2rem; margin-top: 5px; }
+
+        /* Form Layout */
+        .trade-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+        input, select, button { background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 6px; font-size: 0.8rem; }
+        input:focus { border-color: var(--primary); outline: none; }
+        .btn-log { background: var(--primary); color: #000; font-weight: bold; cursor: pointer; border: none; font-family: 'Orbitron'; }
+
+        /* Analytics Grid */
+        .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .chart-container { height: 300px; position: relative; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { font-family: 'Orbitron'; color: var(--primary); padding: 12px; border-bottom: 2px solid var(--primary); font-size: 0.65rem; }
+        td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.8rem; text-align: center; }
+        tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h1>NEON_LEDGER // COMMAND_CENTER_V3</h1>
+        <button onclick="ui.exportData()" style="padding:5px 15px; cursor:pointer;">JSON BACKUP</button>
+    </header>
+
+    <div class="stats-row">
+        <div class="stat-card"><span class="stat-label">Profit Factor</span><span id="s-pf" class="stat-val">0.00</span></div>
+        <div class="stat-card"><span class="stat-label">Gross Profit</span><span id="s-gp" class="stat-val" style="color:var(--positive)">$0</span></div>
+        <div class="stat-card"><span class="stat-label">Gross Loss</span><span id="s-gl" class="stat-val" style="color:var(--negative)">$0</span></div>
+        <div class="stat-card"><span class="stat-label">Avg Win/Loss</span><span id="s-awl" class="stat-val">$0 / $0</span></div>
+        <div class="stat-card"><span class="stat-label">Avg R:R</span><span id="s-arr" class="stat-val">1:0.00</span></div>
+        <div class="stat-card"><span class="stat-label">Avg Duration</span><span id="s-dur" class="stat-val">0m</span></div>
+    </div>
+
+    <div class="card">
+        <h3>Execution Engine</h3>
+        <div class="trade-form">
+            <select id="t-asset"><option value="100000">Forex</option><option value="1000">Gold</option><option value="10">Indices/Crypto</option></select>
+            <select id="t-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>
+            <input type="text" id="t-symbol" placeholder="SYMBOL">
+            <input type="number" id="t-lots" placeholder="LOTS" step="0.01">
+            <input type="number" id="t-entry" placeholder="ENTRY">
+            <input type="number" id="t-sl" placeholder="STOP LOSS">
+            <input type="number" id="t-tp" placeholder="TAKE PROFIT">
+            <input type="number" id="t-exit" placeholder="EXIT">
+            <select id="t-session">
+                <option value="ASIAN">Asian Session</option>
+                <option value="LONDON">London Session</option>
+                <option value="NY">New York Session</option>
+            </select>
+            <input type="datetime-local" id="t-start" title="Entry Time">
+            <input type="datetime-local" id="t-end" title="Exit Time">
+            <button onclick="ui.handleNewTrade()" class="btn-log">SAVE EXECUTION</button>
+        </div>
+    </div>
+
+    <div class="analytics-grid">
+        <div class="card chart-container"><canvas id="equityChart"></canvas></div>
+        <div class="card chart-container"><canvas id="pieChart"></canvas></div>
+    </div>
+
+    <div class="card" style="text-align:center;">
+        <span class="stat-label">Largest Winning Instrument:</span>
+        <span id="s-best-inst" class="stat-val" style="color:var(--positive)">---</span>
+    </div>
+
+    <div class="card" style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>DATE</th>
+                    <th>SESSION</th>
+                    <th>SYMBOL</th>
+                    <th>SIDE</th>
+                    <th>P/L ($)</th>
+                    <th>DURATION</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody id="tradeBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const JournalStore = {
+    key: 'neon_v3_final',
+    fetch: () => JSON.parse(localStorage.getItem(JournalStore.key)) || [],
+    save: (d) => localStorage.setItem(JournalStore.key, JSON.stringify(d))
+};
+
+const ui = {
+    equityChart: null, pieChart: null,
+
+    handleNewTrade() {
+        const side = document.getElementById('t-side').value;
+        const entry = parseFloat(document.getElementById('t-entry').value);
+        const exit = parseFloat(document.getElementById('t-exit').value);
+        const lots = parseFloat(document.getElementById('t-lots').value);
+        const multiplier = parseFloat(document.getElementById('t-asset').value);
+        const start = new Date(document.getElementById('t-start').value);
+        const end = new Date(document.getElementById('t-end').value);
+        
+        const durationMin = Math.round((end - start) / 60000);
+        const profit = (exit - entry) * lots * multiplier * (side === 'BUY' ? 1 : -1);
+        const risk = Math.abs(entry - (parseFloat(document.getElementById('t-sl').value) || entry)) * lots * multiplier;
+
+        const trade = {
+            id: Date.now(), symbol: document.getElementById('t-symbol').value.toUpperCase(),
+            side, profit, risk, duration: durationMin > 0 ? durationMin : 0,
+            session: document.getElementById('t-session').value,
+            date: new Date().toLocaleDateString()
+        };
+
+        const data = JournalStore.fetch();
+        data.push(trade);
+        JournalStore.save(data);
+        this.renderAll();
+    },
+
+    renderAll() {
+        const trades = JournalStore.fetch();
+        const body = document.getElementById('tradeBody');
+        body.innerHTML = '';
+
+        let gProf = 0, gLoss = 0, winCount = 0, lossCount = 0, totalRR = 0, totalDur = 0;
+        let cumulative = [], equity = 0;
+        let instMap = {};
+
+        trades.forEach(t => {
+            equity += t.profit;
+            cumulative.push(equity);
+            totalDur += t.duration;
+            if(t.profit > 0) { gProf += t.profit; winCount++; } else { gLoss += Math.abs(t.profit); lossCount++; }
+            totalRR += t.risk > 0 ? (Math.abs(t.profit) / t.risk) : 0;
+            
+            instMap[t.symbol] = (instMap[t.symbol] || 0) + t.profit;
+
+            body.innerHTML += `<tr>
+                <td>${t.date}</td>
+                <td><small>${t.session}</small></td>
+                <td><b>${t.symbol}</b></td>
+                <td style="color:${t.side === 'BUY' ? 'var(--positive)' : 'var(--negative)'}">${t.side}</td>
+                <td style="color:${t.profit >= 0 ? 'var(--positive)' : 'var(--negative)'}">$${t.profit.toFixed(2)}</td>
+                <td>${t.duration}m</td>
+                <td><button onclick="ui.deleteTrade(${t.id})">DEL</button></td>
+            </tr>`;
+        });
+
+        // Dashboard Calcs
+        document.getElementById('s-pf').innerText = gLoss > 0 ? (gProf / gLoss).toFixed(2) : gProf.toFixed(2);
+        document.getElementById('s-gp').innerText = `$${gProf.toFixed(0)}`;
+        document.getElementById('s-gl').innerText = `$${gLoss.toFixed(0)}`;
+        document.getElementById('s-awl').innerText = `$${(winCount ? gProf/winCount : 0).toFixed(0)} / $${(lossCount ? gLoss/lossCount : 0).toFixed(0)}`;
+        document.getElementById('s-arr').innerText = `1:${(trades.length ? totalRR/trades.length : 0).toFixed(2)}`;
+        document.getElementById('s-dur').innerText = `${(trades.length ? totalDur/trades.length : 0).toFixed(0)}m`;
+
+        // Best Instrument
+        const best = Object.entries(instMap).sort((a,b) => b[1] - a[1])[0];
+        document.getElementById('s-best-inst').innerText = best ? `${best[0]} (+$${best[1].toFixed(2)})` : "---";
+
+        this.updateCharts(cumulative, trades.map(t => t.date), winCount, lossCount);
+    },
+
+    updateCharts(eqData, labels, wins, losses) {
+        if(this.equityChart) this.equityChart.destroy();
+        if(this.pieChart) this.pieChart.destroy();
+
+        this.equityChart = new Chart(document.getElementById('equityChart'), {
+            type: 'line',
+            data: { labels, datasets: [{ label: 'Equity', data: eqData, borderColor: '#00fff0', fill: true, backgroundColor: 'rgba(0,255,240,0.05)' }] },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+
+        this.pieChart = new Chart(document.getElementById('pieChart'), {
+            type: 'doughnut',
+            data: { labels: ['Wins', 'Losses'], datasets: [{ data: [wins, losses], backgroundColor: ['#00ff88', '#ff3366'], borderWidth: 0 }] },
+            options: { maintainAspectRatio: false }
+        });
+    },
+
+    exportData() {
+        const a = document.createElement('a');
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(localStorage.getItem(JournalStore.key));
+        a.download = "neon_ledger_v3_backup.json";
+        a.click();
+    },
+
+    deleteTrade(id) { JournalStore.save(JournalStore.fetch().filter(t => t.id !== id)); this.renderAll(); }
+};
+
+window.onload = () => ui.init();
+</script>
+</body>
+</html>
