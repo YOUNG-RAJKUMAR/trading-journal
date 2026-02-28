@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ledger Pro // Admin Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg: #000000; --surface: #0a0a0a; --border: #222222;
+            --primary: #ffffff; --negative: #ff4444; --positive: #44ff88; 
+            --text: #cccccc; --text-light: #ffffff; --admin: #ffcc00;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; -webkit-font-smoothing: antialiased; }
+        
+        /* LOGIN OVERLAY */
+        #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: var(--surface); border: 1px solid var(--border); padding: 40px; width: 100%; max-width: 350px; text-align: center; }
+        .login-input { width: 100%; margin-bottom: 15px; box-sizing: border-box; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; font-family: inherit; }
+
+        /* APP LAYOUT */
+        .app-container { max-width: 1450px; margin: 0 auto; padding: 40px 20px; display: none; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .header-title { font-weight: 300; font-size: 1.2rem; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; }
+        .btn-action { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 15px; font-size: 0.7rem; cursor: pointer; text-transform: uppercase; margin-left: 5px; }
+        
+        /* TABS */
+        .tab-nav { display: flex; gap: 20px; margin-bottom: 30px; border-bottom: 1px solid var(--border); }
+        .tab-btn { background: transparent; border: none; color: var(--text); padding: 10px 0; cursor: pointer; font-size: 0.8rem; text-transform: uppercase; opacity: 0.5; }
+        .tab-btn.active { opacity: 1; border-bottom: 2px solid var(--primary); color: var(--text-light); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* UI ELEMENTS */
+        .card { background: var(--surface); border: 1px solid var(--border); padding: 25px; margin-bottom: 25px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+        input, select, textarea, button { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; font-size: 0.8rem; }
+        .save-btn { background: #fff; color: #000; font-weight: 600; grid-column: span 2; cursor: pointer; border: none; padding: 15px; text-transform: uppercase; }
+        
+        /* TABLE */
+        .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th { color: #666; font-size: 0.65rem; text-transform: uppercase; padding: 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        td { padding: 15px; font-size: 0.8rem; border-bottom: 1px solid var(--border); }
+        .img-preview { width: 40px; height: 30px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
+        .img-preview:hover { transform: scale(6); position: relative; z-index: 100; border: 1px solid #fff; }
+
+        /* CALENDAR */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); }
+        .cal-day { background: var(--surface); min-height: 80px; padding: 10px; }
+        .cal-day.profit { border-top: 3px solid var(--positive); }
+        .cal-day.loss { border-top: 3px solid var(--negative); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div class="login-card">
+        <h2 style="font-weight:300; letter-spacing:3px;">IDENTITY CHECK</h2>
+        <input type="text" id="user-input" class="login-input" placeholder="USERNAME">
+        <input type="password" id="pass-input" class="login-input" placeholder="PASSWORD">
+        <button onclick="auth.login()" class="save-btn" style="width:100%;" id="loginBtn">ACCESS LEDGER</button>
+        <p id="login-err" style="color:var(--negative); font-size:0.7rem; margin-top:15px; display:none;">Invalid Credentials</p>
+    </div>
+</div>
+
+<div class="app-container" id="main-content">
+    <header class="header-top">
+        <h1 class="header-title">TERMINAL // <span id="display-user"></span></h1>
+        <div>
+            <button id="admin-btn" class="btn-action" style="display:none; background:var(--admin); color:#000;" onclick="ui.switchTab('admin')">Admin Panel</button>
+            <button class="btn-action" onclick="ui.undoLast()">Undo</button>
+            <button class="btn-action" style="background:var(--negative); color:#fff;" onclick="ui.resetCloud()">Reset Cloud</button>
+            <button class="btn-action" onclick="location.reload()">Logout</button>
+        </div>
+    </header>
+
+    <nav class="tab-nav">
+        <button class="tab-btn active" id="btn-journal" onclick="ui.switchTab('journal')">Journal</button>
+        <button class="tab-btn" id="btn-calendar" onclick="ui.switchTab('calendar')">Calendar</button>
+        <button class="tab-btn" id="btn-analytics" onclick="ui.switchTab('analytics')">Analytics</button>
+    </nav>
+
+    <div id="tab-journal" class="tab-content active">
+        <div class="card">
+            <div class="form-grid">
+                <input type="date" id="t-date">
+                <input type="text" id="t-symbol" placeholder="SYMBOL (e.g. XAUUSD)">
+                <select id="t-asset"><option value="100000">Forex</option><option value="1000">Gold</option><option value="10">Indices</option></select>
+                <input type="number" id="t-lots" placeholder="LOTS" step="0.01">
+                <select id="t-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>
+                <input type="number" id="t-entry" placeholder="ENTRY">
+                <input type="number" id="t-exit" placeholder="EXIT">
+                <input type="file" id="t-img" accept="image/*" style="font-size:0.6rem">
+                <textarea id="t-notes" placeholder="TRADE NOTES..."></textarea>
+                <button onclick="ui.handleNewTrade()" class="save-btn" id="saveBtn">SYNC TO CLOUD</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>Profit ($)</th><th>Media</th></tr></thead>
+                <tbody id="tradeBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-calendar" class="tab-content">
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
+    <div id="tab-analytics" class="tab-content">
+        <div class="card"><canvas id="equityChart"></canvas></div>
+    </div>
+
+    <div id="tab-admin" class="tab-content">
+        <div class="card">
+            <h2 style="color:var(--admin); font-weight:300;">GLOBAL CLIENT OVERVIEW</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>User</th><th>Total Trades</th><th>Net P/L</th><th>Last Entry</th></tr></thead>
+                    <tbody id="adminBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, deleteDoc, doc, where, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBxnZaZYUFSmN8TY-_JXsTOq5hqf3rMkaI",
+        authDomain: "rk-journaling-trades.firebaseapp.com",
+        projectId: "rk-journaling-trades",
+        storageBucket: "rk-journaling-trades.firebasestorage.app",
+        messagingSenderId: "769348692241",
+        appId: "1:769348692241:web:804455307a5fedd82f84b0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const tradesCol = collection(db, "trades");
+
+    let currentUser = null;
+
+    window.auth = {
+        async login() {
+            const u = document.getElementById('user-input').value.trim();
+            const p = document.getElementById('pass-input').value;
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = "VERIFYING...";
+
+            try {
+                const userRef = doc(db, "users", u);
+                const snap = await getDoc(userRef);
+                if (snap.exists() && snap.data().password === p) {
+                    currentUser = u;
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('main-content').style.display = 'block';
+                    document.getElementById('display-user').innerText = u;
+                    if(u === "RAJKUMARBITALU") document.getElementById('admin-btn').style.display = 'inline-block';
+                    ui.init();
+                } else {
+                    document.getElementById('login-err').style.display = 'block';
+                    btn.innerText = "ACCESS LEDGER";
+                }
+            } catch(e) { alert("Auth Error: Check Internet Connection"); }
+        }
+    };
+
+    window.ui = {
+        chart: null,
+        async init() {
+            document.getElementById('t-date').valueAsDate = new Date();
+            await this.renderAll();
+        },
+        async switchTab(id) {
+            document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${id}`).classList.add('active');
+            if(document.getElementById(`btn-${id}`)) document.getElementById(`btn-${id}`).classList.add('active');
+            if(id === 'admin') this.renderAdmin(); else this.renderAll();
+        },
+        async handleNewTrade() {
+            const btn = document.getElementById('saveBtn'); btn.innerText = "UPLOADING...";
+            const file = document.getElementById('t-img').files[0];
+            let imgData = "";
+            if(file) {
+                const reader = new FileReader();
+                imgData = await new Promise(r => { reader.readAsDataURL(file); reader.onload = e => r(e.target.result); });
+            }
+
+            const entry = parseFloat(document.getElementById('t-entry').value);
+            const exit = parseFloat(document.getElementById('t-exit').value);
+            const lots = parseFloat(document.getElementById('t-lots').value);
+            const mult = parseFloat(document.getElementById('t-asset').value);
+            const side = document.getElementById('t-side').value;
+
+            const trade = {
+                user_id: currentUser,
+                trade_date: document.getElementById('t-date').value,
+                symbol: document.getElementById('t-symbol').value.toUpperCase(),
+                profit: (exit - entry) * lots * mult * (side === 'BUY' ? 1 : -1),
+                side, lots, img: imgData, timestamp: Date.now()
+            };
+
+            await addDoc(tradesCol, trade);
+            btn.innerText = "SYNC TO CLOUD";
+            this.renderAll();
+        },
+        async renderAll() {
+            const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("trade_date", "desc"));
+            const snap = await getDocs(q);
+            const trades = snap.docs.map(d => d.data());
+            
+            const body = document.getElementById('tradeBody'); body.innerHTML = '';
+            let cumulative = [0], labels = ['Start'];
+
+            trades.reverse().forEach(t => {
+                cumulative.push(cumulative[cumulative.length-1] + t.profit);
+                labels.push(t.trade_date);
+                body.insertAdjacentHTML('afterbegin', `<tr>
+                    <td>${t.trade_date}</td><td><b>${t.symbol}</b></td><td>${t.lots}</td>
+                    <td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td>
+                    <td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td>
+                    <td>${t.img ? `<img src="${t.img}" class="img-preview">` : '—'}</td>
+                </tr>`);
+            });
+
+            this.updateChart(cumulative, labels);
+            this.renderCalendar(trades);
+        },
+        renderCalendar(trades) {
+            const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
+            const today = new Date();
+            const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+            for(let i=1; i<=daysInMonth; i++) {
+                const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                const dayTrades = trades.filter(t => t.trade_date === dateStr);
+                const dayPL = dayTrades.reduce((a,b) => a + b.profit, 0);
+                grid.innerHTML += `<div class="cal-day ${dayPL>0?'profit':dayPL<0?'loss':''}"><b>${i}</b><br><small>$${dayPL.toFixed(0)}</small></div>`;
+            }
+        },
+        updateChart(data, labels) {
+            const ctx = document.getElementById('equityChart').getContext('2d');
+            if(this.chart) this.chart.destroy();
+            this.chart = new Chart(ctx, { type:'line', data:{labels, datasets:[{data, borderColor:'#fff', tension:0.2, fill:true, backgroundColor:'rgba(255,255,255,0.05)'}]}, options:{responsive:true, plugins:{legend:{display:false}}}});
+        },
+        async renderAdmin() {
+            const body = document.getElementById('adminBody'); body.innerHTML = 'Loading...';
+            const snap = await getDocs(tradesCol);
+            const all = snap.docs.map(d => d.data());
+            const users = {};
+            all.forEach(t => {
+                if(!users[t.user_id]) users[t.user_id] = { count:0, pl:0, last:t.trade_date };
+                users[t.user_id].count++;
+                users[t.user_id].pl += t.profit;
+                if(t.trade_date > users[t.user_id].last) users[t.user_id].last = t.trade_date;
+            });
+            body.innerHTML = '';
+            for(let u in users) {
+                body.innerHTML += `<tr><td>${u}</td><td>${users[u].count}</td><td style="color:${users[u].pl>=0?'var(--positive)':'var(--negative)'}">$${users[u].pl.toFixed(2)}</td><td>${users[u].last}</td></tr>`;
+            }
+        },
+        async undoLast() {
+            const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("timestamp", "desc"), limit(1));
+            const snap = await getDocs(q);
+            if(!snap.empty) await deleteDoc(doc(db, "trades", snap.docs[0].id));
+            this.renderAll();
+        },
+        async resetCloud() {
+            if(confirm("DANGER: WIPE ALL CLOUD DATA?")) {
+                const q = query(tradesCol, where("user_id", "==", currentUser));
+                const snap = await getDocs(q);
+                const batch = writeBatch(db);
+                snap.docs.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+                this.renderAll();
+            }
+        }
+    };
+</script>
+</body>
+</html>
