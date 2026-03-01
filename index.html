@@ -34,10 +34,13 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
 
-        /* FORM */
+        /* FORM & SEARCH */
         .card { background: var(--surface); border: 1px solid var(--border); padding: 25px; margin-bottom: 25px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
         input, select, textarea, button { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; font-size: 0.8rem; font-family: inherit; }
+        .search-container { margin-bottom: 15px; display: flex; gap: 10px; }
+        .search-input { flex: 1; background: var(--surface); border: 1px solid var(--border); padding: 12px; color: #fff; font-size: 0.8rem; }
+        
         textarea { grid-column: span 2; height: 60px; resize: none; }
         .hit-btn { padding: 5px; font-size: 0.65rem; cursor: pointer; flex: 1; margin-top: 5px; }
         .save-btn { background: #fff; color: #000; font-weight: 600; grid-column: span 2; cursor: pointer; border: none; padding: 15px; }
@@ -61,13 +64,13 @@
         .stat-card { background: var(--surface); padding: 20px; }
         .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         .stat-val { display: block; font-size: 1.4rem; color: #fff; margin-top: 5px; font-weight: 300; }
+        .stat-sub { font-size: 0.65rem; color: #666; margin-top: 4px; display: block; }
 
         .img-preview { width: 45px; height: 32px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
         .img-preview:hover { transform: scale(6); position: relative; z-index: 1000; border-color: #fff; }
 
-        /* PDF EXPORT STYLING */
         @media print {
-            .tab-nav, .btn-action, .card:has(.form-grid), #login-overlay { display: none !important; }
+            .tab-nav, .btn-action, .card:has(.form-grid), .search-container, #login-overlay { display: none !important; }
             .tab-content { display: block !important; margin-bottom: 50px; page-break-after: always; }
             .app-container { display: block !important; padding: 0; }
             body { background: #000; }
@@ -131,6 +134,10 @@
                 <button onclick="ui.handleNewTrade()" class="save-btn" id="saveBtn">Log Execution</button>
             </div>
         </div>
+
+        <div class="search-container no-print">
+            <input type="text" id="trade-search" class="search-input" placeholder="Search by Instrument (e.g. GOLD, XAUUSD, NAS100)..." oninput="ui.filterTrades()">
+        </div>
         
         <div class="table-wrap">
             <table id="trade-table">
@@ -155,9 +162,24 @@
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
             <div class="side-stats">
-                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Daily P/L</span><div id="side-today" class="stat-val">$0</div><div id="wr-today" style="font-size:0.7rem">0% WR</div></div>
-                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Weekly P/L</span><div id="side-week" class="stat-val">$0</div><div id="wr-week" style="font-size:0.7rem">0% WR</div></div>
-                <div class="stat-card"><span class="stat-label">Monthly P/L</span><div id="side-month" class="stat-val">$0</div><div id="wr-month" style="font-size:0.7rem">0% WR</div></div>
+                <div class="stat-card" style="margin-bottom:15px">
+                    <span class="stat-label">Daily P/L</span>
+                    <div id="side-today" class="stat-val">$0</div>
+                    <div id="wr-today" style="font-size:0.7rem">0% WR</div>
+                    <span class="stat-sub" id="count-today">Total Trades: 0</span>
+                </div>
+                <div class="stat-card" style="margin-bottom:15px">
+                    <span class="stat-label">Weekly P/L</span>
+                    <div id="side-week" class="stat-val">$0</div>
+                    <div id="wr-week" style="font-size:0.7rem">0% WR</div>
+                    <span class="stat-sub" id="count-week">Total Trades: 0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Monthly P/L</span>
+                    <div id="side-month" class="stat-val">$0</div>
+                    <div id="wr-month" style="font-size:0.7rem">0% WR</div>
+                    <span class="stat-sub" id="count-month">Total Trades: 0</span>
+                </div>
             </div>
         </div>
     </div>
@@ -223,6 +245,24 @@
         quickHit(type) {
             document.getElementById('t-exit').value = type === 'TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value;
         },
+        filterTrades() {
+            const query = document.getElementById('trade-search').value.toUpperCase();
+            const filtered = cachedTrades.filter(t => t.symbol.includes(query));
+            this.updateTradeTable(filtered);
+        },
+        updateTradeTable(trades) {
+            const body = document.getElementById('tradeBody');
+            body.innerHTML = '';
+            trades.forEach(t => {
+                body.insertAdjacentHTML('afterbegin', `
+                    <tr>
+                        <td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td>
+                        <td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td>
+                        <td>${t.session}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td>
+                        <td>${t.duration}m</td><td>${t.img ? `<img src="${t.img}" class="img-preview">` : ''}<div style="font-size:0.6rem; color:#666">${t.notes}</div></td>
+                    </tr>`);
+            });
+        },
         async handleNewTrade() {
             const btn = document.getElementById('saveBtn'); btn.innerText = "Syncing...";
             const file = document.getElementById('t-img').files[0];
@@ -261,9 +301,9 @@
             const trades = snap.docs.map(d => ({...d.data(), id: d.id}));
             cachedTrades = trades;
 
-            const body = document.getElementById('tradeBody'); body.innerHTML = '';
-            let cumulative = [0], gP = 0, gL = 0, wins = 0, totalRR = 0, sess = {}, inst = {};
+            this.updateTradeTable(trades);
 
+            let cumulative = [0], gP = 0, gL = 0, wins = 0, totalRR = 0, sess = {}, inst = {};
             [...trades].reverse().forEach(t => {
                 const rr = (t.risk > 0) ? (Math.abs(t.profit) / t.risk) : 0;
                 if(t.profit > 0) { gP += t.profit; wins++; } else gL += Math.abs(t.profit);
@@ -271,14 +311,6 @@
                 totalRR += rr;
                 sess[t.session] = (sess[t.session] || 0) + t.profit;
                 inst[t.symbol] = (inst[t.symbol] || 0) + t.profit;
-
-                body.insertAdjacentHTML('afterbegin', `
-                    <tr>
-                        <td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td>
-                        <td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td>
-                        <td>${t.session}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td>
-                        <td>${t.duration}m</td><td>${t.img ? `<img src="${t.img}" class="img-preview">` : ''}<div style="font-size:0.6rem; color:#666">${t.notes}</div></td>
-                    </tr>`);
             });
 
             document.getElementById('s-pf').innerText = gL > 0 ? (gP/gL).toFixed(2) : gP.toFixed(2);
@@ -301,16 +333,23 @@
             const day = now.getDay(), diff = now.getDate() - day + (day === 0 ? -6 : 1);
             const mondayStr = new Date(new Date(now).setDate(diff)).toISOString().split('T')[0];
             
-            const calc = (list) => ({ pnl: list.reduce((s,t)=>s+t.profit, 0), wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0 });
-            const set = (id, wrId, d) => {
+            const calc = (list) => ({ 
+                pnl: list.reduce((s,t)=>s+t.profit, 0), 
+                wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0,
+                count: list.length
+            });
+
+            const set = (id, wrId, countId, d) => {
                 const el = document.getElementById(id);
                 el.innerText = (d.pnl>=0?'+$':'$')+d.pnl.toFixed(0);
                 el.style.color = d.pnl>=0?'var(--positive)':'var(--negative)';
                 document.getElementById(wrId).innerText = d.wr+'% Win Rate';
+                document.getElementById(countId).innerText = `Total Trades: ${d.count}`;
             };
-            set('side-today', 'wr-today', calc(trades.filter(t=>t.date===todayStr)));
-            set('side-week', 'wr-week', calc(trades.filter(t=>t.date >= mondayStr)));
-            set('side-month', 'wr-month', calc(trades.filter(t=>new Date(t.date).getMonth()===now.getMonth())));
+
+            set('side-today', 'wr-today', 'count-today', calc(trades.filter(t=>t.date===todayStr)));
+            set('side-week', 'wr-week', 'count-week', calc(trades.filter(t=>t.date >= mondayStr)));
+            set('side-month', 'wr-month', 'count-month', calc(trades.filter(t=>new Date(t.date).getMonth()===now.getMonth())));
         },
         renderCalendar() {
             const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
@@ -351,8 +390,6 @@
         exportPDF() {
             const element = document.getElementById('main-content');
             const tabs = document.querySelectorAll('.tab-content');
-            
-            // Temporary reveal for capture
             tabs.forEach(t => t.style.display = 'block');
             document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
 
@@ -365,7 +402,6 @@
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
-                // Restore UI
                 tabs.forEach(t => t.style.display = '');
                 document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
                 this.switchTab('journal');
