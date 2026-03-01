@@ -25,8 +25,7 @@
         /* HEADER */
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
         .header-title { font-weight: 300; font-size: 1.5rem; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; }
-        .btn-action { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 15px; font-size: 0.7rem; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .btn-action:hover { background: #1a1a1a; color: #fff; }
+        .btn-action { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 15px; font-size: 0.7rem; cursor: pointer; text-transform: uppercase; }
 
         /* TABS */
         .tab-nav { display: flex; gap: 20px; margin-bottom: 30px; border-bottom: 1px solid var(--border); }
@@ -35,20 +34,18 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
 
-        /* FORM */
+        /* FORM & CARDS */
         .card { background: var(--surface); border: 1px solid var(--border); padding: 25px; margin-bottom: 25px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
         input, select, textarea, button { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; font-size: 0.8rem; font-family: inherit; }
         textarea { grid-column: span 2; height: 60px; resize: none; }
-        .hit-btn { padding: 5px; font-size: 0.65rem; cursor: pointer; flex: 1; margin-top: 5px; }
         .save-btn { background: #fff; color: #000; font-weight: 600; grid-column: span 2; cursor: pointer; border: none; padding: 15px; }
 
-        /* TABLE */
+        /* TABLES */
         .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; min-width: 1100px; }
         th { color: #666; font-size: 0.65rem; text-transform: uppercase; padding: 15px; text-align: left; border-bottom: 1px solid var(--border); background: #050505; }
         td { padding: 15px; font-size: 0.8rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        .lot-badge { background: #1a1a1a; padding: 2px 6px; border-radius: 3px; font-weight: 600; color: #fff; border: 1px solid #333; }
         
         /* CALENDAR */
         .calendar-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
@@ -57,23 +54,25 @@
         .cal-day.profit { border-top-color: var(--positive); }
         .cal-day.loss { border-top-color: var(--negative); }
 
-        /* ANALYTICS */
+        /* STATS */
         .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 30px; }
         .stat-card { background: var(--surface); padding: 20px; }
         .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         .stat-val { display: block; font-size: 1.4rem; color: #fff; margin-top: 5px; font-weight: 300; }
 
-        .img-preview { width: 45px; height: 32px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
-        .img-preview:hover { transform: scale(6); position: relative; z-index: 1000; border-color: #fff; }
+        .img-preview { width: 45px; height: 32px; object-fit: cover; border: 1px solid var(--border); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
 
-        /* PRINT / PDF OVERRIDES */
-        @media print {
-            .tab-content { display: block !important; opacity: 1 !important; page-break-after: always; }
-            .card:has(.form-grid), .btn-action, .tab-nav { display: none !important; }
-            body { background: #000; }
-            .app-container { display: block !important; }
+        /* PDF REPORT SPECIFIC STYLING (HIDDEN BY DEFAULT) */
+        #pdf-report { 
+            position: absolute; 
+            left: -9999px; 
+            top: 0; 
+            width: 800px; /* Standard A4ish width */
+            background: #000; 
+            color: #fff; 
+            padding: 40px; 
         }
     </style>
 </head>
@@ -92,10 +91,10 @@
 <div class="app-container" id="main-content">
     <header class="header-top">
         <h1 class="header-title">JOURNAL // <span id="display-user"></span></h1>
-        <div id="header-actions" style="display:flex; gap:10px">
+        <div style="display:flex; gap:10px">
             <button class="btn-action" onclick="ui.undoLast()">Undo</button>
             <button class="btn-action" onclick="ui.resetAll()">Reset Cloud</button>
-            <button class="btn-action" style="background:#fff; color:#000" onclick="ui.exportPDF()">Export PDF</button>
+            <button class="btn-action" style="background:#fff; color:#000" onclick="ui.exportPDF()">Export PDF Report</button>
             <button class="btn-action" onclick="location.reload()">Logout</button>
         </div>
     </header>
@@ -120,19 +119,12 @@
                 <input type="number" id="t-entry" placeholder="Entry Price">
                 <input type="number" id="t-sl" placeholder="Stop Loss">
                 <input type="number" id="t-tp" placeholder="Take Profit">
-                <div style="display:flex; flex-direction:column;">
-                    <input type="number" id="t-exit" placeholder="Exit Price">
-                    <div style="display:flex; gap:5px;">
-                        <button class="hit-btn" style="color:var(--positive)" onclick="ui.quickHit('TP')">TP Hit</button>
-                        <button class="hit-btn" style="color:var(--negative)" onclick="ui.quickHit('SL')">SL Hit</button>
-                    </div>
-                </div>
+                <input type="number" id="t-exit" placeholder="Exit Price">
                 <input type="file" id="t-img" accept="image/*" style="font-size:0.6rem">
                 <textarea id="t-notes" placeholder="Notes..."></textarea>
                 <button onclick="ui.handleNewTrade()" class="save-btn" id="saveBtn">Log Execution</button>
             </div>
         </div>
-        
         <div class="table-wrap">
             <table>
                 <thead>
@@ -174,22 +166,58 @@
         <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
             <div class="card"><h3>Equity Curve</h3><canvas id="equityChart"></canvas></div>
             <div class="card">
-                <h3>Top Performers</h3>
-                <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1rem; margin-bottom:15px">---</div>
-                <div class="stat-label">Best Session</div><div id="s-best-sess" class="stat-val" style="font-size:1rem; color:var(--positive); margin-bottom:15px">---</div>
-                <div style="margin-top:20px">
-                    <span class="stat-label">Win/Loss Ratio</span>
-                    <canvas id="pieChart"></canvas>
-                </div>
+                <h3>Composition</h3>
+                <canvas id="pieChart"></canvas>
             </div>
         </div>
     </div>
+</div>
+
+<div id="pdf-report">
+    <div style="border-bottom: 2px solid #222; padding-bottom: 20px; margin-bottom: 30px;">
+        <h1 style="letter-spacing: 5px; margin: 0;">OFFICIAL TRADING REPORT</h1>
+        <p style="color: #666; font-size: 12px;">GENERATED FOR: <span id="pdf-user-name" style="color: #fff;"></span> | DATE: <span id="pdf-gen-date"></span></p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
+        <div style="background: #111; padding: 15px; border: 1px solid #333;">
+            <span style="font-size: 10px; color: #888; text-transform: uppercase;">Net Return</span>
+            <div id="pdf-net-return" style="font-size: 24px; font-weight: 600;"></div>
+        </div>
+        <div style="background: #111; padding: 15px; border: 1px solid #333;">
+            <span style="font-size: 10px; color: #888; text-transform: uppercase;">Win Efficiency</span>
+            <div id="pdf-win-rate" style="font-size: 24px; font-weight: 600;"></div>
+        </div>
+        <div style="background: #111; padding: 15px; border: 1px solid #333;">
+            <span style="font-size: 10px; color: #888; text-transform: uppercase;">Total Executions</span>
+            <div id="pdf-total-trades" style="font-size: 24px; font-weight: 600;"></div>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <h3 style="font-size: 10px; color: #888; text-transform: uppercase; border-bottom: 1px solid #222; padding-bottom: 5px;">Performance Curve</h3>
+        <div id="pdf-chart-slot" style="margin-top: 20px;"></div>
+    </div>
+
+    <h3 style="font-size: 10px; color: #888; text-transform: uppercase; border-bottom: 1px solid #222; padding-bottom: 5px;">Recent Execution Log</h3>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px;">
+        <thead>
+            <tr style="text-align: left; background: #0a0a0a;">
+                <th style="padding: 8px; border-bottom: 1px solid #333;">Date</th>
+                <th style="padding: 8px; border-bottom: 1px solid #333;">Symbol</th>
+                <th style="padding: 8px; border-bottom: 1px solid #333;">Result ($)</th>
+                <th style="padding: 8px; border-bottom: 1px solid #333;">Notes</th>
+            </tr>
+        </thead>
+        <tbody id="pdf-table-body"></tbody>
+    </table>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, deleteDoc, doc, where, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyBxnZaZYUFSmN8TY-_JXsTOq5hqf3rMkaI",
         authDomain: "rk-journaling-trades.firebaseapp.com",
@@ -206,12 +234,10 @@
     let currentUser = null;
     let cachedTrades = [];
 
+    // --- AUTH ---
     document.getElementById('loginBtn').onclick = async () => {
         const u = document.getElementById('user-input').value.trim().toUpperCase();
         const p = document.getElementById('pass-input').value;
-        const btn = document.getElementById('loginBtn');
-        btn.innerText = "AUTHENTICATING...";
-
         try {
             const userRef = doc(db, "users", u);
             const snap = await getDoc(userRef);
@@ -221,13 +247,11 @@
                 document.getElementById('main-content').style.display = 'block';
                 document.getElementById('display-user').innerText = u;
                 ui.init();
-            } else {
-                document.getElementById('login-err').style.display = 'block';
-                btn.innerText = "ACCESS JOURNAL";
-            }
-        } catch(e) { alert("Check Connection / Rules"); btn.innerText = "ACCESS JOURNAL"; }
+            } else { alert("Invalid Credentials"); }
+        } catch(e) { alert("Auth Failure"); }
     };
 
+    // --- MAIN UI LOGIC ---
     window.ui = {
         charts: {},
         init() {
@@ -242,40 +266,19 @@
             document.getElementById(`tab-${id}`).classList.add('active');
             document.getElementById(`btn-${id}`).classList.add('active');
         },
-        quickHit(type) {
-            document.getElementById('t-exit').value = type === 'TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value;
-        },
         async handleNewTrade() {
             const btn = document.getElementById('saveBtn'); btn.innerText = "Syncing...";
-            const file = document.getElementById('t-img').files[0];
-            let imgData = "";
-            if(file) {
-                const reader = new FileReader();
-                imgData = await new Promise(r => { reader.readAsDataURL(file); reader.onload = e => r(e.target.result); });
-            }
-            
-            const entry = parseFloat(document.getElementById('t-entry').value), exit = parseFloat(document.getElementById('t-exit').value);
-            const sl = parseFloat(document.getElementById('t-sl').value), lots = parseFloat(document.getElementById('t-lots').value), mult = parseFloat(document.getElementById('t-asset').value);
-            const tStart = document.getElementById('t-start').value, tEnd = document.getElementById('t-end').value;
-            let dur = 0; if(tStart && tEnd) {
-                const [h1, m1] = tStart.split(':'), [h2, m2] = tEnd.split(':');
-                dur = (parseInt(h2)*60 + parseInt(m2)) - (parseInt(h1)*60 + parseInt(m1));
-                if(dur < 0) dur += 1440;
-            }
-
             const trade = {
-                user_id: currentUser,
-                timestamp: Date.now(),
-                symbol: document.getElementById('t-symbol').value.toUpperCase() || 'N/A',
-                lots: lots || 0, side: document.getElementById('t-side').value, session: document.getElementById('t-session').value,
-                profit: (exit - entry) * lots * mult * (document.getElementById('t-side').value === 'BUY' ? 1 : -1),
-                risk: Math.abs(entry - sl) * lots * mult, duration: dur,
-                date: document.getElementById('t-date').value, notes: document.getElementById('t-notes').value, img: imgData
+                user_id: currentUser, timestamp: Date.now(),
+                symbol: document.getElementById('t-symbol').value.toUpperCase(),
+                lots: parseFloat(document.getElementById('t-lots').value),
+                side: document.getElementById('t-side').value, session: document.getElementById('t-session').value,
+                profit: (parseFloat(document.getElementById('t-exit').value) - parseFloat(document.getElementById('t-entry').value)) * parseFloat(document.getElementById('t-lots').value) * parseFloat(document.getElementById('t-asset').value) * (document.getElementById('t-side').value === 'BUY' ? 1 : -1),
+                risk: Math.abs(parseFloat(document.getElementById('t-entry').value) - parseFloat(document.getElementById('t-sl').value)) * parseFloat(document.getElementById('t-lots').value) * parseFloat(document.getElementById('t-asset').value),
+                date: document.getElementById('t-date').value, notes: document.getElementById('t-notes').value
             };
-            
             await addDoc(tradesCol, trade);
-            btn.innerText = "Log Execution"; 
-            this.renderAll();
+            btn.innerText = "Log Execution"; this.renderAll();
         },
         async renderAll() {
             const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("date", "desc"));
@@ -284,119 +287,106 @@
             cachedTrades = trades;
 
             const body = document.getElementById('tradeBody'); body.innerHTML = '';
-            let cumulative = [0], gP = 0, gL = 0, wins = 0, totalRR = 0, sess = {}, inst = {};
+            let cumulative = [0], wins = 0, gP = 0, gL = 0;
 
             [...trades].reverse().forEach(t => {
-                const rr = (t.risk > 0) ? (Math.abs(t.profit) / t.risk) : 0;
-                if(t.profit > 0) { gP += t.profit; wins++; } else gL += Math.abs(t.profit);
+                if(t.profit > 0) { wins++; gP += t.profit; } else gL += Math.abs(t.profit);
                 cumulative.push(cumulative[cumulative.length-1] + t.profit);
-                totalRR += rr;
-                sess[t.session] = (sess[t.session] || 0) + t.profit;
-                inst[t.symbol] = (inst[t.symbol] || 0) + t.profit;
-
-                body.insertAdjacentHTML('afterbegin', `
-                    <tr>
-                        <td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td>
-                        <td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td>
-                        <td>${t.session}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td>
-                        <td>${t.duration}m</td><td>${t.img ? `<img src="${t.img}" class="img-preview">` : ''}<div style="font-size:0.6rem; color:#666">${t.notes}</div></td>
-                    </tr>`);
+                body.insertAdjacentHTML('afterbegin', `<tr><td>${t.date}</td><td>${t.symbol}</td><td>${t.lots}</td><td>${t.side}</td><td>${t.session}</td><td style="color:${t.profit>=0?'#44ff88':'#ff4444'}">$${t.profit.toFixed(2)}</td><td>--</td><td>${t.notes}</td></tr>`);
             });
 
-            document.getElementById('s-pf').innerText = gL > 0 ? (gP/gL).toFixed(2) : gP.toFixed(2);
             document.getElementById('s-wr').innerText = trades.length ? Math.round((wins/trades.length)*100)+'%' : '0%';
-            document.getElementById('s-arr').innerText = `1:${(trades.length ? totalRR/trades.length : 0).toFixed(1)}`;
-            document.getElementById('s-gp').innerText = `$${gP.toFixed(0)}`;
-            document.getElementById('s-gl').innerText = `-$${gL.toFixed(0)}`;
-
-            const sortedInst = Object.entries(inst).sort((a,b)=>b[1]-a[1]);
-            document.getElementById('s-best-inst').innerText = sortedInst[0] ? `${sortedInst[0][0]} (+$${sortedInst[0][1].toFixed(0)})` : '---';
-            const sortedSess = Object.entries(sess).sort((a,b)=>b[1]-a[1]);
-            document.getElementById('s-best-sess').innerText = sortedSess[0] ? `${sortedSess[0][0]} (+$${sortedSess[0][1].toFixed(0)})` : '---';
-
-            this.updateCharts(cumulative, ['0', ...trades.map(t=>t.date).reverse()], wins, trades.length - wins);
+            document.getElementById('s-pf').innerText = gL > 0 ? (gP/gL).toFixed(2) : '0.00';
+            this.updateCharts(cumulative, wins, trades.length - wins);
             this.renderCalendar();
             this.updateSideStats(trades);
         },
         updateSideStats(trades) {
-            const now = new Date(), todayStr = now.toISOString().split('T')[0];
-            const day = now.getDay(), diff = now.getDate() - day + (day === 0 ? -6 : 1);
-            const mondayStr = new Date(new Date(now).setDate(diff)).toISOString().split('T')[0];
-            
-            const calc = (list) => ({ pnl: list.reduce((s,t)=>s+t.profit, 0), wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0 });
-            const set = (id, wrId, d) => {
-                document.getElementById(id).innerText = (d.pnl>=0?'+$':'$')+d.pnl.toFixed(0);
-                document.getElementById(id).style.color = d.pnl>=0?'var(--positive)':'var(--negative)';
-                document.getElementById(wrId).innerText = d.wr+'% Win Rate';
-            };
-            set('side-today', 'wr-today', calc(trades.filter(t=>t.date===todayStr)));
-            set('side-week', 'wr-week', calc(trades.filter(t=>t.date >= mondayStr)));
-            set('side-month', 'wr-month', calc(trades.filter(t=>new Date(t.date).getMonth()===now.getMonth())));
+            const sum = trades.reduce((s,t) => s + t.profit, 0);
+            document.getElementById('side-month').innerText = (sum >= 0 ? '+$' : '$') + sum.toFixed(0);
+            document.getElementById('side-month').style.color = sum >= 0 ? 'var(--positive)' : 'var(--negative)';
         },
         renderCalendar() {
             const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
             const m = parseInt(document.getElementById('cal-month').value), y = parseInt(document.getElementById('cal-year').value);
-            const days = new Date(y, m + 1, 0).getDate();
-            for (let i = 1; i <= days; i++) {
+            for (let i = 1; i <= 31; i++) {
                 const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 const dayPL = cachedTrades.filter(t => t.date === dStr).reduce((s, t) => s + t.profit, 0);
-                grid.innerHTML += `<div class="cal-day ${dayPL!==0?(dayPL>0?'profit':'loss'):''}"><b>${i}</b>${dayPL!==0?`<div style="font-size:0.7rem; color:${dayPL>0?'var(--positive)':'var(--negative)'}">$${dayPL.toFixed(0)}</div>`:''}</div>`;
+                grid.innerHTML += `<div class="cal-day ${dayPL!==0?(dayPL>0?'profit':'loss'):''}"><b>${i}</b></div>`;
             }
         },
-        updateCharts(data, labels, w, l) {
-            const ctxE = document.getElementById('equityChart').getContext('2d');
+        updateCharts(data, w, l) {
+            const ctxE = document.getElementById('equityChart');
             if(this.charts.equity) this.charts.equity.destroy();
-            this.charts.equity = new Chart(ctxE, { type: 'line', data: { labels, datasets: [{ data, borderColor: '#fff', fill: true, backgroundColor: 'rgba(255,255,255,0.05)', tension: 0.1, pointRadius: 0 }] }, options: { scales: { x: { display: false }, y: { grid: { color: '#111' } } }, plugins: { legend: { display: false } } } });
+            this.charts.equity = new Chart(ctxE, { type: 'line', data: { labels: data.map((_,i)=>i), datasets: [{ data, borderColor: '#fff', fill: true, backgroundColor: 'rgba(255,255,255,0.05)', tension: 0.2 }] }, options: { plugins: { legend: { display: false } } } });
             
-            const ctxP = document.getElementById('pieChart').getContext('2d');
+            const ctxP = document.getElementById('pieChart');
             if(this.charts.pie) this.charts.pie.destroy();
-            this.charts.pie = new Chart(ctxP, { type: 'doughnut', data: { labels: ['Win','Loss'], datasets: [{ data: [w, l], backgroundColor: ['#44ff88', '#ff4444'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#888' } } } } });
+            this.charts.pie = new Chart(ctxP, { type: 'doughnut', data: { labels: ['Win','Loss'], datasets: [{ data: [w, l], backgroundColor: ['#44ff88', '#ff4444'], borderWidth: 0 }] } });
         },
+
+        // --- THE PDF REPORT SYSTEM ---
+        async exportPDF() {
+            const report = document.getElementById('pdf-report');
+            
+            // Populate Hidden Template
+            document.getElementById('pdf-user-name').innerText = currentUser;
+            document.getElementById('pdf-gen-date').innerText = new Date().toLocaleDateString();
+            document.getElementById('pdf-net-return').innerText = document.getElementById('side-month').innerText;
+            document.getElementById('pdf-win-rate').innerText = document.getElementById('s-wr').innerText;
+            document.getElementById('pdf-total-trades').innerText = cachedTrades.length;
+
+            // Capture Dashboard Chart as high-res image
+            const chartImg = this.charts.equity.toBase64Image();
+            document.getElementById('pdf-chart-slot').innerHTML = `<img src="${chartImg}" style="width:100%; border:1px solid #222;">`;
+
+            // Build Report Table
+            const repTable = document.getElementById('pdf-table-body');
+            repTable.innerHTML = '';
+            cachedTrades.slice(0, 15).forEach(t => {
+                repTable.innerHTML += `
+                    <tr style="border-bottom: 1px solid #222;">
+                        <td style="padding: 10px;">${t.date}</td>
+                        <td style="padding: 10px;">${t.symbol}</td>
+                        <td style="padding: 10px; color:${t.profit>=0?'#44ff88':'#ff4444'}">$${t.profit.toFixed(2)}</td>
+                        <td style="padding: 10px; color:#888;">${t.notes || ''}</td>
+                    </tr>`;
+            });
+
+            // Trigger Export
+            report.style.position = 'static';
+            report.style.left = '0';
+            
+            const opt = {
+                margin: 10,
+                filename: `Report_${currentUser}.pdf`,
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 3, backgroundColor: '#000000' },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            try {
+                await html2pdf().set(opt).from(report).save();
+            } finally {
+                report.style.position = 'absolute';
+                report.style.left = '-9999px';
+            }
+        },
+
         async undoLast() {
-            if(!confirm("Delete last entry?")) return;
             const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("timestamp", "desc"), limit(1));
             const snap = await getDocs(q);
             if(!snap.empty) await deleteDoc(doc(db, "trades", snap.docs[0].id));
             this.renderAll();
         },
         async resetAll() {
-            if(confirm("Wipe ALL cloud data for this user?")) {
-                const batch = writeBatch(db);
-                const q = query(tradesCol, where("user_id", "==", currentUser));
-                const snap = await getDocs(q);
-                snap.docs.forEach(d => batch.delete(d.ref));
-                await batch.commit();
-                this.renderAll();
-            }
-        },
-        async exportPDF() {
-            const element = document.getElementById('main-content');
-            const tabs = document.querySelectorAll('.tab-content');
-            const headerBtns = document.getElementById('header-actions');
-            
-            // 1. Prepare for export: Show all sections & Hide buttons
-            tabs.forEach(t => t.style.display = 'block');
-            headerBtns.style.display = 'none';
-
-            const opt = {
-                margin: 10,
-                filename: `Report_${currentUser}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, backgroundColor: '#000000', useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            try {
-                await html2pdf().set(opt).from(element).save();
-            } catch (err) {
-                console.error(err);
-                alert("PDF Generation Failed");
-            } finally {
-                // 2. Restore UI
-                tabs.forEach(t => t.style.display = '');
-                headerBtns.style.display = 'flex';
-                this.switchTab('journal'); // Snap back to home
-            }
+            if(!confirm("Wipe Cloud Data?")) return;
+            const q = query(tradesCol, where("user_id", "==", currentUser));
+            const snap = await getDocs(q);
+            const batch = writeBatch(db);
+            snap.docs.forEach(d => batch.delete(d.ref));
+            await batch.commit();
+            this.renderAll();
         }
     };
 </script>
