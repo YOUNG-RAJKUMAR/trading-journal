@@ -15,9 +15,6 @@
         }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; -webkit-font-smoothing: antialiased; }
         
-        /* PDF Specific Styling adjustment */
-        .pdf-export-mode { background: #000 !important; color: #fff !important; }
-
         #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .login-card { background: var(--surface); border: 1px solid var(--border); padding: 40px; width: 100%; max-width: 350px; text-align: center; }
         .login-input { width: 100%; margin-bottom: 15px; box-sizing: border-box; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; font-family: inherit; }
@@ -143,15 +140,14 @@
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
             <div class="side-stats">
-                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Daily P/L</span><div id="side-today" class="stat-val">$0</div><div id="wr-today" style="font-size:0.7rem">0% WR</div></div>
-                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Weekly P/L</span><div id="side-week" class="stat-val">$0</div><div id="wr-week" style="font-size:0.7rem">0% WR</div></div>
-                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Monthly P/L</span><div id="side-month" class="stat-val">$0</div><div id="wr-month" style="font-size:0.7rem">0% WR</div></div>
-                <div class="stat-card"><span class="stat-label">Session Win Rates</span>
-                    <div id="session-wr-list" style="font-size:0.75rem; margin-top:10px;">
-                        <div>ASIAN: <span id="wr-asian">0%</span></div>
-                        <div>LONDON: <span id="wr-london">0%</span></div>
-                        <div>NY: <span id="wr-ny">0%</span></div>
-                    </div>
+                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Today P/L</span><div id="side-today" class="stat-val">$0</div></div>
+                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Weekly P/L</span><div id="side-week" class="stat-val">$0</div></div>
+                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Monthly P/L</span><div id="side-month" class="stat-val">$0</div></div>
+                <div class="stat-card">
+                    <span class="stat-label">Session Win Rates</span>
+                    <div id="sess-wr-asian" style="font-size:0.75rem; margin-top:10px; color:#888;">ASIAN: <span style="color:#fff">0%</span></div>
+                    <div id="sess-wr-london" style="font-size:0.75rem; color:#888;">LONDON: <span style="color:#fff">0%</span></div>
+                    <div id="sess-wr-ny" style="font-size:0.75rem; color:#888;">NY: <span style="color:#fff">0%</span></div>
                 </div>
             </div>
         </div>
@@ -257,20 +253,17 @@
             cachedTrades = trades;
 
             const body = document.getElementById('tradeBody'); body.innerHTML = '';
-            let cumulative = [0], gP = 0, gL = 0, wins = 0, totalRR = 0, sessStats = {}, inst = {};
+            let cumulative = [0], gP = 0, gL = 0, wins = 0, totalRR = 0, sess = {}, inst = {};
 
             [...trades].reverse().forEach(t => {
                 const rr = (t.risk > 0) ? (Math.abs(t.profit) / t.risk) : 0;
                 if(t.profit > 0) { gP += t.profit; wins++; } else gL += Math.abs(t.profit);
                 cumulative.push(cumulative[cumulative.length-1] + t.profit);
                 totalRR += rr;
-
-                // Session Logic
-                if(!sessStats[t.session]) sessStats[t.session] = { profit: 0, wins: 0, total: 0 };
-                sessStats[t.session].profit += t.profit;
-                sessStats[t.session].total += 1;
-                if(t.profit > 0) sessStats[t.session].wins += 1;
-
+                sess[t.session] = sess[t.session] || { profit: 0, wins: 0, total: 0 };
+                sess[t.session].profit += t.profit;
+                sess[t.session].total += 1;
+                if(t.profit > 0) sess[t.session].wins += 1;
                 inst[t.symbol] = (inst[t.symbol] || 0) + t.profit;
 
                 body.insertAdjacentHTML('afterbegin', `
@@ -291,11 +284,13 @@
             const sortedInst = Object.entries(inst).sort((a,b)=>b[1]-a[1]);
             document.getElementById('s-best-inst').innerText = sortedInst[0] ? `${sortedInst[0][0]} (+$${sortedInst[0][1].toFixed(0)})` : '---';
             
-            // Render Session Win Rates
+            const sortedSess = Object.entries(sess).sort((a,b)=>b[1].profit-a[1].profit);
+            document.getElementById('s-best-sess').innerText = sortedSess[0] ? `${sortedSess[0][0]} (+$${sortedSess[0][1].profit.toFixed(0)})` : '---';
+
             ['ASIAN', 'LONDON', 'NY'].forEach(s => {
-                const data = sessStats[s] || { wins: 0, total: 0 };
-                const wr = data.total > 0 ? Math.round((data.wins/data.total)*100) : 0;
-                document.getElementById(`wr-${s.toLowerCase()}`).innerText = `${wr}% (${data.total} Trades)`;
+                const sData = sess[s] || { wins: 0, total: 0 };
+                const wr = sData.total > 0 ? Math.round((sData.wins / sData.total) * 100) : 0;
+                document.querySelector(`#sess-wr-${s.toLowerCase()} span`).innerText = `${wr}% (${sData.total} Trades)`;
             });
 
             this.updateCharts(cumulative, ['0', ...trades.map(t=>t.date).reverse()], wins, trades.length - wins);
@@ -307,15 +302,14 @@
             const day = now.getDay(), diff = now.getDate() - day + (day === 0 ? -6 : 1);
             const mondayStr = new Date(new Date(now).setDate(diff)).toISOString().split('T')[0];
             
-            const calc = (list) => ({ pnl: list.reduce((s,t)=>s+t.profit, 0), wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0 });
-            const set = (id, wrId, d) => {
+            const calc = (list) => ({ pnl: list.reduce((s,t)=>s+t.profit, 0) });
+            const set = (id, d) => {
                 document.getElementById(id).innerText = (d.pnl>=0?'+$':'$')+d.pnl.toFixed(0);
                 document.getElementById(id).style.color = d.pnl>=0?'var(--positive)':'var(--negative)';
-                document.getElementById(wrId).innerText = d.wr+'% Win Rate';
             };
-            set('side-today', 'wr-today', calc(trades.filter(t=>t.date===todayStr)));
-            set('side-week', 'wr-week', calc(trades.filter(t=>t.date >= mondayStr)));
-            set('side-month', 'wr-month', calc(trades.filter(t=>new Date(t.date).getMonth()===now.getMonth())));
+            set('side-today', calc(trades.filter(t=>t.date===todayStr)));
+            set('side-week', calc(trades.filter(t=>t.date >= mondayStr)));
+            set('side-month', calc(trades.filter(t=>new Date(t.date).getMonth()===now.getMonth())));
         },
         renderCalendar() {
             const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
@@ -359,36 +353,19 @@
                 this.renderAll();
             }
         },
-        // FIXED EXPORT PDF FUNCTION
-        exportPDF() {
-            const element = document.getElementById('main-content');
-            
-            // Show all sections briefly for capture to ensure no data is missing
+        exportPDF() { 
             const opt = {
-                margin:       [10, 10],
-                filename:     `Journal_Report_${currentUser}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    backgroundColor: '#000000',
-                    useCORS: true,
-                    logging: false
-                },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                margin: 10,
+                filename: `Report_${currentUser}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, backgroundColor: '#000000', useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
-
-            // Execution with feedback
-            const btn = event.target;
-            btn.innerText = "Generating...";
-            
-            html2pdf().set(opt).from(element).save().then(() => {
-                btn.innerText = "Export PDF";
-            });
+            html2pdf().from(document.getElementById('main-content')).set(opt).save(); 
         }
     };
 
-    // --- AUTH LOGIC ---
     document.getElementById('loginBtn').onclick = async () => {
         const u = document.getElementById('user-input').value.trim().toUpperCase();
         const p = document.getElementById('pass-input').value;
@@ -408,7 +385,7 @@
                 document.getElementById('login-err').style.display = 'block';
                 btn.innerText = "ACCESS JOURNAL";
             }
-        } catch(e) { alert("Check Connection"); btn.innerText = "ACCESS JOURNAL"; }
+        } catch(e) { alert("Check Connection / Rules"); btn.innerText = "ACCESS JOURNAL"; }
     };
 </script>
 </body>
