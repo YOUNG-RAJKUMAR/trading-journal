@@ -24,7 +24,6 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 20px; flex-wrap: wrap; gap: 20px; }
         .header-title { font-weight: 300; font-size: 1.5rem; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; margin: 0; }
         
-        /* SEARCH BAR */
         .search-container { flex-grow: 1; max-width: 400px; }
         .search-bar { width: 100%; background: #111; border: 1px solid var(--border); color: #fff; padding: 10px 15px; border-radius: 4px; font-size: 0.8rem; }
 
@@ -40,12 +39,13 @@
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
         input, select, textarea, button { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; font-size: 0.8rem; font-family: inherit; }
         textarea { grid-column: span 2; height: 60px; resize: none; }
+        .hit-btn { padding: 5px; font-size: 0.65rem; cursor: pointer; flex: 1; margin-top: 5px; border: 1px solid #333; }
         .save-btn { background: #fff; color: #000; font-weight: 600; grid-column: span 2; cursor: pointer; border: none; padding: 15px; }
 
-        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 30px; }
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 30px; }
         .stat-card { background: var(--surface); padding: 20px; }
         .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-val { display: block; font-size: 1.4rem; color: #fff; margin-top: 5px; font-weight: 300; }
+        .stat-val { display: block; font-size: 1.3rem; color: #fff; margin-top: 5px; font-weight: 300; }
 
         .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; min-width: 1100px; }
@@ -60,10 +60,7 @@
 
         .pdf-page-break { page-break-before: always; padding-top: 20px; }
         
-        @media print {
-            .no-print { display: none !important; }
-            .tab-content { display: block !important; opacity: 1 !important; }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -83,21 +80,18 @@
         <h1 class="header-title">JOURNAL // <span id="display-user"></span></h1>
         
         <div class="search-container no-print">
-            <input type="text" id="global-search" class="search-bar" placeholder="SEARCH INSTRUMENT (E.G. GOLD)..." oninput="ui.filterTrades()">
+            <input type="text" id="global-search" class="search-bar" placeholder="SEARCH INSTRUMENT..." oninput="ui.filterTrades()">
         </div>
 
         <div style="display:flex; gap:10px" class="no-print">
-            <select id="pdf-report-month" class="btn-action">
-                <option value="ALL">ALL TIME REPORT</option>
-            </select>
-            <button class="btn-action" style="background:#fff; color:#000" onclick="ui.exportPDF()">Export PDF</button>
+            <button class="btn-action" style="background:#fff; color:#000" onclick="ui.exportPDF()">Export PDF Report</button>
             <button class="btn-action" onclick="location.reload()">Logout</button>
         </div>
     </header>
 
     <nav class="tab-nav no-print">
         <button class="tab-btn active" id="btn-journal" onclick="ui.switchTab('journal')">Journal</button>
-        <button class="tab-btn" id="btn-calendar" onclick="ui.switchTab('calendar')">Calendar</button>
+        <button class="tab-btn" id="btn-calendar" onclick="ui.switchTab('calendar')">Performance Calendar</button>
         <button class="tab-btn" id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
     </nav>
 
@@ -115,14 +109,19 @@
                 <input type="number" id="t-entry" placeholder="Entry Price">
                 <input type="number" id="t-sl" placeholder="Stop Loss">
                 <input type="number" id="t-tp" placeholder="Take Profit">
-                <input type="number" id="t-exit" placeholder="Exit Price">
+                <div style="display:flex; flex-direction:column;">
+                    <input type="number" id="t-exit" placeholder="Exit Price">
+                    <div style="display:flex; gap:5px;">
+                        <button class="hit-btn" style="color:var(--positive)" onclick="ui.quickHit('TP')">TP Hit</button>
+                        <button class="hit-btn" style="color:var(--negative)" onclick="ui.quickHit('SL')">SL Hit</button>
+                    </div>
+                </div>
                 <textarea id="t-notes" placeholder="Notes..."></textarea>
                 <button onclick="ui.handleNewTrade()" class="save-btn" id="saveBtn">Log Execution</button>
             </div>
         </div>
         
         <div class="table-wrap">
-            <h3 class="no-print" style="margin-bottom:15px; font-weight:300;">Trade History</h3>
             <table>
                 <thead>
                     <tr><th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>Session</th><th>P/L ($)</th><th>Duration</th><th>Notes</th></tr>
@@ -135,40 +134,32 @@
     <div id="tab-calendar" class="tab-content pdf-page-break">
         <div class="calendar-layout">
             <div>
-                <div style="display:flex; gap:10px; margin-bottom:20px;" class="no-print">
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
                     <select id="cal-month" onchange="ui.renderCalendar()"></select>
                     <select id="cal-year" onchange="ui.renderCalendar()"></select>
                 </div>
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
             <div class="side-stats">
-                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Today</span>
-                    <div id="side-today" class="stat-val">$0</div>
-                    <div id="count-today" style="font-size:0.7rem; margin-top:5px;">0 Trades | 0% Win</div>
-                </div>
-                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">This Week</span>
-                    <div id="side-week" class="stat-val">$0</div>
-                    <div id="count-week" style="font-size:0.7rem; margin-top:5px;">0 Trades | 0% Win</div>
-                </div>
-                <div class="stat-card"><span class="stat-label">This Month</span>
-                    <div id="side-month" class="stat-val">$0</div>
-                    <div id="count-month" style="font-size:0.7rem; margin-top:5px;">0 Trades | 0% Win</div>
-                </div>
+                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Daily P/L</span><div id="side-today" class="stat-val">$0</div><div id="count-today" style="font-size:0.7rem">0 Trades | 0% Win</div></div>
+                <div class="stat-card" style="margin-bottom:15px"><span class="stat-label">Weekly P/L</span><div id="side-week" class="stat-val">$0</div><div id="count-week" style="font-size:0.7rem">0 Trades | 0% Win</div></div>
+                <div class="stat-card"><span class="stat-label">Monthly P/L</span><div id="side-month" class="stat-val">$0</div><div id="count-month" style="font-size:0.7rem">0 Trades | 0% Win</div></div>
             </div>
         </div>
     </div>
 
     <div id="tab-analytics" class="tab-content pdf-page-break">
-        <div style="margin-bottom:20px;" class="no-print">
-            <select id="ana-range" onchange="ui.renderAll()" class="btn-action">
-                <option value="ALL">ALL TIME DATA</option>
-                <option value="MONTH">CURRENT MONTH ONLY</option>
-            </select>
+        <div style="display:flex; gap:10px; margin-bottom:20px;" class="no-print">
+            <select id="ana-month" onchange="ui.renderAll()"><option value="ALL">All Time</option></select>
+            <select id="ana-year" onchange="ui.renderAll()"></select>
         </div>
+        
         <div class="analytics-grid">
             <div class="stat-card"><span class="stat-label">Highest Profit</span><span id="s-hp" class="stat-val" style="color:var(--positive)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Highest Loss</span><span id="s-hl" class="stat-val" style="color:var(--negative)">$0</span></div>
-            <div class="stat-card"><span class="stat-label">Win Rate</span><span id="s-wr" class="stat-val">0%</span></div>
+            <div class="stat-card"><span class="stat-label">Gross Profit</span><span id="s-gp" class="stat-val" style="color:var(--positive)">$0</span></div>
+            <div class="stat-card"><span class="stat-label">Gross Loss</span><span id="s-gl" class="stat-val" style="color:var(--negative)">$0</span></div>
+            <div class="stat-card"><span class="stat-label">Total Win Rate</span><span id="s-wr" class="stat-val">0%</span></div>
             <div class="stat-card"><span class="stat-label">Avg R:R</span><span id="s-arr" class="stat-val">1:0.0</span></div>
         </div>
 
@@ -183,10 +174,10 @@
                 </div>
             </div>
             <div class="card">
-                <h3>Overview</h3>
+                <h3>Insights</h3>
                 <canvas id="pieChart"></canvas>
                 <div style="margin-top:20px">
-                    <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1.1rem">---</div>
+                    <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1rem">---</div>
                 </div>
             </div>
         </div>
@@ -195,7 +186,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, deleteDoc, doc, where, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, where, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBxnZaZYUFSmN8TY-_JXsTOq5hqf3rMkaI",
@@ -218,11 +209,20 @@
         async init() {
             document.getElementById('t-date').valueAsDate = new Date();
             const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-            const mHTML = months.map((m,i)=>`<option value="${i}" ${i===new Date().getMonth()?'selected':''}>${m}</option>`).join('');
-            document.getElementById('cal-month').innerHTML = mHTML;
-            document.getElementById('pdf-report-month').insertAdjacentHTML('beforeend', mHTML);
-            document.getElementById('cal-year').innerHTML = [2025, 2026].map(y=>`<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`).join('');
+            
+            const monthOptions = months.map((m,i)=>`<option value="${i}" ${i===new Date().getMonth()?'selected':''}>${m}</option>`).join('');
+            document.getElementById('cal-month').innerHTML = monthOptions;
+            document.getElementById('ana-month').insertAdjacentHTML('beforeend', monthOptions);
+            
+            const yearOptions = [2024, 2025, 2026].map(y=>`<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`).join('');
+            document.getElementById('cal-year').innerHTML = yearOptions;
+            document.getElementById('ana-year').innerHTML = yearOptions;
+
             await this.renderAll();
+        },
+
+        quickHit(type) {
+            document.getElementById('t-exit').value = type === 'TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value;
         },
 
         switchTab(id) {
@@ -243,30 +243,42 @@
             const snap = await getDocs(q);
             cachedTrades = snap.docs.map(d => ({...d.data(), id: d.id}));
 
-            const range = document.getElementById('ana-range').value;
-            const now = new Date();
-            let aTrades = (range === 'MONTH') ? cachedTrades.filter(t => new Date(t.date).getMonth() === now.getMonth()) : cachedTrades;
+            // Filter analytics by selected month
+            const selMonth = document.getElementById('ana-month').value;
+            const selYear = document.getElementById('ana-year').value;
+            let aTrades = cachedTrades;
+            if(selMonth !== 'ALL') {
+                aTrades = cachedTrades.filter(t => {
+                    const d = new Date(t.date);
+                    return d.getMonth() == selMonth && d.getFullYear() == selYear;
+                });
+            }
 
             const body = document.getElementById('tradeBody'); body.innerHTML = '';
-            let cumulative = [0], wins = 0, rr = 0, inst = {}, maxP = 0, maxL = 0;
+            let cumulative = [0], wins = 0, totalRR = 0, inst = {}, maxP = 0, maxL = 0, grossP = 0, grossL = 0;
             let sess = { ASIAN: {w:0, t:0}, LONDON: {w:0, t:0}, NY: {w:0, t:0} };
 
-            [...cachedTrades].reverse().forEach(t => {
-                body.insertAdjacentHTML('afterbegin', `<tr><td>${t.date}</td><td><b>${t.symbol}</b></td><td>${t.lots}</td><td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td><td>${t.session}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td><td>${t.duration}m</td><td>${t.notes}</td></tr>`);
+            // Render Journal Table (All Trades)
+            [...cachedTrades].forEach(t => {
+                body.insertAdjacentHTML('beforeend', `<tr><td>${t.date}</td><td><b>${t.symbol}</b></td><td>${t.lots}</td><td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td><td>${t.session}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td><td>${t.duration}m</td><td>${t.notes}</td></tr>`);
             });
 
+            // Calculate Analytics (Filtered Trades)
             [...aTrades].reverse().forEach(t => {
                 if(t.profit > maxP) maxP = t.profit; if(t.profit < maxL) maxL = t.profit;
-                if(t.profit > 0) { wins++; sess[t.session].w++; } sess[t.session].t++;
+                if(t.profit > 0) { wins++; grossP += t.profit; sess[t.session].w++; } else { grossL += Math.abs(t.profit); }
+                sess[t.session].t++;
                 cumulative.push(cumulative[cumulative.length-1] + t.profit);
-                rr += (t.risk > 0 ? (Math.abs(t.profit)/t.risk) : 0);
+                totalRR += (t.risk > 0 ? (Math.abs(t.profit)/t.risk) : 0);
                 inst[t.symbol] = (inst[t.symbol] || 0) + t.profit;
             });
 
             document.getElementById('s-hp').innerText = `$${maxP.toFixed(0)}`;
             document.getElementById('s-hl').innerText = `$${maxL.toFixed(0)}`;
+            document.getElementById('s-gp').innerText = `$${grossP.toFixed(0)}`;
+            document.getElementById('s-gl').innerText = `-$${grossL.toFixed(0)}`;
             document.getElementById('s-wr').innerText = aTrades.length ? Math.round((wins/aTrades.length)*100)+'%' : '0%';
-            document.getElementById('s-arr').innerText = `1:${(aTrades.length ? rr/aTrades.length : 0).toFixed(1)}`;
+            document.getElementById('s-arr').innerText = `1:${(aTrades.length ? totalRR/aTrades.length : 0).toFixed(1)}`;
             
             ['asian','london','ny'].forEach(s => {
                 const k = s.toUpperCase();
@@ -287,8 +299,7 @@
             const mStr = mon.toISOString().split('T')[0];
 
             const fn = (list) => ({ 
-                pnl: list.reduce((s,t)=>s+t.profit, 0), 
-                cnt: list.length, 
+                pnl: list.reduce((s,t)=>s+t.profit, 0), cnt: list.length, 
                 wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0 
             });
 
@@ -305,9 +316,11 @@
 
         renderCalendar() {
             const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
-            const m = parseInt(document.getElementById('cal-month').value), y = parseInt(document.getElementById('cal-year').value);
-            const days = new Date(y, m + 1, 0).getDate();
-            for (let i = 1; i <= days; i++) {
+            const m = parseInt(document.getElementById('cal-month').value);
+            const y = parseInt(document.getElementById('cal-year').value);
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+            
+            for (let i = 1; i <= daysInMonth; i++) {
                 const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 const pl = cachedTrades.filter(t => t.date === dStr).reduce((s, t) => s + t.profit, 0);
                 grid.innerHTML += `<div class="cal-day ${pl!==0?(pl>0?'profit':'loss'):''}"><b>${i}</b>${pl!==0?`<div style="font-size:0.7rem; color:${pl>0?'var(--positive)':'var(--negative)'}">$${pl.toFixed(0)}</div>`:''}</div>`;
@@ -317,7 +330,7 @@
         updateCharts(data, w, l) {
             if(this.charts.equity) this.charts.equity.destroy();
             this.charts.equity = new Chart(document.getElementById('equityChart'), {
-                type: 'line', data: { labels: data.map((_,i)=>i), datasets: [{ data, borderColor: '#fff', fill: true, backgroundColor: 'rgba(255,255,255,0.05)', tension: 0.2 }] },
+                type: 'line', data: { labels: data.map((_,i)=>i), datasets: [{ data, borderColor: '#fff', fill: true, backgroundColor: 'rgba(255,255,255,0.05)', tension: 0.2, pointRadius: 0 }] },
                 options: { scales: { x: { display: false }, y: { grid: { color: '#111' } } }, plugins: { legend: { display: false } } }
             });
             if(this.charts.pie) this.charts.pie.destroy();
@@ -328,39 +341,37 @@
         },
 
         async exportPDF() {
-            const range = document.getElementById('pdf-report-month').value;
             const element = document.getElementById('main-content');
-            
-            // Temporary layout for PDF
             document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'block');
-            
             const opt = {
-                margin: 5,
-                filename: `Report_${range}_${currentUser}.pdf`,
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 2, backgroundColor: '#000000', useCORS: true },
+                margin: 5, filename: `Trading_Report.pdf`,
+                html2canvas: { scale: 2, backgroundColor: '#000000' },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
                 pagebreak: { mode: 'css', before: '.pdf-page-break' }
             };
-
             await html2pdf().set(opt).from(element).save();
-            this.switchTab('journal'); // Reset UI
+            document.querySelectorAll('.tab-content').forEach(t => { if(!t.classList.contains('active')) t.style.display = 'none'; });
         },
 
         async handleNewTrade() {
+            const btn = document.getElementById('saveBtn'); btn.innerText = "Syncing...";
+            const entry = parseFloat(document.getElementById('t-entry').value);
+            const exit = parseFloat(document.getElementById('t-exit').value);
+            const lots = parseFloat(document.getElementById('t-lots').value);
+            const mult = parseFloat(document.getElementById('t-asset').value);
+            const side = document.getElementById('t-side').value;
+
             const trade = {
                 user_id: currentUser, timestamp: Date.now(),
                 symbol: document.getElementById('t-symbol').value.toUpperCase(),
-                lots: parseFloat(document.getElementById('t-lots').value),
-                side: document.getElementById('t-side').value,
-                session: document.getElementById('t-session').value,
-                profit: (parseFloat(document.getElementById('t-exit').value) - parseFloat(document.getElementById('t-entry').value)) * parseFloat(document.getElementById('t-lots').value) * parseFloat(document.getElementById('t-asset').value) * (document.getElementById('t-side').value === 'BUY' ? 1 : -1),
-                risk: Math.abs(parseFloat(document.getElementById('t-entry').value) - parseFloat(document.getElementById('t-sl').value)) * parseFloat(document.getElementById('t-lots').value) * parseFloat(document.getElementById('t-asset').value),
+                lots: lots, side: side, session: document.getElementById('t-session').value,
+                profit: (exit - entry) * lots * mult * (side === 'BUY' ? 1 : -1),
+                risk: Math.abs(entry - parseFloat(document.getElementById('t-sl').value)) * lots * mult,
                 date: document.getElementById('t-date').value, 
-                notes: document.getElementById('t-notes').value,
-                duration: 0
+                notes: document.getElementById('t-notes').value, duration: 0
             };
             await addDoc(tradesCol, trade);
+            btn.innerText = "Log Execution";
             this.renderAll();
         }
     };
@@ -379,7 +390,7 @@
                 document.getElementById('display-user').innerText = u;
                 ui.init();
             } else { alert("Invalid Credentials"); btn.innerText = "ACCESS JOURNAL"; }
-        } catch(e) { alert("Error."); btn.innerText = "ACCESS JOURNAL"; }
+        } catch(e) { alert("Database error."); btn.innerText = "ACCESS JOURNAL"; }
     };
 </script>
 </body>
