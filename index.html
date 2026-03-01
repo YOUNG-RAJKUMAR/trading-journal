@@ -34,11 +34,11 @@
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
         input, select, textarea, button { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; font-size: 0.8rem; font-family: inherit; }
         
-        .search-container { margin-bottom: 15px; display: flex; gap: 10px; }
-        .search-input { flex: 1; background: var(--surface); border: 1px solid var(--border); padding: 12px; color: #fff; font-size: 0.8rem; }
-        
+        .search-wrapper { margin-bottom: 20px; }
+        .search-bar { width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 15px; color: var(--text-light); font-size: 0.9rem; letter-spacing: 1px; }
+
         textarea { grid-column: span 2; height: 60px; resize: none; }
-        .hit-btn { padding: 5px; font-size: 0.65rem; cursor: pointer; flex: 1; margin-top: 5px; }
+        .hit-btn { padding: 5px; font-size: 0.65rem; cursor: pointer; flex: 1; margin-top: 5px; background: #111; border: 1px solid var(--border); }
         .save-btn { background: #fff; color: #000; font-weight: 600; grid-column: span 2; cursor: pointer; border: none; padding: 15px; }
 
         .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); margin-bottom: 20px; }
@@ -58,22 +58,9 @@
         .stat-card { background: var(--surface); padding: 20px; }
         .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         .stat-val { display: block; font-size: 1.4rem; color: #fff; margin-top: 5px; font-weight: 300; }
-        .stat-sub { font-size: 0.65rem; color: #666; margin-top: 4px; display: block; }
 
         .img-preview { width: 45px; height: 32px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
         .img-preview:hover { transform: scale(6); position: relative; z-index: 1000; border-color: #fff; }
-
-        /* PDF Break Logic */
-        .pdf-page { page-break-before: always; }
-
-        @media print {
-            .no-print { display: none !important; }
-            .tab-content { display: block !important; margin-bottom: 0 !important; }
-            .app-container { display: block !important; padding: 0; width: 100%; }
-            body { background: #000; color: #fff; }
-            .calendar-layout { display: block !important; }
-            .side-stats { margin-top: 20px; display: flex; gap: 10px; justify-content: space-around; }
-        }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
     </style>
@@ -95,8 +82,7 @@
         <h1 class="header-title">JOURNAL // <span id="display-user"></span></h1>
         <div style="display:flex; gap:10px" class="no-print">
             <button class="btn-action" onclick="ui.undoLast()">Undo</button>
-            <button class="btn-action" onclick="ui.resetAll()">Reset Cloud</button>
-            <button class="btn-action" style="background:#fff; color:#000" onclick="ui.exportPDF()">Export PDF Report</button>
+            <button class="btn-action" style="background:#fff; color:#000" onclick="ui.exportPDF()">Export PDF</button>
             <button class="btn-action" onclick="location.reload()">Logout</button>
         </div>
     </header>
@@ -111,10 +97,8 @@
         <div class="card no-print">
             <div class="form-grid">
                 <input type="date" id="t-date">
-                <input type="time" id="t-start">
-                <input type="time" id="t-end">
                 <select id="t-session"><option value="ASIAN">Asian</option><option value="LONDON">London</option><option value="NY">NY</option></select>
-                <input type="text" id="t-symbol" placeholder="Symbol">
+                <input type="text" id="t-symbol" placeholder="Symbol (GOLD, EURUSD)">
                 <select id="t-asset"><option value="100000">Forex</option><option value="1000">Gold</option><option value="10">Indices</option></select>
                 <input type="number" id="t-lots" placeholder="Lots" step="0.01">
                 <select id="t-side"><option value="BUY">Long</option><option value="SELL">Short</option></select>
@@ -133,14 +117,15 @@
                 <button onclick="ui.handleNewTrade()" class="save-btn" id="saveBtn">Log Execution</button>
             </div>
         </div>
-        <div class="search-container no-print">
-            <input type="text" id="trade-search" class="search-input" placeholder="Search instrument..." oninput="ui.filterTrades()">
+
+        <div class="search-wrapper no-print">
+            <input type="text" id="inst-search" class="search-bar" placeholder="SEARCH INSTRUMENT (E.G. GOLD)..." onkeyup="ui.filterTrades()">
         </div>
+
         <div id="journal-container"></div>
     </div>
 
-    <div id="tab-calendar" class="tab-content pdf-page">
-        <h2 class="header-title pdf-only" style="font-size: 1rem; margin-bottom: 20px;">Performance Calendar</h2>
+    <div id="tab-calendar" class="tab-content">
         <div class="calendar-layout">
             <div>
                 <div style="display:flex; gap:10px; margin-bottom:20px;" class="no-print">
@@ -153,47 +138,35 @@
                 <div class="stat-card" style="margin-bottom:15px">
                     <span class="stat-label">Daily P/L</span>
                     <div id="side-today" class="stat-val">$0</div>
-                    <div id="wr-today" style="font-size:0.7rem">0% WR</div>
-                    <span class="stat-sub" id="count-today">Trades: 0</span>
                 </div>
                 <div class="stat-card" style="margin-bottom:15px">
                     <span class="stat-label">Weekly P/L</span>
                     <div id="side-week" class="stat-val">$0</div>
-                    <div id="wr-week" style="font-size:0.7rem">0% WR</div>
-                    <span class="stat-sub" id="count-week">Trades: 0</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Monthly P/L</span>
                     <div id="side-month" class="stat-val">$0</div>
-                    <div id="wr-month" style="font-size:0.7rem">0% WR</div>
-                    <span class="stat-sub" id="count-month">Trades: 0</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="tab-analytics" class="tab-content pdf-page">
-        <h2 class="header-title pdf-only" style="font-size: 1rem; margin-bottom: 20px;">Data & Insights</h2>
-        <div style="margin-bottom: 20px;" class="no-print">
-            <select id="ana-timeframe" onchange="ui.renderAll()" style="width: 200px; background: var(--surface);">
-                <option value="ALL">All Time Data</option>
-                <option value="CURRENT_MONTH">Current Month Only</option>
-            </select>
-        </div>
+    <div id="tab-analytics" class="tab-content">
         <div class="analytics-grid">
-            <div class="stat-card"><span class="stat-label">Profit Factor</span><span id="s-pf" class="stat-val">0.00</span></div>
             <div class="stat-card"><span class="stat-label">Win Rate</span><span id="s-wr" class="stat-val">0%</span></div>
             <div class="stat-card"><span class="stat-label">Avg R:R</span><span id="s-arr" class="stat-val">1:0.0</span></div>
+            <div class="stat-card"><span class="stat-label">Highest Win</span><span id="s-hi-win" class="stat-val" style="color:var(--positive)">$0</span></div>
+            <div class="stat-card"><span class="stat-label">Highest Loss</span><span id="s-hi-loss" class="stat-val" style="color:var(--negative)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Gross Profit</span><span id="s-gp" class="stat-val" style="color:var(--positive)">$0</span></div>
-            <div class="stat-card"><span class="stat-label">Gross Loss</span><span id="s-gl" class="stat-val" style="color:var(--negative)">$0</span></div>
         </div>
         <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
             <div class="card"><h3>Equity Curve</h3><canvas id="equityChart"></canvas></div>
             <div class="card">
                 <h3>Insights</h3>
-                <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1rem; margin-bottom:15px">---</div>
+                <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1rem; color:var(--positive); margin-bottom:15px">---</div>
+                <div class="stat-label">Worst Instrument</div><div id="s-worst-inst" class="stat-val" style="font-size:1rem; color:var(--negative); margin-bottom:15px">---</div>
                 <div class="stat-label">Best Session</div><div id="s-best-sess" class="stat-val" style="font-size:1rem; color:var(--positive); margin-bottom:15px">---</div>
-                <span class="stat-label">Win/Loss Distribution</span>
+                <span class="stat-label">Distribution</span>
                 <canvas id="pieChart"></canvas>
             </div>
         </div>
@@ -202,7 +175,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, deleteDoc, doc, where, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, deleteDoc, doc, where, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBxnZaZYUFSmN8TY-_JXsTOq5hqf3rMkaI",
@@ -239,8 +212,8 @@
             document.getElementById('t-exit').value = type === 'TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value;
         },
         filterTrades() {
-            const queryVal = document.getElementById('trade-search').value.toUpperCase();
-            this.updateTradeTable(cachedTrades.filter(t => (t.symbol || "").toUpperCase().includes(queryVal)));
+            const kw = document.getElementById('inst-search').value.toUpperCase();
+            this.updateTradeTable(cachedTrades.filter(t => t.symbol.includes(kw)));
         },
         updateTradeTable(trades) {
             const container = document.getElementById('journal-container');
@@ -251,10 +224,11 @@
                 acc[monthYear].push(t);
                 return acc;
             }, {});
+
             Object.keys(grouped).forEach(month => {
-                let html = `<div class="month-header">${month}</div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>Session</th><th>P/L ($)</th><th>Media & Notes</th></tr></thead><tbody>`;
+                let html = `<div class="month-header">${month}</div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>P/L ($)</th><th>Media & Notes</th></tr></thead><tbody>`;
                 grouped[month].forEach(t => {
-                    html += `<tr><td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td><td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td><td>${t.session}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td><td>${t.img ? `<img src="${t.img}" class="img-preview">` : ''}<div style="font-size:0.6rem; color:#666">${t.notes || ''}</div></td></tr>`;
+                    html += `<tr><td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td><td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td><td>${t.img ? `<img src="${t.img}" class="img-preview">` : ''}<div style="font-size:0.65rem; color:#666; margin-top:5px;">${t.notes || ''}</div></td></tr>`;
                 });
                 container.insertAdjacentHTML('beforeend', html + `</tbody></table></div>`);
             });
@@ -280,42 +254,46 @@
             cachedTrades = snap.docs.map(d => ({...d.data(), id: d.id}));
             this.updateTradeTable(cachedTrades);
 
-            const tf = document.getElementById('ana-timeframe').value;
-            const now = new Date();
-            const filtered = tf === 'CURRENT_MONTH' ? cachedTrades.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear()) : cachedTrades;
+            let cumulative = [0], gP = 0, wins = 0, totalRR = 0, hiWin = 0, hiLoss = 0;
+            let sessMap = {}, instMap = {};
 
-            let cumulative = [0], gP = 0, gL = 0, wins = 0, totalRR = 0, sess = {}, inst = {};
-            [...filtered].reverse().forEach(t => {
-                if(t.profit > 0) { gP += t.profit; wins++; } else gL += Math.abs(t.profit);
-                cumulative.push(cumulative[cumulative.length-1] + t.profit);
-                totalRR += (t.risk > 0 ? (Math.abs(t.profit) / t.risk) : 0);
-                sess[t.session] = (sess[t.session] || 0) + t.profit;
-                inst[t.symbol] = (inst[t.symbol] || 0) + t.profit;
+            [...cachedTrades].reverse().forEach(t => {
+                const p = t.profit || 0;
+                if(p > hiWin) hiWin = p;
+                if(p < hiLoss) hiLoss = p;
+                if(p > 0) { gP += p; wins++; }
+                cumulative.push(cumulative[cumulative.length-1] + p);
+                totalRR += (t.risk > 0 ? (Math.abs(p) / t.risk) : 0);
+                sessMap[t.session] = (sessMap[t.session] || 0) + p;
+                instMap[t.symbol] = (instMap[t.symbol] || 0) + p;
             });
 
-            document.getElementById('s-pf').innerText = gL > 0 ? (gP/gL).toFixed(2) : gP.toFixed(2);
-            document.getElementById('s-wr').innerText = filtered.length ? Math.round((wins/filtered.length)*100)+'%' : '0%';
-            document.getElementById('s-arr').innerText = `1:${(filtered.length ? totalRR/filtered.length : 0).toFixed(1)}`;
+            document.getElementById('s-wr').innerText = cachedTrades.length ? Math.round((wins/cachedTrades.length)*100)+'%' : '0%';
+            document.getElementById('s-arr').innerText = `1:${(cachedTrades.length ? totalRR/cachedTrades.length : 0).toFixed(1)}`;
+            document.getElementById('s-hi-win').innerText = `$${hiWin.toFixed(0)}`;
+            document.getElementById('s-hi-loss').innerText = `-$${Math.abs(hiLoss).toFixed(0)}`;
             document.getElementById('s-gp').innerText = `$${gP.toFixed(0)}`;
-            document.getElementById('s-gl').innerText = `-$${gL.toFixed(0)}`;
-            const bestI = Object.entries(inst).sort((a,b)=>b[1]-a[1])[0];
-            document.getElementById('s-best-inst').innerText = bestI ? bestI[0] : '---';
-            const bestS = Object.entries(sess).sort((a,b)=>b[1]-a[1])[0];
-            document.getElementById('s-best-sess').innerText = bestS ? bestS[0] : '---';
 
-            this.updateCharts(cumulative, ['0', ...filtered.map(t=>t.date).reverse()], wins, filtered.length - wins);
+            const sortedInst = Object.entries(instMap).sort((a,b)=>b[1]-a[1]);
+            if(sortedInst.length){
+                document.getElementById('s-best-inst').innerText = `${sortedInst[0][0]} (+$${sortedInst[0][1].toFixed(0)})`;
+                const worst = sortedInst[sortedInst.length-1];
+                document.getElementById('s-worst-inst').innerText = `${worst[0]} (-$${Math.abs(worst[1]).toFixed(0)})`;
+            }
+            const sortedSess = Object.entries(sessMap).sort((a,b)=>b[1]-a[1]);
+            if(sortedSess.length) document.getElementById('s-best-sess').innerText = `${sortedSess[0][0]} (+$${sortedSess[0][1].toFixed(0)})`;
+
+            this.updateCharts(cumulative, ['0', ...cachedTrades.map(t=>t.date).reverse()], wins, cachedTrades.length - wins);
             this.renderCalendar();
             this.updateSideStats(cachedTrades);
         },
         updateSideStats(trades) {
-            const now = new Date(), today = now.toISOString().split('T')[0];
-            // Week Logic: Get last 7 days
-            const weekAgo = new Date(); weekAgo.setDate(now.getDate() - 7);
-            const calc = (list) => ({ pnl: list.reduce((s,t)=>s+t.profit, 0), wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0, count: list.length });
-            const set = (id, wrId, cId, d) => { document.getElementById(id).innerText = (d.pnl>=0?'+$':'$')+d.pnl.toFixed(0); document.getElementById(id).style.color = d.pnl>=0?'var(--positive)':'var(--negative)'; document.getElementById(wrId).innerText = d.wr+'% WR'; document.getElementById(cId).innerText = `Trades: ${d.count}`; };
-            set('side-today', 'wr-today', 'count-today', calc(trades.filter(t=>t.date===today)));
-            set('side-week', 'wr-week', 'count-week', calc(trades.filter(t=>new Date(t.date) >= weekAgo)));
-            set('side-month', 'wr-month', 'count-month', calc(trades.filter(t=>new Date(t.date).getMonth()===now.getMonth())));
+            const today = new Date().toISOString().split('T')[0];
+            const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+            const sum = (list) => list.reduce((s,t)=>s+t.profit, 0);
+            document.getElementById('side-today').innerText = `$${sum(trades.filter(t=>t.date===today)).toFixed(0)}`;
+            document.getElementById('side-week').innerText = `$${sum(trades.filter(t=>new Date(t.date) >= weekAgo)).toFixed(0)}`;
+            document.getElementById('side-month').innerText = `$${sum(trades.filter(t=>new Date(t.date).getMonth()===new Date().getMonth())).toFixed(0)}`;
         },
         renderCalendar() {
             const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
@@ -330,40 +308,20 @@
         updateCharts(data, labels, w, l) {
             const ctxE = document.getElementById('equityChart').getContext('2d');
             if(this.charts.equity) this.charts.equity.destroy();
-            this.charts.equity = new Chart(ctxE, { type: 'line', data: { labels, datasets: [{ data, borderColor: '#fff', backgroundColor: 'rgba(255,255,255,0.05)', fill: true, tension: 0.1, pointRadius: 0 }] }, options: { animation: false, scales: { x: { display: false } }, plugins: { legend: { display: false } } } });
+            this.charts.equity = new Chart(ctxE, { type: 'line', data: { labels, datasets: [{ data, borderColor: '#fff', tension: 0.1, pointRadius: 0 }] }, options: { animation: false } });
             const ctxP = document.getElementById('pieChart').getContext('2d');
             if(this.charts.pie) this.charts.pie.destroy();
             this.charts.pie = new Chart(ctxP, { type: 'doughnut', data: { labels: ['Win','Loss'], datasets: [{ data: [w, l], backgroundColor: ['#44ff88', '#ff4444'], borderWidth: 0 }] }, options: { animation: false } });
         },
-        exportPDF() {
-            const element = document.getElementById('main-content');
-            const tabs = document.querySelectorAll('.tab-content');
-            tabs.forEach(t => t.style.display = 'block');
-            document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
-            const opt = { margin: [10, 5, 10, 5], filename: `Report_${currentUser}.pdf`, html2canvas: { scale: 2, backgroundColor: '#000', useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
-            setTimeout(() => {
-                html2pdf().set(opt).from(element).save().then(() => {
-                    tabs.forEach(t => t.style.display = '');
-                    document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
-                    this.switchTab('journal');
-                });
-            }, 1000);
+        exportPDF() { 
+            const opt = { margin: 1, filename: 'Performance_Report.pdf', html2canvas: { scale: 2, backgroundColor: '#000' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            html2pdf().set(opt).from(document.getElementById('main-content')).save();
         },
         async undoLast() {
             const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("timestamp", "desc"), limit(1));
             const snap = await getDocs(q);
             if(!snap.empty) await deleteDoc(doc(db, "trades", snap.docs[0].id));
             this.renderAll();
-        },
-        async resetAll() {
-            if(confirm("Wipe all cloud data?")) {
-                const batch = writeBatch(db);
-                const q = query(tradesCol, where("user_id", "==", currentUser));
-                const snap = await getDocs(q);
-                snap.docs.forEach(d => batch.delete(d.ref));
-                await batch.commit();
-                this.renderAll();
-            }
         }
     };
 
