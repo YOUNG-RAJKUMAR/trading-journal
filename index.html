@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JOURNAL // Pro Multi-User</title>
+    <title>JOURNAL // Ultimate Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -22,12 +22,10 @@
 
         .app-container { max-width: 1450px; margin: 0 auto; padding: 40px 20px; display: none; }
         
-        /* HEADER & EXPORT */
+        /* HEADER */
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
         .header-title { font-weight: 300; font-size: 1.5rem; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; }
         .btn-action { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 15px; font-size: 0.7rem; cursor: pointer; text-transform: uppercase; }
-        .export-controls { display: flex; gap: 5px; align-items: center; background: #111; padding: 5px 10px; border: 1px solid var(--border); }
-        .export-controls select { padding: 5px; font-size: 0.7rem; border: none; background: #000; }
 
         /* TABS */
         .tab-nav { display: flex; gap: 20px; margin-bottom: 30px; border-bottom: 1px solid var(--border); }
@@ -39,11 +37,12 @@
         /* FORM & SEARCH */
         .card { background: var(--surface); border: 1px solid var(--border); padding: 25px; margin-bottom: 25px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
-        input, select, textarea, button { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; font-size: 0.8rem; font-family: inherit; outline: none; }
+        input, select, textarea, button { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; font-size: 0.8rem; font-family: inherit; }
         textarea { grid-column: span 2; height: 60px; resize: none; }
-        .hit-btn { padding: 5px; font-size: 0.65rem; cursor: pointer; flex: 1; margin-top: 5px; }
         .save-btn { background: #fff; color: #000; font-weight: 600; grid-column: span 2; cursor: pointer; border: none; padding: 15px; }
-        .search-bar { width: 100%; box-sizing: border-box; margin-bottom: 15px; padding: 12px; font-size: 0.9rem; border: 1px solid var(--border); background: #050505; color: #fff; }
+        
+        .search-container { margin-bottom: 20px; }
+        .search-bar { width: 100%; padding: 15px; background: var(--surface); border: 1px solid var(--border); color: #fff; box-sizing: border-box; font-size: 0.9rem; }
 
         /* TABLE */
         .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); }
@@ -52,31 +51,33 @@
         td { padding: 15px; font-size: 0.8rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
         .lot-badge { background: #1a1a1a; padding: 2px 6px; border-radius: 3px; font-weight: 600; color: #fff; border: 1px solid #333; }
         
-        /* CALENDAR */
-        .calendar-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        /* CALENDAR & STATS */
+        .calendar-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
         .cal-day { background: var(--surface); min-height: 90px; padding: 10px; border-top: 2px solid transparent; }
         .cal-day.profit { border-top-color: var(--positive); }
         .cal-day.loss { border-top-color: var(--negative); }
 
-        /* ANALYTICS */
-        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 30px; }
-        .stat-card { background: var(--surface); padding: 20px; }
-        .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-card { background: var(--surface); padding: 20px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         .stat-val { display: block; font-size: 1.4rem; color: #fff; margin-top: 5px; font-weight: 300; }
-        .stat-sub { font-size: 0.7rem; color: #aaa; margin-top: 4px; display: block; }
+        .stat-meta { font-size: 0.7rem; color: #666; margin-top: 5px; display: block; }
+
+        /* ANALYTICS GRID */
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
 
         .img-preview { width: 45px; height: 32px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
         .img-preview:hover { transform: scale(6); position: relative; z-index: 1000; border-color: #fff; }
 
-        /* PDF EXPORT MODE STYLING */
-        .pdf-mode { background: #000; padding: 10px; }
-        .pdf-mode .tab-nav, .pdf-mode .header-top, .pdf-mode .card .form-grid, .pdf-mode .search-bar { display: none !important; }
-        .pdf-mode .tab-content { display: block !important; margin-bottom: 20px; page-break-after: always; }
-        .pdf-mode table td, .pdf-mode table th { font-size: 10px !important; padding: 6px !important; } /* Shrunk for massive trade lists */
-        .pdf-mode .calendar-layout { display: block; }
-        .pdf-mode .side-stats { display: flex; gap: 10px; margin-top: 20px; }
-        .pdf-mode .stat-card { flex: 1; }
+        /* PDF EXPORT STYLING (Internal Hidden Class) */
+        .pdf-export-mode #main-content { padding: 0; max-width: 100%; }
+        .pdf-export-mode .tab-btn, .pdf-export-mode .header-top, .pdf-export-mode #execution-form, .pdf-export-mode .search-container { display: none !important; }
+        .pdf-export-mode .tab-content { display: block !important; page-break-after: always; padding: 20px; }
+        .pdf-export-mode table { font-size: 9px !important; }
+        .pdf-export-mode td, .pdf-export-mode th { padding: 8px !important; }
+        .pdf-export-mode .calendar-layout { display: block; }
+        .pdf-export-mode .side-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        .pdf-export-mode .stat-card { flex: 1; min-width: 150px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
     </style>
@@ -96,25 +97,15 @@
 <div class="app-container" id="main-content">
     <header class="header-top">
         <h1 class="header-title">JOURNAL // <span id="display-user"></span></h1>
-        <div style="display:flex; gap:10px; align-items:center;">
+        <div style="display:flex; gap:10px; align-items: center;">
+            <div style="background: #111; padding: 5px 10px; border: 1px solid #333; display: flex; gap: 5px; align-items: center;">
+                <span style="font-size:0.6rem; color:#888;">PDF RANGE:</span>
+                <select id="export-month" style="padding:2px; font-size:0.7rem; background:#000; border:none; color:#fff;"></select>
+                <select id="export-year" style="padding:2px; font-size:0.7rem; background:#000; border:none; color:#fff;"></select>
+                <button class="btn-action" style="background:#fff; color:#000; padding: 4px 8px;" onclick="ui.exportPDF()">Export PDF</button>
+            </div>
             <button class="btn-action" onclick="ui.undoLast()">Undo</button>
             <button class="btn-action" onclick="ui.resetAll()">Reset Cloud</button>
-            
-            <div class="export-controls">
-                <span style="font-size:0.65rem; color:#888;">EXPORT:</span>
-                <select id="export-month">
-                    <option value="ALL">All Time</option>
-                    <option value="0">January</option><option value="1">February</option><option value="2">March</option>
-                    <option value="3">April</option><option value="4">May</option><option value="5">June</option>
-                    <option value="6">July</option><option value="7">August</option><option value="8">September</option>
-                    <option value="9">October</option><option value="10">November</option><option value="11">December</option>
-                </select>
-                <select id="export-year">
-                    <option value="2025">2025</option><option value="2026">2026</option>
-                </select>
-                <button class="btn-action" style="background:#fff; color:#000; border:none;" onclick="ui.exportPDF()">Download PDF</button>
-            </div>
-
             <button class="btn-action" onclick="location.reload()">Logout</button>
         </div>
     </header>
@@ -141,9 +132,9 @@
                 <input type="number" id="t-tp" placeholder="Take Profit">
                 <div style="display:flex; flex-direction:column;">
                     <input type="number" id="t-exit" placeholder="Exit Price">
-                    <div style="display:flex; gap:5px;">
-                        <button class="hit-btn" style="color:var(--positive)" onclick="ui.quickHit('TP')">TP Hit</button>
-                        <button class="hit-btn" style="color:var(--negative)" onclick="ui.quickHit('SL')">SL Hit</button>
+                    <div style="display:flex; gap:5px; margin-top:5px;">
+                        <button style="flex:1; font-size:0.6rem; color:var(--positive)" onclick="ui.quickHit('TP')">TP Hit</button>
+                        <button style="flex:1; font-size:0.6rem; color:var(--negative)" onclick="ui.quickHit('SL')">SL Hit</button>
                     </div>
                 </div>
                 <input type="file" id="t-img" accept="image/*" style="font-size:0.6rem">
@@ -151,11 +142,13 @@
                 <button onclick="ui.handleNewTrade()" class="save-btn" id="saveBtn">Log Execution</button>
             </div>
         </div>
-        
-        <input type="text" id="search-bar" class="search-bar" placeholder="Search by Instrument Name (e.g., EURUSD)..." onkeyup="ui.filterJournal()">
 
+        <div class="search-container">
+            <input type="text" id="trade-search" class="search-bar" placeholder="SEARCH INSTRUMENT (e.g. EURUSD, GOLD, BTC)..." onkeyup="ui.renderJournal()">
+        </div>
+        
         <div class="table-wrap">
-            <table>
+            <table id="trade-table">
                 <thead>
                     <tr>
                         <th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>Session</th>
@@ -176,21 +169,21 @@
                 </div>
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
-            <div class="side-stats">
-                <div class="stat-card" style="margin-bottom:15px">
-                    <span class="stat-label">Daily P/L (Today)</span>
+            <div class="side-stats" id="side-pnl-panel">
+                <div class="stat-card">
+                    <span class="stat-label">Daily P/L</span>
                     <div id="side-today" class="stat-val">$0</div>
-                    <span class="stat-sub" id="info-today">0% WR | 0 Trades</span>
-                </div>
-                <div class="stat-card" style="margin-bottom:15px">
-                    <span class="stat-label">Weekly P/L (Current Week)</span>
-                    <div id="side-week" class="stat-val">$0</div>
-                    <span class="stat-sub" id="info-week">0% WR | 0 Trades</span>
+                    <span class="stat-meta" id="side-today-meta">0% WR | 0 Trades</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-label">Monthly P/L (Selected Month)</span>
+                    <span class="stat-label">Weekly P/L</span>
+                    <div id="side-week" class="stat-val">$0</div>
+                    <span class="stat-meta" id="side-week-meta">0% WR | 0 Trades</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Monthly P/L</span>
                     <div id="side-month" class="stat-val">$0</div>
-                    <span class="stat-sub" id="info-month">0% WR | 0 Trades</span>
+                    <span class="stat-meta" id="side-month-meta">0% WR | 0 Trades</span>
                 </div>
             </div>
         </div>
@@ -198,42 +191,28 @@
 
     <div id="tab-analytics" class="tab-content">
         <div style="display:flex; gap:10px; margin-bottom:20px;">
-            <select id="analytics-timeframe" onchange="ui.renderAnalytics()">
-                <option value="ALL">All Time</option>
-                <option value="0">January</option><option value="1">February</option><option value="2">March</option>
-                <option value="3">April</option><option value="4">May</option><option value="5">June</option>
-                <option value="6">July</option><option value="7">August</option><option value="8">September</option>
-                <option value="9">October</option><option value="10">November</option><option value="11">December</option>
-            </select>
-            <select id="analytics-year" onchange="ui.renderAnalytics()">
-                <option value="2025">2025</option><option value="2026">2026</option>
-            </select>
+            <select id="ana-month" onchange="ui.renderAnalytics()"></select>
+            <select id="ana-year" onchange="ui.renderAnalytics()"></select>
         </div>
-
         <div class="analytics-grid">
             <div class="stat-card"><span class="stat-label">Win Rate</span><span id="s-wr" class="stat-val">0%</span></div>
-            <div class="stat-card"><span class="stat-label">Gross Profit</span><span id="s-gp" class="stat-val" style="color:var(--positive)">$0</span></div>
-            <div class="stat-card"><span class="stat-label">Gross Loss</span><span id="s-gl" class="stat-val" style="color:var(--negative)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Highest Profit</span><span id="s-hp" class="stat-val" style="color:var(--positive)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Highest Loss</span><span id="s-hl" class="stat-val" style="color:var(--negative)">$0</span></div>
+            <div class="stat-card"><span class="stat-label">Gross Profit</span><span id="s-gp" class="stat-val" style="color:var(--positive)">$0</span></div>
+            <div class="stat-card"><span class="stat-label">Gross Loss</span><span id="s-gl" class="stat-val" style="color:var(--negative)">$0</span></div>
         </div>
-
-        <div class="analytics-grid" style="grid-template-columns: repeat(3, 1fr);">
-            <div class="stat-card"><span class="stat-label">Asian Session WR</span><span id="wr-asian" class="stat-val">0%</span></div>
-            <div class="stat-card"><span class="stat-label">London Session WR</span><span id="wr-london" class="stat-val">0%</span></div>
-            <div class="stat-card"><span class="stat-label">NY Session WR</span><span id="wr-ny" class="stat-val">0%</span></div>
+        <div class="analytics-grid">
+            <div class="stat-card"><span class="stat-label">Asian WR</span><span id="wr-asian" class="stat-val">0%</span></div>
+            <div class="stat-card"><span class="stat-label">London WR</span><span id="wr-london" class="stat-val">0%</span></div>
+            <div class="stat-card"><span class="stat-label">NY WR</span><span id="wr-ny" class="stat-val">0%</span></div>
         </div>
-
         <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
             <div class="card"><h3>Equity Curve</h3><canvas id="equityChart"></canvas></div>
             <div class="card">
                 <h3>Top Performers</h3>
                 <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1rem; margin-bottom:15px">---</div>
                 <div class="stat-label">Best Session</div><div id="s-best-sess" class="stat-val" style="font-size:1rem; color:var(--positive); margin-bottom:15px">---</div>
-                <div style="margin-top:20px">
-                    <span class="stat-label">Win/Loss Ratio</span>
-                    <canvas id="pieChart"></canvas>
-                </div>
+                <div style="margin-top:20px"><canvas id="pieChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -259,7 +238,6 @@
     let currentUser = null;
     let cachedTrades = [];
 
-    // --- AUTH LOGIC ---
     document.getElementById('loginBtn').onclick = async () => {
         const u = document.getElementById('user-input').value.trim().toUpperCase();
         const p = document.getElementById('pass-input').value;
@@ -277,127 +255,104 @@
                 ui.init();
             } else {
                 document.getElementById('login-err').style.display = 'block';
-                btn.innerText = "ACCESS LEDGER";
+                btn.innerText = "ACCESS JOURNAL";
             }
-        } catch(e) { alert("Check Connection / Rules"); btn.innerText = "ACCESS LEDGER"; }
+        } catch(e) { alert("Auth Failed"); btn.innerText = "ACCESS JOURNAL"; }
     };
 
-    // --- UI LOGIC ---
     window.ui = {
         charts: {},
         init() {
             document.getElementById('t-date').valueAsDate = new Date();
             const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-            document.getElementById('cal-month').innerHTML = months.map((m,i)=>`<option value="${i}" ${i===new Date().getMonth()?'selected':''}>${m}</option>`).join('');
-            document.getElementById('cal-year').innerHTML = [2025, 2026].map(y=>`<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`).join('');
-            
-            // Set defaults for export to current
-            document.getElementById('export-year').value = new Date().getFullYear();
-            this.fetchAndRenderAll();
+            const mOpts = months.map((m,i)=>`<option value="${i}" ${i===new Date().getMonth()?'selected':''}>${m}</option>`).join('');
+            const yOpts = [2025, 2026].map(y=>`<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`).join('');
+            const mOptsAll = `<option value="ALL">All Time</option>` + mOpts;
+
+            ['cal-month', 'ana-month', 'export-month'].forEach(id => document.getElementById(id).innerHTML = (id==='export-month' || id==='ana-month') ? mOptsAll : mOpts);
+            ['cal-year', 'ana-year', 'export-year'].forEach(id => document.getElementById(id).innerHTML = yOpts);
+
+            this.syncData();
+        },
+        async syncData() {
+            const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("date", "desc"));
+            const snap = await getDocs(q);
+            cachedTrades = snap.docs.map(d => ({...d.data(), id: d.id}));
+            this.renderAll();
         },
         switchTab(id) {
             document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
             document.getElementById(`btn-${id}`).classList.add('active');
+            if(id === 'analytics') this.renderAnalytics();
+            if(id === 'calendar') this.renderCalendar();
+            if(id === 'journal') this.renderJournal();
         },
-        filterJournal() {
-            const query = document.getElementById('search-bar').value.toLowerCase();
-            const rows = document.getElementById('tradeBody').getElementsByTagName('tr');
-            for(let row of rows) {
-                const instrument = row.cells[1].innerText.toLowerCase();
-                row.style.display = instrument.includes(query) ? '' : 'none';
-            }
+        renderAll() {
+            this.renderJournal();
+            this.renderCalendar();
+            this.renderAnalytics();
+            this.updateSideStats();
         },
         quickHit(type) {
             document.getElementById('t-exit').value = type === 'TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value;
         },
-        async handleNewTrade() {
-            const btn = document.getElementById('saveBtn'); btn.innerText = "Syncing...";
-            const file = document.getElementById('t-img').files[0];
-            let imgData = "";
-            if(file) {
-                const reader = new FileReader();
-                imgData = await new Promise(r => { reader.readAsDataURL(file); reader.onload = e => r(e.target.result); });
-            }
-            
-            const entry = parseFloat(document.getElementById('t-entry').value), exit = parseFloat(document.getElementById('t-exit').value);
-            const sl = parseFloat(document.getElementById('t-sl').value), lots = parseFloat(document.getElementById('t-lots').value), mult = parseFloat(document.getElementById('t-asset').value);
-            const tStart = document.getElementById('t-start').value, tEnd = document.getElementById('t-end').value;
-            let dur = 0; if(tStart && tEnd) {
-                const [h1, m1] = tStart.split(':'), [h2, m2] = tEnd.split(':');
-                dur = (parseInt(h2)*60 + parseInt(m2)) - (parseInt(h1)*60 + parseInt(m1));
-                if(dur < 0) dur += 1440;
-            }
-
-            const trade = {
-                user_id: currentUser,
-                timestamp: Date.now(),
-                symbol: document.getElementById('t-symbol').value.toUpperCase() || 'N/A',
-                lots: lots || 0, side: document.getElementById('t-side').value, session: document.getElementById('t-session').value,
-                profit: (exit - entry) * lots * mult * (document.getElementById('t-side').value === 'BUY' ? 1 : -1),
-                risk: Math.abs(entry - sl) * lots * mult, duration: dur,
-                date: document.getElementById('t-date').value, notes: document.getElementById('t-notes').value, img: imgData
-            };
-            
-            await addDoc(tradesCol, trade);
-            btn.innerText = "Log Execution"; 
-            this.fetchAndRenderAll();
-        },
-        async fetchAndRenderAll() {
-            const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("date", "desc"));
-            const snap = await getDocs(q);
-            cachedTrades = snap.docs.map(d => ({...d.data(), id: d.id}));
-            this.renderJournal();
-            this.renderCalendar();
-            this.updateSideStats();
-            this.renderAnalytics();
-        },
-        renderJournal(filterMonth = 'ALL', filterYear = null) {
-            const body = document.getElementById('tradeBody'); body.innerHTML = '';
+        renderJournal() {
+            const body = document.getElementById('tradeBody');
+            const search = document.getElementById('trade-search').value.toUpperCase();
+            body.innerHTML = '';
             
             cachedTrades.forEach(t => {
-                const d = new Date(t.date);
-                if (filterMonth !== 'ALL' && (d.getMonth() !== parseInt(filterMonth) || d.getFullYear() !== parseInt(filterYear))) return;
-
+                if(search && !t.symbol.includes(search)) return;
                 body.insertAdjacentHTML('beforeend', `
-                    <tr data-date="${t.date}">
+                    <tr>
                         <td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td>
                         <td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td>
                         <td>${t.session}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td>
                         <td>${t.duration}m</td><td>${t.img ? `<img src="${t.img}" class="img-preview">` : ''}<div style="font-size:0.6rem; color:#666">${t.notes}</div></td>
                     </tr>`);
             });
-            this.filterJournal(); // Keep search active if any
         },
         updateSideStats() {
-            const now = new Date(), todayStr = now.toISOString().split('T')[0];
-            const day = now.getDay(), diff = now.getDate() - day + (day === 0 ? -6 : 1);
-            const mondayStr = new Date(new Date(now).setDate(diff)).toISOString().split('T')[0];
-            
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
             const selM = parseInt(document.getElementById('cal-month').value);
             const selY = parseInt(document.getElementById('cal-year').value);
+            const isCurrentMonth = (selM === now.getMonth() && selY === now.getFullYear());
 
-            const calc = (list) => ({ 
-                pnl: list.reduce((s,t)=>s+t.profit, 0), 
-                wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0,
-                total: list.length
-            });
-
-            const setUI = (pnlId, infoId, d) => {
-                document.getElementById(pnlId).innerText = (d.pnl>=0?'+$':'-$')+Math.abs(d.pnl).toFixed(0);
-                document.getElementById(pnlId).style.color = d.pnl>=0?'var(--positive)':'var(--negative)';
-                document.getElementById(infoId).innerText = `${d.wr}% WR | ${d.total} Trades`;
+            const calc = (list) => {
+                const pnl = list.reduce((s,t)=>s+t.profit, 0);
+                const wr = list.length ? Math.round((list.filter(t=>t.profit>0).length / list.length)*100) : 0;
+                return { pnl, wr, count: list.length };
             };
 
-            // Today and Week are fixed relative to current day. Monthly reflects the calendar selection.
-            setUI('side-today', 'info-today', calc(cachedTrades.filter(t=>t.date===todayStr)));
-            setUI('side-week', 'info-week', calc(cachedTrades.filter(t=>t.date >= mondayStr)));
+            const updateUI = (id, metaId, data, forceNA = false) => {
+                const el = document.getElementById(id);
+                const meta = document.getElementById(metaId);
+                if(forceNA) {
+                    el.innerText = "N/A"; el.style.color = "#666";
+                    meta.innerText = "Out of Scope";
+                } else {
+                    el.innerText = (data.pnl >= 0 ? '+$' : '-$') + Math.abs(data.pnl).toFixed(0);
+                    el.style.color = data.pnl >= 0 ? 'var(--positive)' : 'var(--negative)';
+                    meta.innerText = `${data.wr}% WR | ${data.count} Trades`;
+                }
+            };
+
+            // Today Logic
+            updateUI('side-today', 'side-today-meta', calc(cachedTrades.filter(t=>t.date===todayStr)), !isCurrentMonth);
             
-            const monthTrades = cachedTrades.filter(t => {
+            // Week Logic
+            const first = now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1);
+            const monStr = new Date(new Date().setDate(first)).toISOString().split('T')[0];
+            updateUI('side-week', 'side-week-meta', calc(cachedTrades.filter(t=>t.date >= monStr)), !isCurrentMonth);
+
+            // Month Logic (Always updates for selected month)
+            const mTrades = cachedTrades.filter(t => {
                 const d = new Date(t.date);
                 return d.getMonth() === selM && d.getFullYear() === selY;
             });
-            setUI('side-month', 'info-month', calc(monthTrades));
+            updateUI('side-month', 'side-month-meta', calc(mTrades));
         },
         renderCalendar() {
             const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
@@ -405,62 +360,54 @@
             const days = new Date(y, m + 1, 0).getDate();
             for (let i = 1; i <= days; i++) {
                 const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                const dayTrades = cachedTrades.filter(t => t.date === dStr);
-                const dayPL = dayTrades.reduce((s, t) => s + t.profit, 0);
+                const dayPL = cachedTrades.filter(t => t.date === dStr).reduce((s, t) => s + t.profit, 0);
                 grid.innerHTML += `<div class="cal-day ${dayPL!==0?(dayPL>0?'profit':'loss'):''}"><b>${i}</b>${dayPL!==0?`<div style="font-size:0.7rem; color:${dayPL>0?'var(--positive)':'var(--negative)'}">$${dayPL.toFixed(0)}</div>`:''}</div>`;
             }
         },
         renderAnalytics() {
-            const m = document.getElementById('analytics-timeframe').value;
-            const y = parseInt(document.getElementById('analytics-year').value);
+            const selM = document.getElementById('ana-month').value;
+            const selY = parseInt(document.getElementById('ana-year').value);
             
-            let data = cachedTrades;
-            if (m !== 'ALL') {
-                data = cachedTrades.filter(t => {
-                    const d = new Date(t.date);
-                    return d.getMonth() === parseInt(m) && d.getFullYear() === y;
-                });
-            }
+            const data = cachedTrades.filter(t => {
+                if(selM === 'ALL') return true;
+                const d = new Date(t.date);
+                return d.getMonth() === parseInt(selM) && d.getFullYear() === selY;
+            });
 
-            let gP = 0, gL = 0, wins = 0, maxP = 0, maxL = 0;
-            let sess = { 'ASIAN': {w:0, t:0, p:0}, 'LONDON': {w:0, t:0, p:0}, 'NY': {w:0, t:0, p:0} };
-            let inst = {};
-            let cumulative = [0], dates = ['0'];
+            let gP = 0, gL = 0, wins = 0, hP = 0, hL = 0;
+            let sess = { ASIAN: {p:0, t:0, w:0}, LONDON: {p:0, t:0, w:0}, NY: {p:0, t:0, w:0} };
+            let inst = {}, cumulative = [0], labels = ['Start'];
 
-            // Reverse for chronological charting
             [...data].reverse().forEach(t => {
-                if(t.profit > 0) { gP += t.profit; wins++; } else gL += Math.abs(t.profit);
-                if(t.profit > maxP) maxP = t.profit;
-                if(t.profit < maxL) maxL = t.profit;
-
-                if(sess[t.session]) {
-                    sess[t.session].t++;
-                    sess[t.session].p += t.profit;
-                    if(t.profit > 0) sess[t.session].w++;
-                }
+                if(t.profit > 0) { gP += t.profit; wins++; if(t.profit > hP) hP = t.profit; } 
+                else { gL += Math.abs(t.profit); if(t.profit < hL) hL = t.profit; }
+                
+                sess[t.session].p += t.profit;
+                sess[t.session].t++;
+                if(t.profit > 0) sess[t.session].w++;
 
                 inst[t.symbol] = (inst[t.symbol] || 0) + t.profit;
                 cumulative.push(cumulative[cumulative.length-1] + t.profit);
-                dates.push(t.date);
+                labels.push(t.date);
             });
 
             document.getElementById('s-wr').innerText = data.length ? Math.round((wins/data.length)*100)+'%' : '0%';
+            document.getElementById('s-hp').innerText = `$${hP.toFixed(0)}`;
+            document.getElementById('s-hl').innerText = `-$${Math.abs(hL).toFixed(0)}`;
             document.getElementById('s-gp').innerText = `$${gP.toFixed(0)}`;
             document.getElementById('s-gl').innerText = `-$${gL.toFixed(0)}`;
-            document.getElementById('s-hp').innerText = `$${maxP.toFixed(0)}`;
-            document.getElementById('s-hl').innerText = `-$${Math.abs(maxL).toFixed(0)}`;
 
-            const calcWr = (s) => s.t > 0 ? Math.round((s.w / s.t) * 100) + '%' : 'N/A';
-            document.getElementById('wr-asian').innerText = calcWr(sess['ASIAN']);
-            document.getElementById('wr-london').innerText = calcWr(sess['LONDON']);
-            document.getElementById('wr-ny').innerText = calcWr(sess['NY']);
+            ['ASIAN', 'LONDON', 'NY'].forEach(s => {
+                const wr = sess[s].t ? Math.round((sess[s].w / sess[s].t)*100)+'%' : '0%';
+                document.getElementById(`wr-${s.toLowerCase()}`).innerText = wr;
+            });
 
-            const sortedInst = Object.entries(inst).sort((a,b)=>b[1]-a[1]);
-            document.getElementById('s-best-inst').innerText = sortedInst[0] ? `${sortedInst[0][0]} (+$${sortedInst[0][1].toFixed(0)})` : '---';
-            const sortedSess = Object.entries(sess).sort((a,b)=>b[1].p-a[1].p);
-            document.getElementById('s-best-sess').innerText = sortedSess[0] ? `${sortedSess[0][0]} (+$${sortedSess[0][1].p.toFixed(0)})` : '---';
+            const bestI = Object.entries(inst).sort((a,b)=>b[1]-a[1])[0];
+            document.getElementById('s-best-inst').innerText = bestI ? `${bestI[0]} (+$${bestI[1].toFixed(0)})` : '---';
+            const bestS = Object.entries(sess).sort((a,b)=>b[1].p-a[1].p)[0];
+            document.getElementById('s-best-sess').innerText = bestS ? `${bestS[0]} (+$${bestS[1].p.toFixed(0)})` : '---';
 
-            this.updateCharts(cumulative, dates, wins, data.length - wins);
+            this.updateCharts(cumulative, labels, wins, data.length - wins);
         },
         updateCharts(data, labels, w, l) {
             const ctxE = document.getElementById('equityChart').getContext('2d');
@@ -471,80 +418,90 @@
             if(this.charts.pie) this.charts.pie.destroy();
             this.charts.pie = new Chart(ctxP, { type: 'doughnut', data: { labels: ['Win','Loss'], datasets: [{ data: [w, l], backgroundColor: ['#44ff88', '#ff4444'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#888' } } } } });
         },
+        async handleNewTrade() {
+            const btn = document.getElementById('saveBtn'); btn.innerText = "Syncing...";
+            const file = document.getElementById('t-img').files[0];
+            let imgData = "";
+            if(file) {
+                const reader = new FileReader();
+                imgData = await new Promise(r => { reader.readAsDataURL(file); reader.onload = e => r(e.target.result); });
+            }
+            const entry = parseFloat(document.getElementById('t-entry').value), exit = parseFloat(document.getElementById('t-exit').value);
+            const lots = parseFloat(document.getElementById('t-lots').value), mult = parseFloat(document.getElementById('t-asset').value);
+            const trade = {
+                user_id: currentUser, timestamp: Date.now(),
+                symbol: document.getElementById('t-symbol').value.toUpperCase() || 'N/A',
+                lots: lots || 0, side: document.getElementById('t-side').value, session: document.getElementById('t-session').value,
+                profit: (exit - entry) * lots * mult * (document.getElementById('t-side').value === 'BUY' ? 1 : -1),
+                date: document.getElementById('t-date').value, notes: document.getElementById('t-notes').value, img: imgData,
+                duration: 0 
+            };
+            await addDoc(tradesCol, trade);
+            btn.innerText = "Log Execution";
+            this.syncData();
+        },
         async undoLast() {
             if(!confirm("Delete last entry?")) return;
             const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("timestamp", "desc"), limit(1));
             const snap = await getDocs(q);
             if(!snap.empty) await deleteDoc(doc(db, "trades", snap.docs[0].id));
-            this.fetchAndRenderAll();
+            this.syncData();
         },
         async resetAll() {
-            if(confirm("Wipe ALL cloud data for this user?")) {
-                const batch = writeBatch(db);
-                const q = query(tradesCol, where("user_id", "==", currentUser));
-                const snap = await getDocs(q);
-                snap.docs.forEach(d => batch.delete(d.ref));
-                await batch.commit();
-                this.fetchAndRenderAll();
-            }
+            if(!confirm("Wipe ALL data?")) return;
+            const batch = writeBatch(db);
+            const q = query(tradesCol, where("user_id", "==", currentUser));
+            const snap = await getDocs(q);
+            snap.docs.forEach(d => batch.delete(d.ref));
+            await batch.commit();
+            this.syncData();
         },
         async exportPDF() {
-            const exportBtn = document.querySelector('.export-controls button');
-            exportBtn.innerText = "Generating...";
+            const m = document.getElementById('export-month').value;
+            const y = document.getElementById('export-year').value;
             
-            const expM = document.getElementById('export-month').value;
-            const expY = parseInt(document.getElementById('export-year').value);
-            
-            // Backup active states
-            const activeSearch = document.getElementById('search-bar').value;
-            const activeCalM = document.getElementById('cal-month').value;
-            const activeCalY = document.getElementById('cal-year').value;
-            const activeAnalM = document.getElementById('analytics-timeframe').value;
-            const activeAnalY = document.getElementById('analytics-year').value;
+            // Backup current view states
+            const oldM = document.getElementById('ana-month').value;
+            const oldY = document.getElementById('ana-year').value;
+            const oldCalM = document.getElementById('cal-month').value;
 
-            // Prepare views specifically for the selected export timeframe
-            document.getElementById('search-bar').value = '';
-            
-            if (expM !== 'ALL') {
-                document.getElementById('cal-month').value = expM;
-                document.getElementById('cal-year').value = expY;
-                document.getElementById('analytics-timeframe').value = expM;
-                document.getElementById('analytics-year').value = expY;
-            } else {
-                document.getElementById('analytics-timeframe').value = 'ALL';
-            }
+            // Prepare PDF Data
+            document.body.classList.add('pdf-export-mode');
+            document.getElementById('ana-month').value = m;
+            document.getElementById('ana-year').value = y;
+            document.getElementById('cal-month').value = (m === 'ALL' ? new Date().getMonth() : m);
+            document.getElementById('cal-year').value = y;
 
-            this.renderJournal(expM, expY);
+            this.renderAnalytics();
             this.renderCalendar();
             this.updateSideStats();
-            this.renderAnalytics();
+            
+            // Filter Journal for the PDF
+            const body = document.getElementById('tradeBody');
+            body.innerHTML = '';
+            cachedTrades.forEach(t => {
+                const d = new Date(t.date);
+                if(m !== 'ALL' && (d.getMonth() !== parseInt(m) || d.getFullYear() !== parseInt(y))) return;
+                body.insertAdjacentHTML('beforeend', `<tr><td>${t.date}</td><td>${t.symbol}</td><td>${t.lots}</td><td>${t.side}</td><td>${t.session}</td><td>$${t.profit.toFixed(2)}</td><td>--</td><td>${t.notes}</td></tr>`);
+            });
 
-            const container = document.getElementById('main-content');
-            container.classList.add('pdf-mode');
+            const element = document.getElementById('main-content');
+            const opt = {
+                margin: 0,
+                filename: `Trading_Report_${m}_${y}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, backgroundColor: '#000000' },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+            };
 
-            // Timeout allows charts to finish their render animation before capture
-            setTimeout(async () => {
-                const opt = {
-                    margin:       10,
-                    filename:     `Report_${currentUser}_${expM==='ALL'?'All_Time':expM+'-'+expY}.pdf`,
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#000' },
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-                };
-
-                await html2pdf().set(opt).from(container).save();
-
-                // Restore previous state after PDF completion
-                container.classList.remove('pdf-mode');
-                document.getElementById('search-bar').value = activeSearch;
-                document.getElementById('cal-month').value = activeCalM;
-                document.getElementById('cal-year').value = activeCalY;
-                document.getElementById('analytics-timeframe').value = activeAnalM;
-                document.getElementById('analytics-year').value = activeAnalY;
-                exportBtn.innerText = "Download PDF";
-                
-                this.fetchAndRenderAll();
-            }, 500);
+            await html2pdf().set(opt).from(element).save();
+            
+            // Restore UI
+            document.body.classList.remove('pdf-export-mode');
+            document.getElementById('ana-month').value = oldM;
+            document.getElementById('ana-year').value = oldY;
+            document.getElementById('cal-month').value = oldCalM;
+            this.syncData();
         }
     };
 </script>
