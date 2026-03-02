@@ -196,7 +196,6 @@
         <button class="tab-btn active" id="btn-journal"   onclick="ui.switchTab('journal')">Journal</button>
         <button class="tab-btn"        id="btn-calendar"  onclick="ui.switchTab('calendar')">Performance Calendar</button>
         <button class="tab-btn"        id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
-        <button class="tab-btn" id="btn-mt5" onclick="ui.switchTab('mt5')">⚙ MT5 Connect</button>
     </nav>
 
     <!-- ══════════════════════════════════════════════════════
@@ -294,24 +293,20 @@
                     <div class="calc-input-row">
                         <label>Instrument</label>
                         <select id="c-instrument" onchange="ui.calcLotSize()">
-                            <option value="forex">Forex (EURUSD, GBPUSD…)</option>
-                            <option value="gold">Gold (XAUUSD)</option>
-                            <option value="indices">Indices (US30, NAS100…)</option>
-                            <option value="crypto">Crypto (BTCUSD…)</option>
+                            <option value="forex">Forex  — tick=$1/lot, 1pip=10ticks</option>
+                            <option value="gold">Gold (XAUUSD) — tick=$0.01/lot</option>
+                            <option value="indices">Indices (US30, NAS100) — tick=$1/lot</option>
+                            <option value="crypto">Crypto (BTCUSD) — tick=$1/lot</option>
                         </select>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                         <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>Entry</label>
-                            <input type="number" id="c-entry" placeholder="1.10000" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
+                            <label id="c-sl-label">SL (ticks)</label>
+                            <input type="number" id="c-sl-ticks" placeholder="e.g. 500" min="0" step="1" oninput="ui.autoSetTPTicks();ui.calcLotSize();">
                         </div>
                         <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>Stop Loss</label>
-                            <input type="number" id="c-sl" placeholder="1.09500" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
-                        </div>
-                        <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>Target R:R Ratio</label>
-                            <select id="c-rr-target" onchange="ui.autoSetTP()" style="width:100%;padding:10px;font-size:0.8rem;">
+                            <label>Target R:R</label>
+                            <select id="c-rr-target" onchange="ui.autoSetTPTicks()" style="width:100%;padding:10px;font-size:0.8rem;">
                                 <option value="0">Manual TP</option>
                                 <option value="0.5">1 : 0.5</option>
                                 <option value="1">1 : 1</option>
@@ -324,8 +319,8 @@
                             </select>
                         </div>
                         <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>Take Profit <span id="c-tp-auto-tag" style="color:#44ff88;font-size:0.55rem;margin-left:4px;display:none;">● AUTO</span></label>
-                            <input type="number" id="c-tp" placeholder="1.11000" step="0.00001" oninput="ui.onManualTP()">
+                            <label id="c-tp-label">TP (ticks) <span id="c-tp-auto-tag" style="color:#44ff88;font-size:0.55rem;margin-left:4px;display:none;">● AUTO</span></label>
+                            <input type="number" id="c-tp-ticks" placeholder="e.g. 1000" min="0" step="1" oninput="ui.onManualTPTicks()">
                         </div>
                     </div>
 
@@ -348,19 +343,19 @@
                             <div class="c-res-sub" id="c-res-profit-pct">---</div>
                         </div>
                         <div class="c-res-card">
-                            <div class="c-res-label">SL Distance</div>
+                            <div class="c-res-label">SL Distance (ticks)</div>
                             <div class="c-res-val" id="c-res-sl-pips">---</div>
                             <div class="c-res-sub">pips / points</div>
                         </div>
                         <div class="c-res-card">
-                            <div class="c-res-label">TP Distance</div>
+                            <div class="c-res-label">TP Distance (ticks)</div>
                             <div class="c-res-val" id="c-res-tp-pips">---</div>
                             <div class="c-res-sub">pips / points</div>
                         </div>
                         <div class="c-res-card">
-                            <div class="c-res-label">Pip Value / lot</div>
+                            <div class="c-res-label">Tick Value / lot</div>
                             <div class="c-res-val" id="c-res-pipval">---</div>
-                            <div class="c-res-sub">per standard lot</div>
+                            <div class="c-res-sub" id="c-res-pipval-note">per standard lot</div>
                         </div>
                         <div class="c-res-card">
                             <div class="c-res-label">Risk : Reward</div>
@@ -507,177 +502,6 @@
         </div>
     </div>
 
-    <!-- ══ MT5 CONNECT TAB ══ -->
-    <div id="tab-mt5" class="tab-content">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:25px;">
-
-            <!-- LEFT: EA INPUTS GUIDE -->
-            <div>
-                <div class="card">
-                    <div class="section-title">⚙ EA Manual Setup — Set These in MT5 Inputs</div>
-                    <p style="font-size:0.75rem;color:#666;margin:0 0 20px;line-height:1.8;">
-                        These two values are set directly inside the EA inputs panel in MT5 when you attach it to a chart. No website configuration needed.
-                    </p>
-
-                    <!-- INPUT 1: USER_ID -->
-                    <div style="background:#050505;border:1px solid #1a4a2a;padding:18px;margin-bottom:15px;border-radius:2px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                            <span style="font-size:0.6rem;color:#44ff88;text-transform:uppercase;letter-spacing:2px;">Input 1</span>
-                            <span style="font-size:0.6rem;color:#555;text-transform:uppercase;">Required</span>
-                        </div>
-                        <div style="font-size:1rem;color:#fff;font-weight:600;margin-bottom:6px;">USER_ID</div>
-                        <div style="font-size:0.72rem;color:#888;margin-bottom:12px;">Your journal login username — must match exactly (UPPERCASE)</div>
-                        <div style="background:#000;border:1px solid #1a4a2a;padding:10px 14px;font-size:0.85rem;color:#44ff88;letter-spacing:1px;" id="mt5-display-user">
-                            YOUR_USERNAME
-                        </div>
-                        <div style="font-size:0.62rem;color:#444;margin-top:8px;">↑ Copy this exactly into the USER_ID input field in MT5</div>
-                    </div>
-
-                    <!-- INPUT 2: HISTORY_FROM -->
-                    <div style="background:#050505;border:1px solid #1a1a4a;padding:18px;margin-bottom:15px;border-radius:2px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                            <span style="font-size:0.6rem;color:#8888ff;text-transform:uppercase;letter-spacing:2px;">Input 2</span>
-                            <span style="font-size:0.6rem;color:#555;text-transform:uppercase;">Required</span>
-                        </div>
-                        <div style="font-size:1rem;color:#fff;font-weight:600;margin-bottom:6px;">HISTORY_FROM</div>
-                        <div style="font-size:0.72rem;color:#888;margin-bottom:12px;">Import all closed trades from this date onwards</div>
-                        <input type="date" id="mt5-history-from" value="2020-01-01"
-                            style="width:100%;padding:12px;font-size:0.85rem;background:#000;border:1px solid #1a1a4a;color:#8888ff;"
-                            oninput="ui.updateMT5Preview()">
-                        <div style="font-size:0.62rem;color:#444;margin-top:8px;">Set this date in MT5 EA inputs as: <span id="mt5-date-preview" style="color:#8888ff;">2020.01.01</span></div>
-                    </div>
-
-                    <!-- INPUT 3: PROJECT_ID -->
-                    <div style="background:#050505;border:1px solid #222;padding:18px;margin-bottom:15px;border-radius:2px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                            <span style="font-size:0.6rem;color:#666;text-transform:uppercase;letter-spacing:2px;">Input 3</span>
-                            <span style="font-size:0.6rem;color:#555;text-transform:uppercase;">Do Not Change</span>
-                        </div>
-                        <div style="font-size:1rem;color:#fff;font-weight:600;margin-bottom:6px;">PROJECT_ID</div>
-                        <div style="font-size:0.72rem;color:#888;margin-bottom:12px;">Your Firebase project — already set correctly in EA file</div>
-                        <div style="background:#000;border:1px solid #222;padding:10px 14px;font-size:0.85rem;color:#666;letter-spacing:1px;">
-                            rk-journaling-trades
-                        </div>
-                    </div>
-
-                    <!-- COPY-PASTE SUMMARY -->
-                    <div style="background:#0a0a0a;border:1px solid #333;padding:15px;margin-top:5px;">
-                        <div style="font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">MT5 Input Summary — Copy These Values</div>
-                        <div style="font-family:monospace;font-size:0.78rem;line-height:2.2;color:#888;">
-                            <span style="color:#555;">USER_ID &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=</span> <b style="color:#44ff88;" id="mt5-summary-user">YOUR_USERNAME</b><br>
-                            <span style="color:#555;">HISTORY_FROM &nbsp;=</span> <b style="color:#8888ff;" id="mt5-summary-date">2020.01.01</b><br>
-                            <span style="color:#555;">PROJECT_ID &nbsp;&nbsp;&nbsp;=</span> <b style="color:#aaa;">rk-journaling-trades</b><br>
-                            <span style="color:#555;">DEBUG_MODE &nbsp;&nbsp;&nbsp;=</span> <b style="color:#aaa;">false</b>
-                        </div>
-                    </div>
-
-                    <!-- SAVE TO FIREBASE FOR EA AUTO-READ -->
-                    <div style="background:#050505;border:1px solid #1a1a1a;padding:15px;margin-top:10px;">
-                        <div style="font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Auto-Input to EA — Save Config to Firebase</div>
-                        <div style="font-size:0.7rem;color:#666;margin-bottom:12px;line-height:1.7;">
-                            Instead of typing values in MT5 manually, save here and set <b style="color:#fff;">READ_CONFIG_FROM_FIREBASE = true</b> in EA inputs. EA will pull settings automatically.
-                        </div>
-                        <button onclick="ui.saveMT5Config()" style="width:100%;background:#fff;color:#000;border:none;padding:11px;font-size:0.75rem;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:1px;">
-                            💾 Save Config to Firebase
-                        </button>
-                        <div id="mt5-save-status" style="font-size:0.68rem;margin-top:8px;text-align:center;color:#555;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGHT: STEP BY STEP SETUP + STATUS -->
-            <div>
-                <div class="card">
-                    <div class="section-title">📋 MT5 Setup — Step by Step</div>
-
-                    <!-- Step 1 -->
-                    <div style="display:flex;gap:15px;margin-bottom:18px;">
-                        <div style="width:28px;height:28px;background:#fff;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">1</div>
-                        <div>
-                            <div style="font-size:0.78rem;color:#fff;font-weight:600;margin-bottom:5px;">Allow WebRequest in MT5</div>
-                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
-                                Tools → Options → Expert Advisors<br>
-                                ✓ Check <b style="color:#aaa;">Allow WebRequest for listed URLs</b><br>
-                                Add this URL exactly:
-                            </div>
-                            <div style="background:#000;border:1px solid #1a4a2a;padding:7px 12px;margin-top:6px;font-size:0.7rem;color:#44ff88;word-break:break-all;">
-                                https://firestore.googleapis.com
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 2 -->
-                    <div style="display:flex;gap:15px;margin-bottom:18px;">
-                        <div style="width:28px;height:28px;background:#fff;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">2</div>
-                        <div>
-                            <div style="font-size:0.78rem;color:#fff;font-weight:600;margin-bottom:5px;">Install the EA File</div>
-                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
-                                In MT5: File → Open Data Folder<br>
-                                Navigate to <b style="color:#aaa;">MQL5 → Experts</b><br>
-                                Copy <b style="color:#fff;">RK_Journal_EA.mq5</b> into that folder<br>
-                                Open MetaEditor → press <b style="color:#fff;">F7</b> to compile
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div style="display:flex;gap:15px;margin-bottom:18px;">
-                        <div style="width:28px;height:28px;background:#fff;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">3</div>
-                        <div>
-                            <div style="font-size:0.78rem;color:#fff;font-weight:600;margin-bottom:5px;">Attach EA to a Chart</div>
-                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
-                                Drag EA onto any chart (e.g. EURUSD M1)<br>
-                                In the <b style="color:#aaa;">Inputs</b> tab, set the values from the left panel<br>
-                                Click <b style="color:#fff;">OK</b>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 4 -->
-                    <div style="display:flex;gap:15px;margin-bottom:18px;">
-                        <div style="width:28px;height:28px;background:#fff;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">4</div>
-                        <div>
-                            <div style="font-size:0.78rem;color:#fff;font-weight:600;margin-bottom:5px;">Enable Algo Trading</div>
-                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
-                                Make sure the <b style="color:#fff;">Algo Trading</b> button in the MT5 toolbar is <span style="color:#44ff88;">ON (green)</span><br>
-                                EA starts automatically — history imports on first run
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 5 -->
-                    <div style="display:flex;gap:15px;">
-                        <div style="width:28px;height:28px;background:#44ff88;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">✓</div>
-                        <div>
-                            <div style="font-size:0.78rem;color:#44ff88;font-weight:600;margin-bottom:5px;">Done — Refresh Your Journal</div>
-                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
-                                Reload this page after the EA runs<br>
-                                All past trades will appear in the Journal tab<br>
-                                New trades log automatically as they close
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- IMPORT STATUS -->
-                <div class="card">
-                    <div class="section-title">Import Status</div>
-                    <div id="mt5-import-status" style="font-size:0.72rem;color:#555;line-height:2.2;">
-                        <span style="color:#444;">Click "Check Status" to see if EA has run.</span>
-                    </div>
-                    <div style="display:flex;gap:10px;margin-top:15px;">
-                        <button class="calc-btn" onclick="ui.loadMT5Status()" style="flex:1;">
-                            🔄 Check Status
-                        </button>
-                        <button class="calc-btn" onclick="ui.resetImportFlag()"
-                            style="flex:1;background:#000;color:#ff4444;border:1px solid #4a1a1a;">
-                            ↺ Reset (Re-import)
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     </div>
 
 </div>
@@ -702,19 +526,32 @@ document.getElementById('loginBtn').onclick=async()=>{
     try{
         const snap=await getDoc(doc(db,"users",u));
         if(snap.exists()&&snap.data().password===p){
-            currentUser=u;
-            document.getElementById('login-overlay').style.display='none';
-            document.getElementById('main-content').style.display='block';
-            document.getElementById('display-user').innerText=u;
-            ui.init();
-            // Pre-fill MT5 tab username displays
-            ['mt5-display-user','mt5-summary-user'].forEach(id=>{
-                const el=document.getElementById(id);
-                if(el) el.textContent=u;
-            });
+            doLogin(u);
         }else{document.getElementById('login-err').style.display='block';}
     }catch(e){alert("Error connecting to server");}
 };
+
+// ── Centralised login function (used by button + auto-restore) ──
+function doLogin(u){
+    currentUser=u;
+    sessionStorage.setItem('rk_user', u);
+    document.getElementById('login-overlay').style.display='none';
+    document.getElementById('main-content').style.display='block';
+    document.getElementById('display-user').innerText=u;
+    ui.init();
+}
+
+// ── Auto-restore session on refresh without re-login ──
+window.addEventListener('DOMContentLoaded', ()=>{
+    const saved=sessionStorage.getItem('rk_user');
+    if(saved){
+        // Verify user still exists in Firebase then restore
+        getDoc(doc(db,'users',saved)).then(snap=>{
+            if(snap.exists()) doLogin(saved);
+            else sessionStorage.removeItem('rk_user');
+        }).catch(()=>{}); // silently fail, show login
+    }
+});
 
 window.ui={
     charts:{},
@@ -736,35 +573,12 @@ window.ui={
             // Simple query - no orderBy avoids composite index requirement
             const q=query(tradesCol,where("user_id","==",currentUser));
             const snap=await getDocs(q);
-            cachedTrades=snap.docs.map(d=>{
-                const data=d.data();
-                // Strip broker suffixes from symbol (.sm, .pro, .raw, .std, .ecn etc)
-                if(data.symbol) data.symbol = data.symbol.replace(/\.(sm|pro|raw|std|ecn|c|m|micro|mini)$/i,'').toUpperCase();
-                // Ensure profit is a number (Firestore may store as integerValue/doubleValue)
-                if(typeof data.profit === 'object') data.profit = parseFloat(data.profit) || 0;
-                // Ensure numeric fields are numbers
-                ['lots','entry','exit','sl','tp'].forEach(k=>{
-                    if(typeof data[k]==='object') data[k]=parseFloat(data[k])||0;
-                });
-                // Re-classify session using timestamp + DST logic
-                // This fixes any sessions that were stored incorrectly by the EA
-                const ts = typeof data.timestamp === 'object'
-                    ? parseInt(data.timestamp) || 0
-                    : (data.timestamp || 0);
-                // MT5 timestamp is in seconds; JS Date.now() is in ms
-                const tsSeconds = ts > 1e12 ? Math.floor(ts/1000) : ts;
-                if (tsSeconds > 0) {
-                    const classified = this.classifySession(tsSeconds, null);
-                    if (classified) data.session = classified;
-                }
-                return {...data, id:d.id};
-            });
+            cachedTrades=snap.docs.map(d=>({...d.data(), id:d.id}));
             // Sort client-side by date descending
             cachedTrades.sort((a,b)=>{
                 const da=a.date||"", db=b.date||"";
                 return da>db?-1:da<db?1:0;
             });
-            console.log("Trades loaded:", cachedTrades.length, "for user:", currentUser);
             this.renderAll();
         } catch(err) {
             console.error("syncData error:", err);
@@ -784,7 +598,6 @@ window.ui={
         if(id==='analytics')this.renderAnalytics();
         if(id==='calendar'){this.renderCalendar();this.updateSideStats();}
         if(id==='journal')this.renderJournal();
-        if(id==='mt5'){this.loadMT5Status();}
     },
 
     /* ══ SESSION CLASSIFICATION — NPT UTC+5:45 WITH DST ══════════════
@@ -804,61 +617,34 @@ window.ui={
      *  Overlaps (London+NY) are classified as NY since NY dominates.
      * ══════════════════════════════════════════════════════════════ */
 
-    classifySession(unixSeconds, dateStr){
-        // unixSeconds: MT5 timestamp (seconds). dateStr: "YYYY-MM-DD" for manual trades.
-        // Returns 'ASIAN' | 'LONDON' | 'NY'
+    /* ══ SESSION AUTO-DETECT — NPT UTC+5:45 WITH DST ══════════════
+     *  ASIAN  : 05:45 – 12:45  (all year)
+     *  LONDON : 12:45 – 21:45  summer (Mar–Oct) | 13:45 – 22:45  winter
+     *  NY     : 17:45 – 02:45  summer            | 18:45 – 03:45  winter
+     * ══════════════════════════════════════════════════════════════ */
+    classifySession(dateStr){
+        const timeVal = document.getElementById('t-start').value;
+        if (!timeVal || !dateStr) return null;
+        const [h, m] = timeVal.split(':').map(Number);
+        const nptMin = h * 60 + m;
+        const month  = new Date(dateStr).getMonth() + 1; // 1–12
 
-        let nptMin; // minutes of day in NPT
-        let month;
-
-        if (unixSeconds && unixSeconds > 0) {
-            // Convert Unix timestamp → NPT time
-            // NPT = UTC + 5h 45m = UTC + 345 minutes
-            const utcMs    = unixSeconds * 1000;
-            const nptMs    = utcMs + (345 * 60 * 1000);
-            const nptDate  = new Date(nptMs);
-            nptMin         = nptDate.getUTCHours() * 60 + nptDate.getUTCMinutes();
-            month          = nptDate.getUTCMonth() + 1; // 1–12
-        } else if (dateStr) {
-            // Manual trade — read time from form
-            const timeVal  = document.getElementById('t-start').value;
-            if (!timeVal) return null; // can't classify without time
-            const [h, m]   = timeVal.split(':').map(Number);
-            nptMin         = h * 60 + m;
-            month          = new Date(dateStr).getMonth() + 1;
-        } else {
-            return null;
-        }
-
-        // DST: summer = Mar(3)–Oct(10), winter = Nov(11)–Feb(2)
         const isSummer = (month >= 3 && month <= 10);
+        const ASIAN_START = 5*60+45, ASIAN_END = 12*60+45;
+        const LON_START   = isSummer ? 12*60+45 : 13*60+45;
+        const LON_END     = isSummer ? 21*60+45 : 22*60+45;
+        const NY_START    = isSummer ? 17*60+45 : 18*60+45;
+        const NY_END_WRAP = isSummer ? 2*60+45  : 3*60+45;
 
-        // Session boundaries in NPT minutes-of-day
-        const ASIAN_START  = 5*60+45;   // 05:45
-        const ASIAN_END    = 12*60+45;  // 12:45
-
-        const LON_START    = isSummer ? 12*60+45 : 13*60+45; // 12:45 or 13:45
-        const LON_END      = isSummer ? 21*60+45 : 22*60+45; // 21:45 or 22:45
-
-        const NY_START     = isSummer ? 17*60+45 : 18*60+45; // 17:45 or 18:45
-        const NY_END_WRAP  = isSummer ? 2*60+45  : 3*60+45;  // 02:45 or 03:45 next day
-
-        // Classify — check NY first since it overlaps with London close
-        if (nptMin >= NY_START || nptMin < NY_END_WRAP)   return 'NY';
-        if (nptMin >= LON_START && nptMin < LON_END)       return 'LONDON';
-        if (nptMin >= ASIAN_START && nptMin < ASIAN_END)   return 'ASIAN';
-
-        // Off-hours (02:45–05:45 NPT) → default Asian (pre-market)
-        return 'ASIAN';
+        if (nptMin >= NY_START || nptMin < NY_END_WRAP) return 'NY';
+        if (nptMin >= LON_START && nptMin < LON_END)    return 'LONDON';
+        if (nptMin >= ASIAN_START && nptMin < ASIAN_END) return 'ASIAN';
+        return 'ASIAN'; // off-hours default
     },
 
-    /* Called when user picks a time in the journal form */
     autoDetectSession(){
-        const dateVal  = document.getElementById('t-date').value;
-        const timeVal  = document.getElementById('t-start').value;
-        if (!timeVal || !dateVal) return;
-
-        const session = this.classifySession(0, dateVal);
+        const dateVal = document.getElementById('t-date').value;
+        const session = this.classifySession(dateVal);
         if (session) document.getElementById('t-session').value = session;
     },
 
@@ -884,61 +670,44 @@ window.ui={
     },
 
     /* ══ AUTO TP FROM R:R ══ */
-    autoSetTP(){
-        const rrTarget = parseFloat(document.getElementById('c-rr-target').value)||0;
-        const entry    = parseFloat(document.getElementById('c-entry').value)||0;
-        const sl       = parseFloat(document.getElementById('c-sl').value)||0;
-        const autoTag  = document.getElementById('c-tp-auto-tag');
-        const tpInput  = document.getElementById('c-tp');
+    /* ── Auto-set TP ticks from R:R ratio ── */
+    autoSetTPTicks(){
+        const rrTarget  = parseFloat(document.getElementById('c-rr-target').value)||0;
+        const slTicks   = parseFloat(document.getElementById('c-sl-ticks').value)||0;
+        const autoTag   = document.getElementById('c-tp-auto-tag');
+        const tpInput   = document.getElementById('c-tp-ticks');
 
         if(rrTarget===0){
-            // Manual mode — unlock field
-            tpInput.readOnly=false;
-            tpInput.style.borderColor='';
-            tpInput.style.color='#fff';
-            autoTag.style.display='none';
+            tpInput.readOnly     = false;
+            tpInput.style.borderColor = '';
+            tpInput.style.color  = '#fff';
+            autoTag.style.display= 'none';
             this.calcLotSize();
             return;
         }
 
-        if(!entry||!sl){
-            alert("Enter Entry Price and Stop Loss first, then select R:R.");
+        if(!slTicks){
             document.getElementById('c-rr-target').value='0';
+            this.calcLotSize();
             return;
         }
 
-        const slDist   = Math.abs(entry - sl);
-        const tpDist   = slDist * rrTarget;
-        // Direction: if entry > sl it's a SELL (short), TP is below entry
-        // if entry < sl it's a BUY (long), TP is above entry
-        const isBuy    = entry < sl ? false : true; // entry > sl = short, entry < sl = long... actually:
-        // BUY: entry < sl makes no sense. BUY means sl < entry, so TP = entry + tpDist
-        // SELL: sl > entry, so TP = entry - tpDist
-        const direction = sl < entry ? 1 : -1; // BUY: sl below entry (sl<entry), go UP; SELL: sl above entry, go DOWN
-        const tp        = entry + (tpDist * direction);
-
-        // Determine decimal places from entry/sl
-        const decimals  = Math.max(
-            (entry.toString().split('.')[1]||'').length,
-            (sl.toString().split('.')[1]||'').length
-        );
-
-        tpInput.value        = tp.toFixed(decimals);
-        tpInput.readOnly     = true;
+        const tpTicks       = Math.round(slTicks * rrTarget * 10) / 10;
+        tpInput.value       = tpTicks;
+        tpInput.readOnly    = true;
         tpInput.style.borderColor = '#44ff88';
-        tpInput.style.color  = '#44ff88';
+        tpInput.style.color = '#44ff88';
         autoTag.style.display = 'inline';
         this.calcLotSize();
     },
 
-    onManualTP(){
-        // When user types TP manually, reset RR target to "Manual"
+    onManualTPTicks(){
         document.getElementById('c-rr-target').value='0';
         document.getElementById('c-tp-auto-tag').style.display='none';
-        const tpInput=document.getElementById('c-tp');
-        tpInput.readOnly=false;
-        tpInput.style.borderColor='';
-        tpInput.style.color='#fff';
+        const tpInput = document.getElementById('c-tp-ticks');
+        tpInput.readOnly     = false;
+        tpInput.style.borderColor = '';
+        tpInput.style.color  = '#fff';
         this.calcLotSize();
     },
 
@@ -955,80 +724,100 @@ window.ui={
         this.calcLotSize();
     },
 
-    /* ══ LOT SIZE CALCULATOR ══ */
+    /* ══ LOT SIZE CALCULATOR — SL by TICKS ══ */
     calcLotSize(){
-        const mode=this._riskMode||'pct';
-        const balance=parseFloat(document.getElementById('c-balance').value)||0;
-        const riskPct=parseFloat(document.getElementById('c-risk-pct').value)||0;
-        const riskAmt=parseFloat(document.getElementById('c-risk-amt').value)||0;
-        const instr=document.getElementById('c-instrument').value;
-        const entry=parseFloat(document.getElementById('c-entry').value)||0;
-        const sl=parseFloat(document.getElementById('c-sl').value)||0;
-        const tp=parseFloat(document.getElementById('c-tp').value)||0;
+        const mode     = this._riskMode||'pct';
+        const balance  = parseFloat(document.getElementById('c-balance').value)||0;
+        const riskPct  = parseFloat(document.getElementById('c-risk-pct').value)||0;
+        const riskAmt  = parseFloat(document.getElementById('c-risk-amt').value)||0;
+        const instr    = document.getElementById('c-instrument').value;
+        const slTicks  = parseFloat(document.getElementById('c-sl-ticks').value)||0;
+        const tpTicks  = parseFloat(document.getElementById('c-tp-ticks').value)||0;
+
+        // Tick config per instrument
+        // tickValue = $ per tick per standard lot
+        // Forex:   1 tick = 0.00001 price move = $1 per std lot (5-decimal broker)
+        // Gold:    1 tick = 0.01 price move    = $0.01 per std lot
+        // Indices: 1 tick = 0.01 or 1 point    = $1 per std lot (varies, $1 common)
+        // Crypto:  1 tick = $1                 = $1 per std lot
+        // Tick value = $ profit/loss per 1 tick move per standard lot
+        // Forex  : 1 tick = 0.00001 × 100,000 units  = $1/tick
+        // Gold   : 1 tick = $0.01   × 100 oz          = $1/tick
+        // Indices: 1 tick = 1 point × $1/point         = $1/tick
+        // Crypto : 1 tick = $1/point                   = $1/tick
+        const tickConfig={
+            forex:  {tickValue:1, note:'Forex: 1 tick = $0.00001 × 100k units = $1'},
+            gold:   {tickValue:1, note:'Gold: 1 tick = $0.01 × 100 oz = $1'},
+            indices:{tickValue:1, note:'Indices: 1 tick = 1 point = $1'},
+            crypto: {tickValue:1, note:'Crypto: 1 tick = $1'}
+        };
+        const cfg = tickConfig[instr];
+
+        // Update labels
+        const slLabel = document.getElementById('c-sl-label');
+        const tpLabel = document.getElementById('c-tp-label');
+        if(slLabel) slLabel.textContent = `SL (ticks)`;
+        if(tpLabel) tpLabel.innerHTML   = `TP (ticks) <span id="c-tp-auto-tag" style="color:#44ff88;font-size:0.55rem;margin-left:4px;${document.getElementById('c-tp-auto-tag')?.style.display==='none'?'display:none;':''}">● AUTO</span>`;
 
         /* Quick risk reference table */
         if(balance>0){
-            const slDist=entry&&sl?Math.abs(entry-sl):0;
-            const cfg={forex:{ps:0.0001,pv:10},gold:{ps:0.01,pv:1},indices:{ps:1,pv:1},crypto:{ps:1,pv:1}}[instr];
-            const slPipsEst=slDist>0?slDist/cfg.ps:0;
             const rows=[0.5,1,1.5,2,3,5].map(pct=>{
-                const amt=(balance*pct/100);
-                const lotsEst=slPipsEst>0?Math.floor(amt/(slPipsEst*cfg.pv)*100)/100:0;
-                const isActive=mode==='pct'&&pct===riskPct;
-                return`<tr class="${isActive?'active-risk':''}"><td>${pct}%</td><td>$${amt.toFixed(2)}</td><td>${slPipsEst>0?lotsEst.toFixed(2):'---'}</td></tr>`;
+                const amt    = balance*pct/100;
+                const lotsEst= slTicks>0 ? Math.floor(amt/(slTicks*cfg.tickValue)*100)/100 : 0;
+                const isActive= mode==='pct' && pct===riskPct;
+                return `<tr class="${isActive?'active-risk':''}"><td>${pct}%</td><td>$${amt.toFixed(2)}</td><td>${slTicks>0?lotsEst.toFixed(2):'---'}</td></tr>`;
             }).join('');
             document.getElementById('quick-risk-body').innerHTML=rows;
             document.getElementById('quick-risk-table').style.display='block';
         }
 
-        if(!entry||!sl){this._clearCalcResults();return;}
+        if(!slTicks){ this._clearCalcResults(); return; }
 
-        const pipConfig={
-            forex:  {pipSize:0.0001,pipValue:10,  unit:'pips',  dec:1},
-            gold:   {pipSize:0.01,  pipValue:1,   unit:'points',dec:2},
-            indices:{pipSize:1,     pipValue:1,   unit:'points',dec:1},
-            crypto: {pipSize:1,     pipValue:1,   unit:'points',dec:2}
-        };
-        const cfg=pipConfig[instr];
-        const slDist=Math.abs(entry-sl), tpDist=tp?Math.abs(tp-entry):0;
-        const slPips=slDist/cfg.pipSize, tpPips=tpDist/cfg.pipSize;
-        const riskMoney=mode==='amt'?riskAmt:(balance>0?balance*riskPct/100:0);
-        if(!riskMoney){this._clearCalcResults();return;}
+        const riskMoney = mode==='amt' ? riskAmt : (balance>0 ? balance*riskPct/100 : 0);
+        if(!riskMoney){ this._clearCalcResults(); return; }
 
-        const rawLots=riskMoney/(slPips*cfg.pipValue);
-        const lots=Math.floor(rawLots*100)/100;
-        const actualRisk=lots*slPips*cfg.pipValue;
-        const potProfit=tp?lots*tpPips*cfg.pipValue:0;
-        const rr=tpDist>0?tpDist/slDist:0;
-        const rrLabel=rr>0?`1 : ${parseFloat(rr.toFixed(2))}`:'---';
-        let rrVerdict='---';
-        if(rr>0){if(rr>=3)rrVerdict='🔥 Excellent';else if(rr>=2)rrVerdict='✓ Good';else if(rr>=1.5)rrVerdict='~ Acceptable';else if(rr>=1)rrVerdict='⚠ Minimum';else rrVerdict='✗ Poor — Avoid';}
+        const rawLots   = riskMoney / (slTicks * cfg.tickValue);
+        const lots      = Math.floor(rawLots*100)/100;
+        const actualRisk= lots * slTicks * cfg.tickValue;
+        const potProfit = tpTicks ? lots * tpTicks * cfg.tickValue : 0;
+        const rr        = tpTicks>0 ? tpTicks/slTicks : 0;
+        const rrLabel   = rr>0 ? `1 : ${parseFloat(rr.toFixed(2))}` : '---';
+        let rrVerdict   = '---';
+        if(rr>0){
+            if(rr>=3)      rrVerdict='🔥 Excellent';
+            else if(rr>=2) rrVerdict='✓ Good';
+            else if(rr>=1.5)rrVerdict='~ Acceptable';
+            else if(rr>=1) rrVerdict='⚠ Minimum';
+            else           rrVerdict='✗ Poor — Avoid';
+        }
 
-        document.getElementById('c-res-lots').textContent=lots.toFixed(2);
-        document.getElementById('c-res-lots-sub').textContent='Standard lots (rounded down)';
-        document.getElementById('c-res-risk').textContent=`$${actualRisk.toFixed(2)}`;
-        document.getElementById('c-res-risk-pct').textContent=balance>0?`${((actualRisk/balance)*100).toFixed(2)}% of balance`:'Add balance for %';
-        document.getElementById('c-res-profit').textContent=tp?`$${potProfit.toFixed(2)}`:'---';
-        document.getElementById('c-res-profit-pct').textContent=(balance>0&&tp)?`${((potProfit/balance)*100).toFixed(2)}% of balance`:'Enter TP for profit';
-        document.getElementById('c-res-sl-pips').textContent=`${slPips.toFixed(cfg.dec)} ${cfg.unit}`;
-        document.getElementById('c-res-tp-pips').textContent=tp?`${tpPips.toFixed(cfg.dec)} ${cfg.unit}`:'---';
-        document.getElementById('c-res-pipval').textContent=`$${cfg.pipValue.toFixed(2)}`;
-        document.getElementById('c-res-rr').textContent=rrLabel;
-        document.getElementById('c-res-rr-verdict').textContent=rrVerdict;
+        document.getElementById('c-res-lots').textContent    = lots.toFixed(2);
+        document.getElementById('c-res-lots-sub').textContent= 'Standard lots (rounded down)';
+        document.getElementById('c-res-risk').textContent    = `$${actualRisk.toFixed(2)}`;
+        document.getElementById('c-res-risk-pct').textContent= balance>0 ? `${((actualRisk/balance)*100).toFixed(2)}% of balance` : 'Add balance for %';
+        document.getElementById('c-res-profit').textContent  = tpTicks ? `$${potProfit.toFixed(2)}` : '---';
+        document.getElementById('c-res-profit-pct').textContent= (balance>0&&tpTicks) ? `${((potProfit/balance)*100).toFixed(2)}% of balance` : 'Enter TP for profit';
+        document.getElementById('c-res-sl-pips').textContent = `${slTicks} ticks`;
+        document.getElementById('c-res-tp-pips').textContent = tpTicks ? `${tpTicks} ticks` : '---';
+        document.getElementById('c-res-pipval').textContent  = `$${cfg.tickValue.toFixed(2)}`;
+        document.getElementById('c-res-rr').textContent      = rrLabel;
+        document.getElementById('c-res-rr-verdict').textContent= rrVerdict;
 
         if(rr>0){
-            const bar=document.getElementById('rr-quality-bar'); bar.style.display='block';
-            const fill=document.getElementById('rr-bar-fill');
-            fill.style.width=Math.min((rr/3)*100,100)+'%';
-            fill.className=`rr-bar-fill ${rr>=1?'good':'bad'}`;
+            const bar  = document.getElementById('rr-quality-bar'); bar.style.display='block';
+            const fill = document.getElementById('rr-bar-fill');
+            fill.style.width = Math.min((rr/3)*100,100)+'%';
+            fill.className   = `rr-bar-fill ${rr>=1?'good':'bad'}`;
+        } else {
+            document.getElementById('rr-quality-bar').style.display='none';
         }
 
         document.getElementById('calc-breakdown').innerHTML=
             `<b>Breakdown</b><br>`+
-            `SL Distance : ${slDist.toFixed(5)} = <b>${slPips.toFixed(cfg.dec)} ${cfg.unit}</b><br>`+
-            (tp?`TP Distance : ${tpDist.toFixed(5)} = <b>${tpPips.toFixed(cfg.dec)} ${cfg.unit}</b><br>`:'')+
-            `Pip Value &nbsp;&nbsp;: $${cfg.pipValue} per standard lot<br>`+
-            `Formula &nbsp;&nbsp;&nbsp;: $${riskMoney.toFixed(2)} ÷ (${slPips.toFixed(cfg.dec)} × $${cfg.pipValue}) = <b>${rawLots.toFixed(4)} lots</b><br>`+
+            `Tick Value : $${cfg.tickValue}/tick/lot &nbsp; (${cfg.note})<br>`+
+            `SL &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b>${slTicks} ticks</b> × $${cfg.tickValue}/lot = $${(slTicks*cfg.tickValue).toFixed(2)} risk per lot<br>`+
+            (tpTicks?`TP &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b>${tpTicks} ticks</b> × $${cfg.tickValue}/lot = $${(tpTicks*cfg.tickValue).toFixed(2)} profit per lot<br>`:'')+
+            `Formula &nbsp;&nbsp;&nbsp;: $${riskMoney.toFixed(2)} ÷ $${(slTicks*cfg.tickValue).toFixed(2)} = <b>${rawLots.toFixed(4)} lots</b><br>`+
             `Rounded &nbsp;&nbsp;&nbsp;: <b>${lots.toFixed(2)} lots</b> (always rounded DOWN for safety)`;
     },
 
@@ -1036,7 +825,7 @@ window.ui={
         ['c-res-lots','c-res-risk','c-res-profit','c-res-sl-pips','c-res-tp-pips','c-res-pipval','c-res-rr'].forEach(id=>document.getElementById(id).textContent='---');
         ['c-res-lots-sub','c-res-risk-pct','c-res-profit-pct','c-res-rr-verdict'].forEach(id=>document.getElementById(id).textContent='---');
         document.getElementById('rr-quality-bar').style.display='none';
-        document.getElementById('calc-breakdown').innerHTML='Enter balance, entry and SL to see calculation.';
+        document.getElementById('calc-breakdown').innerHTML='Enter balance and SL ticks to see calculation.';
     },
 
     calcRR(t){
@@ -1361,101 +1150,6 @@ window.ui={
         await batch.commit(); this.syncData();
     },
 
-    /* ══ MT5 CONNECT ══ */
-    async saveMT5Config(){
-        const statusEl = document.getElementById('mt5-save-status');
-        const histFrom = document.getElementById('mt5-history-from').value || '2020-01-01';
-        const histFromMT5 = histFrom.replace(/-/g, '.'); // Convert to MT5 format YYYY.MM.DD
-
-        statusEl.style.color='#888';
-        statusEl.textContent='Saving...';
-
-        try {
-            const url = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/ea_config/${currentUser}`;
-            const cfg = {
-                fields: {
-                    user_id:      { stringValue: currentUser },
-                    history_from: { stringValue: histFromMT5 },
-                    project_id:   { stringValue: 'rk-journaling-trades' },
-                    debug_mode:   { booleanValue: false },
-                    saved_at:     { integerValue: String(Date.now()) }
-                }
-            };
-            const res = await fetch(url, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cfg)
-            });
-            if (res.ok) {
-                statusEl.style.color='#44ff88';
-                statusEl.textContent='✓ Config saved! EA will read this automatically on next start.';
-            } else {
-                const err = await res.json();
-                statusEl.style.color='#ff4444';
-                statusEl.textContent='✗ Save failed: ' + (err.error?.message || res.status);
-            }
-        } catch(e) {
-            statusEl.style.color='#ff4444';
-            statusEl.textContent='✗ Error: ' + e.message;
-        }
-    },
-
-    updateMT5Preview(){
-        const raw  = document.getElementById('mt5-history-from').value || '2020-01-01';
-        const fmt  = raw.replace(/-/g, '.'); // 2020-01-01 → 2020.01.01 (MT5 format)
-        const els  = ['mt5-date-preview','mt5-summary-date'];
-        els.forEach(id => { const el=document.getElementById(id); if(el) el.textContent=fmt; });
-    },
-
-    loadMT5Status(){
-        // Pre-fill username from logged-in user
-        const userEl = document.getElementById('mt5-display-user');
-        const sumEl  = document.getElementById('mt5-summary-user');
-        if (userEl) userEl.textContent = currentUser;
-        if (sumEl)  sumEl.textContent  = currentUser;
-
-        // Check Firebase for import flag
-        const flagUrl = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/import_flags/${currentUser}_history`;
-        const statusEl = document.getElementById('mt5-import-status');
-        if (!statusEl) return;
-
-        statusEl.innerHTML = '<span style="color:#555;">Checking Firebase...</span>';
-
-        fetch(flagUrl)
-            .then(r => {
-                if (r.ok) return r.json().then(data => {
-                    const f  = data.fields || {};
-                    const ts = f.timestamp?.integerValue
-                        ? new Date(parseInt(f.timestamp.integerValue) * 1000).toLocaleString()
-                        : 'Unknown time';
-                    statusEl.innerHTML =
-                        `<span style="color:#44ff88;font-weight:600;font-size:0.85rem;">✓ History Imported Successfully</span><br>` +
-                        `<span style="color:#555;">Completed at &nbsp;:</span> <b style="color:#aaa;">${ts}</b><br>` +
-                        `<span style="color:#555;">Current mode &nbsp;:</span> <b style="color:#fff;">Live — logging new trades only</b><br>` +
-                        `<span style="color:#444;font-size:0.65rem;margin-top:5px;display:block;">Click "Reset" below if you want to wipe the flag and re-import from scratch.</span>`;
-                });
-                else {
-                    statusEl.innerHTML =
-                        `<span style="color:#ffcc44;font-weight:600;font-size:0.85rem;">⏳ Not Yet Imported</span><br>` +
-                        `<span style="color:#555;">The EA has not run yet.</span><br>` +
-                        `<span style="color:#555;">Attach the EA to a chart in MT5 and it will start automatically.</span>`;
-                }
-            })
-            .catch(() => {
-                statusEl.innerHTML = '<span style="color:#ff4444;">Could not reach Firebase. Check your internet connection.</span>';
-            });
-    },
-
-    resetImportFlag(){
-        if (!confirm('This deletes the import flag.\nThe EA will re-import ALL history next time it starts.\n\nContinue?')) return;
-        const flagUrl = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/import_flags/${currentUser}_history`;
-        fetch(flagUrl, { method: 'DELETE' })
-            .then(() => {
-                alert('Flag reset. Re-attach the EA in MT5 to re-import history.');
-                this.loadMT5Status();
-            })
-            .catch(e => alert('Error: ' + e.message));
-    },
 
         async exportPDF(){
         const m=document.getElementById('export-month').value, y=document.getElementById('export-year').value;
