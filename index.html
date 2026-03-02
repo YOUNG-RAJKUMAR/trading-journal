@@ -431,6 +431,35 @@
                     <select id="cal-year"  onchange="ui.renderCalendar();ui.updateSideStats();"></select>
                 </div>
                 <div class="calendar-grid" id="calendarGrid"></div>
+
+                <!-- Day detail panel — shows when a date is clicked -->
+                <div id="cal-day-detail" style="display:none;margin-top:20px;background:var(--surface);border:1px solid var(--border);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);">
+                        <span id="cal-day-detail-title" style="font-size:0.75rem;color:#fff;letter-spacing:2px;text-transform:uppercase;font-weight:600;">—</span>
+                        <button onclick="document.getElementById('cal-day-detail').style.display='none'"
+                            style="background:transparent;border:none;color:#555;font-size:1rem;cursor:pointer;padding:0 4px;">✕</button>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;min-width:900px;">
+                            <thead>
+                                <tr>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">Symbol</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">Side</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">Lots</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">Session</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">Entry</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">SL</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">TP</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">Exit</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">Outcome</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">R:R</th>
+                                    <th style="color:#555;font-size:0.58rem;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:#050505;white-space:nowrap;">P/L ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cal-day-trades"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             <div>
                 <div class="stat-card"><span class="stat-label">Daily P/L</span><div id="side-today" class="stat-val">$0</div><span class="stat-meta" id="side-today-meta">0% WR | 0 Trades</span></div>
@@ -535,6 +564,18 @@
                             <span style="color:#555;">PROJECT_ID &nbsp;&nbsp;&nbsp;=</span> <b style="color:#aaa;">rk-journaling-trades</b><br>
                             <span style="color:#555;">DEBUG_MODE &nbsp;&nbsp;&nbsp;=</span> <b style="color:#aaa;">false</b>
                         </div>
+                    </div>
+
+                    <!-- SAVE TO FIREBASE FOR EA AUTO-READ -->
+                    <div style="background:#050505;border:1px solid #1a1a1a;padding:15px;margin-top:10px;">
+                        <div style="font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Auto-Input to EA — Save Config to Firebase</div>
+                        <div style="font-size:0.7rem;color:#666;margin-bottom:12px;line-height:1.7;">
+                            Instead of typing values in MT5 manually, save here and set <b style="color:#fff;">READ_CONFIG_FROM_FIREBASE = true</b> in EA inputs. EA will pull settings automatically.
+                        </div>
+                        <button onclick="ui.saveMT5Config()" style="width:100%;background:#fff;color:#000;border:none;padding:11px;font-size:0.75rem;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:1px;">
+                            💾 Save Config to Firebase
+                        </button>
+                        <div id="mt5-save-status" style="font-size:0.68rem;margin-top:8px;text-align:center;color:#555;"></div>
                     </div>
                 </div>
             </div>
@@ -686,17 +727,38 @@ window.ui={
     },
 
     async syncData(){
-        // Query without orderBy to avoid composite index requirement in Firestore
-        // MT5-imported and manual trades both have user_id field
-        const q=query(tradesCol,where("user_id","==",currentUser));
-        const snap=await getDocs(q);
-        cachedTrades=snap.docs.map(d=>({...d.data(),id:d.id}));
-        // Sort client-side by date descending (handles both manual + MT5 imported trades)
-        cachedTrades.sort((a,b)=>{
-            const da=a.date||"", db=b.date||"";
-            return da>db?-1:da<db?1:0;
-        });
-        this.renderAll();
+        try {
+            // Simple query - no orderBy avoids composite index requirement
+            const q=query(tradesCol,where("user_id","==",currentUser));
+            const snap=await getDocs(q);
+            cachedTrades=snap.docs.map(d=>{
+                const data=d.data();
+                // Strip broker suffixes from symbol (.sm, .pro, .raw, .std, .ecn etc)
+                if(data.symbol) data.symbol = data.symbol.replace(/\.(sm|pro|raw|std|ecn|c|m|micro|mini)$/i,'');
+                // Ensure profit is a number (Firestore may store as integerValue/doubleValue)
+                if(typeof data.profit === 'object') data.profit = parseFloat(data.profit) || 0;
+                // Ensure numeric fields are numbers
+                ['lots','entry','exit','sl','tp'].forEach(k=>{
+                    if(typeof data[k]==='object') data[k]=parseFloat(data[k])||0;
+                });
+                return {...data, id:d.id};
+            });
+            // Sort client-side by date descending
+            cachedTrades.sort((a,b)=>{
+                const da=a.date||"", db=b.date||"";
+                return da>db?-1:da<db?1:0;
+            });
+            console.log("Trades loaded:", cachedTrades.length, "for user:", currentUser);
+            this.renderAll();
+        } catch(err) {
+            console.error("syncData error:", err);
+            // Show error to user so we can debug
+            const body = document.getElementById("tradeBody");
+            if(body) body.innerHTML = `<tr><td colspan="10" style="color:#ff4444;padding:20px;text-align:center;">
+                Error loading trades: ${err.message}<br>
+                <small style="color:#666;">Check browser console (F12) for details</small>
+            </td></tr>`;
+        }
     },
 
     switchTab(id){
@@ -991,14 +1053,81 @@ window.ui={
 
     renderCalendar(){
         const grid=document.getElementById('calendarGrid');grid.innerHTML='';
+        // Hide day detail panel when re-rendering
+        const detail=document.getElementById('cal-day-detail');
+        if(detail) detail.style.display='none';
         const mVal=document.getElementById('cal-month').value;
-        if(mVal==='ALL'){grid.innerHTML='<div style="grid-column:span 7;padding:40px;text-align:center;color:#666;font-size:0.8rem;">CALENDAR VIEW DISABLED IN "ALL TIME" MODE</div>';return;}
-        const m=parseInt(mVal),y=parseInt(document.getElementById('cal-year').value);
-        for(let i=1;i<=new Date(y,m+1,0).getDate();i++){
-            const dStr=`${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-            const pl=cachedTrades.filter(t=>t.date===dStr).reduce((s,t)=>s+t.profit,0);
-            grid.innerHTML+=`<div class="cal-day ${pl>0?'profit':pl<0?'loss':''}"><b>${i}</b>${pl!==0?`<div style="font-size:0.7rem;color:${pl>0?'var(--positive)':'var(--negative)'};">$${pl.toFixed(0)}</div>`:''}</div>`;
+        if(mVal==='ALL'){
+            grid.innerHTML='<div style="grid-column:span 7;padding:40px;text-align:center;color:#666;font-size:0.8rem;">SELECT A MONTH TO VIEW CALENDAR</div>';
+            return;
         }
+        const m=parseInt(mVal),y=parseInt(document.getElementById('cal-year').value);
+        const days=new Date(y,m+1,0).getDate();
+        // Add day-of-week headers
+        const dow=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+        dow.forEach(d=>{
+            grid.innerHTML+=`<div style="background:#050505;padding:8px;text-align:center;font-size:0.55rem;color:#444;letter-spacing:1px;">${d}</div>`;
+        });
+        // Get first day offset (0=Sun…6=Sat → convert to Mon-start)
+        let firstDay=new Date(y,m,1).getDay();
+        firstDay=(firstDay===0)?6:firstDay-1; // Mon=0
+        for(let e=0;e<firstDay;e++) grid.innerHTML+=`<div class="cal-day"></div>`;
+        for(let i=1;i<=days;i++){
+            const dStr=`${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+            const dayTrades=cachedTrades.filter(t=>t.date===dStr);
+            const pl=dayTrades.reduce((s,t)=>s+t.profit,0);
+            const count=dayTrades.length;
+            const isToday=dStr===new Date().toISOString().split('T')[0];
+            grid.innerHTML+=`<div class="cal-day ${pl>0?'profit':pl<0?'loss':''}"
+                style="cursor:${count>0?'pointer':'default'};${isToday?'outline:1px solid #444;':''}"
+                onclick="ui.showDayDetail('${dStr}')">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <b style="font-size:0.82rem;${isToday?'color:#fff;':'color:#aaa;'}">${i}</b>
+                    ${count>0?`<span style="font-size:0.55rem;color:#555;background:#111;padding:1px 5px;border-radius:2px;">${count}T</span>`:''}
+                </div>
+                ${pl!==0?`<div style="font-size:0.72rem;color:${pl>0?'var(--positive)':'var(--negative)'};margin-top:4px;font-weight:600;">$${pl.toFixed(0)}</div>`:''}
+            </div>`;
+        }
+    },
+
+    showDayDetail(dateStr){
+        const dayTrades=cachedTrades.filter(t=>t.date===dateStr);
+        const detail=document.getElementById('cal-day-detail');
+        const titleEl=document.getElementById('cal-day-detail-title');
+        const tbody=document.getElementById('cal-day-trades');
+        if(!detail||!titleEl||!tbody) return;
+
+        if(dayTrades.length===0){ detail.style.display='none'; return; }
+
+        // Format date nicely
+        const d=new Date(dateStr+'T00:00:00');
+        const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+        const totalPL=dayTrades.reduce((s,t)=>s+t.profit,0);
+        const wins=dayTrades.filter(t=>t.profit>0).length;
+        titleEl.innerHTML=`${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} &nbsp;·&nbsp; ${dayTrades.length} Trade${dayTrades.length>1?'s':''} &nbsp;·&nbsp; WR: ${Math.round(wins/dayTrades.length*100)}% &nbsp;·&nbsp; <span style="color:${totalPL>=0?'var(--positive)':'var(--negative)'};">$${totalPL.toFixed(2)}</span>`;
+
+        const fmt=v=>v?parseFloat(v).toFixed(5):'---';
+        tbody.innerHTML='';
+        dayTrades.forEach(t=>{
+            const rr=this.calcRR(t);
+            const outcome=this.getOutcome(t);
+            tbody.innerHTML+=`<tr>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;"><b>${t.symbol}</b></td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;color:${t.side==='BUY'?'var(--positive)':'var(--negative)'};">${t.side}</td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;"><span style="background:#1a1a1a;padding:2px 6px;border-radius:3px;border:1px solid #333;">${t.lots}</span></td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;color:#666;">${t.session}</td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;color:#aaa;">${fmt(t.entry)}</td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;color:#ff8888;">${fmt(t.sl)}</td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;color:#88ff99;">${fmt(t.tp)}</td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;color:#fff;">${fmt(t.exit)}</td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;"><span class="outcome-badge ${outcome.cls}">${outcome.label}</span></td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;"><span class="rr-badge ${rr.cls}">${rr.label}</span></td>
+                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;font-weight:600;color:${t.profit>=0?'var(--positive)':'var(--negative)'};">$${t.profit.toFixed(2)}</td>
+            </tr>`;
+        });
+
+        detail.style.display='block';
+        detail.scrollIntoView({behavior:'smooth',block:'nearest'});
     },
 
     renderAnalytics(){
@@ -1028,10 +1157,28 @@ window.ui={
         if(avgPlanned!==null){document.getElementById('s-planned-rr').innerText=`1 : ${parseFloat(avgPlanned.toFixed(2))}`;document.getElementById('s-planned-rr-meta').innerText=`Based on ${plannedRRs.length} of ${data.length} trades`;}
         else{document.getElementById('s-planned-rr').innerText='---';document.getElementById('s-planned-rr-meta').innerText='No SL/TP data yet';}
         ['ASIAN','LONDON','NY'].forEach(s=>{document.getElementById(`wr-${s.toLowerCase()}`).innerText=sess[s].t?Math.round(sess[s].w/sess[s].t*100)+'%':'0%';});
-        const bestI=Object.entries(inst).sort((a,b)=>b[1]-a[1])[0];
-        document.getElementById('s-best-inst').innerText=bestI?`${bestI[0]} (+$${bestI[1].toFixed(0)})`:'---';
-        const bestS=Object.entries(sess).sort((a,b)=>b[1].p-a[1].p)[0];
-        document.getElementById('s-best-sess').innerText=bestS?`${bestS[0]} (+$${bestS[1].p.toFixed(0)})`:'---';
+        // Best instrument — only show if at least one instrument is profitable
+        const instEntries=Object.entries(inst).sort((a,b)=>b[1]-a[1]);
+        const bestInstEl=document.getElementById('s-best-inst');
+        const bestI=instEntries[0];
+        if(bestI && bestI[1]>0){
+            bestInstEl.innerText=`${bestI[0]} (+$${bestI[1].toFixed(0)})`;
+            bestInstEl.style.color='var(--positive)';
+        } else {
+            bestInstEl.innerText='N/A';
+            bestInstEl.style.color='#555';
+        }
+        // Best session — only show if at least one session is profitable
+        const sessEntries=Object.entries(sess).sort((a,b)=>b[1].p-a[1].p);
+        const bestSessEl=document.getElementById('s-best-sess');
+        const bestS=sessEntries[0];
+        if(bestS && bestS[1].p>0){
+            bestSessEl.innerText=`${bestS[0]} (+$${bestS[1].p.toFixed(0)})`;
+            bestSessEl.style.color='var(--positive)';
+        } else {
+            bestSessEl.innerText='N/A';
+            bestSessEl.style.color='#555';
+        }
         this.updateCharts(cumulative,labels,wins,data.length-wins);
     },
 
@@ -1074,6 +1221,44 @@ window.ui={
     },
 
     /* ══ MT5 CONNECT ══ */
+    async saveMT5Config(){
+        const statusEl = document.getElementById('mt5-save-status');
+        const histFrom = document.getElementById('mt5-history-from').value || '2020-01-01';
+        const histFromMT5 = histFrom.replace(/-/g, '.'); // Convert to MT5 format YYYY.MM.DD
+
+        statusEl.style.color='#888';
+        statusEl.textContent='Saving...';
+
+        try {
+            const url = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/ea_config/${currentUser}`;
+            const cfg = {
+                fields: {
+                    user_id:      { stringValue: currentUser },
+                    history_from: { stringValue: histFromMT5 },
+                    project_id:   { stringValue: 'rk-journaling-trades' },
+                    debug_mode:   { booleanValue: false },
+                    saved_at:     { integerValue: String(Date.now()) }
+                }
+            };
+            const res = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cfg)
+            });
+            if (res.ok) {
+                statusEl.style.color='#44ff88';
+                statusEl.textContent='✓ Config saved! EA will read this automatically on next start.';
+            } else {
+                const err = await res.json();
+                statusEl.style.color='#ff4444';
+                statusEl.textContent='✗ Save failed: ' + (err.error?.message || res.status);
+            }
+        } catch(e) {
+            statusEl.style.color='#ff4444';
+            statusEl.textContent='✗ Error: ' + e.message;
+        }
+    },
+
     updateMT5Preview(){
         const raw  = document.getElementById('mt5-history-from').value || '2020-01-01';
         const fmt  = raw.replace(/-/g, '.'); // 2020-01-01 → 2020.01.01 (MT5 format)
