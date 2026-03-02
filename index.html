@@ -495,9 +495,14 @@
             <div class="card"><h3>Equity Curve</h3><canvas id="equityChart"></canvas></div>
             <div class="card">
                 <h3>Top Insights</h3>
-                <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1rem;">---</div>
-                <div class="stat-label" style="margin-top:10px;">Best Session</div><div id="s-best-sess" class="stat-val" style="font-size:1rem;color:var(--positive);">---</div>
-                <div style="margin-top:20px;"><canvas id="pieChart"></canvas></div>
+                <div id="lbl-best-inst" class="stat-label">Best Instrument</div>
+                <div id="s-best-inst" class="stat-val" style="font-size:0.9rem;">---</div>
+                <div id="s-best-inst-meta" style="font-size:0.65rem;color:#555;margin-top:2px;"></div>
+                <div id="lbl-best-sess" class="stat-label" style="margin-top:14px;">Best Session</div>
+                <div id="s-best-sess" class="stat-val" style="font-size:0.9rem;">---</div>
+                <div id="s-best-sess-meta" style="font-size:0.65rem;color:#555;margin-top:2px;"></div>
+                <div id="pie-label" style="font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-top:20px;margin-bottom:4px;">Profit vs Loss ($)</div>
+                <div style=""><canvas id="pieChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -734,13 +739,24 @@ window.ui={
             cachedTrades=snap.docs.map(d=>{
                 const data=d.data();
                 // Strip broker suffixes from symbol (.sm, .pro, .raw, .std, .ecn etc)
-                if(data.symbol) data.symbol = data.symbol.replace(/\.(sm|pro|raw|std|ecn|c|m|micro|mini)$/i,'');
+                if(data.symbol) data.symbol = data.symbol.replace(/\.(sm|pro|raw|std|ecn|c|m|micro|mini)$/i,'').toUpperCase();
                 // Ensure profit is a number (Firestore may store as integerValue/doubleValue)
                 if(typeof data.profit === 'object') data.profit = parseFloat(data.profit) || 0;
                 // Ensure numeric fields are numbers
                 ['lots','entry','exit','sl','tp'].forEach(k=>{
                     if(typeof data[k]==='object') data[k]=parseFloat(data[k])||0;
                 });
+                // Re-classify session using timestamp + DST logic
+                // This fixes any sessions that were stored incorrectly by the EA
+                const ts = typeof data.timestamp === 'object'
+                    ? parseInt(data.timestamp) || 0
+                    : (data.timestamp || 0);
+                // MT5 timestamp is in seconds; JS Date.now() is in ms
+                const tsSeconds = ts > 1e12 ? Math.floor(ts/1000) : ts;
+                if (tsSeconds > 0) {
+                    const classified = this.classifySession(tsSeconds, null);
+                    if (classified) data.session = classified;
+                }
                 return {...data, id:d.id};
             });
             // Sort client-side by date descending
@@ -771,31 +787,79 @@ window.ui={
         if(id==='mt5'){this.loadMT5Status();}
     },
 
-    /* ══ AUTO-DETECT SESSION FROM TIME (NPT UTC+5:45) ══ */
+    /* ══ SESSION CLASSIFICATION — NPT UTC+5:45 WITH DST ══════════════
+     *
+     *  Nepal is UTC+5:45 all year (no DST in Nepal itself).
+     *  BUT London & NY markets observe DST, shifting their open/close
+     *  times by 1 hour between summer (Mar–Oct) and winter (Nov–Feb).
+     *
+     *  All times below are in NPT (Nepal Time = UTC+5:45):
+     *
+     *  ASIAN  : 05:45 – 12:45  (same all year)
+     *  LONDON : 12:45 – 21:45  (summer Mar–Oct)
+     *           13:45 – 22:45  (winter Nov–Feb, +1hr)
+     *  NY     : 17:45 – 02:45  (summer, crosses midnight)
+     *           18:45 – 03:45  (winter, crosses midnight, +1hr)
+     *
+     *  Overlaps (London+NY) are classified as NY since NY dominates.
+     * ══════════════════════════════════════════════════════════════ */
+
+    classifySession(unixSeconds, dateStr){
+        // unixSeconds: MT5 timestamp (seconds). dateStr: "YYYY-MM-DD" for manual trades.
+        // Returns 'ASIAN' | 'LONDON' | 'NY'
+
+        let nptMin; // minutes of day in NPT
+        let month;
+
+        if (unixSeconds && unixSeconds > 0) {
+            // Convert Unix timestamp → NPT time
+            // NPT = UTC + 5h 45m = UTC + 345 minutes
+            const utcMs    = unixSeconds * 1000;
+            const nptMs    = utcMs + (345 * 60 * 1000);
+            const nptDate  = new Date(nptMs);
+            nptMin         = nptDate.getUTCHours() * 60 + nptDate.getUTCMinutes();
+            month          = nptDate.getUTCMonth() + 1; // 1–12
+        } else if (dateStr) {
+            // Manual trade — read time from form
+            const timeVal  = document.getElementById('t-start').value;
+            if (!timeVal) return null; // can't classify without time
+            const [h, m]   = timeVal.split(':').map(Number);
+            nptMin         = h * 60 + m;
+            month          = new Date(dateStr).getMonth() + 1;
+        } else {
+            return null;
+        }
+
+        // DST: summer = Mar(3)–Oct(10), winter = Nov(11)–Feb(2)
+        const isSummer = (month >= 3 && month <= 10);
+
+        // Session boundaries in NPT minutes-of-day
+        const ASIAN_START  = 5*60+45;   // 05:45
+        const ASIAN_END    = 12*60+45;  // 12:45
+
+        const LON_START    = isSummer ? 12*60+45 : 13*60+45; // 12:45 or 13:45
+        const LON_END      = isSummer ? 21*60+45 : 22*60+45; // 21:45 or 22:45
+
+        const NY_START     = isSummer ? 17*60+45 : 18*60+45; // 17:45 or 18:45
+        const NY_END_WRAP  = isSummer ? 2*60+45  : 3*60+45;  // 02:45 or 03:45 next day
+
+        // Classify — check NY first since it overlaps with London close
+        if (nptMin >= NY_START || nptMin < NY_END_WRAP)   return 'NY';
+        if (nptMin >= LON_START && nptMin < LON_END)       return 'LONDON';
+        if (nptMin >= ASIAN_START && nptMin < ASIAN_END)   return 'ASIAN';
+
+        // Off-hours (02:45–05:45 NPT) → default Asian (pre-market)
+        return 'ASIAN';
+    },
+
+    /* Called when user picks a time in the journal form */
     autoDetectSession(){
-        const timeVal = document.getElementById('t-start').value;
-        if (!timeVal) return;
-        const [h, m] = timeVal.split(':').map(Number);
-        const totalMin = h * 60 + m;
+        const dateVal  = document.getElementById('t-date').value;
+        const timeVal  = document.getElementById('t-start').value;
+        if (!timeVal || !dateVal) return;
 
-        // Determine summer/winter from selected date
-        const dateVal = document.getElementById('t-date').value;
-        const month   = dateVal ? new Date(dateVal).getMonth() + 1 : new Date().getMonth() + 1;
-        const isSummer = month >= 3 && month <= 10;
-
-        // NPT session boundaries in minutes-of-day (time already in NPT since user is in Nepal)
-        const asianStart  = 5*60+45,  asianEnd  = 12*60+45;
-        const lonStart    = isSummer ? 12*60+45 : 13*60+45;
-        const lonEnd      = isSummer ? 21*60+45 : 22*60+45;
-        const nyStart     = isSummer ? 17*60+45 : 18*60+45;
-        const nyEndWrap   = isSummer ? 2*60+45  : 3*60+45;  // wraps past midnight
-
-        let session = 'ASIAN';
-        if (totalMin >= asianStart && totalMin < asianEnd)          session = 'ASIAN';
-        else if (totalMin >= lonStart && totalMin < lonEnd)         session = 'LONDON';
-        else if (totalMin >= nyStart || totalMin < nyEndWrap)       session = 'NY';
-
-        document.getElementById('t-session').value = session;
+        const session = this.classifySession(0, dateVal);
+        if (session) document.getElementById('t-session').value = session;
     },
 
     renderAll(){this.renderJournal();this.renderCalendar();this.renderAnalytics();this.updateSideStats();},
@@ -1157,36 +1221,113 @@ window.ui={
         if(avgPlanned!==null){document.getElementById('s-planned-rr').innerText=`1 : ${parseFloat(avgPlanned.toFixed(2))}`;document.getElementById('s-planned-rr-meta').innerText=`Based on ${plannedRRs.length} of ${data.length} trades`;}
         else{document.getElementById('s-planned-rr').innerText='---';document.getElementById('s-planned-rr-meta').innerText='No SL/TP data yet';}
         ['ASIAN','LONDON','NY'].forEach(s=>{document.getElementById(`wr-${s.toLowerCase()}`).innerText=sess[s].t?Math.round(sess[s].w/sess[s].t*100)+'%':'0%';});
-        // Best instrument — only show if at least one instrument is profitable
-        const instEntries=Object.entries(inst).sort((a,b)=>b[1]-a[1]);
-        const bestInstEl=document.getElementById('s-best-inst');
-        const bestI=instEntries[0];
-        if(bestI && bestI[1]>0){
-            bestInstEl.innerText=`${bestI[0]} (+$${bestI[1].toFixed(0)})`;
-            bestInstEl.style.color='var(--positive)';
+        // ── INSTRUMENT INSIGHT ────────────────────────────────────────
+        // Build per-instrument stats: total P&L, wins, total trades
+        const instStats = {}; // {symbol: {pl, wins, total}}
+        data.forEach(t=>{
+            if(!instStats[t.symbol]) instStats[t.symbol]={pl:0,wins:0,total:0};
+            instStats[t.symbol].pl    += t.profit;
+            instStats[t.symbol].total += 1;
+            if(t.profit>0) instStats[t.symbol].wins += 1;
+        });
+        const instEntries = Object.entries(instStats).sort((a,b)=>b[1].pl-a[1].pl);
+        const bestInstEl  = document.getElementById('s-best-inst');
+        const bestInstMeta= document.getElementById('s-best-inst-meta');
+        const lblBestInst = document.getElementById('lbl-best-inst');
+
+        const isProfitable = gP > gL; // overall profitable period?
+
+        if(instEntries.length === 0){
+            lblBestInst.innerText = 'Best Instrument';
+            bestInstEl.innerText  = 'N/A';
+            bestInstEl.style.color= '#555';
+            bestInstMeta.innerText= '';
+        } else if(isProfitable){
+            // Show BEST (most profitable) instrument
+            const best = instEntries[0]; // highest P&L first
+            const wr   = Math.round(best[1].wins/best[1].total*100);
+            lblBestInst.innerText  = 'Best Instrument';
+            bestInstEl.innerText   = `${best[0]}`;
+            bestInstEl.style.color = 'var(--positive)';
+            bestInstMeta.innerHTML = `<span style="color:var(--positive);">+$${best[1].pl.toFixed(0)}</span> net &nbsp;·&nbsp; WR: <b style="color:#fff;">${wr}%</b> (${best[1].wins}/${best[1].total} trades)`;
         } else {
-            bestInstEl.innerText='N/A';
-            bestInstEl.style.color='#555';
+            // Show WORST (most losing) instrument
+            const worst = instEntries[instEntries.length-1]; // lowest P&L last
+            const wr    = Math.round(worst[1].wins/worst[1].total*100);
+            lblBestInst.innerText  = 'Worst Instrument';
+            bestInstEl.innerText   = `${worst[0]}`;
+            bestInstEl.style.color = 'var(--negative)';
+            bestInstMeta.innerHTML = `<span style="color:var(--negative);">-$${Math.abs(worst[1].pl).toFixed(0)}</span> net &nbsp;·&nbsp; WR: <b style="color:#fff;">${wr}%</b> (${worst[1].wins}/${worst[1].total} trades)`;
         }
-        // Best session — only show if at least one session is profitable
-        const sessEntries=Object.entries(sess).sort((a,b)=>b[1].p-a[1].p);
-        const bestSessEl=document.getElementById('s-best-sess');
-        const bestS=sessEntries[0];
-        if(bestS && bestS[1].p>0){
-            bestSessEl.innerText=`${bestS[0]} (+$${bestS[1].p.toFixed(0)})`;
-            bestSessEl.style.color='var(--positive)';
+
+        // ── SESSION INSIGHT ───────────────────────────────────────────
+        const sessEntries = Object.entries(sess)
+            .filter(([,v])=>v.t>0)
+            .sort((a,b)=>b[1].p-a[1].p);
+        const bestSessEl  = document.getElementById('s-best-sess');
+        const bestSessMeta= document.getElementById('s-best-sess-meta');
+        const lblBestSess = document.getElementById('lbl-best-sess');
+
+        if(sessEntries.length === 0){
+            lblBestSess.innerText  = 'Best Session';
+            bestSessEl.innerText   = 'N/A';
+            bestSessEl.style.color = '#555';
+            bestSessMeta.innerText = '';
+        } else if(isProfitable){
+            const best = sessEntries[0];
+            const wr   = Math.round(best[1].w/best[1].t*100);
+            lblBestSess.innerText  = 'Best Session';
+            bestSessEl.innerText   = best[0];
+            bestSessEl.style.color = 'var(--positive)';
+            bestSessMeta.innerHTML = `<span style="color:var(--positive);">+$${best[1].p.toFixed(0)}</span> net &nbsp;·&nbsp; WR: <b style="color:#fff;">${wr}%</b> (${best[1].w}/${best[1].t} trades)`;
         } else {
-            bestSessEl.innerText='N/A';
-            bestSessEl.style.color='#555';
+            const worst = sessEntries[sessEntries.length-1];
+            const wr    = Math.round(worst[1].w/worst[1].t*100);
+            lblBestSess.innerText  = 'Worst Session';
+            bestSessEl.innerText   = worst[0];
+            bestSessEl.style.color = 'var(--negative)';
+            bestSessMeta.innerHTML = `<span style="color:var(--negative);">-$${Math.abs(worst[1].p).toFixed(0)}</span> net &nbsp;·&nbsp; WR: <b style="color:#fff;">${wr}%</b> (${worst[1].w}/${worst[1].t} trades)`;
         }
-        this.updateCharts(cumulative,labels,wins,data.length-wins);
+
+        // Pass gross profit/loss in DOLLARS to chart (not trade count)
+        this.updateCharts(cumulative,labels,gP,gL);
     },
 
     updateCharts(data,labels,w,l){
         if(this.charts.equity)this.charts.equity.destroy();
         this.charts.equity=new Chart(document.getElementById('equityChart'),{type:'line',data:{labels,datasets:[{data,borderColor:'#fff',fill:true,backgroundColor:'rgba(255,255,255,0.05)',tension:0.1,pointRadius:0}]},options:{scales:{x:{display:false},y:{grid:{color:'#111'}}},plugins:{legend:{display:false}}}});
         if(this.charts.pie)this.charts.pie.destroy();
-        this.charts.pie=new Chart(document.getElementById('pieChart'),{type:'doughnut',data:{labels:['Win','Loss'],datasets:[{data:[w,l],backgroundColor:['#44ff88','#ff4444'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{color:'#888'}}}}});
+        // w = gross profit dollars, l = gross loss dollars
+        const grossP = parseFloat(w.toFixed(2));
+        const grossL = parseFloat(l.toFixed(2));
+        this.charts.pie=new Chart(document.getElementById('pieChart'),{
+            type:'doughnut',
+            data:{
+                labels:[`Profit $${grossP.toFixed(0)}`,`Loss $${grossL.toFixed(0)}`],
+                datasets:[{
+                    data:[grossP, grossL],
+                    backgroundColor:['#44ff88','#ff4444'],
+                    borderWidth:0
+                }]
+            },
+            options:{
+                plugins:{
+                    legend:{
+                        position:'bottom',
+                        labels:{color:'#888',font:{size:11}}
+                    },
+                    tooltip:{
+                        callbacks:{
+                            label(ctx){
+                                const total = grossP + grossL;
+                                const pct   = total>0 ? (ctx.raw/total*100).toFixed(1) : 0;
+                                return ` $${ctx.raw.toFixed(0)} (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
     },
 
     async handleNewTrade(){
