@@ -268,15 +268,24 @@
                         <label>Account Balance ($)</label>
                         <input type="number" id="c-balance" placeholder="e.g. 10000" oninput="ui.calcLotSize()">
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                        <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>Risk %</label>
-                            <input type="number" id="c-risk-pct" placeholder="e.g. 1" step="0.1" value="1" oninput="ui.calcLotSize()">
-                        </div>
-                        <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>Fixed Risk $ (optional)</label>
-                            <input type="number" id="c-risk-amt" placeholder="overrides %" oninput="ui.calcLotSize()">
-                        </div>
+                    <!-- Risk mode toggle -->
+                    <div style="display:flex;gap:0;margin-bottom:12px;">
+                        <button id="risk-mode-pct-btn" onclick="ui.setRiskMode('pct')"
+                            style="flex:1;padding:9px;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;cursor:pointer;border-right:none;background:#fff;color:#000;border:1px solid #fff;font-weight:600;">
+                            Risk %
+                        </button>
+                        <button id="risk-mode-amt-btn" onclick="ui.setRiskMode('amt')"
+                            style="flex:1;padding:9px;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;cursor:pointer;background:#000;color:#555;border:1px solid #333;font-weight:400;">
+                            Risk $
+                        </button>
+                    </div>
+                    <div id="risk-pct-row" class="calc-input-row">
+                        <label>Risk % of Balance</label>
+                        <input type="number" id="c-risk-pct" placeholder="e.g. 1" step="0.1" value="0" min="0" oninput="ui.calcLotSize()">
+                    </div>
+                    <div id="risk-amt-row" class="calc-input-row" style="display:none;">
+                        <label>Fixed Risk Amount ($)</label>
+                        <input type="number" id="c-risk-amt" placeholder="e.g. 100" value="0" min="0" oninput="ui.calcLotSize()">
                     </div>
 
                     <hr class="calc-divider">
@@ -293,15 +302,29 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
                         <div class="calc-input-row" style="margin-bottom:0;">
                             <label>Entry</label>
-                            <input type="number" id="c-entry" placeholder="1.10000" step="0.00001" oninput="ui.calcLotSize()">
+                            <input type="number" id="c-entry" placeholder="1.10000" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
                         </div>
                         <div class="calc-input-row" style="margin-bottom:0;">
                             <label>Stop Loss</label>
-                            <input type="number" id="c-sl" placeholder="1.09500" step="0.00001" oninput="ui.calcLotSize()">
+                            <input type="number" id="c-sl" placeholder="1.09500" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
                         </div>
                         <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>Take Profit</label>
-                            <input type="number" id="c-tp" placeholder="1.11000" step="0.00001" oninput="ui.calcLotSize()">
+                            <label>Target R:R Ratio</label>
+                            <select id="c-rr-target" onchange="ui.autoSetTP()" style="width:100%;padding:10px;font-size:0.8rem;">
+                                <option value="0">Manual TP</option>
+                                <option value="0.5">1 : 0.5</option>
+                                <option value="1">1 : 1</option>
+                                <option value="1.5">1 : 1.5</option>
+                                <option value="2">1 : 2</option>
+                                <option value="2.5">1 : 2.5</option>
+                                <option value="3">1 : 3</option>
+                                <option value="4">1 : 4</option>
+                                <option value="5">1 : 5</option>
+                            </select>
+                        </div>
+                        <div class="calc-input-row" style="margin-bottom:0;">
+                            <label>Take Profit <span id="c-tp-auto-tag" style="color:#44ff88;font-size:0.55rem;margin-left:4px;display:none;">● AUTO</span></label>
+                            <input type="number" id="c-tp" placeholder="1.11000" step="0.00001" oninput="ui.onManualTP()">
                         </div>
                     </div>
 
@@ -532,10 +555,83 @@ window.ui={
         metEl.innerHTML=`Risk &nbsp;&nbsp;: <b>${risk.toFixed(5)}</b><br>Reward : <b>${reward.toFixed(5)}</b>`;
     },
 
+    /* ══ AUTO TP FROM R:R ══ */
+    autoSetTP(){
+        const rrTarget = parseFloat(document.getElementById('c-rr-target').value)||0;
+        const entry    = parseFloat(document.getElementById('c-entry').value)||0;
+        const sl       = parseFloat(document.getElementById('c-sl').value)||0;
+        const autoTag  = document.getElementById('c-tp-auto-tag');
+        const tpInput  = document.getElementById('c-tp');
+
+        if(rrTarget===0){
+            // Manual mode — unlock field
+            tpInput.readOnly=false;
+            tpInput.style.borderColor='';
+            tpInput.style.color='#fff';
+            autoTag.style.display='none';
+            this.calcLotSize();
+            return;
+        }
+
+        if(!entry||!sl){
+            alert("Enter Entry Price and Stop Loss first, then select R:R.");
+            document.getElementById('c-rr-target').value='0';
+            return;
+        }
+
+        const slDist   = Math.abs(entry - sl);
+        const tpDist   = slDist * rrTarget;
+        // Direction: if entry > sl it's a SELL (short), TP is below entry
+        // if entry < sl it's a BUY (long), TP is above entry
+        const isBuy    = entry < sl ? false : true; // entry > sl = short, entry < sl = long... actually:
+        // BUY: entry < sl makes no sense. BUY means sl < entry, so TP = entry + tpDist
+        // SELL: sl > entry, so TP = entry - tpDist
+        const direction = sl < entry ? 1 : -1; // BUY: sl below entry (sl<entry), go UP; SELL: sl above entry, go DOWN
+        const tp        = entry + (tpDist * direction);
+
+        // Determine decimal places from entry/sl
+        const decimals  = Math.max(
+            (entry.toString().split('.')[1]||'').length,
+            (sl.toString().split('.')[1]||'').length
+        );
+
+        tpInput.value        = tp.toFixed(decimals);
+        tpInput.readOnly     = true;
+        tpInput.style.borderColor = '#44ff88';
+        tpInput.style.color  = '#44ff88';
+        autoTag.style.display = 'inline';
+        this.calcLotSize();
+    },
+
+    onManualTP(){
+        // When user types TP manually, reset RR target to "Manual"
+        document.getElementById('c-rr-target').value='0';
+        document.getElementById('c-tp-auto-tag').style.display='none';
+        const tpInput=document.getElementById('c-tp');
+        tpInput.readOnly=false;
+        tpInput.style.borderColor='';
+        tpInput.style.color='#fff';
+        this.calcLotSize();
+    },
+
+    /* ══ RISK MODE TOGGLE ══ */
+    setRiskMode(mode){
+        this._riskMode=mode;
+        const isPct=mode==='pct';
+        document.getElementById('risk-pct-row').style.display=isPct?'block':'none';
+        document.getElementById('risk-amt-row').style.display=isPct?'none':'block';
+        const on='flex:1;padding:9px;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;cursor:pointer;background:#fff;color:#000;border:1px solid #fff;font-weight:600;';
+        const off='flex:1;padding:9px;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;cursor:pointer;background:#000;color:#555;border:1px solid #333;font-weight:400;';
+        document.getElementById('risk-mode-pct-btn').style.cssText=(isPct?on:off)+'border-right:none;';
+        document.getElementById('risk-mode-amt-btn').style.cssText=isPct?off:on;
+        this.calcLotSize();
+    },
+
     /* ══ LOT SIZE CALCULATOR ══ */
     calcLotSize(){
+        const mode=this._riskMode||'pct';
         const balance=parseFloat(document.getElementById('c-balance').value)||0;
-        const riskPct=parseFloat(document.getElementById('c-risk-pct').value)||1;
+        const riskPct=parseFloat(document.getElementById('c-risk-pct').value)||0;
         const riskAmt=parseFloat(document.getElementById('c-risk-amt').value)||0;
         const instr=document.getElementById('c-instrument').value;
         const entry=parseFloat(document.getElementById('c-entry').value)||0;
@@ -550,7 +646,7 @@ window.ui={
             const rows=[0.5,1,1.5,2,3,5].map(pct=>{
                 const amt=(balance*pct/100);
                 const lotsEst=slPipsEst>0?Math.floor(amt/(slPipsEst*cfg.pv)*100)/100:0;
-                const isActive=pct===riskPct;
+                const isActive=mode==='pct'&&pct===riskPct;
                 return`<tr class="${isActive?'active-risk':''}"><td>${pct}%</td><td>$${amt.toFixed(2)}</td><td>${slPipsEst>0?lotsEst.toFixed(2):'---'}</td></tr>`;
             }).join('');
             document.getElementById('quick-risk-body').innerHTML=rows;
@@ -568,7 +664,7 @@ window.ui={
         const cfg=pipConfig[instr];
         const slDist=Math.abs(entry-sl), tpDist=tp?Math.abs(tp-entry):0;
         const slPips=slDist/cfg.pipSize, tpPips=tpDist/cfg.pipSize;
-        const riskMoney=riskAmt>0?riskAmt:(balance>0?balance*riskPct/100:0);
+        const riskMoney=mode==='amt'?riskAmt:(balance>0?balance*riskPct/100:0);
         if(!riskMoney){this._clearCalcResults();return;}
 
         const rawLots=riskMoney/(slPips*cfg.pipValue);
