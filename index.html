@@ -99,8 +99,8 @@
         <div style="display:flex; gap:10px; align-items: center;">
             <div style="background: #111; padding: 5px 10px; border: 1px solid #333; display: flex; gap: 5px; align-items: center;">
                 <span style="font-size:0.6rem; color:#888;">PDF RANGE:</span>
-                <select id="export-month" style="padding:2px; font-size:0.7rem; background:#000; border:none; color:#fff;"></select>
-                <select id="export-year" style="padding:2px; font-size:0.7rem; background:#000; border:none; color:#fff;"></select>
+                <select id="export-month" onchange="ui.renderJournal()" style="padding:2px; font-size:0.7rem; background:#000; border:none; color:#fff;"></select>
+                <select id="export-year" onchange="ui.renderJournal()" style="padding:2px; font-size:0.7rem; background:#000; border:none; color:#fff;"></select>
                 <button class="btn-action" style="background:#fff; color:#000; padding: 4px 8px;" onclick="ui.exportPDF()">Export PDF</button>
             </div>
             <button class="btn-action" onclick="ui.undoLast()">Undo</button>
@@ -177,7 +177,7 @@
                     <span class="stat-meta" id="side-week-meta">0% WR | 0 Trades</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-label">Monthly P/L</span>
+                    <span class="stat-label" id="side-month-label">Monthly P/L</span>
                     <div id="side-month" class="stat-val">$0</div>
                     <span class="stat-meta" id="side-month-meta">0% WR | 0 Trades</span>
                 </div>
@@ -264,10 +264,14 @@
             const mOpts = months.map((m,i)=>`<option value="${i}" ${i===new Date().getMonth()?'selected':''}>${m}</option>`).join('');
             const yOpts = [2025, 2026].map(y=>`<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`).join('');
             
-            document.getElementById('cal-month').innerHTML = mOpts;
+            // Allow ALL TIME across all tabs
+            document.getElementById('cal-month').innerHTML = `<option value="ALL">All Time</option>` + mOpts;
             document.getElementById('ana-month').innerHTML = `<option value="ALL">All Time</option>` + mOpts;
             document.getElementById('export-month').innerHTML = `<option value="ALL">All Time</option>` + mOpts;
             
+            // Pre-select current month for calendar so it doesn't default to ALL on login
+            document.getElementById('cal-month').value = new Date().getMonth();
+
             [document.getElementById('cal-year'), document.getElementById('ana-year'), document.getElementById('export-year')].forEach(el => el.innerHTML = yOpts);
 
             this.syncData();
@@ -283,7 +287,7 @@
             document.getElementById(`tab-${id}`).classList.add('active');
             document.getElementById(`btn-${id}`).classList.add('active');
             if(id === 'analytics') this.renderAnalytics();
-            if(id === 'calendar') this.renderCalendar();
+            if(id === 'calendar') { this.renderCalendar(); this.updateSideStats(); }
             if(id === 'journal') this.renderJournal();
         },
         renderAll() { this.renderJournal(); this.renderCalendar(); this.renderAnalytics(); this.updateSideStats(); },
@@ -292,14 +296,26 @@
         renderJournal() {
             const body = document.getElementById('tradeBody');
             const search = document.getElementById('trade-search').value.toUpperCase();
-            body.innerHTML = '';
+            
+            // Get filter values directly from the PDF Export dropdown
+            const filterM = document.getElementById('export-month').value;
+            const filterY = parseInt(document.getElementById('export-year').value);
 
+            body.innerHTML = '';
             let currentMonth = '';
             const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-            cachedTrades.forEach(t => {
-                if(search && !t.symbol.includes(search)) return;
+            // Filter trades based on search AND the selected export range
+            const filteredTrades = cachedTrades.filter(t => {
+                if(search && !t.symbol.includes(search)) return false;
+                if(filterM !== 'ALL') {
+                    const d = new Date(t.date);
+                    if(d.getMonth() !== parseInt(filterM) || d.getFullYear() !== filterY) return false;
+                }
+                return true;
+            });
 
+            filteredTrades.forEach(t => {
                 // Handle grouping by month
                 const tDate = new Date(t.date);
                 const monthStr = `${monthNames[tDate.getMonth()]} ${tDate.getFullYear()}`;
@@ -320,9 +336,9 @@
         updateSideStats() {
             const now = new Date();
             const todayStr = now.toISOString().split('T')[0];
-            const selM = parseInt(document.getElementById('cal-month').value);
+            const selM = document.getElementById('cal-month').value;
             const selY = parseInt(document.getElementById('cal-year').value);
-            const isCurrentMonth = (selM === now.getMonth() && selY === now.getFullYear());
+            const isCurrentMonth = (selM !== 'ALL' && parseInt(selM) === now.getMonth() && selY === now.getFullYear());
 
             const calc = (list) => ({ pnl: list.reduce((s,t)=>s+t.profit, 0), wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0, total: list.length });
 
@@ -336,16 +352,36 @@
                 }
             };
 
-            setUI('side-today', 'side-today-meta', calc(cachedTrades.filter(t=>t.date===todayStr)), !isCurrentMonth);
+            setUI('side-today', 'side-today-meta', calc(cachedTrades.filter(t=>t.date===todayStr)), !isCurrentMonth && selM !== 'ALL');
             const first = now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1);
             const monStr = new Date(new Date().setDate(first)).toISOString().split('T')[0];
-            setUI('side-week', 'side-week-meta', calc(cachedTrades.filter(t=>t.date >= monStr)), !isCurrentMonth);
-            setUI('side-month', 'side-month-meta', calc(cachedTrades.filter(t=>{ const d=new Date(t.date); return d.getMonth()===selM && d.getFullYear()===selY })), false);
+            setUI('side-week', 'side-week-meta', calc(cachedTrades.filter(t=>t.date >= monStr)), !isCurrentMonth && selM !== 'ALL');
+            
+            // Handle Monthly vs All Time P/L Label
+            if (selM === 'ALL') {
+                document.getElementById('side-month-label').innerText = "All Time P/L";
+                setUI('side-month', 'side-month-meta', calc(cachedTrades), false);
+            } else {
+                document.getElementById('side-month-label').innerText = "Monthly P/L";
+                setUI('side-month', 'side-month-meta', calc(cachedTrades.filter(t=>{ const d=new Date(t.date); return d.getMonth()===parseInt(selM) && d.getFullYear()===selY })), false);
+            }
         },
         renderCalendar() {
-            const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
-            const m = parseInt(document.getElementById('cal-month').value), y = parseInt(document.getElementById('cal-year').value);
+            const grid = document.getElementById('calendarGrid'); 
+            grid.innerHTML = '';
+            
+            const mVal = document.getElementById('cal-month').value;
+            
+            // Disable calendar grid for ALL TIME view
+            if (mVal === 'ALL') {
+                grid.innerHTML = '<div style="grid-column: span 7; padding: 40px; text-align: center; color: #666; font-size:0.8rem;">CALENDAR VIEW DISABLED IN "ALL TIME" MODE</div>';
+                return;
+            }
+
+            const m = parseInt(mVal);
+            const y = parseInt(document.getElementById('cal-year').value);
             const days = new Date(y, m + 1, 0).getDate();
+            
             for (let i = 1; i <= days; i++) {
                 const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 const dayPL = cachedTrades.filter(t => t.date === dStr).reduce((s, t) => s + t.profit, 0);
@@ -362,25 +398,24 @@
                 return d.getMonth() === parseInt(selM) && d.getFullYear() === selY;
             });
 
-            let gP = 0, gL = 0, wins = 0, hP = 0, hL = 0;
+            let gP = 0, gL = 0, wins = 0, losses = 0, hP = 0, hL = 0;
             let sess = { ASIAN: {p:0, t:0, w:0}, LONDON: {p:0, t:0, w:0}, NY: {p:0, t:0, w:0} };
             let inst = {}, cumulative = [0], labels = ['Start'];
 
             [...data].reverse().forEach(t => {
+                // Correct logic to isolate Break-Even trades from Averages
                 if(t.profit > 0) { gP += t.profit; wins++; hP = Math.max(hP, t.profit); } 
-                else { gL += Math.abs(t.profit); hL = Math.min(hL, t.profit); }
+                else if(t.profit < 0) { gL += Math.abs(t.profit); losses++; hL = Math.min(hL, t.profit); }
+                
                 sess[t.session].p += t.profit; sess[t.session].t++; if(t.profit > 0) sess[t.session].w++;
                 inst[t.symbol] = (inst[t.symbol] || 0) + t.profit;
                 cumulative.push(cumulative[cumulative.length-1] + t.profit);
                 labels.push(t.date);
             });
 
-            const losses = data.length - wins;
-            
             // Calculate Averages and RR
             const avgP = wins > 0 ? (gP / wins) : 0;
             const avgL = losses > 0 ? (gL / losses) : 0;
-            // Standard RR: Reward / Risk (Avg Profit / Avg Loss)
             const rr = avgL > 0 ? (avgP / avgL) : (avgP > 0 ? avgP : 0);
 
             document.getElementById('s-wr').innerText = data.length ? Math.round((wins/data.length)*100)+'%' : '0%';
@@ -389,7 +424,6 @@
             document.getElementById('s-gp').innerText = `$${gP.toFixed(0)}`;
             document.getElementById('s-gl').innerText = `-$${gL.toFixed(0)}`;
 
-            // Apply new metrics to DOM
             document.getElementById('s-ap').innerText = `$${avgP.toFixed(2)}`;
             document.getElementById('s-al').innerText = `-$${avgL.toFixed(2)}`;
             document.getElementById('s-rr').innerText = `1 : ${rr.toFixed(2)}`;
@@ -432,10 +466,10 @@
                 side: document.getElementById('t-side').value, 
                 session: document.getElementById('t-session').value, 
                 profit: (exit - entry) * lots * mult * (document.getElementById('t-side').value === 'BUY' ? 1 : -1), 
-                entry: entry, // Added to DB
-                exit: exit,   // Added to DB
-                sl: sl,       // Added to DB
-                tp: tp,       // Added to DB
+                entry: entry, 
+                exit: exit,   
+                sl: sl,       
+                tp: tp,       
                 date: document.getElementById('t-date').value, 
                 notes: document.getElementById('t-notes').value, 
                 img: imgData 
@@ -444,12 +478,44 @@
         },
         async undoLast() { if(!confirm("Delete last entry?")) return; const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("timestamp", "desc"), limit(1)); const snap = await getDocs(q); if(!snap.empty) await deleteDoc(doc(db, "trades", snap.docs[0].id)); this.syncData(); },
         async resetAll() { if(!confirm("Wipe ALL data?")) return; const batch = writeBatch(db); const q = query(tradesCol, where("user_id", "==", currentUser)); const snap = await getDocs(q); snap.docs.forEach(d => batch.delete(d.ref)); await batch.commit(); this.syncData(); },
+        
+        // REWRITTEN PDF EXPORT FUNCTION
         async exportPDF() {
-            const m = document.getElementById('export-month').value, y = document.getElementById('export-year').value;
+            const m = document.getElementById('export-month').value;
+            const y = document.getElementById('export-year').value;
+
+            // Step 1: Force Analytics & Calendar to match the Export Range
+            document.getElementById('ana-month').value = m;
+            document.getElementById('ana-year').value = y;
+            document.getElementById('cal-month').value = m;
+            document.getElementById('cal-year').value = y;
+            
+            // Force rendering of all tabs so the PDF catches the correct data
+            this.renderAll();
+
+            // Step 2: Prepare and Export
             document.body.classList.add('pdf-export-mode');
             const element = document.getElementById('main-content');
-            await html2pdf().set({ margin: 0, filename: `Report_${m}_${y}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#000000' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } }).from(element).save();
+            const filename = m === 'ALL' ? `Journal_Report_All_Time.pdf` : `Journal_Report_${m}_${y}.pdf`;
+            
+            await html2pdf().set({ margin: 0, filename: filename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#000000' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } }).from(element).save();
+            
+            // Step 3: Cleanup and Reset to Default (Current Date)
             document.body.classList.remove('pdf-export-mode');
+            
+            const now = new Date();
+            const currM = now.getMonth().toString();
+            const currY = now.getFullYear().toString();
+            
+            document.getElementById('export-month').value = currM;
+            document.getElementById('export-year').value = currY;
+            document.getElementById('ana-month').value = currM;
+            document.getElementById('ana-year').value = currY;
+            document.getElementById('cal-month').value = currM;
+            document.getElementById('cal-year').value = currY;
+
+            // Final render to restore screen to default
+            this.renderAll();
         }
     };
 </script>
