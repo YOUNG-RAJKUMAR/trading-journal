@@ -336,9 +336,12 @@
                 // ── Planned R:R from entry / SL / TP ──
                 const risk   = Math.abs((t.entry || 0) - (t.sl || 0));
                 const reward = Math.abs((t.tp || 0)    - (t.entry || 0));
-                const rrRatio = (risk > 0 && reward > 0)
-                    ? `1 : ${parseFloat((reward / risk).toFixed(2))}`
-                    : '---';
+                const rawRR = risk > 0 && reward > 0 ? reward / risk : 0;
+                 const rrRatio = rawRR > 0
+                 ? (rawRR >= 1
+                 ? `1 : ${parseFloat(rawRR.toFixed(2))}`
+                 : `${parseFloat((1/rawRR).toFixed(2))} : 1`)
+                 : '---';
 
                 body.insertAdjacentHTML('beforeend', `
                     <tr>
@@ -563,3 +566,4 @@
 </script>
 </body>
 </html>
+
