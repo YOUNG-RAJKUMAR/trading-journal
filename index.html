@@ -333,24 +333,59 @@
             });
         },
         
-        updateSideStats() {
-            const now = new Date();
-            const todayStr = now.toISOString().split('T')[0];
-            const selM = document.getElementById('cal-month').value;
-            const selY = parseInt(document.getElementById('cal-year').value);
-            const isCurrentMonth = (selM !== 'ALL' && parseInt(selM) === now.getMonth() && selY === now.getFullYear());
+    updateSideStats() {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const selM = document.getElementById('cal-month').value;
+    const selY = parseInt(document.getElementById('cal-year').value);
+    
+    // Check if we are in "All Time" mode
+    const isAllTime = (selM === 'ALL');
+    const isCurrentMonth = (!isAllTime && parseInt(selM) === now.getMonth() && selY === now.getFullYear());
 
-            const calc = (list) => ({ pnl: list.reduce((s,t)=>s+t.profit, 0), wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0, total: list.length });
+    const calc = (list) => ({ 
+        pnl: list.reduce((s,t)=>s+t.profit, 0), 
+        wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0, 
+        total: list.length 
+    });
 
-            const setUI = (pnlId, metaId, d, isNA) => {
-                const el = document.getElementById(pnlId), meta = document.getElementById(metaId);
-                if(isNA) { el.innerText = "N/A"; el.style.color = "#666"; meta.innerText = "Out of Scope"; }
-                else {
-                    el.innerText = (d.pnl>=0?'+$':'-$')+Math.abs(d.pnl).toFixed(0);
-                    el.style.color = d.pnl>=0?'var(--positive)':'var(--negative)';
-                    meta.innerText = `${d.wr}% WR | ${d.total} Trades`;
-                }
-            };
+    const setUI = (pnlId, metaId, d, shouldHide) => {
+        const el = document.getElementById(pnlId), 
+              meta = document.getElementById(metaId),
+              card = el.closest('.stat-card');
+        
+        if(shouldHide) {
+            el.innerText = "---";
+            el.style.color = "#444";
+            meta.innerText = "Select specific month";
+            card.style.opacity = "0.4"; // Visual cue that these don't apply
+        } else {
+            el.innerText = (d.pnl>=0?'+$':'-$')+Math.abs(d.pnl).toFixed(0);
+            el.style.color = d.pnl>=0?'var(--positive)':'var(--negative)';
+            meta.innerText = `${d.wr}% WR | ${d.total} Trades`;
+            card.style.opacity = "1";
+        }
+    };
+
+    // Logic: Hide Daily/Weekly if "All Time" is selected OR if viewing a past/future month
+    setUI('side-today', 'side-today-meta', calc(cachedTrades.filter(t=>t.date===todayStr)), !isCurrentMonth);
+    
+    const first = now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1);
+    const monStr = new Date(new Date().setDate(first)).toISOString().split('T')[0];
+    setUI('side-week', 'side-week-meta', calc(cachedTrades.filter(t=>t.date >= monStr)), !isCurrentMonth);
+    
+    // Handle Lifetime vs Monthly P/L
+    if (isAllTime) {
+        document.getElementById('side-month-label').innerText = "Lifetime P/L";
+        setUI('side-month', 'side-month-meta', calc(cachedTrades), false);
+    } else {
+        document.getElementById('side-month-label').innerText = "Monthly P/L";
+        setUI('side-month', 'side-month-meta', calc(cachedTrades.filter(t=>{ 
+            const d=new Date(t.date); 
+            return d.getMonth()===parseInt(selM) && d.getFullYear()===selY 
+        })), false);
+    }
+}
 
             setUI('side-today', 'side-today-meta', calc(cachedTrades.filter(t=>t.date===todayStr)), !isCurrentMonth && selM !== 'ALL');
             const first = now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1);
@@ -521,3 +556,4 @@
 </script>
 </body>
 </html>
+
