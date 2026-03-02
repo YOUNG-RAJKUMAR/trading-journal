@@ -196,6 +196,7 @@
         <button class="tab-btn active" id="btn-journal"   onclick="ui.switchTab('journal')">Journal</button>
         <button class="tab-btn"        id="btn-calendar"  onclick="ui.switchTab('calendar')">Performance Calendar</button>
         <button class="tab-btn"        id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
+        <button class="tab-btn" id="btn-mt5" onclick="ui.switchTab('mt5')">⚙ MT5 Connect</button>
     </nav>
 
     <!-- ══════════════════════════════════════════════════════
@@ -476,113 +477,161 @@
     <div id="tab-mt5" class="tab-content">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:25px;">
 
-            <!-- LEFT: EA CONFIG GENERATOR -->
+            <!-- LEFT: EA INPUTS GUIDE -->
             <div>
                 <div class="card">
-                    <div class="section-title">⚙ EA Configuration</div>
-                    <p style="font-size:0.75rem;color:#666;margin:0 0 20px 0;line-height:1.7;">
-                        Fill in the fields below. Your config will be saved to Firebase and the EA will read it automatically — no need to edit the .mq5 file.
+                    <div class="section-title">⚙ EA Manual Setup — Set These in MT5 Inputs</div>
+                    <p style="font-size:0.75rem;color:#666;margin:0 0 20px;line-height:1.8;">
+                        These two values are set directly inside the EA inputs panel in MT5 when you attach it to a chart. No website configuration needed.
                     </p>
 
-                    <div class="calc-input-row">
-                        <label>Username (auto-filled from login)</label>
-                        <input type="text" id="mt5-userid" readonly
-                            style="background:#0a0a0a;color:#44ff88;border-color:#1a4a2a;cursor:not-allowed;">
+                    <!-- INPUT 1: USER_ID -->
+                    <div style="background:#050505;border:1px solid #1a4a2a;padding:18px;margin-bottom:15px;border-radius:2px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                            <span style="font-size:0.6rem;color:#44ff88;text-transform:uppercase;letter-spacing:2px;">Input 1</span>
+                            <span style="font-size:0.6rem;color:#555;text-transform:uppercase;">Required</span>
+                        </div>
+                        <div style="font-size:1rem;color:#fff;font-weight:600;margin-bottom:6px;">USER_ID</div>
+                        <div style="font-size:0.72rem;color:#888;margin-bottom:12px;">Your journal login username — must match exactly (UPPERCASE)</div>
+                        <div style="background:#000;border:1px solid #1a4a2a;padding:10px 14px;font-size:0.85rem;color:#44ff88;letter-spacing:1px;" id="mt5-display-user">
+                            YOUR_USERNAME
+                        </div>
+                        <div style="font-size:0.62rem;color:#444;margin-top:8px;">↑ Copy this exactly into the USER_ID input field in MT5</div>
                     </div>
 
-                    <div class="calc-input-row">
-                        <label>Import History From Date</label>
-                        <input type="date" id="mt5-history-from" value="2020-01-01">
+                    <!-- INPUT 2: HISTORY_FROM -->
+                    <div style="background:#050505;border:1px solid #1a1a4a;padding:18px;margin-bottom:15px;border-radius:2px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                            <span style="font-size:0.6rem;color:#8888ff;text-transform:uppercase;letter-spacing:2px;">Input 2</span>
+                            <span style="font-size:0.6rem;color:#555;text-transform:uppercase;">Required</span>
+                        </div>
+                        <div style="font-size:1rem;color:#fff;font-weight:600;margin-bottom:6px;">HISTORY_FROM</div>
+                        <div style="font-size:0.72rem;color:#888;margin-bottom:12px;">Import all closed trades from this date onwards</div>
+                        <input type="date" id="mt5-history-from" value="2020-01-01"
+                            style="width:100%;padding:12px;font-size:0.85rem;background:#000;border:1px solid #1a1a4a;color:#8888ff;"
+                            oninput="ui.updateMT5Preview()">
+                        <div style="font-size:0.62rem;color:#444;margin-top:8px;">Set this date in MT5 EA inputs as: <span id="mt5-date-preview" style="color:#8888ff;">2020.01.01</span></div>
                     </div>
 
-                    <div class="calc-input-row">
-                        <label>MT5 Account Number (optional — for reference)</label>
-                        <input type="text" id="mt5-account" placeholder="e.g. 12345678">
+                    <!-- INPUT 3: PROJECT_ID -->
+                    <div style="background:#050505;border:1px solid #222;padding:18px;margin-bottom:15px;border-radius:2px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                            <span style="font-size:0.6rem;color:#666;text-transform:uppercase;letter-spacing:2px;">Input 3</span>
+                            <span style="font-size:0.6rem;color:#555;text-transform:uppercase;">Do Not Change</span>
+                        </div>
+                        <div style="font-size:1rem;color:#fff;font-weight:600;margin-bottom:6px;">PROJECT_ID</div>
+                        <div style="font-size:0.72rem;color:#888;margin-bottom:12px;">Your Firebase project — already set correctly in EA file</div>
+                        <div style="background:#000;border:1px solid #222;padding:10px 14px;font-size:0.85rem;color:#666;letter-spacing:1px;">
+                            rk-journaling-trades
+                        </div>
                     </div>
 
-                    <div class="calc-input-row">
-                        <label>MT5 Broker Name (optional — for reference)</label>
-                        <input type="text" id="mt5-broker" placeholder="e.g. ICMarkets, Exness...">
-                    </div>
-
-                    <div class="calc-input-row">
-                        <label>Debug Mode</label>
-                        <select id="mt5-debug">
-                            <option value="false">Off (recommended)</option>
-                            <option value="true">On (verbose logging in MT5)</option>
-                        </select>
-                    </div>
-
-                    <button class="calc-btn" onclick="ui.saveMT5Config()" style="margin-top:10px;">
-                        💾 Save Config to Firebase
-                    </button>
-                    <div id="mt5-save-status" style="font-size:0.7rem;color:#666;margin-top:10px;text-align:center;"></div>
-                </div>
-
-                <!-- CURRENT SAVED CONFIG -->
-                <div class="card">
-                    <div class="section-title">Current Saved Config</div>
-                    <div id="mt5-current-config" style="font-size:0.72rem;color:#555;line-height:2;">
-                        Loading...
+                    <!-- COPY-PASTE SUMMARY -->
+                    <div style="background:#0a0a0a;border:1px solid #333;padding:15px;margin-top:5px;">
+                        <div style="font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">MT5 Input Summary — Copy These Values</div>
+                        <div style="font-family:monospace;font-size:0.78rem;line-height:2.2;color:#888;">
+                            <span style="color:#555;">USER_ID &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=</span> <b style="color:#44ff88;" id="mt5-summary-user">YOUR_USERNAME</b><br>
+                            <span style="color:#555;">HISTORY_FROM &nbsp;=</span> <b style="color:#8888ff;" id="mt5-summary-date">2020.01.01</b><br>
+                            <span style="color:#555;">PROJECT_ID &nbsp;&nbsp;&nbsp;=</span> <b style="color:#aaa;">rk-journaling-trades</b><br>
+                            <span style="color:#555;">DEBUG_MODE &nbsp;&nbsp;&nbsp;=</span> <b style="color:#aaa;">false</b>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT: SETUP GUIDE -->
+            <!-- RIGHT: STEP BY STEP SETUP + STATUS -->
             <div>
                 <div class="card">
-                    <div class="section-title">📋 EA Setup Guide</div>
+                    <div class="section-title">📋 MT5 Setup — Step by Step</div>
 
-                    <div style="font-size:0.75rem;line-height:2;color:#888;">
-
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:15px;margin-bottom:15px;">
-                            <div style="color:#44ff88;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Step 1 — Allow WebRequest in MT5</div>
-                            <div style="color:#aaa;">Tools → Options → Expert Advisors</div>
-                            <div style="color:#aaa;">✓ Check <b style="color:#fff;">Allow WebRequest for listed URLs</b></div>
-                            <div style="color:#555;margin-top:5px;">Add this URL:</div>
-                            <div style="background:#000;padding:6px 10px;margin-top:5px;font-size:0.7rem;color:#44ff88;border:1px solid #1a4a2a;word-break:break-all;">https://firestore.googleapis.com</div>
-                        </div>
-
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:15px;margin-bottom:15px;">
-                            <div style="color:#44ff88;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Step 2 — Install the EA</div>
-                            <div style="color:#aaa;">In MT5: File → Open Data Folder</div>
-                            <div style="color:#aaa;">Navigate to: <b style="color:#fff;">MQL5 → Experts</b></div>
-                            <div style="color:#aaa;">Copy <b style="color:#fff;">RK_Journal_EA.mq5</b> there</div>
-                            <div style="color:#aaa;">Open MetaEditor → press <b style="color:#fff;">F7</b> to compile</div>
-                        </div>
-
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:15px;margin-bottom:15px;">
-                            <div style="color:#44ff88;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Step 3 — Set EA Inputs</div>
-                            <div style="color:#aaa;">Drag EA onto any chart (e.g. EURUSD M1)</div>
-                            <div style="color:#aaa;">In the Inputs tab set:</div>
-                            <div style="background:#000;padding:8px 10px;margin-top:6px;font-size:0.68rem;border:1px solid #222;line-height:2.2;">
-                                <span style="color:#666;">USER_ID</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span style="color:#44ff88;" id="mt5-guide-user">YOUR_USERNAME</span><br>
-                                <span style="color:#666;">PROJECT_ID</span> = <span style="color:#fff;">rk-journaling-trades</span><br>
-                                <span style="color:#666;">READ_CONFIG</span> = <span style="color:#fff;">true</span> <span style="color:#444;">(reads from Firebase)</span>
+                    <!-- Step 1 -->
+                    <div style="display:flex;gap:15px;margin-bottom:18px;">
+                        <div style="width:28px;height:28px;background:#fff;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">1</div>
+                        <div>
+                            <div style="font-size:0.78rem;color:#fff;font-weight:600;margin-bottom:5px;">Allow WebRequest in MT5</div>
+                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
+                                Tools → Options → Expert Advisors<br>
+                                ✓ Check <b style="color:#aaa;">Allow WebRequest for listed URLs</b><br>
+                                Add this URL exactly:
+                            </div>
+                            <div style="background:#000;border:1px solid #1a4a2a;padding:7px 12px;margin-top:6px;font-size:0.7rem;color:#44ff88;word-break:break-all;">
+                                https://firestore.googleapis.com
                             </div>
                         </div>
+                    </div>
 
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:15px;">
-                            <div style="color:#44ff88;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Step 4 — Enable Algo Trading</div>
-                            <div style="color:#aaa;">Make sure <b style="color:#fff;">Algo Trading</b> button is ON in MT5 toolbar</div>
-                            <div style="color:#aaa;">EA will start — history imports automatically on first run</div>
-                            <div style="color:#aaa;">New trades log in real-time from then on</div>
+                    <!-- Step 2 -->
+                    <div style="display:flex;gap:15px;margin-bottom:18px;">
+                        <div style="width:28px;height:28px;background:#fff;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">2</div>
+                        <div>
+                            <div style="font-size:0.78rem;color:#fff;font-weight:600;margin-bottom:5px;">Install the EA File</div>
+                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
+                                In MT5: File → Open Data Folder<br>
+                                Navigate to <b style="color:#aaa;">MQL5 → Experts</b><br>
+                                Copy <b style="color:#fff;">RK_Journal_EA.mq5</b> into that folder<br>
+                                Open MetaEditor → press <b style="color:#fff;">F7</b> to compile
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div style="display:flex;gap:15px;margin-bottom:18px;">
+                        <div style="width:28px;height:28px;background:#fff;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">3</div>
+                        <div>
+                            <div style="font-size:0.78rem;color:#fff;font-weight:600;margin-bottom:5px;">Attach EA to a Chart</div>
+                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
+                                Drag EA onto any chart (e.g. EURUSD M1)<br>
+                                In the <b style="color:#aaa;">Inputs</b> tab, set the values from the left panel<br>
+                                Click <b style="color:#fff;">OK</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div style="display:flex;gap:15px;margin-bottom:18px;">
+                        <div style="width:28px;height:28px;background:#fff;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">4</div>
+                        <div>
+                            <div style="font-size:0.78rem;color:#fff;font-weight:600;margin-bottom:5px;">Enable Algo Trading</div>
+                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
+                                Make sure the <b style="color:#fff;">Algo Trading</b> button in the MT5 toolbar is <span style="color:#44ff88;">ON (green)</span><br>
+                                EA starts automatically — history imports on first run
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div style="display:flex;gap:15px;">
+                        <div style="width:28px;height:28px;background:#44ff88;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;">✓</div>
+                        <div>
+                            <div style="font-size:0.78rem;color:#44ff88;font-weight:600;margin-bottom:5px;">Done — Refresh Your Journal</div>
+                            <div style="font-size:0.7rem;color:#666;line-height:1.8;">
+                                Reload this page after the EA runs<br>
+                                All past trades will appear in the Journal tab<br>
+                                New trades log automatically as they close
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- STATUS / IMPORT LOG -->
+                <!-- IMPORT STATUS -->
                 <div class="card">
                     <div class="section-title">Import Status</div>
-                    <div id="mt5-import-status" style="font-size:0.72rem;color:#555;line-height:2;">
-                        Loading...
+                    <div id="mt5-import-status" style="font-size:0.72rem;color:#555;line-height:2.2;">
+                        <span style="color:#444;">Click "Check Status" to see if EA has run.</span>
                     </div>
-                    <button class="calc-btn" onclick="ui.resetImportFlag()" style="margin-top:15px;background:#000;color:#ff4444;border:1px solid #4a1a1a;">
-                        ↺ Reset Import Flag (re-import history)
-                    </button>
+                    <div style="display:flex;gap:10px;margin-top:15px;">
+                        <button class="calc-btn" onclick="ui.loadMT5Status()" style="flex:1;">
+                            🔄 Check Status
+                        </button>
+                        <button class="calc-btn" onclick="ui.resetImportFlag()"
+                            style="flex:1;background:#000;color:#ff4444;border:1px solid #4a1a1a;">
+                            ↺ Reset (Re-import)
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
 </div>
@@ -612,11 +661,11 @@ document.getElementById('loginBtn').onclick=async()=>{
             document.getElementById('main-content').style.display='block';
             document.getElementById('display-user').innerText=u;
             ui.init();
-            // Pre-fill MT5 tab username
-            const mt5user = document.getElementById('mt5-userid');
-            if(mt5user) mt5user.value = u;
-            const mt5guide = document.getElementById('mt5-guide-user');
-            if(mt5guide) mt5guide.textContent = u;
+            // Pre-fill MT5 tab username displays
+            ['mt5-display-user','mt5-summary-user'].forEach(id=>{
+                const el=document.getElementById(id);
+                if(el) el.textContent=u;
+            });
         }else{document.getElementById('login-err').style.display='block';}
     }catch(e){alert("Error connecting to server");}
 };
@@ -990,108 +1039,65 @@ window.ui={
         await batch.commit(); this.syncData();
     },
 
-    /* ══ MT5 CONFIG ══ */
-    async saveMT5Config(){
-        const status = document.getElementById('mt5-save-status');
-        status.textContent = 'Saving...';
-        status.style.color = '#888';
+    /* ══ MT5 CONNECT ══ */
+    updateMT5Preview(){
+        const raw  = document.getElementById('mt5-history-from').value || '2020-01-01';
+        const fmt  = raw.replace(/-/g, '.'); // 2020-01-01 → 2020.01.01 (MT5 format)
+        const els  = ['mt5-date-preview','mt5-summary-date'];
+        els.forEach(id => { const el=document.getElementById(id); if(el) el.textContent=fmt; });
+    },
 
-        const cfg = {
-            fields: {
-                user_id:      { stringValue: currentUser },
-                history_from: { stringValue: document.getElementById('mt5-history-from').value },
-                account:      { stringValue: document.getElementById('mt5-account').value || '' },
-                broker:       { stringValue: document.getElementById('mt5-broker').value || '' },
-                debug_mode:   { booleanValue: document.getElementById('mt5-debug').value === 'true' },
-                updated_at:   { integerValue: String(Date.now()) }
-            }
-        };
+    loadMT5Status(){
+        // Pre-fill username from logged-in user
+        const userEl = document.getElementById('mt5-display-user');
+        const sumEl  = document.getElementById('mt5-summary-user');
+        if (userEl) userEl.textContent = currentUser;
+        if (sumEl)  sumEl.textContent  = currentUser;
 
-        try {
-            const url = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/ea_config/${currentUser}`;
-            const snap = await fetch(url, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cfg)
+        // Check Firebase for import flag
+        const flagUrl = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/import_flags/${currentUser}_history`;
+        const statusEl = document.getElementById('mt5-import-status');
+        if (!statusEl) return;
+
+        statusEl.innerHTML = '<span style="color:#555;">Checking Firebase...</span>';
+
+        fetch(flagUrl)
+            .then(r => {
+                if (r.ok) return r.json().then(data => {
+                    const f  = data.fields || {};
+                    const ts = f.timestamp?.integerValue
+                        ? new Date(parseInt(f.timestamp.integerValue) * 1000).toLocaleString()
+                        : 'Unknown time';
+                    statusEl.innerHTML =
+                        `<span style="color:#44ff88;font-weight:600;font-size:0.85rem;">✓ History Imported Successfully</span><br>` +
+                        `<span style="color:#555;">Completed at &nbsp;:</span> <b style="color:#aaa;">${ts}</b><br>` +
+                        `<span style="color:#555;">Current mode &nbsp;:</span> <b style="color:#fff;">Live — logging new trades only</b><br>` +
+                        `<span style="color:#444;font-size:0.65rem;margin-top:5px;display:block;">Click "Reset" below if you want to wipe the flag and re-import from scratch.</span>`;
+                });
+                else {
+                    statusEl.innerHTML =
+                        `<span style="color:#ffcc44;font-weight:600;font-size:0.85rem;">⏳ Not Yet Imported</span><br>` +
+                        `<span style="color:#555;">The EA has not run yet.</span><br>` +
+                        `<span style="color:#555;">Attach the EA to a chart in MT5 and it will start automatically.</span>`;
+                }
+            })
+            .catch(() => {
+                statusEl.innerHTML = '<span style="color:#ff4444;">Could not reach Firebase. Check your internet connection.</span>';
             });
-            if (snap.ok) {
-                status.textContent = '✓ Config saved successfully! EA will read this on next start.';
-                status.style.color = '#44ff88';
+    },
+
+    resetImportFlag(){
+        if (!confirm('This deletes the import flag.\nThe EA will re-import ALL history next time it starts.\n\nContinue?')) return;
+        const flagUrl = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/import_flags/${currentUser}_history`;
+        fetch(flagUrl, { method: 'DELETE' })
+            .then(() => {
+                alert('Flag reset. Re-attach the EA in MT5 to re-import history.');
                 this.loadMT5Status();
-            } else {
-                status.textContent = '✗ Save failed. Check console.';
-                status.style.color = '#ff4444';
-            }
-        } catch(e) {
-            status.textContent = '✗ Error: ' + e.message;
-            status.style.color = '#ff4444';
-        }
+            })
+            .catch(e => alert('Error: ' + e.message));
     },
 
-    async loadMT5Status(){
-        // Load saved config
-        try {
-            const cfgUrl = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/ea_config/${currentUser}`;
-            const cfgSnap = await fetch(cfgUrl);
-            const cfgEl = document.getElementById('mt5-current-config');
-            if (cfgSnap.ok) {
-                const data = await cfgSnap.json();
-                const f = data.fields || {};
-                const histFrom = f.history_from?.stringValue || 'Not set';
-                const account  = f.account?.stringValue || 'Not set';
-                const broker   = f.broker?.stringValue || 'Not set';
-                const debug    = f.debug_mode?.booleanValue ? 'On' : 'Off';
-                const updated  = f.updated_at?.integerValue
-                    ? new Date(parseInt(f.updated_at.integerValue)).toLocaleString()
-                    : 'Never';
-                cfgEl.innerHTML =
-                    `<span style="color:#555;">Username &nbsp;&nbsp;&nbsp;:</span> <b style="color:#44ff88;">${currentUser}</b><br>` +
-                    `<span style="color:#555;">History From :</span> <b style="color:#fff;">${histFrom}</b><br>` +
-                    `<span style="color:#555;">Account &nbsp;&nbsp;&nbsp;:</span> <b style="color:#fff;">${account}</b><br>` +
-                    `<span style="color:#555;">Broker &nbsp;&nbsp;&nbsp;&nbsp;:</span> <b style="color:#fff;">${broker}</b><br>` +
-                    `<span style="color:#555;">Debug Mode &nbsp;:</span> <b style="color:#fff;">${debug}</b><br>` +
-                    `<span style="color:#555;">Last Saved &nbsp;:</span> <b style="color:#aaa;">${updated}</b>`;
-            } else {
-                cfgEl.innerHTML = '<span style="color:#444;">No config saved yet. Fill in the form and click Save.</span>';
-            }
-        } catch(e) {}
-
-        // Load import flag status
-        try {
-            const flagUrl = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/import_flags/${currentUser}_history`;
-            const flagSnap = await fetch(flagUrl);
-            const statusEl = document.getElementById('mt5-import-status');
-            if (flagSnap.ok) {
-                const data = await flagSnap.json();
-                const f = data.fields || {};
-                const ts = f.timestamp?.integerValue
-                    ? new Date(parseInt(f.timestamp.integerValue) * 1000).toLocaleString()
-                    : 'Unknown';
-                statusEl.innerHTML =
-                    `<span style="color:#44ff88;font-weight:600;">✓ History Imported</span><br>` +
-                    `<span style="color:#555;">Imported at : </span><b style="color:#aaa;">${ts}</b><br>` +
-                    `<span style="color:#555;">EA is now running in <b style="color:#fff;">live mode</b> only.</span><br><br>` +
-                    `<span style="color:#444;font-size:0.65rem;">Click "Reset Import Flag" below if you want to re-import all history (e.g. after clearing Firebase data).</span>`;
-            } else {
-                statusEl.innerHTML =
-                    `<span style="color:#ffcc44;font-weight:600;">⏳ History Not Yet Imported</span><br>` +
-                    `<span style="color:#555;">The EA has not run yet, or history import is pending.</span><br>` +
-                    `<span style="color:#555;">Attach the EA to a chart in MT5 to start the import.</span>`;
-            }
-        } catch(e) {}
-    },
-
-    async resetImportFlag(){
-        if (!confirm('This will delete the import flag.\nNext time the EA starts it will re-import ALL history from scratch.\n\nAre you sure?')) return;
-        try {
-            const flagUrl = `https://firestore.googleapis.com/v1/projects/rk-journaling-trades/databases/(default)/documents/import_flags/${currentUser}_history`;
-            await fetch(flagUrl, { method: 'DELETE' });
-            alert('Import flag reset. Re-attach the EA in MT5 to re-import history.');
-            this.loadMT5Status();
-        } catch(e) { alert('Error: ' + e.message); }
-    },
-
-    async exportPDF(){
+        async exportPDF(){
         const m=document.getElementById('export-month').value, y=document.getElementById('export-year').value;
         ['ana-month','cal-month','export-month'].forEach(id=>document.getElementById(id).value=m);
         ['ana-year','cal-year','export-year'].forEach(id=>document.getElementById(id).value=y);
