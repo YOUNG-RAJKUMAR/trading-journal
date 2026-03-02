@@ -213,7 +213,7 @@
                     <div class="section-title">Log Execution</div>
                     <div class="form-grid">
                         <input type="date" id="t-date">
-                        <input type="time" id="t-start">
+                        <input type="time" id="t-start" oninput="ui.autoDetectSession()">
                         <input type="time" id="t-end">
                         <select id="t-session">
                             <option value="ASIAN">Asian</option>
@@ -686,9 +686,16 @@ window.ui={
     },
 
     async syncData(){
-        const q=query(tradesCol,where("user_id","==",currentUser),orderBy("date","desc"));
+        // Query without orderBy to avoid composite index requirement in Firestore
+        // MT5-imported and manual trades both have user_id field
+        const q=query(tradesCol,where("user_id","==",currentUser));
         const snap=await getDocs(q);
         cachedTrades=snap.docs.map(d=>({...d.data(),id:d.id}));
+        // Sort client-side by date descending (handles both manual + MT5 imported trades)
+        cachedTrades.sort((a,b)=>{
+            const da=a.date||"", db=b.date||"";
+            return da>db?-1:da<db?1:0;
+        });
         this.renderAll();
     },
 
@@ -700,6 +707,33 @@ window.ui={
         if(id==='calendar'){this.renderCalendar();this.updateSideStats();}
         if(id==='journal')this.renderJournal();
         if(id==='mt5'){this.loadMT5Status();}
+    },
+
+    /* ══ AUTO-DETECT SESSION FROM TIME (NPT UTC+5:45) ══ */
+    autoDetectSession(){
+        const timeVal = document.getElementById('t-start').value;
+        if (!timeVal) return;
+        const [h, m] = timeVal.split(':').map(Number);
+        const totalMin = h * 60 + m;
+
+        // Determine summer/winter from selected date
+        const dateVal = document.getElementById('t-date').value;
+        const month   = dateVal ? new Date(dateVal).getMonth() + 1 : new Date().getMonth() + 1;
+        const isSummer = month >= 3 && month <= 10;
+
+        // NPT session boundaries in minutes-of-day (time already in NPT since user is in Nepal)
+        const asianStart  = 5*60+45,  asianEnd  = 12*60+45;
+        const lonStart    = isSummer ? 12*60+45 : 13*60+45;
+        const lonEnd      = isSummer ? 21*60+45 : 22*60+45;
+        const nyStart     = isSummer ? 17*60+45 : 18*60+45;
+        const nyEndWrap   = isSummer ? 2*60+45  : 3*60+45;  // wraps past midnight
+
+        let session = 'ASIAN';
+        if (totalMin >= asianStart && totalMin < asianEnd)          session = 'ASIAN';
+        else if (totalMin >= lonStart && totalMin < lonEnd)         session = 'LONDON';
+        else if (totalMin >= nyStart || totalMin < nyEndWrap)       session = 'NY';
+
+        document.getElementById('t-session').value = session;
     },
 
     renderAll(){this.renderJournal();this.renderCalendar();this.renderAnalytics();this.updateSideStats();},
