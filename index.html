@@ -34,7 +34,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
 
-        /* FORM & SEARCH */
+        /* CARDS & FORMS */
         .card { background: var(--surface); border: 1px solid var(--border); padding: 25px; margin-bottom: 25px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
         input, select, textarea, button { background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px; font-size: 0.8rem; font-family: inherit; }
@@ -63,21 +63,17 @@
         .stat-val { display: block; font-size: 1.4rem; color: #fff; margin-top: 5px; font-weight: 300; }
         .stat-meta { font-size: 0.7rem; color: #666; margin-top: 5px; display: block; }
 
-        /* ANALYTICS GRID */
+        /* ANALYTICS */
         .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
 
         .img-preview { width: 45px; height: 32px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
         .img-preview:hover { transform: scale(6); position: relative; z-index: 1000; border-color: #fff; }
 
-        /* PDF EXPORT STYLING (Internal Hidden Class) */
+        /* PDF EXPORT STYLING */
         .pdf-export-mode #main-content { padding: 0; max-width: 100%; }
         .pdf-export-mode .tab-btn, .pdf-export-mode .header-top, .pdf-export-mode #execution-form, .pdf-export-mode .search-container { display: none !important; }
         .pdf-export-mode .tab-content { display: block !important; page-break-after: always; padding: 20px; }
         .pdf-export-mode table { font-size: 9px !important; }
-        .pdf-export-mode td, .pdf-export-mode th { padding: 8px !important; }
-        .pdf-export-mode .calendar-layout { display: block; }
-        .pdf-export-mode .side-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-        .pdf-export-mode .stat-card { flex: 1; min-width: 150px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
     </style>
@@ -148,12 +144,9 @@
         </div>
         
         <div class="table-wrap">
-            <table id="trade-table">
+            <table>
                 <thead>
-                    <tr>
-                        <th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>Session</th>
-                        <th>P/L ($)</th><th>Duration</th><th>Media/Notes</th>
-                    </tr>
+                    <tr><th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>Session</th><th>P/L ($)</th><th>Notes</th></tr>
                 </thead>
                 <tbody id="tradeBody"></tbody>
             </table>
@@ -169,7 +162,7 @@
                 </div>
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
-            <div class="side-stats" id="side-pnl-panel">
+            <div class="side-stats">
                 <div class="stat-card">
                     <span class="stat-label">Daily P/L</span>
                     <div id="side-today" class="stat-val">$0</div>
@@ -209,9 +202,9 @@
         <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
             <div class="card"><h3>Equity Curve</h3><canvas id="equityChart"></canvas></div>
             <div class="card">
-                <h3>Top Performers</h3>
-                <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1rem; margin-bottom:15px">---</div>
-                <div class="stat-label">Best Session</div><div id="s-best-sess" class="stat-val" style="font-size:1rem; color:var(--positive); margin-bottom:15px">---</div>
+                <h3>Top Insights</h3>
+                <div class="stat-label">Best Instrument</div><div id="s-best-inst" class="stat-val" style="font-size:1rem;">---</div>
+                <div class="stat-label" style="margin-top:10px">Best Session</div><div id="s-best-sess" class="stat-val" style="font-size:1rem; color:var(--positive);">---</div>
                 <div style="margin-top:20px"><canvas id="pieChart"></canvas></div>
             </div>
         </div>
@@ -241,9 +234,6 @@
     document.getElementById('loginBtn').onclick = async () => {
         const u = document.getElementById('user-input').value.trim().toUpperCase();
         const p = document.getElementById('pass-input').value;
-        const btn = document.getElementById('loginBtn');
-        btn.innerText = "AUTHENTICATING...";
-
         try {
             const userRef = doc(db, "users", u);
             const snap = await getDoc(userRef);
@@ -253,11 +243,8 @@
                 document.getElementById('main-content').style.display = 'block';
                 document.getElementById('display-user').innerText = u;
                 ui.init();
-            } else {
-                document.getElementById('login-err').style.display = 'block';
-                btn.innerText = "ACCESS JOURNAL";
-            }
-        } catch(e) { alert("Auth Failed"); btn.innerText = "ACCESS JOURNAL"; }
+            } else { alert("Access Denied"); }
+        } catch(e) { alert("Error connecting to server"); }
     };
 
     window.ui = {
@@ -267,10 +254,12 @@
             const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
             const mOpts = months.map((m,i)=>`<option value="${i}" ${i===new Date().getMonth()?'selected':''}>${m}</option>`).join('');
             const yOpts = [2025, 2026].map(y=>`<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`).join('');
-            const mOptsAll = `<option value="ALL">All Time</option>` + mOpts;
-
-            ['cal-month', 'ana-month', 'export-month'].forEach(id => document.getElementById(id).innerHTML = (id==='export-month' || id==='ana-month') ? mOptsAll : mOpts);
-            ['cal-year', 'ana-year', 'export-year'].forEach(id => document.getElementById(id).innerHTML = yOpts);
+            
+            document.getElementById('cal-month').innerHTML = mOpts;
+            document.getElementById('ana-month').innerHTML = `<option value="ALL">All Time</option>` + mOpts;
+            document.getElementById('export-month').innerHTML = `<option value="ALL">All Time</option>` + mOpts;
+            
+            [document.getElementById('cal-year'), document.getElementById('ana-year'), document.getElementById('export-year')].forEach(el => el.innerHTML = yOpts);
 
             this.syncData();
         },
@@ -288,29 +277,19 @@
             if(id === 'calendar') this.renderCalendar();
             if(id === 'journal') this.renderJournal();
         },
-        renderAll() {
-            this.renderJournal();
-            this.renderCalendar();
-            this.renderAnalytics();
-            this.updateSideStats();
-        },
-        quickHit(type) {
-            document.getElementById('t-exit').value = type === 'TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value;
-        },
+        renderAll() { this.renderJournal(); this.renderCalendar(); this.renderAnalytics(); this.updateSideStats(); },
+        quickHit(type) { document.getElementById('t-exit').value = type === 'TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value; },
         renderJournal() {
             const body = document.getElementById('tradeBody');
             const search = document.getElementById('trade-search').value.toUpperCase();
             body.innerHTML = '';
-            
             cachedTrades.forEach(t => {
                 if(search && !t.symbol.includes(search)) return;
                 body.insertAdjacentHTML('beforeend', `
-                    <tr>
-                        <td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td>
-                        <td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td>
-                        <td>${t.session}</td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td>
-                        <td>${t.duration}m</td><td>${t.img ? `<img src="${t.img}" class="img-preview">` : ''}<div style="font-size:0.6rem; color:#666">${t.notes}</div></td>
-                    </tr>`);
+                    <tr><td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td>
+                        <td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'}">${t.side}</td><td>${t.session}</td>
+                        <td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'}">$${t.profit.toFixed(2)}</td>
+                        <td>${t.img ? `<img src="${t.img}" class="img-preview">` : ''}<div style="font-size:0.6rem; color:#666">${t.notes}</div></td></tr>`);
             });
         },
         updateSideStats() {
@@ -320,39 +299,23 @@
             const selY = parseInt(document.getElementById('cal-year').value);
             const isCurrentMonth = (selM === now.getMonth() && selY === now.getFullYear());
 
-            const calc = (list) => {
-                const pnl = list.reduce((s,t)=>s+t.profit, 0);
-                const wr = list.length ? Math.round((list.filter(t=>t.profit>0).length / list.length)*100) : 0;
-                return { pnl, wr, count: list.length };
-            };
+            const calc = (list) => ({ pnl: list.reduce((s,t)=>s+t.profit, 0), wr: list.length ? Math.round((list.filter(t=>t.profit>0).length/list.length)*100) : 0, total: list.length });
 
-            const updateUI = (id, metaId, data, forceNA = false) => {
-                const el = document.getElementById(id);
-                const meta = document.getElementById(metaId);
-                if(forceNA) {
-                    el.innerText = "N/A"; el.style.color = "#666";
-                    meta.innerText = "Out of Scope";
-                } else {
-                    el.innerText = (data.pnl >= 0 ? '+$' : '-$') + Math.abs(data.pnl).toFixed(0);
-                    el.style.color = data.pnl >= 0 ? 'var(--positive)' : 'var(--negative)';
-                    meta.innerText = `${data.wr}% WR | ${data.count} Trades`;
+            const setUI = (pnlId, metaId, d, isNA) => {
+                const el = document.getElementById(pnlId), meta = document.getElementById(metaId);
+                if(isNA) { el.innerText = "N/A"; el.style.color = "#666"; meta.innerText = "Out of Scope"; }
+                else {
+                    el.innerText = (d.pnl>=0?'+$':'-$')+Math.abs(d.pnl).toFixed(0);
+                    el.style.color = d.pnl>=0?'var(--positive)':'var(--negative)';
+                    meta.innerText = `${d.wr}% WR | ${d.total} Trades`;
                 }
             };
 
-            // Today Logic
-            updateUI('side-today', 'side-today-meta', calc(cachedTrades.filter(t=>t.date===todayStr)), !isCurrentMonth);
-            
-            // Week Logic
+            setUI('side-today', 'side-today-meta', calc(cachedTrades.filter(t=>t.date===todayStr)), !isCurrentMonth);
             const first = now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1);
             const monStr = new Date(new Date().setDate(first)).toISOString().split('T')[0];
-            updateUI('side-week', 'side-week-meta', calc(cachedTrades.filter(t=>t.date >= monStr)), !isCurrentMonth);
-
-            // Month Logic (Always updates for selected month)
-            const mTrades = cachedTrades.filter(t => {
-                const d = new Date(t.date);
-                return d.getMonth() === selM && d.getFullYear() === selY;
-            });
-            updateUI('side-month', 'side-month-meta', calc(mTrades));
+            setUI('side-week', 'side-week-meta', calc(cachedTrades.filter(t=>t.date >= monStr)), !isCurrentMonth);
+            setUI('side-month', 'side-month-meta', calc(cachedTrades.filter(t=>{ const d=new Date(t.date); return d.getMonth()===selM && d.getFullYear()===selY })), false);
         },
         renderCalendar() {
             const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
@@ -368,8 +331,9 @@
             const selM = document.getElementById('ana-month').value;
             const selY = parseInt(document.getElementById('ana-year').value);
             
+            // CORRECTED FILTER LOGIC
             const data = cachedTrades.filter(t => {
-                if(selM === 'ALL') return true;
+                if(selM === 'ALL') return true; 
                 const d = new Date(t.date);
                 return d.getMonth() === parseInt(selM) && d.getFullYear() === selY;
             });
@@ -379,13 +343,9 @@
             let inst = {}, cumulative = [0], labels = ['Start'];
 
             [...data].reverse().forEach(t => {
-                if(t.profit > 0) { gP += t.profit; wins++; if(t.profit > hP) hP = t.profit; } 
-                else { gL += Math.abs(t.profit); if(t.profit < hL) hL = t.profit; }
-                
-                sess[t.session].p += t.profit;
-                sess[t.session].t++;
-                if(t.profit > 0) sess[t.session].w++;
-
+                if(t.profit > 0) { gP += t.profit; wins++; hP = Math.max(hP, t.profit); } 
+                else { gL += Math.abs(t.profit); hL = Math.min(hL, t.profit); }
+                sess[t.session].p += t.profit; sess[t.session].t++; if(t.profit > 0) sess[t.session].w++;
                 inst[t.symbol] = (inst[t.symbol] || 0) + t.profit;
                 cumulative.push(cumulative[cumulative.length-1] + t.profit);
                 labels.push(t.date);
@@ -410,98 +370,28 @@
             this.updateCharts(cumulative, labels, wins, data.length - wins);
         },
         updateCharts(data, labels, w, l) {
-            const ctxE = document.getElementById('equityChart').getContext('2d');
             if(this.charts.equity) this.charts.equity.destroy();
-            this.charts.equity = new Chart(ctxE, { type: 'line', data: { labels, datasets: [{ data, borderColor: '#fff', fill: true, backgroundColor: 'rgba(255,255,255,0.05)', tension: 0.1, pointRadius: 0 }] }, options: { scales: { x: { display: false }, y: { grid: { color: '#111' } } }, plugins: { legend: { display: false } } } });
-            
-            const ctxP = document.getElementById('pieChart').getContext('2d');
+            this.charts.equity = new Chart(document.getElementById('equityChart'), { type: 'line', data: { labels, datasets: [{ data, borderColor: '#fff', fill: true, backgroundColor: 'rgba(255,255,255,0.05)', tension: 0.1, pointRadius: 0 }] }, options: { scales: { x: { display: false }, y: { grid: { color: '#111' } } }, plugins: { legend: { display: false } } } });
             if(this.charts.pie) this.charts.pie.destroy();
-            this.charts.pie = new Chart(ctxP, { type: 'doughnut', data: { labels: ['Win','Loss'], datasets: [{ data: [w, l], backgroundColor: ['#44ff88', '#ff4444'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#888' } } } } });
+            this.charts.pie = new Chart(document.getElementById('pieChart'), { type: 'doughnut', data: { labels: ['Win','Loss'], datasets: [{ data: [w, l], backgroundColor: ['#44ff88', '#ff4444'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#888' } } } } });
         },
         async handleNewTrade() {
-            const btn = document.getElementById('saveBtn'); btn.innerText = "Syncing...";
             const file = document.getElementById('t-img').files[0];
             let imgData = "";
-            if(file) {
-                const reader = new FileReader();
-                imgData = await new Promise(r => { reader.readAsDataURL(file); reader.onload = e => r(e.target.result); });
-            }
+            if(file) { const reader = new FileReader(); imgData = await new Promise(r => { reader.readAsDataURL(file); reader.onload = e => r(e.target.result); }); }
             const entry = parseFloat(document.getElementById('t-entry').value), exit = parseFloat(document.getElementById('t-exit').value);
             const lots = parseFloat(document.getElementById('t-lots').value), mult = parseFloat(document.getElementById('t-asset').value);
-            const trade = {
-                user_id: currentUser, timestamp: Date.now(),
-                symbol: document.getElementById('t-symbol').value.toUpperCase() || 'N/A',
-                lots: lots || 0, side: document.getElementById('t-side').value, session: document.getElementById('t-session').value,
-                profit: (exit - entry) * lots * mult * (document.getElementById('t-side').value === 'BUY' ? 1 : -1),
-                date: document.getElementById('t-date').value, notes: document.getElementById('t-notes').value, img: imgData,
-                duration: 0 
-            };
-            await addDoc(tradesCol, trade);
-            btn.innerText = "Log Execution";
+            await addDoc(tradesCol, { user_id: currentUser, timestamp: Date.now(), symbol: document.getElementById('t-symbol').value.toUpperCase(), lots: lots, side: document.getElementById('t-side').value, session: document.getElementById('t-session').value, profit: (exit - entry) * lots * mult * (document.getElementById('t-side').value === 'BUY' ? 1 : -1), date: document.getElementById('t-date').value, notes: document.getElementById('t-notes').value, img: imgData });
             this.syncData();
         },
-        async undoLast() {
-            if(!confirm("Delete last entry?")) return;
-            const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("timestamp", "desc"), limit(1));
-            const snap = await getDocs(q);
-            if(!snap.empty) await deleteDoc(doc(db, "trades", snap.docs[0].id));
-            this.syncData();
-        },
-        async resetAll() {
-            if(!confirm("Wipe ALL data?")) return;
-            const batch = writeBatch(db);
-            const q = query(tradesCol, where("user_id", "==", currentUser));
-            const snap = await getDocs(q);
-            snap.docs.forEach(d => batch.delete(d.ref));
-            await batch.commit();
-            this.syncData();
-        },
+        async undoLast() { if(!confirm("Delete last entry?")) return; const q = query(tradesCol, where("user_id", "==", currentUser), orderBy("timestamp", "desc"), limit(1)); const snap = await getDocs(q); if(!snap.empty) await deleteDoc(doc(db, "trades", snap.docs[0].id)); this.syncData(); },
+        async resetAll() { if(!confirm("Wipe ALL data?")) return; const batch = writeBatch(db); const q = query(tradesCol, where("user_id", "==", currentUser)); const snap = await getDocs(q); snap.docs.forEach(d => batch.delete(d.ref)); await batch.commit(); this.syncData(); },
         async exportPDF() {
-            const m = document.getElementById('export-month').value;
-            const y = document.getElementById('export-year').value;
-            
-            // Backup current view states
-            const oldM = document.getElementById('ana-month').value;
-            const oldY = document.getElementById('ana-year').value;
-            const oldCalM = document.getElementById('cal-month').value;
-
-            // Prepare PDF Data
+            const m = document.getElementById('export-month').value, y = document.getElementById('export-year').value;
             document.body.classList.add('pdf-export-mode');
-            document.getElementById('ana-month').value = m;
-            document.getElementById('ana-year').value = y;
-            document.getElementById('cal-month').value = (m === 'ALL' ? new Date().getMonth() : m);
-            document.getElementById('cal-year').value = y;
-
-            this.renderAnalytics();
-            this.renderCalendar();
-            this.updateSideStats();
-            
-            // Filter Journal for the PDF
-            const body = document.getElementById('tradeBody');
-            body.innerHTML = '';
-            cachedTrades.forEach(t => {
-                const d = new Date(t.date);
-                if(m !== 'ALL' && (d.getMonth() !== parseInt(m) || d.getFullYear() !== parseInt(y))) return;
-                body.insertAdjacentHTML('beforeend', `<tr><td>${t.date}</td><td>${t.symbol}</td><td>${t.lots}</td><td>${t.side}</td><td>${t.session}</td><td>$${t.profit.toFixed(2)}</td><td>--</td><td>${t.notes}</td></tr>`);
-            });
-
             const element = document.getElementById('main-content');
-            const opt = {
-                margin: 0,
-                filename: `Trading_Report_${m}_${y}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, backgroundColor: '#000000' },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
-            };
-
-            await html2pdf().set(opt).from(element).save();
-            
-            // Restore UI
+            await html2pdf().set({ margin: 0, filename: `Report_${m}_${y}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#000000' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } }).from(element).save();
             document.body.classList.remove('pdf-export-mode');
-            document.getElementById('ana-month').value = oldM;
-            document.getElementById('ana-year').value = oldY;
-            document.getElementById('cal-month').value = oldCalM;
-            this.syncData();
         }
     };
 </script>
