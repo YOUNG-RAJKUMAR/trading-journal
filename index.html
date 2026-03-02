@@ -78,19 +78,7 @@
         .c-res-val.profit  { color: var(--positive); }
         .c-res-sub { font-size: 0.6rem; color: #444; margin-top: 4px; }
 
-        /* ── R:R BAR ── */
-        .rr-quality-bar { margin-top: 12px; background: #050505; border: 1px solid var(--border); padding: 14px; display: none; }
-        .rr-bar-label { font-size: 0.55rem; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        .rr-bar-track { height: 6px; background: #111; border-radius: 3px; overflow: hidden; }
-        .rr-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-        .rr-bar-fill.good { background: linear-gradient(90deg, #1a4a2a, #44ff88); }
-        .rr-bar-fill.bad  { background: linear-gradient(90deg, #4a1a1a, #ff4444); }
-        .rr-bar-ticks { display: flex; justify-content: space-between; margin-top: 5px; }
-        .rr-bar-tick  { font-size: 0.5rem; color: #333; }
 
-        /* ── BREAKDOWN BOX ── */
-        .calc-breakdown { background: #050505; border: 1px solid #1a1a1a; padding: 12px 14px; margin-top: 10px; font-size: 0.68rem; color: #555; line-height: 1.9; border-radius: 2px; }
-        .calc-breakdown b { color: #888; }
 
         /* ── QUICK RISK TABLE ── */
         .quick-risk-table { margin-top: 12px; }
@@ -360,29 +348,10 @@
                         <div class="c-res-card">
                             <div class="c-res-label">Risk : Reward</div>
                             <div class="c-res-val" id="c-res-rr">---</div>
-                            <div class="c-res-sub" id="c-res-rr-verdict">---</div>
                         </div>
                     </div>
 
-                    <!-- R:R quality bar -->
-                    <div class="rr-quality-bar" id="rr-quality-bar">
-                        <div class="rr-bar-label">R:R Quality</div>
-                        <div class="rr-bar-track">
-                            <div class="rr-bar-fill" id="rr-bar-fill" style="width:0%;"></div>
-                        </div>
-                        <div class="rr-bar-ticks">
-                            <span class="rr-bar-tick">1:0.5</span>
-                            <span class="rr-bar-tick">1:1</span>
-                            <span class="rr-bar-tick">1:1.5</span>
-                            <span class="rr-bar-tick">1:2</span>
-                            <span class="rr-bar-tick">1:3+</span>
-                        </div>
-                    </div>
 
-                    <!-- Breakdown -->
-                    <div class="calc-breakdown" id="calc-breakdown">
-                        Enter balance, entry, and SL to see lot size calculation.
-                    </div>
 
                     <!-- Quick risk reference -->
                     <div class="quick-risk-table" id="quick-risk-table" style="display:none;">
@@ -780,52 +749,24 @@ window.ui={
         const lots      = Math.floor(rawLots*100)/100;
         const actualRisk= lots * slTicks * cfg.tickValue;
         const potProfit = tpTicks ? lots * tpTicks * cfg.tickValue : 0;
-        const rr        = tpTicks>0 ? tpTicks/slTicks : 0;
-        const rrLabel   = rr>0 ? `1 : ${parseFloat(rr.toFixed(2))}` : '---';
-        let rrVerdict   = '---';
-        if(rr>0){
-            if(rr>=3)      rrVerdict='🔥 Excellent';
-            else if(rr>=2) rrVerdict='✓ Good';
-            else if(rr>=1.5)rrVerdict='~ Acceptable';
-            else if(rr>=1) rrVerdict='⚠ Minimum';
-            else           rrVerdict='✗ Poor — Avoid';
-        }
+        const rr      = tpTicks>0 ? tpTicks/slTicks : 0;
+        const rrLabel = rr>0 ? `1 : ${parseFloat(rr.toFixed(2))}` : '---';
 
-        document.getElementById('c-res-lots').textContent    = lots.toFixed(2);
-        document.getElementById('c-res-lots-sub').textContent= 'Standard lots (rounded down)';
-        document.getElementById('c-res-risk').textContent    = `$${actualRisk.toFixed(2)}`;
-        document.getElementById('c-res-risk-pct').textContent= balance>0 ? `${((actualRisk/balance)*100).toFixed(2)}% of balance` : 'Add balance for %';
-        document.getElementById('c-res-profit').textContent  = tpTicks ? `$${potProfit.toFixed(2)}` : '---';
-        document.getElementById('c-res-profit-pct').textContent= (balance>0&&tpTicks) ? `${((potProfit/balance)*100).toFixed(2)}% of balance` : 'Enter TP for profit';
-        document.getElementById('c-res-sl-pips').textContent = `${slTicks} ticks`;
-        document.getElementById('c-res-tp-pips').textContent = tpTicks ? `${tpTicks} ticks` : '---';
-        document.getElementById('c-res-pipval').textContent  = `$${cfg.tickValue.toFixed(2)}`;
-        document.getElementById('c-res-rr').textContent      = rrLabel;
-        document.getElementById('c-res-rr-verdict').textContent= rrVerdict;
-
-        if(rr>0){
-            const bar  = document.getElementById('rr-quality-bar'); bar.style.display='block';
-            const fill = document.getElementById('rr-bar-fill');
-            fill.style.width = Math.min((rr/3)*100,100)+'%';
-            fill.className   = `rr-bar-fill ${rr>=1?'good':'bad'}`;
-        } else {
-            document.getElementById('rr-quality-bar').style.display='none';
-        }
-
-        document.getElementById('calc-breakdown').innerHTML=
-            `<b>Breakdown</b><br>`+
-            `Tick Value : $${cfg.tickValue}/tick/lot &nbsp; (${cfg.note})<br>`+
-            `SL &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b>${slTicks} ticks</b> × $${cfg.tickValue}/lot = $${(slTicks*cfg.tickValue).toFixed(2)} risk per lot<br>`+
-            (tpTicks?`TP &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b>${tpTicks} ticks</b> × $${cfg.tickValue}/lot = $${(tpTicks*cfg.tickValue).toFixed(2)} profit per lot<br>`:'')+
-            `Formula &nbsp;&nbsp;&nbsp;: $${riskMoney.toFixed(2)} ÷ $${(slTicks*cfg.tickValue).toFixed(2)} = <b>${rawLots.toFixed(4)} lots</b><br>`+
-            `Rounded &nbsp;&nbsp;&nbsp;: <b>${lots.toFixed(2)} lots</b> (always rounded DOWN for safety)`;
+        document.getElementById('c-res-lots').textContent     = lots.toFixed(2);
+        document.getElementById('c-res-lots-sub').textContent = 'Standard lots (rounded down)';
+        document.getElementById('c-res-risk').textContent     = `$${actualRisk.toFixed(2)}`;
+        document.getElementById('c-res-risk-pct').textContent = balance>0 ? `${((actualRisk/balance)*100).toFixed(2)}% of balance` : 'Add balance for %';
+        document.getElementById('c-res-profit').textContent   = tpTicks ? `$${potProfit.toFixed(2)}` : '---';
+        document.getElementById('c-res-profit-pct').textContent = (balance>0&&tpTicks) ? `${((potProfit/balance)*100).toFixed(2)}% of balance` : 'Enter TP for profit';
+        document.getElementById('c-res-sl-pips').textContent  = `${slTicks} ticks`;
+        document.getElementById('c-res-tp-pips').textContent  = tpTicks ? `${tpTicks} ticks` : '---';
+        document.getElementById('c-res-pipval').textContent   = `$${cfg.tickValue.toFixed(2)}`;
+        document.getElementById('c-res-rr').textContent       = rrLabel;
     },
 
     _clearCalcResults(){
         ['c-res-lots','c-res-risk','c-res-profit','c-res-sl-pips','c-res-tp-pips','c-res-pipval','c-res-rr'].forEach(id=>document.getElementById(id).textContent='---');
-        ['c-res-lots-sub','c-res-risk-pct','c-res-profit-pct','c-res-rr-verdict'].forEach(id=>document.getElementById(id).textContent='---');
-        document.getElementById('rr-quality-bar').style.display='none';
-        document.getElementById('calc-breakdown').innerHTML='Enter balance and SL ticks to see calculation.';
+        ['c-res-lots-sub','c-res-risk-pct','c-res-profit-pct'].forEach(id=>document.getElementById(id).textContent='---');
     },
 
     calcRR(t){
