@@ -147,6 +147,19 @@
         .pdf-export-mode table { font-size: 8px !important; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
+
+        /* ── AI SCAN ZONE ── */
+        .scan-zone { border:1px dashed #333; padding:18px; text-align:center; cursor:pointer; position:relative; background:#050505; grid-column:span 2; margin-top:4px; transition:border-color 0.2s; }
+        .scan-zone:hover,.scan-zone.drag-over { border-color:#fff; }
+        .scan-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+        .scan-zone-label { font-size:0.65rem; color:#444; letter-spacing:1px; pointer-events:none; }
+        .scan-zone-label span { color:#fff; }
+        .scan-status { font-size:0.65rem; margin-top:6px; letter-spacing:1px; min-height:14px; }
+        /* ── TRADE MEDIA ZONE ── */
+        .media-zone { border:1px dashed #222; padding:14px; text-align:center; cursor:pointer; position:relative; background:#050505; grid-column:span 2; margin-top:4px; }
+        .media-zone:hover { border-color:#555; }
+        .media-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+        .media-preview { max-width:100%; max-height:120px; object-fit:contain; margin-top:8px; border:1px solid #222; display:none; }
     </style>
 </head>
 <body>
@@ -218,9 +231,23 @@
                             <option value="BUY">Long</option>
                             <option value="SELL">Short</option>
                         </select>
-                        <input type="number" id="t-entry" placeholder="Entry Price" oninput="ui.updateLiveRR()">
-                        <input type="number" id="t-sl"    placeholder="Stop Loss"   oninput="ui.updateLiveRR()">
-                        <input type="number" id="t-tp"    placeholder="Take Profit" oninput="ui.updateLiveRR()">
+                        <input type="number" id="t-entry" placeholder="Entry Price" oninput="ui.autoCalcTP();ui.updateLiveRR()">
+                        <input type="number" id="t-sl"    placeholder="Stop Loss"   oninput="ui.autoCalcTP();ui.updateLiveRR()">
+                        <div style="display:flex;flex-direction:column;gap:5px;">
+                            <select id="t-tp-rr" onchange="ui.autoCalcTP()" style="width:100%;padding:10px;font-size:0.75rem;">
+                                <option value="0">Manual TP Price</option>
+                                <option value="1" selected>R:R 1 : 1</option>
+                                <option value="1.25">R:R 1 : 1.25</option>
+                                <option value="1.5">R:R 1 : 1.5</option>
+                                <option value="1.75">R:R 1 : 1.75</option>
+                                <option value="2">R:R 1 : 2</option>
+                                <option value="2.25">R:R 1 : 2.25</option>
+                                <option value="2.5">R:R 1 : 2.5</option>
+                                <option value="2.75">R:R 1 : 2.75</option>
+                                <option value="3">R:R 1 : 3</option>
+                            </select>
+                            <input type="number" id="t-tp" placeholder="Take Profit Price" oninput="ui.onManualTP()">
+                        </div>
                         <div style="display:flex;flex-direction:column;gap:5px;">
                             <input type="number" id="t-exit" placeholder="Exit Price">
                             <div style="display:flex;gap:5px;">
@@ -240,7 +267,27 @@
                             </div>
                         </div>
 
-                        <input type="file" id="t-img" accept="image/*" style="font-size:0.6rem;grid-column:span 2;">
+                        <!-- ① AI SCAN ZONE -->
+                        <div style="grid-column:span 2;">
+                            <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9312; Scan Setup Screenshot — Auto-fills Entry &amp; SL</div>
+                            <div class="scan-zone" id="scan-zone"
+                                ondragover="event.preventDefault();this.classList.add('drag-over')"
+                                ondragleave="this.classList.remove('drag-over')"
+                                ondrop="event.preventDefault();this.classList.remove('drag-over');ui.handleScanDrop(event)">
+                                <input type="file" id="t-scan-img" accept="image/*" onchange="ui.scanTradeImage(this.files[0])">
+                                <div class="scan-zone-label">&#128247; Drop / Paste / Click to scan screenshot<br><span>Entry + SL auto-filled by AI &bull; R:R 1:1 auto-set</span></div>
+                                <div class="scan-status" id="scan-status"></div>
+                            </div>
+                        </div>
+                        <!-- ② TRADE MEDIA -->
+                        <div style="grid-column:span 2;">
+                            <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9313; Trade Media — Chart Screenshot (saved to record)</div>
+                            <div class="media-zone" id="media-zone">
+                                <input type="file" id="t-img" accept="image/*" onchange="ui.previewMedia(this)">
+                                <div id="media-zone-label" style="font-size:0.65rem;color:#333;letter-spacing:1px;">&#128444; Drop / Click to attach chart screenshot</div>
+                                <img id="media-preview-img" class="media-preview">
+                            </div>
+                        </div>
                         <textarea id="t-notes" placeholder="Notes..." style="grid-column:span 2;"></textarea>
                     </div>
                     <button onclick="ui.handleNewTrade()" class="save-btn" style="margin-top:12px;">Log Execution</button>
@@ -383,7 +430,7 @@
                     <tr>
                         <th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th>
                         <th>Session</th><th>Prices</th><th>Outcome</th>
-                        <th>Risk : Reward</th><th>P/L ($)</th><th>Notes</th>
+                        <th>Risk : Reward</th><th>P/L ($)</th><th>Notes</th><th></th>
                     </tr>
                 </thead>
                 <tbody id="tradeBody"></tbody>
@@ -571,6 +618,11 @@ function doLogin(u){
     document.getElementById('display-user').innerText=u;
     ui.init();
 }
+// ── Paste image anywhere → triggers AI scan ──
+document.addEventListener('paste',e=>{
+    const items=e.clipboardData?.items;if(!items)return;
+    for(const item of items){if(item.type.startsWith('image/')){window.ui.scanTradeImage(item.getAsFile());break;}}
+});
 
 // ── Auto-restore session on refresh without re-login ──
 window.addEventListener('DOMContentLoaded', ()=>{
@@ -841,6 +893,7 @@ window.ui={
                 <td><span class="rr-badge ${rr.cls}">${rr.label}</span></td>
                 <td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'};font-weight:600;">$${t.profit.toFixed(2)}</td>
                 <td>${t.img?`<img src="${t.img}" class="img-preview">`:''}<div style="font-size:0.6rem;color:#555;">${t.notes||''}</div></td>
+                <td><button onclick="ui.deleteTrade('${t.id}')" style="background:transparent;border:1px solid #2a0000;color:#ff4444;padding:5px 9px;font-size:0.7rem;cursor:pointer;" title="Delete">✕</button></td>
             </tr>`);
         });
     },
@@ -1245,6 +1298,85 @@ window.ui={
         });
     },
 
+    async deleteTrade(id){
+        if(!confirm('Delete this trade?')) return;
+        await deleteDoc(doc(db,'trades',id));
+        this.syncData();
+    },
+
+    /* ══ AI IMAGE SCAN — extracts Entry + SL from screenshot ══ */
+    async scanTradeImage(file){
+        if(!file) return;
+        const st=document.getElementById('scan-status');
+        st.style.color='#888'; st.textContent='⟳ Scanning image...';
+        const base64=await new Promise(res=>{
+            const r=new FileReader();
+            r.onload=e=>res(e.target.result.split(',')[1]);
+            r.readAsDataURL(file);
+        });
+        try{
+            const resp=await fetch('https://api.anthropic.com/v1/messages',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({
+                    model:'claude-sonnet-4-20250514',max_tokens:200,
+                    messages:[{role:'user',content:[
+                        {type:'image',source:{type:'base64',media_type:file.type||'image/png',data:base64}},
+                        {type:'text',text:'Extract from this trading screenshot: entry_price, sl_price, and side (BUY or SELL). Respond ONLY with JSON like {"entry_price":"1.33003","sl_price":"1.33093","side":"SELL"}. Use null for any value not visible. No explanation, just JSON.'}
+                    ]}]
+                })
+            });
+            const res=await resp.json();
+            const txt=(res.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+            const p=JSON.parse(txt);
+            let filled=0;
+            if(p.entry_price&&p.entry_price!='null'){document.getElementById('t-entry').value=p.entry_price;filled++;}
+            if(p.sl_price&&p.sl_price!='null'){document.getElementById('t-sl').value=p.sl_price;filled++;}
+            if(p.side&&p.side!='null'){const s=p.side.toUpperCase();if(s==='BUY'||s==='SELL')document.getElementById('t-side').value=s;}
+            document.getElementById('t-tp-rr').value='1';
+            this.autoCalcTP(); this.updateLiveRR();
+            st.style.color=filled>0?'#44ff88':'#ffcc44';
+            st.textContent=filled>0?`✓ Got ${filled} value${filled>1?'s':''} — verify before logging`:'⚠ Could not read prices — enter manually';
+        }catch(e){
+            st.style.color='#ff4444';
+            st.textContent='✗ Scan failed — enter prices manually';
+        }
+    },
+    handleScanDrop(e){const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))this.scanTradeImage(f);},
+    previewMedia(input){
+        const f=input.files[0];if(!f)return;
+        const r=new FileReader();
+        r.onload=e=>{
+            const img=document.getElementById('media-preview-img');
+            img.src=e.target.result;img.style.display='block';
+            const lbl=document.getElementById('media-zone-label');if(lbl)lbl.style.display='none';
+        };
+        r.readAsDataURL(f);
+    },
+
+    autoCalcTP(){
+        const rr    = parseFloat(document.getElementById('t-tp-rr').value)||0;
+        const entry = parseFloat(document.getElementById('t-entry').value)||0;
+        const sl    = parseFloat(document.getElementById('t-sl').value)||0;
+        const tpEl  = document.getElementById('t-tp');
+        if(rr===0){ tpEl.readOnly=false; tpEl.style.borderColor=''; tpEl.style.color='#fff'; this.updateLiveRR(); return; }
+        if(!entry||!sl){ this.updateLiveRR(); return; }
+        const slDist = Math.abs(entry-sl);
+        const dir    = sl<entry ? 1 : -1;
+        const tp     = entry + (slDist*rr*dir);
+        const dec    = Math.max((entry.toString().split('.')[1]||'').length,(sl.toString().split('.')[1]||'').length);
+        tpEl.value   = tp.toFixed(dec);
+        tpEl.readOnly=true; tpEl.style.borderColor='#44ff88'; tpEl.style.color='#44ff88';
+        this.updateLiveRR();
+    },
+
+    onManualTP(){
+        document.getElementById('t-tp-rr').value='0';
+        const tpEl=document.getElementById('t-tp');
+        tpEl.readOnly=false; tpEl.style.borderColor=''; tpEl.style.color='#fff';
+        this.updateLiveRR();
+    },
+
     async handleNewTrade(){
         const file=document.getElementById('t-img').files[0]; let imgData="";
         if(file){const reader=new FileReader();imgData=await new Promise(r=>{reader.readAsDataURL(file);reader.onload=e=>r(e.target.result);});}
@@ -1256,7 +1388,28 @@ window.ui={
         const mult=parseFloat(document.getElementById('t-asset').value);
         const side=document.getElementById('t-side').value;
         await addDoc(tradesCol,{user_id:currentUser,timestamp:Date.now(),symbol:document.getElementById('t-symbol').value.toUpperCase(),lots,side,session:document.getElementById('t-session').value,profit:(exit-entry)*lots*mult*(side==='BUY'?1:-1),entry,exit,sl,tp,date:document.getElementById('t-date').value,notes:document.getElementById('t-notes').value,img:imgData});
-        ['t-entry','t-sl','t-tp','t-exit'].forEach(id=>document.getElementById(id).value='');
+        // Reset all form fields to defaults
+        ['t-symbol','t-lots','t-entry','t-sl','t-tp','t-exit','t-start','t-end','t-notes'].forEach(id=>{
+            const el=document.getElementById(id); if(el) el.value='';
+        });
+        // Reset TP field style (was possibly green from R:R auto)
+        const tpEl=document.getElementById('t-tp');
+        if(tpEl){tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';}
+        // Reset selects to first option
+        ['t-session','t-asset','t-side','t-tp-rr'].forEach(id=>{
+            const el=document.getElementById(id); if(el) el.selectedIndex=0;
+        });
+        // Reset file input
+        const imgEl=document.getElementById('t-img'); if(imgEl) imgEl.value='';
+        // Reset scan zone
+        const scanEl=document.getElementById('t-scan-img'); if(scanEl) scanEl.value='';
+        const st=document.getElementById('scan-status'); if(st) st.textContent='';
+        // Reset media preview
+        const pi=document.getElementById('media-preview-img'); if(pi){pi.style.display='none';pi.src='';}
+        const ml=document.getElementById('media-zone-label'); if(ml) ml.style.display='block';
+        // Keep date as today
+        const today=new Date().toISOString().split('T')[0];
+        document.getElementById('t-date').value=today;
         this.updateLiveRR(); this.syncData();
     },
 
