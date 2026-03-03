@@ -259,19 +259,19 @@
                     <!-- Risk mode toggle -->
                     <div style="display:flex;gap:0;margin-bottom:12px;">
                         <button id="risk-mode-pct-btn" onclick="ui.setRiskMode('pct')"
-                            style="flex:1;padding:9px;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;cursor:pointer;border-right:none;background:#fff;color:#000;border:1px solid #fff;font-weight:600;">
+                            style="flex:1;padding:9px;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;cursor:pointer;border-right:none;background:#000;color:#555;border:1px solid #333;font-weight:400;">
                             Risk %
                         </button>
                         <button id="risk-mode-amt-btn" onclick="ui.setRiskMode('amt')"
-                            style="flex:1;padding:9px;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;cursor:pointer;background:#000;color:#555;border:1px solid #333;font-weight:400;">
+                            style="flex:1;padding:9px;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;cursor:pointer;background:#fff;color:#000;border:1px solid #fff;font-weight:600;">
                             Risk $
                         </button>
                     </div>
-                    <div id="risk-pct-row" class="calc-input-row">
+                    <div id="risk-pct-row" class="calc-input-row" style="display:none;">
                         <label>Risk % of Balance</label>
                         <input type="number" id="c-risk-pct" placeholder="e.g. 1" step="0.1" value="0" min="0" oninput="ui.calcLotSize()">
                     </div>
-                    <div id="risk-amt-row" class="calc-input-row" style="display:none;">
+                    <div id="risk-amt-row" class="calc-input-row">
                         <label>Fixed Risk Amount ($)</label>
                         <input type="number" id="c-risk-amt" placeholder="e.g. 100" value="0" min="0" oninput="ui.calcLotSize()">
                     </div>
@@ -739,7 +739,7 @@ window.ui={
 
     /* ══ LOT SIZE CALCULATOR — tick-based ══ */
     calcLotSize(){
-        const mode    = this._riskMode||'pct';
+        const mode    = this._riskMode||'amt';
         const balance = parseFloat(document.getElementById('c-balance').value)||0;
         const riskPct = parseFloat(document.getElementById('c-risk-pct').value)||0;
         const riskAmt = parseFloat(document.getElementById('c-risk-amt').value)||0;
