@@ -281,20 +281,24 @@
                     <div class="calc-input-row">
                         <label>Instrument</label>
                         <select id="c-instrument" onchange="ui.calcLotSize()">
-                            <option value="forex">Forex  — tick=$1/lot, 1pip=10ticks</option>
-                            <option value="gold">Gold (XAUUSD) — tick=$0.01/lot</option>
-                            <option value="indices">Indices (US30, NAS100) — tick=$1/lot</option>
-                            <option value="crypto">Crypto (BTCUSD) — tick=$1/lot</option>
+                            <option value="forex">Forex (EURUSD, GBPUSD…)</option>
+                            <option value="gold">Gold (XAUUSD)</option>
+                            <option value="indices">Indices (US30, NAS100…)</option>
+                            <option value="crypto">Crypto (BTCUSD…)</option>
                         </select>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
                         <div class="calc-input-row" style="margin-bottom:0;">
-                            <label id="c-sl-label">SL (ticks)</label>
-                            <input type="number" id="c-sl-ticks" placeholder="e.g. 500" min="0" step="1" oninput="ui.autoSetTPTicks();ui.calcLotSize();">
+                            <label>Entry Price</label>
+                            <input type="number" id="c-entry" placeholder="1.10000" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
+                        </div>
+                        <div class="calc-input-row" style="margin-bottom:0;">
+                            <label>Stop Loss</label>
+                            <input type="number" id="c-sl" placeholder="1.09500" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
                         </div>
                         <div class="calc-input-row" style="margin-bottom:0;">
                             <label>Target R:R</label>
-                            <select id="c-rr-target" onchange="ui.autoSetTPTicks()" style="width:100%;padding:10px;font-size:0.8rem;">
+                            <select id="c-rr-target" onchange="ui.autoSetTP()" style="width:100%;padding:10px;font-size:0.8rem;">
                                 <option value="0">Manual TP</option>
                                 <option value="0.5">1 : 0.5</option>
                                 <option value="1">1 : 1</option>
@@ -307,8 +311,8 @@
                             </select>
                         </div>
                         <div class="calc-input-row" style="margin-bottom:0;">
-                            <label id="c-tp-label">TP (ticks) <span id="c-tp-auto-tag" style="color:#44ff88;font-size:0.55rem;margin-left:4px;display:none;">● AUTO</span></label>
-                            <input type="number" id="c-tp-ticks" placeholder="e.g. 1000" min="0" step="1" oninput="ui.onManualTPTicks()">
+                            <label>Take Profit <span id="c-tp-auto-tag" style="color:#44ff88;font-size:0.55rem;margin-left:4px;display:none;">● AUTO</span></label>
+                            <input type="number" id="c-tp" placeholder="1.11000" step="0.00001" oninput="ui.onManualTP()">
                         </div>
                     </div>
 
@@ -331,17 +335,17 @@
                             <div class="c-res-sub" id="c-res-profit-pct">---</div>
                         </div>
                         <div class="c-res-card">
-                            <div class="c-res-label">SL Distance (ticks)</div>
+                            <div class="c-res-label">SL Distance</div>
                             <div class="c-res-val" id="c-res-sl-pips">---</div>
                             <div class="c-res-sub">pips / points</div>
                         </div>
                         <div class="c-res-card">
-                            <div class="c-res-label">TP Distance (ticks)</div>
+                            <div class="c-res-label">TP Distance</div>
                             <div class="c-res-val" id="c-res-tp-pips">---</div>
                             <div class="c-res-sub">pips / points</div>
                         </div>
                         <div class="c-res-card">
-                            <div class="c-res-label">Tick Value / lot</div>
+                            <div class="c-res-label">Pip Value / lot</div>
                             <div class="c-res-val" id="c-res-pipval">---</div>
                             <div class="c-res-sub" id="c-res-pipval-note">per standard lot</div>
                         </div>
@@ -697,43 +701,41 @@ window.ui={
 
     /* ══ AUTO TP FROM R:R ══ */
     /* ── Auto-set TP ticks from R:R ratio ── */
-    autoSetTPTicks(){
-        const rrTarget  = parseFloat(document.getElementById('c-rr-target').value)||0;
-        const slTicks   = parseFloat(document.getElementById('c-sl-ticks').value)||0;
-        const autoTag   = document.getElementById('c-tp-auto-tag');
-        const tpInput   = document.getElementById('c-tp-ticks');
+    autoSetTP(){
+        const rrTarget = parseFloat(document.getElementById('c-rr-target').value)||0;
+        const entry    = parseFloat(document.getElementById('c-entry').value)||0;
+        const sl       = parseFloat(document.getElementById('c-sl').value)||0;
+        const autoTag  = document.getElementById('c-tp-auto-tag');
+        const tpInput  = document.getElementById('c-tp');
 
         if(rrTarget===0){
-            tpInput.readOnly     = false;
-            tpInput.style.borderColor = '';
-            tpInput.style.color  = '#fff';
-            autoTag.style.display= 'none';
-            this.calcLotSize();
-            return;
+            tpInput.readOnly=false; tpInput.style.borderColor=''; tpInput.style.color='#fff';
+            autoTag.style.display='none';
+            this.calcLotSize(); return;
         }
-
-        if(!slTicks){
+        if(!entry||!sl){
             document.getElementById('c-rr-target').value='0';
-            this.calcLotSize();
-            return;
+            this.calcLotSize(); return;
         }
-
-        const tpTicks       = Math.round(slTicks * rrTarget * 10) / 10;
-        tpInput.value       = tpTicks;
-        tpInput.readOnly    = true;
-        tpInput.style.borderColor = '#44ff88';
-        tpInput.style.color = '#44ff88';
-        autoTag.style.display = 'inline';
+        const slDist  = Math.abs(entry - sl);
+        const tpDist  = slDist * rrTarget;
+        const dir     = sl < entry ? 1 : -1; // BUY: sl below entry → TP above
+        const tp      = entry + tpDist * dir;
+        const decimals= Math.max(
+            (entry.toString().split('.')[1]||'').length,
+            (sl.toString().split('.')[1]||'').length
+        );
+        tpInput.value = tp.toFixed(decimals);
+        tpInput.readOnly=true; tpInput.style.borderColor='#44ff88'; tpInput.style.color='#44ff88';
+        autoTag.style.display='inline';
         this.calcLotSize();
     },
 
-    onManualTPTicks(){
+    onManualTP(){
         document.getElementById('c-rr-target').value='0';
         document.getElementById('c-tp-auto-tag').style.display='none';
-        const tpInput = document.getElementById('c-tp-ticks');
-        tpInput.readOnly     = false;
-        tpInput.style.borderColor = '';
-        tpInput.style.color  = '#fff';
+        const tpInput=document.getElementById('c-tp');
+        tpInput.readOnly=false; tpInput.style.borderColor=''; tpInput.style.color='#fff';
         this.calcLotSize();
     },
 
@@ -750,74 +752,67 @@ window.ui={
         this.calcLotSize();
     },
 
-    /* ══ LOT SIZE CALCULATOR — SL by TICKS ══ */
+    /* ══ LOT SIZE CALCULATOR — price-based ══ */
     calcLotSize(){
-        const mode     = this._riskMode||'pct';
-        const balance  = parseFloat(document.getElementById('c-balance').value)||0;
-        const riskPct  = parseFloat(document.getElementById('c-risk-pct').value)||0;
-        const riskAmt  = parseFloat(document.getElementById('c-risk-amt').value)||0;
-        const instr    = document.getElementById('c-instrument').value;
-        const slTicks  = parseFloat(document.getElementById('c-sl-ticks').value)||0;
-        const tpTicks  = parseFloat(document.getElementById('c-tp-ticks').value)||0;
+        const mode    = this._riskMode||'pct';
+        const balance = parseFloat(document.getElementById('c-balance').value)||0;
+        const riskPct = parseFloat(document.getElementById('c-risk-pct').value)||0;
+        const riskAmt = parseFloat(document.getElementById('c-risk-amt').value)||0;
+        const instr   = document.getElementById('c-instrument').value;
+        const entry   = parseFloat(document.getElementById('c-entry').value)||0;
+        const sl      = parseFloat(document.getElementById('c-sl').value)||0;
+        const tp      = parseFloat(document.getElementById('c-tp').value)||0;
 
-        // Tick config per instrument
-        // tickValue = $ per tick per standard lot
-        // Forex:   1 tick = 0.00001 price move = $1 per std lot (5-decimal broker)
-        // Gold:    1 tick = 0.01 price move    = $0.01 per std lot
-        // Indices: 1 tick = 0.01 or 1 point    = $1 per std lot (varies, $1 common)
-        // Crypto:  1 tick = $1                 = $1 per std lot
-        // Tick value = $ profit/loss per 1 tick move per standard lot
-        // Forex  : 1 tick = 0.00001 × 100,000 units  = $1/tick
-        // Gold   : 1 tick = $0.01   × 100 oz          = $1/tick
-        // Indices: 1 tick = 1 point × $1/point         = $1/tick
-        // Crypto : 1 tick = $1/point                   = $1/tick
-        const tickConfig={
-            forex:  {tickValue:1, note:'Forex: 1 tick = $0.00001 × 100k units = $1'},
-            gold:   {tickValue:1, note:'Gold: 1 tick = $0.01 × 100 oz = $1'},
-            indices:{tickValue:1, note:'Indices: 1 tick = 1 point = $1'},
-            crypto: {tickValue:1, note:'Crypto: 1 tick = $1'}
+        // Pip config per instrument
+        // pipSize  = price distance of 1 pip
+        // pipValue = $ per pip per standard lot
+        const pipConfig={
+            forex:   {pipSize:0.0001, pipValue:10,  unit:'pips'},
+            gold:    {pipSize:0.01,   pipValue:1,   unit:'pts'},
+            indices: {pipSize:1,      pipValue:1,   unit:'pts'},
+            crypto:  {pipSize:1,      pipValue:1,   unit:'pts'}
         };
-        const cfg = tickConfig[instr];
+        const cfg = pipConfig[instr];
 
-        // Update labels
-        const slLabel = document.getElementById('c-sl-label');
-        const tpLabel = document.getElementById('c-tp-label');
-        if(slLabel) slLabel.textContent = `SL (ticks)`;
-        if(tpLabel) tpLabel.innerHTML   = `TP (ticks) <span id="c-tp-auto-tag" style="color:#44ff88;font-size:0.55rem;margin-left:4px;${document.getElementById('c-tp-auto-tag')?.style.display==='none'?'display:none;':''}">● AUTO</span>`;
-
-        /* Quick risk reference table */
+        // Quick risk reference table
         if(balance>0){
+            const slDist  = entry&&sl ? Math.abs(entry-sl) : 0;
+            const slPipsE = slDist>0 ? slDist/cfg.pipSize : 0;
             const rows=[0.5,1,1.5,2,3,5].map(pct=>{
-                const amt    = balance*pct/100;
-                const lotsEst= slTicks>0 ? Math.floor(amt/(slTicks*cfg.tickValue)*100)/100 : 0;
+                const amt     = balance*pct/100;
+                const lotsEst = slPipsE>0 ? Math.floor(amt/(slPipsE*cfg.pipValue)*100)/100 : 0;
                 const isActive= mode==='pct' && pct===riskPct;
-                return `<tr class="${isActive?'active-risk':''}"><td>${pct}%</td><td>$${amt.toFixed(2)}</td><td>${slTicks>0?lotsEst.toFixed(2):'---'}</td></tr>`;
+                return `<tr class="${isActive?'active-risk':''}"><td>${pct}%</td><td>$${amt.toFixed(2)}</td><td>${slPipsE>0?lotsEst.toFixed(2):'---'}</td></tr>`;
             }).join('');
             document.getElementById('quick-risk-body').innerHTML=rows;
             document.getElementById('quick-risk-table').style.display='block';
         }
 
-        if(!slTicks){ this._clearCalcResults(); return; }
+        if(!entry||!sl){ this._clearCalcResults(); return; }
 
+        const slDist  = Math.abs(entry-sl);
+        const tpDist  = tp ? Math.abs(tp-entry) : 0;
+        const slPips  = slDist/cfg.pipSize;
+        const tpPips  = tpDist/cfg.pipSize;
         const riskMoney = mode==='amt' ? riskAmt : (balance>0 ? balance*riskPct/100 : 0);
         if(!riskMoney){ this._clearCalcResults(); return; }
 
-        const rawLots   = riskMoney / (slTicks * cfg.tickValue);
+        const rawLots   = riskMoney/(slPips*cfg.pipValue);
         const lots      = Math.floor(rawLots*100)/100;
-        const actualRisk= lots * slTicks * cfg.tickValue;
-        const potProfit = tpTicks ? lots * tpTicks * cfg.tickValue : 0;
-        const rr      = tpTicks>0 ? tpTicks/slTicks : 0;
-        const rrLabel = rr>0 ? `1 : ${parseFloat(rr.toFixed(2))}` : '---';
+        const actualRisk= lots*slPips*cfg.pipValue;
+        const potProfit = tp ? lots*tpPips*cfg.pipValue : 0;
+        const rr        = tpDist>0 ? tpDist/slDist : 0;
+        const rrLabel   = rr>0 ? `1 : ${parseFloat(rr.toFixed(2))}` : '---';
 
         document.getElementById('c-res-lots').textContent     = lots.toFixed(2);
         document.getElementById('c-res-lots-sub').textContent = 'Standard lots (rounded down)';
         document.getElementById('c-res-risk').textContent     = `$${actualRisk.toFixed(2)}`;
         document.getElementById('c-res-risk-pct').textContent = balance>0 ? `${((actualRisk/balance)*100).toFixed(2)}% of balance` : 'Add balance for %';
-        document.getElementById('c-res-profit').textContent   = tpTicks ? `$${potProfit.toFixed(2)}` : '---';
-        document.getElementById('c-res-profit-pct').textContent = (balance>0&&tpTicks) ? `${((potProfit/balance)*100).toFixed(2)}% of balance` : 'Enter TP for profit';
-        document.getElementById('c-res-sl-pips').textContent  = `${slTicks} ticks`;
-        document.getElementById('c-res-tp-pips').textContent  = tpTicks ? `${tpTicks} ticks` : '---';
-        document.getElementById('c-res-pipval').textContent   = `$${cfg.tickValue.toFixed(2)}`;
+        document.getElementById('c-res-profit').textContent   = tp ? `$${potProfit.toFixed(2)}` : '---';
+        document.getElementById('c-res-profit-pct').textContent = (balance>0&&tp) ? `${((potProfit/balance)*100).toFixed(2)}% of balance` : 'Enter TP for profit';
+        document.getElementById('c-res-sl-pips').textContent  = `${slPips.toFixed(1)} ${cfg.unit}`;
+        document.getElementById('c-res-tp-pips').textContent  = tp ? `${tpPips.toFixed(1)} ${cfg.unit}` : '---';
+        document.getElementById('c-res-pipval').textContent   = `$${cfg.pipValue.toFixed(2)}`;
         document.getElementById('c-res-rr').textContent       = rrLabel;
     },
 
