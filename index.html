@@ -278,23 +278,82 @@
 
                     <hr class="calc-divider">
 
-                    <div class="calc-input-row">
-                        <label>Instrument</label>
-                        <select id="c-instrument" onchange="ui.calcLotSize()">
-                            <option value="forex">Forex (EURUSD, GBPUSD…)</option>
-                            <option value="gold">Gold (XAUUSD)</option>
-                            <option value="indices">Indices (US30, NAS100…)</option>
-                            <option value="crypto">Crypto (BTCUSD…)</option>
-                        </select>
+                    <!-- Symbol picker row -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                        <div class="calc-input-row" style="margin-bottom:0;">
+                            <label>Symbol (Dropdown)</label>
+                            <select id="c-symbol-select" onchange="ui.onSymbolSelect()" style="width:100%;padding:10px;font-size:0.8rem;">
+                                <option value="">— Select —</option>
+                                <optgroup label="Forex">
+                                    <option value="EUR/USD">EURUSD</option>
+                                    <option value="GBP/USD">GBPUSD</option>
+                                    <option value="USD/JPY">USDJPY</option>
+                                    <option value="AUD/USD">AUDUSD</option>
+                                    <option value="USD/CAD">USDCAD</option>
+                                    <option value="NZD/USD">NZDUSD</option>
+                                    <option value="USD/CHF">USDCHF</option>
+                                    <option value="EUR/GBP">EURGBP</option>
+                                    <option value="EUR/JPY">EURJPY</option>
+                                    <option value="GBP/JPY">GBPJPY</option>
+                                </optgroup>
+                                <optgroup label="Gold / Commodities">
+                                    <option value="XAU/USD">XAUUSD (Gold)</option>
+                                    <option value="XAG/USD">XAGUSD (Silver)</option>
+                                </optgroup>
+                                <optgroup label="Indices">
+                                    <option value="US30">US30 (Dow Jones)</option>
+                                    <option value="SPX">SPX500</option>
+                                    <option value="NDX">NAS100</option>
+                                    <option value="US2000">US2000</option>
+                                    <option value="UK100">UK100</option>
+                                    <option value="DE40">DE40 (DAX)</option>
+                                    <option value="JP225">JP225 (Nikkei)</option>
+                                </optgroup>
+                                <optgroup label="Crypto">
+                                    <option value="BTC/USD">BTCUSD</option>
+                                    <option value="ETH/USD">ETHUSD</option>
+                                    <option value="XRP/USD">XRPUSD</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="calc-input-row" style="margin-bottom:0;">
+                            <label>Or Type Symbol</label>
+                            <div style="display:flex;gap:6px;">
+                                <input type="text" id="c-symbol-manual" placeholder="e.g. EUR/USD" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+                                <button onclick="ui.fetchLivePrice()" title="Fetch live price"
+                                    style="padding:10px 14px;background:#fff;color:#000;border:none;font-size:0.75rem;font-weight:600;cursor:pointer;white-space:nowrap;letter-spacing:1px;">
+                                    ⟳
+                                </button>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Instrument type + live price status -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                        <div class="calc-input-row" style="margin-bottom:0;">
+                            <label>Instrument Type</label>
+                            <select id="c-instrument" onchange="ui.calcLotSize()" style="width:100%;padding:10px;font-size:0.8rem;">
+                                <option value="forex">Forex</option>
+                                <option value="gold">Gold / Silver</option>
+                                <option value="indices">Indices</option>
+                                <option value="crypto">Crypto</option>
+                            </select>
+                        </div>
+                        <div style="background:#050505;border:1px solid var(--border);padding:10px 14px;display:flex;flex-direction:column;justify-content:center;">
+                            <div style="font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Live Price</div>
+                            <div id="c-live-price" style="font-size:1.1rem;font-weight:300;color:#888;">— fetch to load —</div>
+                            <div id="c-live-time"  style="font-size:0.58rem;color:#333;margin-top:2px;"></div>
+                        </div>
+                    </div>
+
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
                         <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>Entry Price</label>
-                            <input type="number" id="c-entry" placeholder="1.10000" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
+                            <label>Entry Price <span id="c-entry-live-tag" style="color:#44ff88;font-size:0.55rem;margin-left:4px;display:none;">● LIVE</span></label>
+                            <input type="number" id="c-entry" placeholder="Auto or manual" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
                         </div>
                         <div class="calc-input-row" style="margin-bottom:0;">
                             <label>Stop Loss</label>
-                            <input type="number" id="c-sl" placeholder="1.09500" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
+                            <input type="number" id="c-sl" placeholder="Your SL price" step="0.00001" oninput="ui.autoSetTP();ui.calcLotSize();">
                         </div>
                         <div class="calc-input-row" style="margin-bottom:0;">
                             <label>Target R:R</label>
@@ -701,6 +760,74 @@ window.ui={
 
     /* ══ AUTO TP FROM R:R ══ */
     /* ── Auto-set TP ticks from R:R ratio ── */
+    /* ══ TWELVE DATA LIVE PRICE ══ */
+    onSymbolSelect(){
+        const sel = document.getElementById('c-symbol-select').value;
+        if(!sel) return;
+        // Sync manual input with dropdown
+        document.getElementById('c-symbol-manual').value = sel;
+        // Auto-detect instrument type from symbol
+        const instr = sel.includes('XAU')||sel.includes('XAG') ? 'gold'
+                    : sel.includes('BTC')||sel.includes('ETH')||sel.includes('XRP') ? 'crypto'
+                    : (sel==='US30'||sel==='SPX'||sel==='NDX'||sel==='UK100'||sel==='DE40'||sel==='JP225'||sel==='US2000') ? 'indices'
+                    : 'forex';
+        document.getElementById('c-instrument').value = instr;
+        this.fetchLivePrice();
+    },
+
+    async fetchLivePrice(){
+        const API_KEY = '36dc8ecefe8d437793ca37cb7895bd4a';
+        // Get symbol from manual input (priority) or dropdown
+        const raw = (document.getElementById('c-symbol-manual').value||'').trim().toUpperCase();
+        if(!raw){
+            document.getElementById('c-live-price').textContent = 'Enter a symbol first';
+            document.getElementById('c-live-price').style.color = '#ff4444';
+            return;
+        }
+
+        const livePriceEl = document.getElementById('c-live-price');
+        const liveTimeEl  = document.getElementById('c-live-time');
+        const liveTag     = document.getElementById('c-entry-live-tag');
+        const entryInput  = document.getElementById('c-entry');
+
+        livePriceEl.textContent = 'Fetching…';
+        livePriceEl.style.color = '#555';
+        liveTimeEl.textContent  = '';
+
+        try {
+            const url = `https://api.twelvedata.com/price?symbol=${encodeURIComponent(raw)}&apikey=${API_KEY}`;
+            const res  = await fetch(url);
+            const data = await res.json();
+
+            if(data.status === 'error' || !data.price){
+                livePriceEl.textContent = data.message || 'Symbol not found';
+                livePriceEl.style.color = '#ff4444';
+                return;
+            }
+
+            const price   = parseFloat(data.price);
+            const now     = new Date();
+            const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+            // Show live price
+            livePriceEl.textContent = price.toString();
+            livePriceEl.style.color = '#44ff88';
+            liveTimeEl.textContent  = 'As of ' + timeStr;
+
+            // Set as entry price
+            entryInput.value = price;
+            liveTag.style.display = 'inline';
+
+            // Trigger TP auto-calc and lot size
+            this.autoSetTP();
+            this.calcLotSize();
+
+        } catch(e) {
+            livePriceEl.textContent = 'Network error';
+            livePriceEl.style.color = '#ff4444';
+        }
+    },
+
     autoSetTP(){
         const rrTarget = parseFloat(document.getElementById('c-rr-target').value)||0;
         const entry    = parseFloat(document.getElementById('c-entry').value)||0;
