@@ -439,14 +439,20 @@
             <select id="ana-month" onchange="ui.renderAnalytics()"></select>
             <select id="ana-year"  onchange="ui.renderAnalytics()"></select>
         </div>
+
+        <!-- ROW 1: Core P&L metrics -->
         <div class="analytics-grid">
             <div class="stat-card"><span class="stat-label">Win Rate</span><span id="s-wr" class="stat-val">0%</span></div>
+            <div class="stat-card"><span class="stat-label">Net P&amp;L</span><span id="s-net" class="stat-val">$0</span></div>
             <div class="stat-card"><span class="stat-label">Gross Profit</span><span id="s-gp" class="stat-val" style="color:var(--positive)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Gross Loss</span><span id="s-gl" class="stat-val" style="color:var(--negative)">$0</span></div>
+            <div class="stat-card"><span class="stat-label">Avg Daily P&amp;L</span><span id="s-adpnl" class="stat-val">$0</span><span class="stat-meta" id="s-adpnl-meta">across trading days</span></div>
+        </div>
+
+        <!-- ROW 2: Trade metrics -->
+        <div class="analytics-grid">
             <div class="stat-card"><span class="stat-label">Highest Profit</span><span id="s-hp" class="stat-val" style="color:var(--positive)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Highest Loss</span><span id="s-hl" class="stat-val" style="color:var(--negative)">$0</span></div>
-        </div>
-        <div class="analytics-grid">
             <div class="stat-card"><span class="stat-label">Average Profit</span><span id="s-ap" class="stat-val" style="color:var(--positive)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Average Loss</span><span id="s-al" class="stat-val" style="color:var(--negative)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Average R:R</span><span id="s-rr" class="stat-val">---</span><span class="stat-meta">Outcome — Avg Win ÷ Avg Loss</span></div>
@@ -455,20 +461,71 @@
             <div class="stat-card"><span class="stat-label">London WR</span><span id="wr-london" class="stat-val">0%</span></div>
             <div class="stat-card"><span class="stat-label">NY WR</span><span id="wr-ny" class="stat-val">0%</span></div>
         </div>
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
-            <div class="card"><h3>Equity Curve</h3><canvas id="equityChart"></canvas></div>
+
+        <!-- CHARTS ROW 1: Equity Curve + Pie -->
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;">
+            <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Equity Curve</h3><canvas id="equityChart"></canvas></div>
             <div class="card">
-                <h3>Top Insights</h3>
+                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 14px;">Top Insights</h3>
                 <div id="lbl-best-inst" class="stat-label">Best Instrument</div>
                 <div id="s-best-inst" class="stat-val" style="font-size:0.9rem;">---</div>
                 <div id="s-best-inst-meta" style="font-size:0.65rem;color:#555;margin-top:2px;"></div>
                 <div id="lbl-best-sess" class="stat-label" style="margin-top:14px;">Best Session</div>
                 <div id="s-best-sess" class="stat-val" style="font-size:0.9rem;">---</div>
                 <div id="s-best-sess-meta" style="font-size:0.65rem;color:#555;margin-top:2px;"></div>
-                <div id="pie-label" style="font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-top:20px;margin-bottom:4px;">Profit vs Loss ($)</div>
-                <div style=""><canvas id="pieChart"></canvas></div>
+                <div style="font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-top:20px;margin-bottom:4px;">Profit vs Loss ($)</div>
+                <canvas id="pieChart"></canvas>
             </div>
         </div>
+
+        <!-- CHARTS ROW 2: Daily P&L Bar + Session P&L Bar -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div class="card">
+                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Daily P&amp;L</h3>
+                <canvas id="dailyBarChart" height="160"></canvas>
+            </div>
+            <div class="card">
+                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Session P&amp;L</h3>
+                <canvas id="sessionBarChart" height="160"></canvas>
+            </div>
+        </div>
+
+        <!-- CHARTS ROW 3: Instrument P&L Bar + Monthly P&L Bar -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div class="card">
+                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Instrument P&amp;L</h3>
+                <canvas id="instrBarChart" height="160"></canvas>
+            </div>
+            <div class="card">
+                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Monthly P&amp;L</h3>
+                <canvas id="monthlyBarChart" height="160"></canvas>
+            </div>
+        </div>
+
+        <!-- CHARTS ROW 4: Win Rate by Session Bar + Win Rate by Instrument Bar -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div class="card">
+                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Win Rate by Session (%)</h3>
+                <canvas id="sessWrBarChart" height="160"></canvas>
+            </div>
+            <div class="card">
+                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Win Rate by Instrument (%)</h3>
+                <canvas id="instrWrBarChart" height="160"></canvas>
+            </div>
+        </div>
+
+        <!-- CHARTS ROW 5: Trades per Day of Week + Profit Factor -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div class="card">
+                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Trades by Day of Week</h3>
+                <canvas id="dowBarChart" height="160"></canvas>
+            </div>
+            <div class="card">
+                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Avg Trade P&amp;L by Day of Week</h3>
+                <canvas id="dowPnlChart" height="160"></canvas>
+            </div>
+        </div>
+
     </div>
 
     </div>
@@ -1019,44 +1076,212 @@ window.ui={
             bestSessMeta.innerHTML = `<span style="color:var(--negative);">-$${Math.abs(worst[1].p).toFixed(0)}</span> net &nbsp;·&nbsp; WR: <b style="color:#fff;">${wr}%</b> (${worst[1].w}/${worst[1].t} trades)`;
         }
 
-        // Pass gross profit/loss in DOLLARS to chart (not trade count)
-        this.updateCharts(cumulative,labels,gP,gL);
+        // ── NET P&L
+        const netPnl = gP - gL;
+        const netEl  = document.getElementById('s-net');
+        netEl.innerText   = (netPnl>=0?'+':'') + '$' + netPnl.toFixed(2);
+        netEl.style.color = netPnl>=0 ? 'var(--positive)' : 'var(--negative)';
+
+        // ── AVERAGE DAILY P&L
+        const dayMap = {};
+        data.forEach(t=>{ dayMap[t.date]=(dayMap[t.date]||0)+t.profit; });
+        const tradingDays = Object.keys(dayMap).length;
+        const avgDailyPnl = tradingDays>0 ? netPnl/tradingDays : 0;
+        const adEl = document.getElementById('s-adpnl');
+        adEl.innerText   = (avgDailyPnl>=0?'+':'') + '$' + avgDailyPnl.toFixed(2);
+        adEl.style.color = avgDailyPnl>=0 ? 'var(--positive)' : 'var(--negative)';
+        document.getElementById('s-adpnl-meta').innerText = 'across ' + tradingDays + ' trading day' + (tradingDays!==1?'s':'');
+
+        // ── BAR CHART DATA PREP
+
+        // 1. Daily P&L — last 30 days sorted ascending
+        const sortedDays = Object.entries(dayMap).sort((a,b)=>a[0]<b[0]?-1:1).slice(-30);
+
+        // 2. Session P&L
+        const sessLabels = ['ASIAN','LONDON','NY'];
+        const sessPnl    = sessLabels.map(s=>parseFloat((sess[s]?.p||0).toFixed(2)));
+        const sessWr     = sessLabels.map(s=>sess[s]?.t ? Math.round(sess[s].w/sess[s].t*100) : 0);
+
+        // 3. Instrument P&L (top 10 by absolute value)
+        const instStats2 = {};
+        data.forEach(t=>{
+            if(!instStats2[t.symbol]) instStats2[t.symbol]={pl:0,wins:0,total:0};
+            instStats2[t.symbol].pl    += t.profit;
+            instStats2[t.symbol].total += 1;
+            if(t.profit>0) instStats2[t.symbol].wins += 1;
+        });
+        const instrSorted = Object.entries(instStats2)
+            .sort((a,b)=>Math.abs(b[1].pl)-Math.abs(a[1].pl)).slice(0,10);
+
+        // 4. Monthly P&L
+        const monthMap={};
+        data.forEach(t=>{
+            const k=t.date?t.date.slice(0,7):'';
+            if(k) monthMap[k]=(monthMap[k]||0)+t.profit;
+        });
+        const monthEntries=Object.entries(monthMap).sort((a,b)=>a[0]<b[0]?-1:1);
+
+        // 5. Trades by Day of Week & Avg P&L by DoW
+        const dowNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        const dowCount=[0,0,0,0,0,0,0], dowPnl=[0,0,0,0,0,0,0];
+        data.forEach(t=>{
+            if(!t.date) return;
+            const dow=(new Date(t.date+'T12:00:00').getDay()+6)%7;
+            dowCount[dow]++; dowPnl[dow]+=t.profit;
+        });
+        const dowAvgPnl=dowCount.map((c,i)=>c>0?parseFloat((dowPnl[i]/c).toFixed(2)):0);
+
+        this.updateCharts(
+            cumulative, labels, gP, gL,
+            sortedDays, sessPnl, sessLabels, sessWr,
+            instrSorted, monthEntries,
+            dowNames, dowCount, dowAvgPnl
+        );
     },
 
-    updateCharts(data,labels,w,l){
-        if(this.charts.equity)this.charts.equity.destroy();
-        this.charts.equity=new Chart(document.getElementById('equityChart'),{type:'line',data:{labels,datasets:[{data,borderColor:'#fff',fill:true,backgroundColor:'rgba(255,255,255,0.05)',tension:0.1,pointRadius:0}]},options:{scales:{x:{display:false},y:{grid:{color:'#111'}}},plugins:{legend:{display:false}}}});
-        if(this.charts.pie)this.charts.pie.destroy();
-        // w = gross profit dollars, l = gross loss dollars
-        const grossP = parseFloat(w.toFixed(2));
-        const grossL = parseFloat(l.toFixed(2));
-        this.charts.pie=new Chart(document.getElementById('pieChart'),{
+    updateCharts(equity, eqLabels, gP, gL,
+                 sortedDays, sessPnl, sessLabels, sessWr,
+                 instrSorted, monthEntries,
+                 dowNames, dowCount, dowAvgPnl){
+        // ── Helper: destroy old chart & create new ──────────────────
+        const mk = (key, id, cfg) => {
+            if(this.charts[key]) this.charts[key].destroy();
+            const el = document.getElementById(id);
+            if(el) this.charts[key] = new Chart(el, cfg);
+        };
+
+        const gridColor = '#111';
+        const barOpts = (unit='$', pct=false) => ({
+            responsive:true,
+            plugins:{
+                legend:{display:false},
+                tooltip:{callbacks:{label:ctx=>{
+                    const v=ctx.raw;
+                    return pct ? ` ${v}%` : ` ${v>=0?'+':''}$${parseFloat(v).toFixed(2)}`;
+                }}}
+            },
+            scales:{
+                x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10}}},
+                y:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10},
+                    callback:v=>pct?v+'%':(v>=0?'+$'+v:'-$'+Math.abs(v))}}
+            }
+        });
+
+        const barColor = vals => vals.map(v=>v>=0?'#44ff88':'#ff4444');
+
+        // ── 1. EQUITY CURVE ──────────────────────────────────────────
+        mk('equity','equityChart',{
+            type:'line',
+            data:{labels:eqLabels,datasets:[{data:equity,borderColor:'#fff',fill:true,
+                backgroundColor:'rgba(255,255,255,0.05)',tension:0.1,pointRadius:0}]},
+            options:{scales:{x:{display:false},y:{grid:{color:gridColor}}},plugins:{legend:{display:false}}}
+        });
+
+        // ── 2. PIE CHART (Profit vs Loss $) ─────────────────────────
+        const grossP=parseFloat(gP.toFixed(2)), grossL=parseFloat(gL.toFixed(2));
+        mk('pie','pieChart',{
             type:'doughnut',
             data:{
-                labels:[`Profit $${grossP.toFixed(0)}`,`Loss $${grossL.toFixed(0)}`],
-                datasets:[{
-                    data:[grossP, grossL],
-                    backgroundColor:['#44ff88','#ff4444'],
-                    borderWidth:0
-                }]
+                labels:['Profit $'+grossP.toFixed(0),'Loss $'+grossL.toFixed(0)],
+                datasets:[{data:[grossP,grossL],backgroundColor:['#44ff88','#ff4444'],borderWidth:0}]
             },
+            options:{plugins:{
+                legend:{position:'bottom',labels:{color:'#888',font:{size:11}}},
+                tooltip:{callbacks:{label:ctx=>{
+                    const total=grossP+grossL;
+                    return ' $'+ctx.raw.toFixed(0)+' ('+(total>0?(ctx.raw/total*100).toFixed(1):0)+'%)';
+                }}}
+            }}
+        });
+
+        // ── 3. DAILY P&L BAR ─────────────────────────────────────────
+        const dayLabels = sortedDays.map(([d])=>d.slice(5)); // MM-DD
+        const dayVals   = sortedDays.map(([,v])=>parseFloat(v.toFixed(2)));
+        mk('daily','dailyBarChart',{
+            type:'bar',
+            data:{labels:dayLabels,datasets:[{data:dayVals,backgroundColor:barColor(dayVals),borderWidth:0}]},
+            options:barOpts()
+        });
+
+        // ── 4. SESSION P&L BAR ───────────────────────────────────────
+        mk('sessBar','sessionBarChart',{
+            type:'bar',
+            data:{labels:sessLabels,datasets:[{data:sessPnl,backgroundColor:barColor(sessPnl),borderWidth:0}]},
+            options:barOpts()
+        });
+
+        // ── 5. INSTRUMENT P&L BAR ────────────────────────────────────
+        const instrLabels = instrSorted.map(([s])=>s);
+        const instrVals   = instrSorted.map(([,v])=>parseFloat(v.pl.toFixed(2)));
+        mk('instrBar','instrBarChart',{
+            type:'bar',
+            data:{labels:instrLabels,datasets:[{data:instrVals,backgroundColor:barColor(instrVals),borderWidth:0}]},
+            options:barOpts()
+        });
+
+        // ── 6. MONTHLY P&L BAR ───────────────────────────────────────
+        const monthLabels = monthEntries.map(([k])=>k);
+        const monthVals   = monthEntries.map(([,v])=>parseFloat(v.toFixed(2)));
+        mk('monthBar','monthlyBarChart',{
+            type:'bar',
+            data:{labels:monthLabels,datasets:[{data:monthVals,backgroundColor:barColor(monthVals),borderWidth:0}]},
+            options:barOpts()
+        });
+
+        // ── 7. WIN RATE BY SESSION BAR ───────────────────────────────
+        mk('sessWr','sessWrBarChart',{
+            type:'bar',
+            data:{labels:sessLabels,datasets:[{
+                data:sessWr,
+                backgroundColor:sessWr.map(v=>v>=50?'#44ff88':'#ff4444'),
+                borderWidth:0
+            }]},
+            options:{...barOpts('',true),scales:{
+                x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:11}}},
+                y:{min:0,max:100,grid:{color:gridColor},ticks:{color:'#555',font:{size:10},callback:v=>v+'%'}}
+            }}
+        });
+
+        // ── 8. WIN RATE BY INSTRUMENT BAR ────────────────────────────
+        const iWrLabels = instrSorted.map(([s])=>s);
+        const iWrVals   = instrSorted.map(([,v])=>v.total>0?Math.round(v.wins/v.total*100):0);
+        mk('instrWr','instrWrBarChart',{
+            type:'bar',
+            data:{labels:iWrLabels,datasets:[{
+                data:iWrVals,
+                backgroundColor:iWrVals.map(v=>v>=50?'#44ff88':'#ff4444'),
+                borderWidth:0
+            }]},
+            options:{...barOpts('',true),scales:{
+                x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10}}},
+                y:{min:0,max:100,grid:{color:gridColor},ticks:{color:'#555',font:{size:10},callback:v=>v+'%'}}
+            }}
+        });
+
+        // ── 9. TRADES BY DAY OF WEEK ─────────────────────────────────
+        mk('dow','dowBarChart',{
+            type:'bar',
+            data:{labels:dowNames,datasets:[{
+                data:dowCount,
+                backgroundColor:'#3a3a3a',
+                borderColor:'#555',
+                borderWidth:1
+            }]},
             options:{
-                plugins:{
-                    legend:{
-                        position:'bottom',
-                        labels:{color:'#888',font:{size:11}}
-                    },
-                    tooltip:{
-                        callbacks:{
-                            label(ctx){
-                                const total = grossP + grossL;
-                                const pct   = total>0 ? (ctx.raw/total*100).toFixed(1) : 0;
-                                return ` $${ctx.raw.toFixed(0)} (${pct}%)`;
-                            }
-                        }
-                    }
+                responsive:true,
+                plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} trades`}}},
+                scales:{
+                    x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:11}}},
+                    y:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10},stepSize:1}}
                 }
             }
+        });
+
+        // ── 10. AVG P&L BY DAY OF WEEK ───────────────────────────────
+        mk('dowPnl','dowPnlChart',{
+            type:'bar',
+            data:{labels:dowNames,datasets:[{data:dowAvgPnl,backgroundColor:barColor(dowAvgPnl),borderWidth:0}]},
+            options:barOpts()
         });
     },
 
