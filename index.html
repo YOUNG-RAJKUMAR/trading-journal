@@ -320,10 +320,13 @@
                             <label>Or Type Symbol</label>
                             <div style="display:flex;gap:6px;">
                                 <input type="text" id="c-symbol-manual" placeholder="e.g. EUR/USD" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
-                                <button onclick="ui.fetchLivePrice()" title="Fetch live price"
+                                <button id="c-fetch-btn" onclick="ui.fetchLivePrice()" title="Fetch live price (Forex/Gold/Indices)"
                                     style="padding:10px 14px;background:#fff;color:#000;border:none;font-size:0.75rem;font-weight:600;cursor:pointer;white-space:nowrap;letter-spacing:1px;">
                                     ⟳
                                 </button>
+                            </div>
+                            <div id="c-ws-status" style="display:none;font-size:0.58rem;color:#44ff88;margin-top:4px;letter-spacing:1px;">
+                                ● BINANCE LIVE STREAM
                             </div>
                         </div>
                     </div>
@@ -760,28 +763,119 @@ window.ui={
 
     /* ══ AUTO TP FROM R:R ══ */
     /* ── Auto-set TP ticks from R:R ratio ── */
-    /* ══ TWELVE DATA LIVE PRICE ══ */
+    /* ══ LIVE PRICE — Binance WebSocket (Crypto) + Twelve Data (everything else) ══ */
+
+    // Binance symbol map: our symbol → Binance stream format
+    _binanceSymbol(raw){
+        const map = {
+            'BTC/USD':'btcusdt','ETH/USD':'ethusdt','XRP/USD':'xrpusdt',
+            'BTCUSD':'btcusdt','ETHUSD':'ethusdt','XRPUSD':'xrpusdt',
+            'BTC/USDT':'btcusdt','ETH/USDT':'ethusdt','XRP/USDT':'xrpusdt'
+        };
+        return map[raw] || (raw.replace('/','').toLowerCase()+'usdt');
+    },
+
+    _isCrypto(raw){
+        return /BTC|ETH|XRP|LTC|BNB|SOL|DOGE|ADA/i.test(raw);
+    },
+
+    _stopWS(){
+        if(this._ws){
+            this._ws.close();
+            this._ws = null;
+        }
+        if(this._wsPing) clearInterval(this._wsPing);
+        document.getElementById('c-ws-status').style.display = 'none';
+        document.getElementById('c-fetch-btn').style.display = 'inline-block';
+    },
+
+    _startBinanceWS(raw){
+        this._stopWS(); // close any existing connection first
+
+        const livePriceEl = document.getElementById('c-live-price');
+        const liveTimeEl  = document.getElementById('c-live-time');
+        const liveTag     = document.getElementById('c-entry-live-tag');
+        const entryInput  = document.getElementById('c-entry');
+        const wsStatus    = document.getElementById('c-ws-status');
+        const fetchBtn    = document.getElementById('c-fetch-btn');
+
+        const stream = this._binanceSymbol(raw);
+        const wsUrl  = `wss://stream.binance.com:9443/ws/${stream}@trade`;
+
+        livePriceEl.textContent = 'Connecting…';
+        livePriceEl.style.color = '#888';
+        fetchBtn.style.display  = 'none'; // hide manual fetch button for crypto
+
+        this._ws = new WebSocket(wsUrl);
+
+        this._ws.onopen = () => {
+            wsStatus.style.display = 'block';
+            livePriceEl.style.color = '#44ff88';
+        };
+
+        this._ws.onmessage = (e) => {
+            const msg   = JSON.parse(e.data);
+            const price = parseFloat(msg.p); // trade price
+            if(isNaN(price)) return;
+
+            const timeStr = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+            livePriceEl.textContent = price.toString();
+            liveTimeEl.textContent  = 'Last trade: ' + timeStr;
+            liveTag.style.display   = 'inline';
+
+            // Update entry price live
+            entryInput.value = price;
+            this.autoSetTP();
+            this.calcLotSize();
+        };
+
+        this._ws.onerror = () => {
+            livePriceEl.textContent = 'Stream error — check symbol';
+            livePriceEl.style.color = '#ff4444';
+            wsStatus.style.display  = 'none';
+            fetchBtn.style.display  = 'inline-block';
+        };
+
+        this._ws.onclose = () => {
+            wsStatus.style.display  = 'none';
+            fetchBtn.style.display  = 'inline-block';
+        };
+    },
+
     onSymbolSelect(){
         const sel = document.getElementById('c-symbol-select').value;
         if(!sel) return;
-        // Sync manual input with dropdown
         document.getElementById('c-symbol-manual').value = sel;
-        // Auto-detect instrument type from symbol
+        // Auto-detect instrument type
         const instr = sel.includes('XAU')||sel.includes('XAG') ? 'gold'
-                    : sel.includes('BTC')||sel.includes('ETH')||sel.includes('XRP') ? 'crypto'
+                    : this._isCrypto(sel) ? 'crypto'
                     : (sel==='US30'||sel==='SPX'||sel==='NDX'||sel==='UK100'||sel==='DE40'||sel==='JP225'||sel==='US2000') ? 'indices'
                     : 'forex';
         document.getElementById('c-instrument').value = instr;
-        this.fetchLivePrice();
+
+        if(instr === 'crypto'){
+            this._startBinanceWS(sel);
+        } else {
+            this._stopWS();
+            this.fetchLivePrice();
+        }
     },
 
     async fetchLivePrice(){
         const API_KEY = '36dc8ecefe8d437793ca37cb7895bd4a';
-        // Get symbol from manual input (priority) or dropdown
         const raw = (document.getElementById('c-symbol-manual').value||'').trim().toUpperCase();
+
         if(!raw){
             document.getElementById('c-live-price').textContent = 'Enter a symbol first';
             document.getElementById('c-live-price').style.color = '#ff4444';
+            return;
+        }
+
+        // If it's crypto, start WebSocket instead
+        if(this._isCrypto(raw)){
+            document.getElementById('c-instrument').value = 'crypto';
+            this._startBinanceWS(raw);
             return;
         }
 
@@ -790,6 +884,7 @@ window.ui={
         const liveTag     = document.getElementById('c-entry-live-tag');
         const entryInput  = document.getElementById('c-entry');
 
+        this._stopWS(); // close any open WS
         livePriceEl.textContent = 'Fetching…';
         livePriceEl.style.color = '#555';
         liveTimeEl.textContent  = '';
@@ -806,19 +901,13 @@ window.ui={
             }
 
             const price   = parseFloat(data.price);
-            const now     = new Date();
-            const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            const timeStr = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
-            // Show live price
             livePriceEl.textContent = price.toString();
             livePriceEl.style.color = '#44ff88';
             liveTimeEl.textContent  = 'As of ' + timeStr;
-
-            // Set as entry price
-            entryInput.value = price;
-            liveTag.style.display = 'inline';
-
-            // Trigger TP auto-calc and lot size
+            entryInput.value        = price;
+            liveTag.style.display   = 'inline';
             this.autoSetTP();
             this.calcLotSize();
 
