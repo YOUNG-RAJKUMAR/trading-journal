@@ -1304,7 +1304,7 @@ window.ui={
         this.syncData();
     },
 
-    /* ══ AI IMAGE SCAN — extracts Entry + SL from screenshot ══ */
+    /* ══ AI IMAGE SCAN — extracts Entry + SL from screenshot using Gemini ══ */
     async scanTradeImage(file){
         if(!file) return;
         const st=document.getElementById('scan-status');
@@ -1315,34 +1315,34 @@ window.ui={
             r.readAsDataURL(file);
         });
         try{
-            const resp=await fetch('https://api.anthropic.com/v1/messages',{
+            const GEMINI_KEY='AIzaSyBhH6SV6VAeW0LVLvx-CfvmqJL1mhrFrRM';
+            const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
                 method:'POST',
                 headers:{'Content-Type':'application/json'},
                 body:JSON.stringify({
-                    model:'claude-sonnet-4-20250514',max_tokens:200,
-                    messages:[{role:'user',content:[
-                        {type:'image',source:{type:'base64',media_type:file.type||'image/png',data:base64}},
-                        {type:'text',text:`You are reading a trading platform screenshot (could be TradingView, MT4, MT5, City Index, or any broker platform).
+                    contents:[{parts:[
+                        {inline_data:{mime_type:file.type||'image/png',data:base64}},
+                        {text:`You are reading a trading platform screenshot (TradingView, MT4, MT5, City Index or any broker).
 
-Extract these 3 values:
-1. entry_price: The entry price or open price of the trade
-2. sl_price: The stop loss price. Look for "Stop Level > Price", "SL", "Stop Loss", or "Stop" labels
-3. side: BUY or SELL. Look for "Long Position", "Short Position", "BUY", "SELL", "Long", "Short"
+Extract these values:
+1. entry_price: The entry price or open price
+2. sl_price: The stop loss price. In TradingView look for "STOP LEVEL > Price" field
+3. side: BUY or SELL. "Short Position" = SELL, "Long Position" = BUY
 
-IMPORTANT - TradingView format notes:
+TradingView specific:
 - "Entry price" field = entry_price
-- "STOP LEVEL > Price" field = sl_price (NOT the Ticks field)
-- "PROFIT LEVEL > Price" field = tp_price (ignore this)
-- "Short Position" title = SELL side
-- "Long Position" title = BUY side
+- "STOP LEVEL > Price" = sl_price
+- "Short Position" title = SELL
+- "Long Position" title = BUY
 
-Respond ONLY with JSON: {"entry_price":"1.15949","sl_price":"1.16036","side":"SELL"}
-Use null for any value not found. No explanation, just JSON.`}
-                    ]}]
+Respond ONLY with JSON like: {"entry_price":"1.15949","sl_price":"1.16036","side":"SELL"}
+Use null for missing values. No explanation, just JSON.`}
+                    ]}],
+                    generationConfig:{temperature:0,maxOutputTokens:200}
                 })
             });
             const res=await resp.json();
-            const txt=(res.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+            const txt=((res.candidates?.[0]?.content?.parts?.[0]?.text)||'').replace(/```json|```/g,'').trim();
             const p=JSON.parse(txt);
             let filled=0;
             if(p.entry_price&&p.entry_price!='null'){document.getElementById('t-entry').value=p.entry_price;filled++;}
