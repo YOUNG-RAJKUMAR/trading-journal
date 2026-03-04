@@ -1304,7 +1304,7 @@ window.ui={
         this.syncData();
     },
 
-    /* ══ AI IMAGE SCAN — extracts Entry + SL from screenshot using OpenRouter ══ */
+    /* ══ AI IMAGE SCAN — extracts Entry + SL from screenshot using Groq ══ */
     async scanTradeImage(file){
         if(!file) return;
         const st=document.getElementById('scan-status');
@@ -1315,16 +1315,14 @@ window.ui={
             r.readAsDataURL(file);
         });
         try{
-            const resp=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+            const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
                 method:'POST',
                 headers:{
                     'Content-Type':'application/json',
-                    'Authorization':'Bearer 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',
-                    'HTTP-Referer':'https://trading-journal.app',
-                    'X-Title':'Trading Journal'
+                    'Authorization':'Bearer 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'
                 },
                 body:JSON.stringify({
-                    model:'meta-llama/llama-3.2-11b-vision-instruct:free',
+                    model:'meta-llama/llama-4-scout-17b-16e-instruct',
                     messages:[{
                         role:'user',
                         content:[
@@ -1354,7 +1352,7 @@ Use null for missing values. No explanation, just the JSON object.`}
             if(res.error){
                 st.style.color='#ff4444';
                 st.textContent=`✗ Error: ${res.error.message||res.error.code}`;
-                console.error('OpenRouter error:',res.error);
+                console.error('Groq error:',res.error);
                 return;
             }
             const txt=((res.choices?.[0]?.message?.content)||'').replace(/```json|```/g,'').trim();
