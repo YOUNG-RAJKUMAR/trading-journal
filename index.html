@@ -8,6 +8,7 @@
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="RK Journal">
@@ -1518,16 +1519,26 @@ Use null for missing values. No explanation, just the JSON object.`}
         ['export-month','ana-month','cal-month'].forEach(id=>document.getElementById(id).value=cm);
         ['export-year','ana-year','cal-year'].forEach(id=>document.getElementById(id).value=cy);
         this.renderAll();
+    },
+
+    async installApp(){
+        if(window._installPrompt){
+            window._installPrompt.prompt();
+            const {outcome} = await window._installPrompt.userChoice;
+            if(outcome==='accepted') window._installPrompt=null;
+        } else {
+            alert('To install:\n\niPhone/iPad → Tap Share → "Add to Home Screen"\nAndroid → Tap menu (⋮) → "Add to Home screen"\nDesktop Chrome → Click install icon in address bar ⊕');
+        }
     }
 };
 </script>
 <script>
-// ── PWA Install ──
-let _installPrompt = null;
+// ── PWA Install prompt capture ──
+window._installPrompt = null;
 
 window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
-    _installPrompt = e;
+    window._installPrompt = e;
     const btn = document.getElementById('install-btn');
     if(btn) btn.style.display = 'block';
 });
@@ -1535,20 +1546,8 @@ window.addEventListener('beforeinstallprompt', e => {
 window.addEventListener('appinstalled', () => {
     const btn = document.getElementById('install-btn');
     if(btn) btn.style.display = 'none';
-    _installPrompt = null;
+    window._installPrompt = null;
 });
-
-window.ui = window.ui || {};
-window.ui.installApp = async function(){
-    if(_installPrompt){
-        _installPrompt.prompt();
-        const { outcome } = await _installPrompt.userChoice;
-        if(outcome === 'accepted') _installPrompt = null;
-    } else {
-        // Fallback for iOS Safari or if prompt already fired
-        alert('To install:\n\niPhone/iPad: Tap Share → "Add to Home Screen"\n\nAndroid: Tap menu (⋮) → "Add to Home screen"\n\nDesktop Chrome: Click install icon in address bar');
-    }
-};
 
 if('serviceWorker' in navigator && location.hostname !== 'www.claudeusercontent.com'){
     window.addEventListener('load',()=>{
