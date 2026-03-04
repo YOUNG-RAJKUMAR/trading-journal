@@ -1304,56 +1304,63 @@ window.ui={
         this.syncData();
     },
 
-    /* ══ AI IMAGE SCAN — extracts Entry + SL from screenshot using Gemini ══ */
+    /* ══ AI IMAGE SCAN — extracts Entry + SL from screenshot using OpenRouter ══ */
     async scanTradeImage(file){
         if(!file) return;
         const st=document.getElementById('scan-status');
         st.style.color='#888'; st.textContent='⟳ Scanning image...';
         const base64=await new Promise(res=>{
             const r=new FileReader();
-            r.onload=e=>res(e.target.result.split(',')[1]);
+            r.onload=e=>res(e.target.result);
             r.readAsDataURL(file);
         });
         try{
-            const GEMINI_KEY='AIzaSyCfx80lbRXNIsGMvzK4ZKmGTRlV5tjSUeM';
-            const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{
+            const resp=await fetch('https://openrouter.ai/api/v1/chat/completions',{
                 method:'POST',
-                headers:{'Content-Type':'application/json'},
+                headers:{
+                    'Content-Type':'application/json',
+                    'Authorization':'Bearer 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',
+                    'HTTP-Referer':'https://trading-journal.app',
+                    'X-Title':'Trading Journal'
+                },
                 body:JSON.stringify({
-                    contents:[{parts:[
-                        {inline_data:{mime_type:file.type||'image/png',data:base64}},
-                        {text:`You are reading a trading platform screenshot (TradingView, MT4, MT5, City Index or any broker).
+                    model:'meta-llama/llama-3.2-11b-vision-instruct:free',
+                    messages:[{
+                        role:'user',
+                        content:[
+                            {type:'image_url',image_url:{url:base64}},
+                            {type:'text',text:`You are reading a trading platform screenshot (TradingView, MT4, MT5 or any broker).
 
-Extract these values:
-1. entry_price: The entry price or open price
-2. sl_price: The stop loss price. In TradingView look for "STOP LEVEL > Price" field
+Extract ONLY these 3 values:
+1. entry_price: the entry/open price of the trade
+2. sl_price: the stop loss price. In TradingView look for "STOP LEVEL > Price" field
 3. side: BUY or SELL. "Short Position" = SELL, "Long Position" = BUY
 
-TradingView specific:
+TradingView format:
 - "Entry price" field = entry_price
 - "STOP LEVEL > Price" = sl_price
-- "Short Position" title = SELL
-- "Long Position" title = BUY
+- "Short Position" = SELL
+- "Long Position" = BUY
 
-Respond ONLY with JSON like: {"entry_price":"1.15949","sl_price":"1.16036","side":"SELL"}
-Use null for missing values. No explanation, just JSON.`}
-                    ]}],
-                    generationConfig:{temperature:0,maxOutputTokens:200}
+Respond ONLY with valid JSON. Example: {"entry_price":"1.15949","sl_price":"1.16036","side":"SELL"}
+Use null for missing values. No explanation, just the JSON object.`}
+                        ]
+                    }],
+                    max_tokens:200,
+                    temperature:0
                 })
             });
             const res=await resp.json();
-            // Check for API error response
             if(res.error){
                 st.style.color='#ff4444';
-                st.textContent=`✗ API Error: ${res.error.message||res.error.status}`;
-                console.error('Gemini error:', res.error);
+                st.textContent=`✗ Error: ${res.error.message||res.error.code}`;
+                console.error('OpenRouter error:',res.error);
                 return;
             }
-            const txt=((res.candidates?.[0]?.content?.parts?.[0]?.text)||'').replace(/```json|```/g,'').trim();
+            const txt=((res.choices?.[0]?.message?.content)||'').replace(/```json|```/g,'').trim();
             if(!txt){
                 st.style.color='#ff4444';
-                st.textContent='✗ No response from AI — try again';
-                console.error('Empty Gemini response:', res);
+                st.textContent='✗ No response — try again';
                 return;
             }
             const p=JSON.parse(txt);
@@ -1367,8 +1374,8 @@ Use null for missing values. No explanation, just JSON.`}
             st.textContent=filled>0?`✓ Got ${filled} value${filled>1?'s':''} — verify before logging`:'⚠ Could not read prices — enter manually';
         }catch(e){
             st.style.color='#ff4444';
-            st.textContent=`✗ Error: ${e.message} — check console (F12)`;
-            console.error('Scan error:', e);
+            st.textContent=`✗ Error: ${e.message}`;
+            console.error('Scan error:',e);
         }
     },
     handleScanDrop(e){const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))this.scanTradeImage(f);},
