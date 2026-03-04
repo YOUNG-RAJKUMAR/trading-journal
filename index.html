@@ -78,8 +78,6 @@
         .c-res-val.profit  { color: var(--positive); }
         .c-res-sub { font-size: 0.6rem; color: #444; margin-top: 4px; }
 
-
-
         /* ── QUICK RISK TABLE ── */
         .quick-risk-table { margin-top: 12px; }
         .quick-risk-table table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
@@ -191,7 +189,7 @@
             </div>
             <button class="btn-action" onclick="ui.undoLast()">Undo</button>
             <button class="btn-action" onclick="ui.resetAll()">Reset Cloud</button>
-            <button id="install-btn" class="btn-action" onclick="ui.installApp()" style="display:none;background:#44ff88;color:#000;font-weight:600;border-color:#44ff88;">&#11015; Install App</button>
+            <button id="install-btn" class="btn-action" onclick="installApp()" style="display:none;background:#44ff88;color:#000;font-weight:600;border-color:#44ff88;">&#11015; Install App</button>
             <button class="btn-action" onclick="location.reload()">Logout</button>
         </div>
     </header>
@@ -202,9 +200,9 @@
         <button class="tab-btn"        id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
     </nav>
 
-    <!-- ══════════════════════════════════════════════════════
+    <!-- ══════════════════════════════════════════════════════════
          JOURNAL TAB — two vertical sections side by side
-    ══════════════════════════════════════════════════════ -->
+    ══════════════════════════════════════════════════════════ -->
     <div id="tab-journal" class="tab-content active">
 
         <!-- TOP: FORM (left) + CALCULATOR (right) -->
@@ -367,7 +365,6 @@
 
                     <!-- RESULTS -->
                     <div class="calc-results">
-                        <!-- LOT SIZE — spans full width, big -->
                         <div class="c-res-card full">
                             <div class="c-res-label">Recommended Lot Size</div>
                             <div class="c-res-val lots" id="c-res-lots">---</div>
@@ -403,8 +400,6 @@
                             <div class="c-res-val" id="c-res-rr">---</div>
                         </div>
                     </div>
-
-
 
                     <!-- Quick risk reference -->
                     <div class="quick-risk-table" id="quick-risk-table" style="display:none;">
@@ -449,7 +444,6 @@
                 </div>
                 <div class="calendar-grid" id="calendarGrid"></div>
 
-                <!-- Day detail panel — shows when a date is clicked -->
                 <div id="cal-day-detail" style="display:none;margin-top:20px;background:var(--surface);border:1px solid var(--border);">
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);">
                         <span id="cal-day-detail-title" style="font-size:0.75rem;color:#fff;letter-spacing:2px;text-transform:uppercase;font-weight:600;">—</span>
@@ -493,7 +487,6 @@
             <select id="ana-year"  onchange="ui.renderAnalytics()"></select>
         </div>
 
-        <!-- ROW 1: Core P&L metrics -->
         <div class="analytics-grid">
             <div class="stat-card"><span class="stat-label">Win Rate</span><span id="s-wr" class="stat-val">0%</span></div>
             <div class="stat-card"><span class="stat-label">Net P&amp;L</span><span id="s-net" class="stat-val">$0</span></div>
@@ -502,7 +495,6 @@
             <div class="stat-card"><span class="stat-label">Avg Daily P&amp;L</span><span id="s-adpnl" class="stat-val">$0</span><span class="stat-meta" id="s-adpnl-meta">across trading days</span></div>
         </div>
 
-        <!-- ROW 2: Trade metrics -->
         <div class="analytics-grid">
             <div class="stat-card"><span class="stat-label">Highest Profit</span><span id="s-hp" class="stat-val" style="color:var(--positive)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Highest Loss</span><span id="s-hl" class="stat-val" style="color:var(--negative)">$0</span></div>
@@ -515,7 +507,6 @@
             <div class="stat-card"><span class="stat-label">NY WR</span><span id="wr-ny" class="stat-val">0%</span></div>
         </div>
 
-        <!-- CHARTS ROW 1: Equity Curve + Pie -->
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;">
             <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Equity Curve</h3><canvas id="equityChart"></canvas></div>
             <div class="card">
@@ -531,56 +522,25 @@
             </div>
         </div>
 
-        <!-- CHARTS ROW 2: Daily P&L Bar + Session P&L Bar -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
-            <div class="card">
-                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Daily P&amp;L</h3>
-                <canvas id="dailyBarChart" height="160"></canvas>
-            </div>
-            <div class="card">
-                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Session P&amp;L</h3>
-                <canvas id="sessionBarChart" height="160"></canvas>
-            </div>
+            <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Daily P&amp;L</h3><canvas id="dailyBarChart" height="160"></canvas></div>
+            <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Session P&amp;L</h3><canvas id="sessionBarChart" height="160"></canvas></div>
         </div>
 
-        <!-- CHARTS ROW 3: Instrument P&L Bar + Monthly P&L Bar -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
-            <div class="card">
-                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Instrument P&amp;L</h3>
-                <canvas id="instrBarChart" height="160"></canvas>
-            </div>
-            <div class="card">
-                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Monthly P&amp;L</h3>
-                <canvas id="monthlyBarChart" height="160"></canvas>
-            </div>
+            <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Instrument P&amp;L</h3><canvas id="instrBarChart" height="160"></canvas></div>
+            <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Monthly P&amp;L</h3><canvas id="monthlyBarChart" height="160"></canvas></div>
         </div>
 
-        <!-- CHARTS ROW 4: Win Rate by Session Bar + Win Rate by Instrument Bar -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
-            <div class="card">
-                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Win Rate by Session (%)</h3>
-                <canvas id="sessWrBarChart" height="160"></canvas>
-            </div>
-            <div class="card">
-                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Win Rate by Instrument (%)</h3>
-                <canvas id="instrWrBarChart" height="160"></canvas>
-            </div>
+            <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Win Rate by Session (%)</h3><canvas id="sessWrBarChart" height="160"></canvas></div>
+            <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Win Rate by Instrument (%)</h3><canvas id="instrWrBarChart" height="160"></canvas></div>
         </div>
 
-        <!-- CHARTS ROW 5: Trades per Day of Week + Profit Factor -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
-            <div class="card">
-                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Trades by Day of Week</h3>
-                <canvas id="dowBarChart" height="160"></canvas>
-            </div>
-            <div class="card">
-                <h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Avg Trade P&amp;L by Day of Week</h3>
-                <canvas id="dowPnlChart" height="160"></canvas>
-            </div>
+            <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Trades by Day of Week</h3><canvas id="dowBarChart" height="160"></canvas></div>
+            <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Avg Trade P&amp;L by Day of Week</h3><canvas id="dowPnlChart" height="160"></canvas></div>
         </div>
-
-    </div>
-
     </div>
 
 </div>
@@ -610,7 +570,6 @@ document.getElementById('loginBtn').onclick=async()=>{
     }catch(e){alert("Error connecting to server");}
 };
 
-// ── Centralised login function (used by button + auto-restore) ──
 function doLogin(u){
     currentUser=u;
     sessionStorage.setItem('rk_user', u);
@@ -619,7 +578,7 @@ function doLogin(u){
     document.getElementById('display-user').innerText=u;
     ui.init();
 }
-// ── Ctrl+V anywhere → AI scan (section ①) ──
+
 document.addEventListener('paste',e=>{
     const items=e.clipboardData?.items; if(!items) return;
     for(const item of items){
@@ -630,15 +589,13 @@ document.addEventListener('paste',e=>{
     }
 });
 
-// ── Auto-restore session on refresh without re-login ──
 window.addEventListener('DOMContentLoaded', ()=>{
     const saved=sessionStorage.getItem('rk_user');
     if(saved){
-        // Verify user still exists in Firebase then restore
         getDoc(doc(db,'users',saved)).then(snap=>{
             if(snap.exists()) doLogin(saved);
             else sessionStorage.removeItem('rk_user');
-        }).catch(()=>{}); // silently fail, show login
+        }).catch(()=>{});
     }
 });
 
@@ -659,11 +616,9 @@ window.ui={
 
     async syncData(){
         try {
-            // Simple query - no orderBy avoids composite index requirement
             const q=query(tradesCol,where("user_id","==",currentUser));
             const snap=await getDocs(q);
             cachedTrades=snap.docs.map(d=>({...d.data(), id:d.id}));
-            // Sort client-side by date descending
             cachedTrades.sort((a,b)=>{
                 const da=a.date||"", db=b.date||"";
                 return da>db?-1:da<db?1:0;
@@ -671,7 +626,6 @@ window.ui={
             this.renderAll();
         } catch(err) {
             console.error("syncData error:", err);
-            // Show error to user so we can debug
             const body = document.getElementById("tradeBody");
             if(body) body.innerHTML = `<tr><td colspan="10" style="color:#ff4444;padding:20px;text-align:center;">
                 Error loading trades: ${err.message}<br>
@@ -689,46 +643,22 @@ window.ui={
         if(id==='journal')this.renderJournal();
     },
 
-    /* ══ SESSION CLASSIFICATION — NPT UTC+5:45 WITH DST ══════════════
-     *
-     *  Nepal is UTC+5:45 all year (no DST in Nepal itself).
-     *  BUT London & NY markets observe DST, shifting their open/close
-     *  times by 1 hour between summer (Mar–Oct) and winter (Nov–Feb).
-     *
-     *  All times below are in NPT (Nepal Time = UTC+5:45):
-     *
-     *  ASIAN  : 05:45 – 12:45  (same all year)
-     *  LONDON : 12:45 – 21:45  (summer Mar–Oct)
-     *           13:45 – 22:45  (winter Nov–Feb, +1hr)
-     *  NY     : 17:45 – 02:45  (summer, crosses midnight)
-     *           18:45 – 03:45  (winter, crosses midnight, +1hr)
-     *
-     *  Overlaps (London+NY) are classified as NY since NY dominates.
-     * ══════════════════════════════════════════════════════════════ */
-
-    /* ══ SESSION AUTO-DETECT — NPT UTC+5:45 WITH DST ══════════════
-     *  ASIAN  : 05:45 – 12:45  (all year)
-     *  LONDON : 12:45 – 21:45  summer (Mar–Oct) | 13:45 – 22:45  winter
-     *  NY     : 17:45 – 02:45  summer            | 18:45 – 03:45  winter
-     * ══════════════════════════════════════════════════════════════ */
     classifySession(dateStr){
         const timeVal = document.getElementById('t-start').value;
         if (!timeVal || !dateStr) return null;
         const [h, m] = timeVal.split(':').map(Number);
         const nptMin = h * 60 + m;
-        const month  = new Date(dateStr).getMonth() + 1; // 1–12
-
+        const month  = new Date(dateStr).getMonth() + 1;
         const isSummer = (month >= 3 && month <= 10);
         const ASIAN_START = 5*60+45, ASIAN_END = 12*60+45;
         const LON_START   = isSummer ? 12*60+45 : 13*60+45;
         const LON_END     = isSummer ? 21*60+45 : 22*60+45;
         const NY_START    = isSummer ? 17*60+45 : 18*60+45;
         const NY_END_WRAP = isSummer ? 2*60+45  : 3*60+45;
-
         if (nptMin >= NY_START || nptMin < NY_END_WRAP) return 'NY';
         if (nptMin >= LON_START && nptMin < LON_END)    return 'LONDON';
         if (nptMin >= ASIAN_START && nptMin < ASIAN_END) return 'ASIAN';
-        return 'ASIAN'; // off-hours default
+        return 'ASIAN';
     },
 
     autoDetectSession(){
@@ -743,7 +673,6 @@ window.ui={
         document.getElementById('t-exit').value=type==='TP'?document.getElementById('t-tp').value:document.getElementById('t-sl').value;
     },
 
-    /* ══ LIVE R:R IN FORM ══ */
     autoSetTPTicks(){
         const rr  = parseFloat(document.getElementById('c-rr-target').value)||0;
         const sl  = parseFloat(document.getElementById('c-sl-ticks').value)||0;
@@ -767,7 +696,6 @@ window.ui={
         this.calcLotSize();
     },
 
-    /* ══ RISK MODE TOGGLE ══ */
     setRiskMode(mode){
         this._riskMode=mode;
         const isPct=mode==='pct';
@@ -780,7 +708,6 @@ window.ui={
         this.calcLotSize();
     },
 
-    /* ══ LOT SIZE CALCULATOR — tick-based ══ */
     calcLotSize(){
         const mode    = this._riskMode||'amt';
         const balance = parseFloat(document.getElementById('c-balance').value)||0;
@@ -788,7 +715,7 @@ window.ui={
         const riskAmt = parseFloat(document.getElementById('c-risk-amt').value)||0;
         const sl      = parseFloat(document.getElementById('c-sl-ticks').value)||0;
         const tp      = parseFloat(document.getElementById('c-tp-ticks').value)||0;
-        const tv      = 1; // $1 per tick per standard lot
+        const tv      = 1;
 
         if(balance>0){
             const rows=[0.5,1,1.5,2,3,5].map(pct=>{
@@ -850,7 +777,6 @@ window.ui={
         return{label:'⇌ Break Even',cls:'be'};
     },
 
-    /* ══ JOURNAL TABLE ══ */
     renderJournal(){
         const body=document.getElementById('tradeBody');
         const search=document.getElementById('trade-search').value.toUpperCase();
@@ -908,7 +834,6 @@ window.ui={
 
     renderCalendar(){
         const grid=document.getElementById('calendarGrid');grid.innerHTML='';
-        // Hide day detail panel when re-rendering
         const detail=document.getElementById('cal-day-detail');
         if(detail) detail.style.display='none';
         const mVal=document.getElementById('cal-month').value;
@@ -918,14 +843,12 @@ window.ui={
         }
         const m=parseInt(mVal),y=parseInt(document.getElementById('cal-year').value);
         const days=new Date(y,m+1,0).getDate();
-        // Add day-of-week headers
         const dow=['MON','TUE','WED','THU','FRI','SAT','SUN'];
         dow.forEach(d=>{
             grid.innerHTML+=`<div style="background:#050505;padding:8px;text-align:center;font-size:0.55rem;color:#444;letter-spacing:1px;">${d}</div>`;
         });
-        // Get first day offset (0=Sun…6=Sat → convert to Mon-start)
         let firstDay=new Date(y,m,1).getDay();
-        firstDay=(firstDay===0)?6:firstDay-1; // Mon=0
+        firstDay=(firstDay===0)?6:firstDay-1;
         for(let e=0;e<firstDay;e++) grid.innerHTML+=`<div class="cal-day"></div>`;
         for(let i=1;i<=days;i++){
             const dStr=`${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
@@ -951,16 +874,12 @@ window.ui={
         const titleEl=document.getElementById('cal-day-detail-title');
         const tbody=document.getElementById('cal-day-trades');
         if(!detail||!titleEl||!tbody) return;
-
         if(dayTrades.length===0){ detail.style.display='none'; return; }
-
-        // Format date nicely
         const d=new Date(dateStr+'T00:00:00');
         const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
         const totalPL=dayTrades.reduce((s,t)=>s+t.profit,0);
         const wins=dayTrades.filter(t=>t.profit>0).length;
         titleEl.innerHTML=`${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} &nbsp;·&nbsp; ${dayTrades.length} Trade${dayTrades.length>1?'s':''} &nbsp;·&nbsp; WR: ${Math.round(wins/dayTrades.length*100)}% &nbsp;·&nbsp; <span style="color:${totalPL>=0?'var(--positive)':'var(--negative)'};">$${totalPL.toFixed(2)}</span>`;
-
         const fmt=v=>v?parseFloat(v).toFixed(5):'---';
         tbody.innerHTML='';
         dayTrades.forEach(t=>{
@@ -980,7 +899,6 @@ window.ui={
                 <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;vertical-align:middle;font-weight:600;color:${t.profit>=0?'var(--positive)':'var(--negative)'};">$${t.profit.toFixed(2)}</td>
             </tr>`;
         });
-
         detail.style.display='block';
         detail.scrollIntoView({behavior:'smooth',block:'nearest'});
     },
@@ -1012,9 +930,8 @@ window.ui={
         if(avgPlanned!==null){document.getElementById('s-planned-rr').innerText=`1 : ${parseFloat(avgPlanned.toFixed(2))}`;document.getElementById('s-planned-rr-meta').innerText=`Based on ${plannedRRs.length} of ${data.length} trades`;}
         else{document.getElementById('s-planned-rr').innerText='---';document.getElementById('s-planned-rr-meta').innerText='No SL/TP data yet';}
         ['ASIAN','LONDON','NY'].forEach(s=>{document.getElementById(`wr-${s.toLowerCase()}`).innerText=sess[s].t?Math.round(sess[s].w/sess[s].t*100)+'%':'0%';});
-        // ── INSTRUMENT INSIGHT ────────────────────────────────────────
-        // Build per-instrument stats: total P&L, wins, total trades
-        const instStats = {}; // {symbol: {pl, wins, total}}
+
+        const instStats = {};
         data.forEach(t=>{
             if(!instStats[t.symbol]) instStats[t.symbol]={pl:0,wins:0,total:0};
             instStats[t.symbol].pl    += t.profit;
@@ -1025,8 +942,7 @@ window.ui={
         const bestInstEl  = document.getElementById('s-best-inst');
         const bestInstMeta= document.getElementById('s-best-inst-meta');
         const lblBestInst = document.getElementById('lbl-best-inst');
-
-        const isProfitable = gP > gL; // overall profitable period?
+        const isProfitable = gP > gL;
 
         if(instEntries.length === 0){
             lblBestInst.innerText = 'Best Instrument';
@@ -1034,16 +950,14 @@ window.ui={
             bestInstEl.style.color= '#555';
             bestInstMeta.innerText= '';
         } else if(isProfitable){
-            // Show BEST (most profitable) instrument
-            const best = instEntries[0]; // highest P&L first
+            const best = instEntries[0];
             const wr   = Math.round(best[1].wins/best[1].total*100);
             lblBestInst.innerText  = 'Best Instrument';
             bestInstEl.innerText   = `${best[0]}`;
             bestInstEl.style.color = 'var(--positive)';
             bestInstMeta.innerHTML = `<span style="color:var(--positive);">+$${best[1].pl.toFixed(0)}</span> net &nbsp;·&nbsp; WR: <b style="color:#fff;">${wr}%</b> (${best[1].wins}/${best[1].total} trades)`;
         } else {
-            // Show WORST (most losing) instrument
-            const worst = instEntries[instEntries.length-1]; // lowest P&L last
+            const worst = instEntries[instEntries.length-1];
             const wr    = Math.round(worst[1].wins/worst[1].total*100);
             lblBestInst.innerText  = 'Worst Instrument';
             bestInstEl.innerText   = `${worst[0]}`;
@@ -1051,10 +965,7 @@ window.ui={
             bestInstMeta.innerHTML = `<span style="color:var(--negative);">-$${Math.abs(worst[1].pl).toFixed(0)}</span> net &nbsp;·&nbsp; WR: <b style="color:#fff;">${wr}%</b> (${worst[1].wins}/${worst[1].total} trades)`;
         }
 
-        // ── SESSION INSIGHT ───────────────────────────────────────────
-        const sessEntries = Object.entries(sess)
-            .filter(([,v])=>v.t>0)
-            .sort((a,b)=>b[1].p-a[1].p);
+        const sessEntries = Object.entries(sess).filter(([,v])=>v.t>0).sort((a,b)=>b[1].p-a[1].p);
         const bestSessEl  = document.getElementById('s-best-sess');
         const bestSessMeta= document.getElementById('s-best-sess-meta');
         const lblBestSess = document.getElementById('lbl-best-sess');
@@ -1080,13 +991,11 @@ window.ui={
             bestSessMeta.innerHTML = `<span style="color:var(--negative);">-$${Math.abs(worst[1].p).toFixed(0)}</span> net &nbsp;·&nbsp; WR: <b style="color:#fff;">${wr}%</b> (${worst[1].w}/${worst[1].t} trades)`;
         }
 
-        // ── NET P&L
         const netPnl = gP - gL;
         const netEl  = document.getElementById('s-net');
         netEl.innerText   = (netPnl>=0?'+':'') + '$' + netPnl.toFixed(2);
         netEl.style.color = netPnl>=0 ? 'var(--positive)' : 'var(--negative)';
 
-        // ── AVERAGE DAILY P&L
         const dayMap = {};
         data.forEach(t=>{ dayMap[t.date]=(dayMap[t.date]||0)+t.profit; });
         const tradingDays = Object.keys(dayMap).length;
@@ -1096,17 +1005,11 @@ window.ui={
         adEl.style.color = avgDailyPnl>=0 ? 'var(--positive)' : 'var(--negative)';
         document.getElementById('s-adpnl-meta').innerText = 'across ' + tradingDays + ' trading day' + (tradingDays!==1?'s':'');
 
-        // ── BAR CHART DATA PREP
-
-        // 1. Daily P&L — last 30 days sorted ascending
         const sortedDays = Object.entries(dayMap).sort((a,b)=>a[0]<b[0]?-1:1).slice(-30);
-
-        // 2. Session P&L
         const sessLabels = ['ASIAN','LONDON','NY'];
         const sessPnl    = sessLabels.map(s=>parseFloat((sess[s]?.p||0).toFixed(2)));
         const sessWr     = sessLabels.map(s=>sess[s]?.t ? Math.round(sess[s].w/sess[s].t*100) : 0);
 
-        // 3. Instrument P&L (top 10 by absolute value)
         const instStats2 = {};
         data.forEach(t=>{
             if(!instStats2[t.symbol]) instStats2[t.symbol]={pl:0,wins:0,total:0};
@@ -1114,10 +1017,8 @@ window.ui={
             instStats2[t.symbol].total += 1;
             if(t.profit>0) instStats2[t.symbol].wins += 1;
         });
-        const instrSorted = Object.entries(instStats2)
-            .sort((a,b)=>Math.abs(b[1].pl)-Math.abs(a[1].pl)).slice(0,10);
+        const instrSorted = Object.entries(instStats2).sort((a,b)=>Math.abs(b[1].pl)-Math.abs(a[1].pl)).slice(0,10);
 
-        // 4. Monthly P&L
         const monthMap={};
         data.forEach(t=>{
             const k=t.date?t.date.slice(0,7):'';
@@ -1125,7 +1026,6 @@ window.ui={
         });
         const monthEntries=Object.entries(monthMap).sort((a,b)=>a[0]<b[0]?-1:1);
 
-        // 5. Trades by Day of Week & Avg P&L by DoW
         const dowNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
         const dowCount=[0,0,0,0,0,0,0], dowPnl=[0,0,0,0,0,0,0];
         data.forEach(t=>{
@@ -1135,158 +1035,51 @@ window.ui={
         });
         const dowAvgPnl=dowCount.map((c,i)=>c>0?parseFloat((dowPnl[i]/c).toFixed(2)):0);
 
-        this.updateCharts(
-            cumulative, labels, gP, gL,
-            sortedDays, sessPnl, sessLabels, sessWr,
-            instrSorted, monthEntries,
-            dowNames, dowCount, dowAvgPnl
-        );
+        this.updateCharts(cumulative,labels,gP,gL,sortedDays,sessPnl,sessLabels,sessWr,instrSorted,monthEntries,dowNames,dowCount,dowAvgPnl);
     },
 
-    updateCharts(equity, eqLabels, gP, gL,
-                 sortedDays, sessPnl, sessLabels, sessWr,
-                 instrSorted, monthEntries,
-                 dowNames, dowCount, dowAvgPnl){
-        // ── Helper: destroy old chart & create new ──────────────────
-        const mk = (key, id, cfg) => {
+    updateCharts(equity,eqLabels,gP,gL,sortedDays,sessPnl,sessLabels,sessWr,instrSorted,monthEntries,dowNames,dowCount,dowAvgPnl){
+        const mk=(key,id,cfg)=>{
             if(this.charts[key]) this.charts[key].destroy();
-            const el = document.getElementById(id);
-            if(el) this.charts[key] = new Chart(el, cfg);
+            const el=document.getElementById(id);
+            if(el) this.charts[key]=new Chart(el,cfg);
         };
-
-        const gridColor = '#111';
-        const barOpts = (unit='$', pct=false) => ({
+        const gridColor='#111';
+        const barOpts=(unit='$',pct=false)=>({
             responsive:true,
-            plugins:{
-                legend:{display:false},
-                tooltip:{callbacks:{label:ctx=>{
-                    const v=ctx.raw;
-                    return pct ? ` ${v}%` : ` ${v>=0?'+':''}$${parseFloat(v).toFixed(2)}`;
-                }}}
-            },
-            scales:{
-                x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10}}},
-                y:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10},
-                    callback:v=>pct?v+'%':(v>=0?'+$'+v:'-$'+Math.abs(v))}}
-            }
+            plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw;return pct?` ${v}%`:` ${v>=0?'+':''}$${parseFloat(v).toFixed(2)}`;}}}},
+            scales:{x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10}}},y:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10},callback:v=>pct?v+'%':(v>=0?'+$'+v:'-$'+Math.abs(v))}}}
         });
+        const barColor=vals=>vals.map(v=>v>=0?'#44ff88':'#ff4444');
 
-        const barColor = vals => vals.map(v=>v>=0?'#44ff88':'#ff4444');
+        mk('equity','equityChart',{type:'line',data:{labels:eqLabels,datasets:[{data:equity,borderColor:'#fff',fill:true,backgroundColor:'rgba(255,255,255,0.05)',tension:0.1,pointRadius:0}]},options:{scales:{x:{display:false},y:{grid:{color:gridColor}}},plugins:{legend:{display:false}}}});
 
-        // ── 1. EQUITY CURVE ──────────────────────────────────────────
-        mk('equity','equityChart',{
-            type:'line',
-            data:{labels:eqLabels,datasets:[{data:equity,borderColor:'#fff',fill:true,
-                backgroundColor:'rgba(255,255,255,0.05)',tension:0.1,pointRadius:0}]},
-            options:{scales:{x:{display:false},y:{grid:{color:gridColor}}},plugins:{legend:{display:false}}}
-        });
+        const grossP=parseFloat(gP.toFixed(2)),grossL=parseFloat(gL.toFixed(2));
+        mk('pie','pieChart',{type:'doughnut',data:{labels:['Profit $'+grossP.toFixed(0),'Loss $'+grossL.toFixed(0)],datasets:[{data:[grossP,grossL],backgroundColor:['#44ff88','#ff4444'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{color:'#888',font:{size:11}}},tooltip:{callbacks:{label:ctx=>{const total=grossP+grossL;return' $'+ctx.raw.toFixed(0)+' ('+(total>0?(ctx.raw/total*100).toFixed(1):0)+'%)';}}}}}});
 
-        // ── 2. PIE CHART (Profit vs Loss $) ─────────────────────────
-        const grossP=parseFloat(gP.toFixed(2)), grossL=parseFloat(gL.toFixed(2));
-        mk('pie','pieChart',{
-            type:'doughnut',
-            data:{
-                labels:['Profit $'+grossP.toFixed(0),'Loss $'+grossL.toFixed(0)],
-                datasets:[{data:[grossP,grossL],backgroundColor:['#44ff88','#ff4444'],borderWidth:0}]
-            },
-            options:{plugins:{
-                legend:{position:'bottom',labels:{color:'#888',font:{size:11}}},
-                tooltip:{callbacks:{label:ctx=>{
-                    const total=grossP+grossL;
-                    return ' $'+ctx.raw.toFixed(0)+' ('+(total>0?(ctx.raw/total*100).toFixed(1):0)+'%)';
-                }}}
-            }}
-        });
+        const dayLabels=sortedDays.map(([d])=>d.slice(5));
+        const dayVals=sortedDays.map(([,v])=>parseFloat(v.toFixed(2)));
+        mk('daily','dailyBarChart',{type:'bar',data:{labels:dayLabels,datasets:[{data:dayVals,backgroundColor:barColor(dayVals),borderWidth:0}]},options:barOpts()});
 
-        // ── 3. DAILY P&L BAR ─────────────────────────────────────────
-        const dayLabels = sortedDays.map(([d])=>d.slice(5)); // MM-DD
-        const dayVals   = sortedDays.map(([,v])=>parseFloat(v.toFixed(2)));
-        mk('daily','dailyBarChart',{
-            type:'bar',
-            data:{labels:dayLabels,datasets:[{data:dayVals,backgroundColor:barColor(dayVals),borderWidth:0}]},
-            options:barOpts()
-        });
+        mk('sessBar','sessionBarChart',{type:'bar',data:{labels:sessLabels,datasets:[{data:sessPnl,backgroundColor:barColor(sessPnl),borderWidth:0}]},options:barOpts()});
 
-        // ── 4. SESSION P&L BAR ───────────────────────────────────────
-        mk('sessBar','sessionBarChart',{
-            type:'bar',
-            data:{labels:sessLabels,datasets:[{data:sessPnl,backgroundColor:barColor(sessPnl),borderWidth:0}]},
-            options:barOpts()
-        });
+        const instrLabels=instrSorted.map(([s])=>s);
+        const instrVals=instrSorted.map(([,v])=>parseFloat(v.pl.toFixed(2)));
+        mk('instrBar','instrBarChart',{type:'bar',data:{labels:instrLabels,datasets:[{data:instrVals,backgroundColor:barColor(instrVals),borderWidth:0}]},options:barOpts()});
 
-        // ── 5. INSTRUMENT P&L BAR ────────────────────────────────────
-        const instrLabels = instrSorted.map(([s])=>s);
-        const instrVals   = instrSorted.map(([,v])=>parseFloat(v.pl.toFixed(2)));
-        mk('instrBar','instrBarChart',{
-            type:'bar',
-            data:{labels:instrLabels,datasets:[{data:instrVals,backgroundColor:barColor(instrVals),borderWidth:0}]},
-            options:barOpts()
-        });
+        const monthLabels=monthEntries.map(([k])=>k);
+        const monthVals=monthEntries.map(([,v])=>parseFloat(v.toFixed(2)));
+        mk('monthBar','monthlyBarChart',{type:'bar',data:{labels:monthLabels,datasets:[{data:monthVals,backgroundColor:barColor(monthVals),borderWidth:0}]},options:barOpts()});
 
-        // ── 6. MONTHLY P&L BAR ───────────────────────────────────────
-        const monthLabels = monthEntries.map(([k])=>k);
-        const monthVals   = monthEntries.map(([,v])=>parseFloat(v.toFixed(2)));
-        mk('monthBar','monthlyBarChart',{
-            type:'bar',
-            data:{labels:monthLabels,datasets:[{data:monthVals,backgroundColor:barColor(monthVals),borderWidth:0}]},
-            options:barOpts()
-        });
+        mk('sessWr','sessWrBarChart',{type:'bar',data:{labels:sessLabels,datasets:[{data:sessWr,backgroundColor:sessWr.map(v=>v>=50?'#44ff88':'#ff4444'),borderWidth:0}]},options:{...barOpts('',true),scales:{x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:11}}},y:{min:0,max:100,grid:{color:gridColor},ticks:{color:'#555',font:{size:10},callback:v=>v+'%'}}}}});
 
-        // ── 7. WIN RATE BY SESSION BAR ───────────────────────────────
-        mk('sessWr','sessWrBarChart',{
-            type:'bar',
-            data:{labels:sessLabels,datasets:[{
-                data:sessWr,
-                backgroundColor:sessWr.map(v=>v>=50?'#44ff88':'#ff4444'),
-                borderWidth:0
-            }]},
-            options:{...barOpts('',true),scales:{
-                x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:11}}},
-                y:{min:0,max:100,grid:{color:gridColor},ticks:{color:'#555',font:{size:10},callback:v=>v+'%'}}
-            }}
-        });
+        const iWrLabels=instrSorted.map(([s])=>s);
+        const iWrVals=instrSorted.map(([,v])=>v.total>0?Math.round(v.wins/v.total*100):0);
+        mk('instrWr','instrWrBarChart',{type:'bar',data:{labels:iWrLabels,datasets:[{data:iWrVals,backgroundColor:iWrVals.map(v=>v>=50?'#44ff88':'#ff4444'),borderWidth:0}]},options:{...barOpts('',true),scales:{x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10}}},y:{min:0,max:100,grid:{color:gridColor},ticks:{color:'#555',font:{size:10},callback:v=>v+'%'}}}}});
 
-        // ── 8. WIN RATE BY INSTRUMENT BAR ────────────────────────────
-        const iWrLabels = instrSorted.map(([s])=>s);
-        const iWrVals   = instrSorted.map(([,v])=>v.total>0?Math.round(v.wins/v.total*100):0);
-        mk('instrWr','instrWrBarChart',{
-            type:'bar',
-            data:{labels:iWrLabels,datasets:[{
-                data:iWrVals,
-                backgroundColor:iWrVals.map(v=>v>=50?'#44ff88':'#ff4444'),
-                borderWidth:0
-            }]},
-            options:{...barOpts('',true),scales:{
-                x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10}}},
-                y:{min:0,max:100,grid:{color:gridColor},ticks:{color:'#555',font:{size:10},callback:v=>v+'%'}}
-            }}
-        });
+        mk('dow','dowBarChart',{type:'bar',data:{labels:dowNames,datasets:[{data:dowCount,backgroundColor:'#3a3a3a',borderColor:'#555',borderWidth:1}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} trades`}}},scales:{x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10},stepSize:1}}}}});
 
-        // ── 9. TRADES BY DAY OF WEEK ─────────────────────────────────
-        mk('dow','dowBarChart',{
-            type:'bar',
-            data:{labels:dowNames,datasets:[{
-                data:dowCount,
-                backgroundColor:'#3a3a3a',
-                borderColor:'#555',
-                borderWidth:1
-            }]},
-            options:{
-                responsive:true,
-                plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} trades`}}},
-                scales:{
-                    x:{grid:{color:gridColor},ticks:{color:'#555',font:{size:11}}},
-                    y:{grid:{color:gridColor},ticks:{color:'#555',font:{size:10},stepSize:1}}
-                }
-            }
-        });
-
-        // ── 10. AVG P&L BY DAY OF WEEK ───────────────────────────────
-        mk('dowPnl','dowPnlChart',{
-            type:'bar',
-            data:{labels:dowNames,datasets:[{data:dowAvgPnl,backgroundColor:barColor(dowAvgPnl),borderWidth:0}]},
-            options:barOpts()
-        });
+        mk('dowPnl','dowPnlChart',{type:'bar',data:{labels:dowNames,datasets:[{data:dowAvgPnl,backgroundColor:barColor(dowAvgPnl),borderWidth:0}]},options:barOpts()});
     },
 
     async deleteTrade(id){
@@ -1295,7 +1088,6 @@ window.ui={
         this.syncData();
     },
 
-    /* ══ AI IMAGE SCAN — extracts Entry + SL from screenshot using Groq ══ */
     async scanTradeImage(file){
         if(!file) return;
         const st=document.getElementById('scan-status');
@@ -1308,50 +1100,20 @@ window.ui={
         try{
             const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
                 method:'POST',
-                headers:{
-                    'Content-Type':'application/json',
-                    'Authorization':'Bearer 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'
-                },
+                headers:{'Content-Type':'application/json','Authorization':'Bearer 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'},
                 body:JSON.stringify({
                     model:'meta-llama/llama-4-scout-17b-16e-instruct',
-                    messages:[{
-                        role:'user',
-                        content:[
-                            {type:'image_url',image_url:{url:base64}},
-                            {type:'text',text:`You are reading a trading platform screenshot (TradingView, MT4, MT5 or any broker).
-
-Extract ONLY these 3 values:
-1. entry_price: the entry/open price of the trade
-2. sl_price: the stop loss price. In TradingView look for "STOP LEVEL > Price" field
-3. side: BUY or SELL. "Short Position" = SELL, "Long Position" = BUY
-
-TradingView format:
-- "Entry price" field = entry_price
-- "STOP LEVEL > Price" = sl_price
-- "Short Position" = SELL
-- "Long Position" = BUY
-
-Respond ONLY with valid JSON. Example: {"entry_price":"1.15949","sl_price":"1.16036","side":"SELL"}
-Use null for missing values. No explanation, just the JSON object.`}
-                        ]
-                    }],
-                    max_tokens:200,
-                    temperature:0
+                    messages:[{role:'user',content:[
+                        {type:'image_url',image_url:{url:base64}},
+                        {type:'text',text:`You are reading a trading platform screenshot (TradingView, MT4, MT5 or any broker).\n\nExtract ONLY these 3 values:\n1. entry_price: the entry/open price of the trade\n2. sl_price: the stop loss price. In TradingView look for "STOP LEVEL > Price" field\n3. side: BUY or SELL. "Short Position" = SELL, "Long Position" = BUY\n\nTradingView format:\n- "Entry price" field = entry_price\n- "STOP LEVEL > Price" = sl_price\n- "Short Position" = SELL\n- "Long Position" = BUY\n\nRespond ONLY with valid JSON. Example: {"entry_price":"1.15949","sl_price":"1.16036","side":"SELL"}\nUse null for missing values. No explanation, just the JSON object.`}
+                    ]}],
+                    max_tokens:200,temperature:0
                 })
             });
             const res=await resp.json();
-            if(res.error){
-                st.style.color='#ff4444';
-                st.textContent=`✗ Error: ${res.error.message||res.error.code}`;
-                console.error('Groq error:',res.error);
-                return;
-            }
+            if(res.error){st.style.color='#ff4444';st.textContent=`✗ Error: ${res.error.message||res.error.code}`;return;}
             const txt=((res.choices?.[0]?.message?.content)||'').replace(/```json|```/g,'').trim();
-            if(!txt){
-                st.style.color='#ff4444';
-                st.textContent='✗ No response — try again';
-                return;
-            }
+            if(!txt){st.style.color='#ff4444';st.textContent='✗ No response — try again';return;}
             const p=JSON.parse(txt);
             let filled=0;
             if(p.entry_price&&p.entry_price!='null'){document.getElementById('t-entry').value=p.entry_price;filled++;}
@@ -1361,38 +1123,25 @@ Use null for missing values. No explanation, just the JSON object.`}
             this.autoCalcTP();
             st.style.color=filled>0?'#44ff88':'#ffcc44';
             st.textContent=filled>0?`✓ Got ${filled} value${filled>1?'s':''} — verify before logging`:'⚠ Could not read prices — enter manually';
-        }catch(e){
-            st.style.color='#ff4444';
-            st.textContent=`✗ Error: ${e.message}`;
-            console.error('Scan error:',e);
-        }
+        }catch(e){st.style.color='#ff4444';st.textContent=`✗ Error: ${e.message}`;console.error('Scan error:',e);}
     },
+
     handleScanDrop(e){const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))this.scanTradeImage(f);},
 
-    dropMedia(e){
-        const f=e.dataTransfer.files[0];
-        if(f&&f.type.startsWith('image/')) this.pasteMedia(f);
-    },
+    dropMedia(e){const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))this.pasteMedia(f);},
 
     async pasteMediaFromClipboard(){
         try{
-            const items = await navigator.clipboard.read();
+            const items=await navigator.clipboard.read();
             for(const item of items){
-                const imgType = item.types.find(t=>t.startsWith('image/'));
-                if(imgType){
-                    const blob = await item.getType(imgType);
-                    const file = new File([blob], 'paste.png', {type:imgType});
-                    this.pasteMedia(file);
-                    return;
-                }
+                const imgType=item.types.find(t=>t.startsWith('image/'));
+                if(imgType){const blob=await item.getType(imgType);const file=new File([blob],'paste.png',{type:imgType});this.pasteMedia(file);return;}
             }
-            // Fallback message if no image in clipboard
-            const st = document.getElementById('media-zone-label');
-            if(st){ st.style.display='block'; st.style.color='#ffcc44'; st.textContent='⚠ No image in clipboard — copy a screenshot first'; setTimeout(()=>{st.style.color='#333';st.textContent='🖼 Drop / Click to attach chart screenshot';},3000); }
+            const st=document.getElementById('media-zone-label');
+            if(st){st.style.display='block';st.style.color='#ffcc44';st.textContent='⚠ No image in clipboard — copy a screenshot first';setTimeout(()=>{st.style.color='#333';st.textContent='🖼 Drop / Click to attach chart screenshot';},3000);}
         }catch(e){
-            // Clipboard API not supported or permission denied — show fallback
-            const lbl = document.getElementById('media-zone-label');
-            if(lbl){ lbl.style.display='block'; lbl.style.color='#ffcc44'; lbl.textContent='⚠ Use Ctrl+V or drag & drop instead'; setTimeout(()=>{lbl.style.color='#333';lbl.textContent='🖼 Drop / Click to attach chart screenshot';},3000); }
+            const lbl=document.getElementById('media-zone-label');
+            if(lbl){lbl.style.display='block';lbl.style.color='#ffcc44';lbl.textContent='⚠ Use Ctrl+V or drag & drop instead';setTimeout(()=>{lbl.style.color='#333';lbl.textContent='🖼 Drop / Click to attach chart screenshot';},3000);}
         }
     },
 
@@ -1431,30 +1180,31 @@ Use null for missing values. No explanation, just the JSON object.`}
     },
 
     autoCalcTP(){
-        const rr    = parseFloat(document.getElementById('t-tp-rr').value)||0;
-        const entry = parseFloat(document.getElementById('t-entry').value)||0;
-        const sl    = parseFloat(document.getElementById('t-sl').value)||0;
-        const tpEl  = document.getElementById('t-tp');
-        if(rr===0){ tpEl.readOnly=false; tpEl.style.borderColor=''; tpEl.style.color='#fff'; return; }
-        if(!entry||!sl){ return; }
-        const slDist = Math.abs(entry-sl);
-        const dir    = sl<entry ? 1 : -1;
-        const tp     = entry + (slDist*rr*dir);
-        const dec    = Math.max((entry.toString().split('.')[1]||'').length,(sl.toString().split('.')[1]||'').length);
-        tpEl.value   = tp.toFixed(dec);
-        tpEl.readOnly=true; tpEl.style.borderColor='#44ff88'; tpEl.style.color='#44ff88';
+        const rr=parseFloat(document.getElementById('t-tp-rr').value)||0;
+        const entry=parseFloat(document.getElementById('t-entry').value)||0;
+        const sl=parseFloat(document.getElementById('t-sl').value)||0;
+        const tpEl=document.getElementById('t-tp');
+        if(rr===0){tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';return;}
+        if(!entry||!sl){return;}
+        const slDist=Math.abs(entry-sl);
+        const dir=sl<entry?1:-1;
+        const tp=entry+(slDist*rr*dir);
+        const dec=Math.max((entry.toString().split('.')[1]||'').length,(sl.toString().split('.')[1]||'').length);
+        tpEl.value=tp.toFixed(dec);
+        tpEl.readOnly=true;tpEl.style.borderColor='#44ff88';tpEl.style.color='#44ff88';
     },
 
     onManualTP(){
         document.getElementById('t-tp-rr').value='0';
         const tpEl=document.getElementById('t-tp');
-        tpEl.readOnly=false; tpEl.style.borderColor=''; tpEl.style.color='#fff';
+        tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';
     },
 
     async handleNewTrade(){
         const file=document.getElementById('t-img').files[0]; let imgData="";
         if(file){const reader=new FileReader();imgData=await new Promise(r=>{reader.readAsDataURL(file);reader.onload=e=>r(e.target.result);});}
-        else if(window._pastedMediaData){imgData=window._pastedMediaData;}        const entry=parseFloat(document.getElementById('t-entry').value)||0;
+        else if(window._pastedMediaData){imgData=window._pastedMediaData;}
+        const entry=parseFloat(document.getElementById('t-entry').value)||0;
         const exit=parseFloat(document.getElementById('t-exit').value)||0;
         const sl=parseFloat(document.getElementById('t-sl').value)||0;
         const tp=parseFloat(document.getElementById('t-tp').value)||0;
@@ -1462,31 +1212,19 @@ Use null for missing values. No explanation, just the JSON object.`}
         const mult=parseFloat(document.getElementById('t-asset').value);
         const side=document.getElementById('t-side').value;
         await addDoc(tradesCol,{user_id:currentUser,timestamp:Date.now(),symbol:document.getElementById('t-symbol').value.toUpperCase(),lots,side,session:document.getElementById('t-session').value,profit:(exit-entry)*lots*mult*(side==='BUY'?1:-1),entry,exit,sl,tp,date:document.getElementById('t-date').value,notes:document.getElementById('t-notes').value,img:imgData});
-        // Reset all form fields to defaults
-        ['t-symbol','t-lots','t-entry','t-sl','t-tp','t-exit','t-start','t-end','t-notes'].forEach(id=>{
-            const el=document.getElementById(id); if(el) el.value='';
-        });
-        // Reset TP field style (was possibly green from R:R auto)
+        ['t-symbol','t-lots','t-entry','t-sl','t-tp','t-exit','t-start','t-end','t-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
         const tpEl=document.getElementById('t-tp');
         if(tpEl){tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';}
-        // Reset selects to first option
-        ['t-session','t-asset','t-side','t-tp-rr'].forEach(id=>{
-            const el=document.getElementById(id); if(el) el.selectedIndex=0;
-        });
-        // Reset file input
-        const imgEl=document.getElementById('t-img'); if(imgEl) imgEl.value='';
-        // Reset scan zone
-        const scanEl=document.getElementById('t-scan-img'); if(scanEl) scanEl.value='';
-        const st=document.getElementById('scan-status'); if(st) st.textContent='';
-        // Reset media preview
-        const pi=document.getElementById('media-preview-img'); if(pi){pi.style.display='none';pi.src='';}
-        const ml=document.getElementById('media-zone-label'); if(ml) ml.style.display='block';
-        const mz=document.getElementById('media-zone'); if(mz) mz.classList.remove('media-focused');
-        const cb=document.getElementById('media-clear-btn'); if(cb) cb.style.display='none';
+        ['t-session','t-asset','t-side','t-tp-rr'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+        const imgEl=document.getElementById('t-img');if(imgEl)imgEl.value='';
+        const scanEl=document.getElementById('t-scan-img');if(scanEl)scanEl.value='';
+        const st=document.getElementById('scan-status');if(st)st.textContent='';
+        const pi=document.getElementById('media-preview-img');if(pi){pi.style.display='none';pi.src='';}
+        const ml=document.getElementById('media-zone-label');if(ml)ml.style.display='block';
+        const mz=document.getElementById('media-zone');if(mz)mz.classList.remove('media-focused');
+        const cb=document.getElementById('media-clear-btn');if(cb)cb.style.display='none';
         window._pastedMediaData=null;
-        // Keep date as today
-        const today=new Date().toISOString().split('T')[0];
-        document.getElementById('t-date').value=today;
+        document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
         this.syncData();
     },
 
@@ -1503,15 +1241,14 @@ Use null for missing values. No explanation, just the JSON object.`}
         const batch=writeBatch(db);
         const snap=await getDocs(query(tradesCol,where("user_id","==",currentUser)));
         snap.docs.forEach(d=>batch.delete(d.ref));
-        await batch.commit(); this.syncData();
+        await batch.commit();this.syncData();
     },
 
-
-        async exportPDF(){
+    async exportPDF(){
         const m=document.getElementById('export-month').value, y=document.getElementById('export-year').value;
         ['ana-month','cal-month','export-month'].forEach(id=>document.getElementById(id).value=m);
         ['ana-year','cal-year','export-year'].forEach(id=>document.getElementById(id).value=y);
-        this.renderAll(); document.body.classList.add('pdf-export-mode');
+        this.renderAll();document.body.classList.add('pdf-export-mode');
         const filename=m==='ALL'?'Journal_Report_All_Time.pdf':`Journal_Report_${m}_${y}.pdf`;
         await html2pdf().set({margin:0,filename,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#000000'},jsPDF:{unit:'in',format:'letter',orientation:'landscape'}}).from(document.getElementById('main-content')).save();
         document.body.classList.remove('pdf-export-mode');
@@ -1519,21 +1256,12 @@ Use null for missing values. No explanation, just the JSON object.`}
         ['export-month','ana-month','cal-month'].forEach(id=>document.getElementById(id).value=cm);
         ['export-year','ana-year','cal-year'].forEach(id=>document.getElementById(id).value=cy);
         this.renderAll();
-    },
-
-    async installApp(){
-        if(window._installPrompt){
-            window._installPrompt.prompt();
-            const {outcome} = await window._installPrompt.userChoice;
-            if(outcome==='accepted') window._installPrompt=null;
-        } else {
-            alert('To install:\n\niPhone/iPad → Tap Share → "Add to Home Screen"\nAndroid → Tap menu (⋮) → "Add to Home screen"\nDesktop Chrome → Click install icon in address bar ⊕');
-        }
     }
 };
 </script>
+
 <script>
-// ── PWA Install prompt capture ──
+// ── PWA Install ──
 window._installPrompt = null;
 
 window.addEventListener('beforeinstallprompt', e => {
@@ -1549,11 +1277,22 @@ window.addEventListener('appinstalled', () => {
     window._installPrompt = null;
 });
 
-if('serviceWorker' in navigator && location.hostname !== 'www.claudeusercontent.com'){
-    window.addEventListener('load',()=>{
+// Exposed globally so onclick="installApp()" works across module boundary
+window.installApp = async function() {
+    if(window._installPrompt){
+        window._installPrompt.prompt();
+        const {outcome} = await window._installPrompt.userChoice;
+        if(outcome === 'accepted') window._installPrompt = null;
+    } else {
+        alert('To install:\n\niPhone/iPad → Tap Share → "Add to Home Screen"\nAndroid → Tap menu (⋮) → "Add to Home screen"\nDesktop Chrome → Click install icon in address bar ⊕');
+    }
+};
+
+if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
-            .then(()=>console.log('SW registered'))
-            .catch(e=>console.log('SW failed:',e));
+            .then(() => console.log('SW registered'))
+            .catch(e => console.log('SW failed:', e));
     });
 }
 </script>
