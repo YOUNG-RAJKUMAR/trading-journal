@@ -873,7 +873,7 @@ window.ui={
             return true;
         }).forEach(t=>{
             const d=new Date(t.date), monthStr=`${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-            if(monthStr!==currentMonth){body.insertAdjacentHTML('beforeend',`<tr class="month-header"><td colspan="10">${monthStr.toUpperCase()}</td></tr>`);currentMonth=monthStr;}
+            if(monthStr!==currentMonth){body.insertAdjacentHTML('beforeend',`<tr class="month-header"><td colspan="11">${monthStr.toUpperCase()}</td></tr>`);currentMonth=monthStr;}
             const rr=this.calcRR(t), outcome=this.getOutcome(t);
             const fmt=v=>v?parseFloat(v).toFixed(5):'---';
             const priceCell=`<div class="price-cell">
@@ -1322,7 +1322,22 @@ window.ui={
                     model:'claude-sonnet-4-20250514',max_tokens:200,
                     messages:[{role:'user',content:[
                         {type:'image',source:{type:'base64',media_type:file.type||'image/png',data:base64}},
-                        {type:'text',text:'Extract from this trading screenshot: entry_price, sl_price, and side (BUY or SELL). Respond ONLY with JSON like {"entry_price":"1.33003","sl_price":"1.33093","side":"SELL"}. Use null for any value not visible. No explanation, just JSON.'}
+                        {type:'text',text:`You are reading a trading platform screenshot (could be TradingView, MT4, MT5, City Index, or any broker platform).
+
+Extract these 3 values:
+1. entry_price: The entry price or open price of the trade
+2. sl_price: The stop loss price. Look for "Stop Level > Price", "SL", "Stop Loss", or "Stop" labels
+3. side: BUY or SELL. Look for "Long Position", "Short Position", "BUY", "SELL", "Long", "Short"
+
+IMPORTANT - TradingView format notes:
+- "Entry price" field = entry_price
+- "STOP LEVEL > Price" field = sl_price (NOT the Ticks field)
+- "PROFIT LEVEL > Price" field = tp_price (ignore this)
+- "Short Position" title = SELL side
+- "Long Position" title = BUY side
+
+Respond ONLY with JSON: {"entry_price":"1.15949","sl_price":"1.16036","side":"SELL"}
+Use null for any value not found. No explanation, just JSON.`}
                     ]}]
                 })
             });
