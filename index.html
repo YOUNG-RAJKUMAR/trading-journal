@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>JOURNAL // Ultimate Pro</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RK Journal">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -146,7 +155,9 @@
         .scan-zone-label span { color:#fff; }
         .scan-status { font-size:0.65rem; margin-top:6px; letter-spacing:1px; min-height:14px; }
         /* ── TRADE MEDIA ZONE ── */
-        .media-zone { border:1px dashed #222; padding:14px; text-align:center; cursor:pointer; position:relative; background:#050505; grid-column:span 2; margin-top:4px; }
+        .media-zone { border:1px dashed #222; padding:14px; text-align:center; cursor:pointer; position:relative; background:#050505; grid-column:span 2; margin-top:4px; transition:border-color 0.2s; }
+        .media-zone:hover, .media-zone.drag-over, .media-zone.media-focused { border-color:#555; }
+        .media-zone.media-focused { border-color:#44ff88; }
         .media-zone:hover { border-color:#555; }
         .media-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
         .media-preview { max-width:100%; max-height:120px; object-fit:contain; margin-top:8px; border:1px solid #222; display:none; }
@@ -179,6 +190,7 @@
             </div>
             <button class="btn-action" onclick="ui.undoLast()">Undo</button>
             <button class="btn-action" onclick="ui.resetAll()">Reset Cloud</button>
+            <button id="install-btn" class="btn-action" onclick="ui.installApp()" style="display:none;background:#44ff88;color:#000;font-weight:600;border-color:#44ff88;">&#11015; Install App</button>
             <button class="btn-action" onclick="location.reload()">Logout</button>
         </div>
     </header>
@@ -261,10 +273,19 @@
                         <!-- ② TRADE MEDIA -->
                         <div style="grid-column:span 2;">
                             <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9313; Trade Media — Chart Screenshot (saved to record)</div>
-                            <div class="media-zone" id="media-zone">
+                            <div class="media-zone" id="media-zone"
+                                ondragover="event.preventDefault();this.classList.add('drag-over')"
+                                ondragleave="this.classList.remove('drag-over')"
+                                ondrop="event.preventDefault();this.classList.remove('drag-over');ui.dropMedia(event)">
                                 <input type="file" id="t-img" accept="image/*" onchange="ui.previewMedia(this)">
-                                <div id="media-zone-label" style="font-size:0.65rem;color:#333;letter-spacing:1px;">&#128444; Drop / Click to attach chart screenshot</div>
+                                <div id="media-zone-label" style="font-size:0.65rem;color:#333;letter-spacing:1px;pointer-events:none;">&#128444; Drop / Click to attach chart screenshot</div>
                                 <img id="media-preview-img" class="media-preview">
+                            </div>
+                            <div style="display:flex;gap:6px;margin-top:6px;">
+                                <button onclick="ui.pasteMediaFromClipboard()" style="flex:1;background:#0a0a0a;border:1px solid #333;color:#888;padding:8px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;" title="Paste screenshot from clipboard (Ctrl+V)">
+                                    &#128203; Paste Screenshot
+                                </button>
+                                <button onclick="ui.clearMedia()" id="media-clear-btn" style="background:#0a0a0a;border:1px solid #2a0000;color:#ff4444;padding:8px 12px;font-size:0.65rem;cursor:pointer;display:none;" title="Remove screenshot">✕</button>
                             </div>
                         </div>
                         <textarea id="t-notes" placeholder="Notes..." style="grid-column:span 2;"></textarea>
@@ -597,10 +618,15 @@ function doLogin(u){
     document.getElementById('display-user').innerText=u;
     ui.init();
 }
-// ── Paste image anywhere → triggers AI scan ──
+// ── Ctrl+V anywhere → AI scan (section ①) ──
 document.addEventListener('paste',e=>{
-    const items=e.clipboardData?.items;if(!items)return;
-    for(const item of items){if(item.type.startsWith('image/')){window.ui.scanTradeImage(item.getAsFile());break;}}
+    const items=e.clipboardData?.items; if(!items) return;
+    for(const item of items){
+        if(item.type.startsWith('image/')){
+            window.ui.scanTradeImage(item.getAsFile());
+            break;
+        }
+    }
 });
 
 // ── Auto-restore session on refresh without re-login ──
@@ -1341,13 +1367,64 @@ Use null for missing values. No explanation, just the JSON object.`}
         }
     },
     handleScanDrop(e){const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))this.scanTradeImage(f);},
-    previewMedia(input){
-        const f=input.files[0];if(!f)return;
+
+    dropMedia(e){
+        const f=e.dataTransfer.files[0];
+        if(f&&f.type.startsWith('image/')) this.pasteMedia(f);
+    },
+
+    async pasteMediaFromClipboard(){
+        try{
+            const items = await navigator.clipboard.read();
+            for(const item of items){
+                const imgType = item.types.find(t=>t.startsWith('image/'));
+                if(imgType){
+                    const blob = await item.getType(imgType);
+                    const file = new File([blob], 'paste.png', {type:imgType});
+                    this.pasteMedia(file);
+                    return;
+                }
+            }
+            // Fallback message if no image in clipboard
+            const st = document.getElementById('media-zone-label');
+            if(st){ st.style.display='block'; st.style.color='#ffcc44'; st.textContent='⚠ No image in clipboard — copy a screenshot first'; setTimeout(()=>{st.style.color='#333';st.textContent='🖼 Drop / Click to attach chart screenshot';},3000); }
+        }catch(e){
+            // Clipboard API not supported or permission denied — show fallback
+            const lbl = document.getElementById('media-zone-label');
+            if(lbl){ lbl.style.display='block'; lbl.style.color='#ffcc44'; lbl.textContent='⚠ Use Ctrl+V or drag & drop instead'; setTimeout(()=>{lbl.style.color='#333';lbl.textContent='🖼 Drop / Click to attach chart screenshot';},3000); }
+        }
+    },
+
+    clearMedia(){
+        window._pastedMediaData=null;
+        const imgEl=document.getElementById('t-img'); if(imgEl) imgEl.value='';
+        const pi=document.getElementById('media-preview-img'); if(pi){pi.style.display='none';pi.src='';}
+        const ml=document.getElementById('media-zone-label'); if(ml){ml.style.display='block';ml.style.color='#333';ml.textContent='🖼 Drop / Click to attach chart screenshot';}
+        const cb=document.getElementById('media-clear-btn'); if(cb) cb.style.display='none';
+    },
+
+    pasteMedia(file){
+        if(!file) return;
         const r=new FileReader();
         r.onload=e=>{
             const img=document.getElementById('media-preview-img');
-            img.src=e.target.result;img.style.display='block';
-            const lbl=document.getElementById('media-zone-label');if(lbl)lbl.style.display='none';
+            img.src=e.target.result; img.style.display='block';
+            const lbl=document.getElementById('media-zone-label'); if(lbl) lbl.style.display='none';
+            const cb=document.getElementById('media-clear-btn'); if(cb) cb.style.display='block';
+            window._pastedMediaData=e.target.result;
+        };
+        r.readAsDataURL(file);
+    },
+
+    previewMedia(input){
+        const f=input.files[0];if(!f)return;
+        window._pastedMediaData=null;
+        const r=new FileReader();
+        r.onload=e=>{
+            const img=document.getElementById('media-preview-img');
+            img.src=e.target.result; img.style.display='block';
+            const lbl=document.getElementById('media-zone-label'); if(lbl) lbl.style.display='none';
+            const cb=document.getElementById('media-clear-btn'); if(cb) cb.style.display='block';
         };
         r.readAsDataURL(f);
     },
@@ -1376,7 +1453,7 @@ Use null for missing values. No explanation, just the JSON object.`}
     async handleNewTrade(){
         const file=document.getElementById('t-img').files[0]; let imgData="";
         if(file){const reader=new FileReader();imgData=await new Promise(r=>{reader.readAsDataURL(file);reader.onload=e=>r(e.target.result);});}
-        const entry=parseFloat(document.getElementById('t-entry').value)||0;
+        else if(window._pastedMediaData){imgData=window._pastedMediaData;}        const entry=parseFloat(document.getElementById('t-entry').value)||0;
         const exit=parseFloat(document.getElementById('t-exit').value)||0;
         const sl=parseFloat(document.getElementById('t-sl').value)||0;
         const tp=parseFloat(document.getElementById('t-tp').value)||0;
@@ -1403,10 +1480,13 @@ Use null for missing values. No explanation, just the JSON object.`}
         // Reset media preview
         const pi=document.getElementById('media-preview-img'); if(pi){pi.style.display='none';pi.src='';}
         const ml=document.getElementById('media-zone-label'); if(ml) ml.style.display='block';
+        const mz=document.getElementById('media-zone'); if(mz) mz.classList.remove('media-focused');
+        const cb=document.getElementById('media-clear-btn'); if(cb) cb.style.display='none';
+        window._pastedMediaData=null;
         // Keep date as today
         const today=new Date().toISOString().split('T')[0];
         document.getElementById('t-date').value=today;
-        this.updateLiveRR(); this.syncData();
+        this.syncData();
     },
 
     async undoLast(){
@@ -1440,6 +1520,43 @@ Use null for missing values. No explanation, just the JSON object.`}
         this.renderAll();
     }
 };
+</script>
+<script>
+// ── PWA Install ──
+let _installPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _installPrompt = e;
+    const btn = document.getElementById('install-btn');
+    if(btn) btn.style.display = 'block';
+});
+
+window.addEventListener('appinstalled', () => {
+    const btn = document.getElementById('install-btn');
+    if(btn) btn.style.display = 'none';
+    _installPrompt = null;
+});
+
+window.ui = window.ui || {};
+window.ui.installApp = async function(){
+    if(_installPrompt){
+        _installPrompt.prompt();
+        const { outcome } = await _installPrompt.userChoice;
+        if(outcome === 'accepted') _installPrompt = null;
+    } else {
+        // Fallback for iOS Safari or if prompt already fired
+        alert('To install:\n\niPhone/iPad: Tap Share → "Add to Home Screen"\n\nAndroid: Tap menu (⋮) → "Add to Home screen"\n\nDesktop Chrome: Click install icon in address bar');
+    }
+};
+
+if('serviceWorker' in navigator && location.hostname !== 'www.claudeusercontent.com'){
+    window.addEventListener('load',()=>{
+        navigator.serviceWorker.register('sw.js')
+            .then(()=>console.log('SW registered'))
+            .catch(e=>console.log('SW failed:',e));
+    });
+}
 </script>
 </body>
 </html>
