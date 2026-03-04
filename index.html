@@ -48,16 +48,6 @@
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
         .save-btn { background: #fff; color: #000; font-weight: 600; cursor: pointer; border: none; padding: 14px; width: 100%; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; }
 
-        /* ── LIVE R:R BOX ── */
-        .rr-live-box { display: flex; align-items: center; justify-content: space-between; background: #050505; border: 1px solid var(--border); padding: 12px 16px; margin-top: 2px; grid-column: span 2; }
-        .rr-live-label { font-size: 0.55rem; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 3px; }
-        .rr-live-value { font-size: 1.6rem; font-weight: 300; letter-spacing: 3px; }
-        .rr-live-value.good { color: var(--positive); }
-        .rr-live-value.bad  { color: var(--negative); }
-        .rr-live-value.na   { color: #2a2a2a; }
-        .rr-live-meta { font-size: 0.62rem; color: #444; text-align: right; line-height: 1.8; }
-        .rr-live-meta b { color: #777; }
-
         /* ── CALCULATOR PANEL ── */
         .calc-panel { background: var(--surface); border: 1px solid var(--border); padding: 25px; margin-bottom: 20px; }
         .calc-input-row { margin-bottom: 12px; }
@@ -231,8 +221,8 @@
                             <option value="BUY">Long</option>
                             <option value="SELL">Short</option>
                         </select>
-                        <input type="number" id="t-entry" placeholder="Entry Price" oninput="ui.autoCalcTP();ui.updateLiveRR()">
-                        <input type="number" id="t-sl"    placeholder="Stop Loss"   oninput="ui.autoCalcTP();ui.updateLiveRR()">
+                        <input type="number" id="t-entry" placeholder="Entry Price" oninput="ui.autoCalcTP()">
+                        <input type="number" id="t-sl"    placeholder="Stop Loss"   oninput="ui.autoCalcTP()">
                         <div style="display:flex;flex-direction:column;gap:5px;">
                             <select id="t-tp-rr" onchange="ui.autoCalcTP()" style="width:100%;padding:10px;font-size:0.75rem;">
                                 <option value="0">Manual TP Price</option>
@@ -253,17 +243,6 @@
                             <div style="display:flex;gap:5px;">
                                 <button style="flex:1;font-size:0.6rem;color:var(--positive);padding:7px;" onclick="ui.quickHit('TP')">TP Hit</button>
                                 <button style="flex:1;font-size:0.6rem;color:var(--negative);padding:7px;" onclick="ui.quickHit('SL')">SL Hit</button>
-                            </div>
-                        </div>
-
-                        <!-- LIVE R:R -->
-                        <div class="rr-live-box">
-                            <div>
-                                <div class="rr-live-label">Live Risk : Reward</div>
-                                <div class="rr-live-value na" id="rr-live-val">— : —</div>
-                            </div>
-                            <div class="rr-live-meta" id="rr-live-meta">
-                                Enter Entry, SL &amp; TP<br>to calculate
                             </div>
                         </div>
 
@@ -738,21 +717,6 @@ window.ui={
     },
 
     /* ══ LIVE R:R IN FORM ══ */
-    updateLiveRR(){
-        const entry=parseFloat(document.getElementById('t-entry').value)||0;
-        const sl=parseFloat(document.getElementById('t-sl').value)||0;
-        const tp=parseFloat(document.getElementById('t-tp').value)||0;
-        const valEl=document.getElementById('rr-live-val'), metEl=document.getElementById('rr-live-meta');
-        if(!entry||!sl||!tp){valEl.textContent='— : —';valEl.className='rr-live-value na';metEl.innerHTML='Enter Entry, SL &amp; TP<br>to calculate';return;}
-        const risk=Math.abs(entry-sl),reward=Math.abs(tp-entry);
-        if(!risk){valEl.textContent='Invalid';valEl.className='rr-live-value bad';metEl.innerHTML='Entry = Stop Loss';return;}
-        const ratio=reward/risk;
-        valEl.textContent=`1 : ${parseFloat(ratio.toFixed(2))}`;
-        valEl.className=`rr-live-value ${ratio>=1?'good':'bad'}`;
-        metEl.innerHTML=`Risk &nbsp;&nbsp;: <b>${risk.toFixed(5)}</b><br>Reward : <b>${reward.toFixed(5)}</b>`;
-    },
-
-
     autoSetTPTicks(){
         const rr  = parseFloat(document.getElementById('c-rr-target').value)||0;
         const sl  = parseFloat(document.getElementById('c-sl-ticks').value)||0;
@@ -1367,7 +1331,7 @@ Use null for missing values. No explanation, just the JSON object.`}
             if(p.sl_price&&p.sl_price!='null'){document.getElementById('t-sl').value=p.sl_price;filled++;}
             if(p.side&&p.side!='null'){const s=p.side.toUpperCase();if(s==='BUY'||s==='SELL')document.getElementById('t-side').value=s;}
             document.getElementById('t-tp-rr').value='1';
-            this.autoCalcTP(); this.updateLiveRR();
+            this.autoCalcTP();
             st.style.color=filled>0?'#44ff88':'#ffcc44';
             st.textContent=filled>0?`✓ Got ${filled} value${filled>1?'s':''} — verify before logging`:'⚠ Could not read prices — enter manually';
         }catch(e){
@@ -1393,22 +1357,20 @@ Use null for missing values. No explanation, just the JSON object.`}
         const entry = parseFloat(document.getElementById('t-entry').value)||0;
         const sl    = parseFloat(document.getElementById('t-sl').value)||0;
         const tpEl  = document.getElementById('t-tp');
-        if(rr===0){ tpEl.readOnly=false; tpEl.style.borderColor=''; tpEl.style.color='#fff'; this.updateLiveRR(); return; }
-        if(!entry||!sl){ this.updateLiveRR(); return; }
+        if(rr===0){ tpEl.readOnly=false; tpEl.style.borderColor=''; tpEl.style.color='#fff'; return; }
+        if(!entry||!sl){ return; }
         const slDist = Math.abs(entry-sl);
         const dir    = sl<entry ? 1 : -1;
         const tp     = entry + (slDist*rr*dir);
         const dec    = Math.max((entry.toString().split('.')[1]||'').length,(sl.toString().split('.')[1]||'').length);
         tpEl.value   = tp.toFixed(dec);
         tpEl.readOnly=true; tpEl.style.borderColor='#44ff88'; tpEl.style.color='#44ff88';
-        this.updateLiveRR();
     },
 
     onManualTP(){
         document.getElementById('t-tp-rr').value='0';
         const tpEl=document.getElementById('t-tp');
         tpEl.readOnly=false; tpEl.style.borderColor=''; tpEl.style.color='#fff';
-        this.updateLiveRR();
     },
 
     async handleNewTrade(){
