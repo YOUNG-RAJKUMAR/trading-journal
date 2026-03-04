@@ -1316,7 +1316,7 @@ window.ui={
         });
         try{
             const GEMINI_KEY='AIzaSyBhH6SV6VAeW0LVLvx-CfvmqJL1mhrFrRM';
-            const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
+            const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{
                 method:'POST',
                 headers:{'Content-Type':'application/json'},
                 body:JSON.stringify({
@@ -1342,7 +1342,20 @@ Use null for missing values. No explanation, just JSON.`}
                 })
             });
             const res=await resp.json();
+            // Check for API error response
+            if(res.error){
+                st.style.color='#ff4444';
+                st.textContent=`✗ API Error: ${res.error.message||res.error.status}`;
+                console.error('Gemini error:', res.error);
+                return;
+            }
             const txt=((res.candidates?.[0]?.content?.parts?.[0]?.text)||'').replace(/```json|```/g,'').trim();
+            if(!txt){
+                st.style.color='#ff4444';
+                st.textContent='✗ No response from AI — try again';
+                console.error('Empty Gemini response:', res);
+                return;
+            }
             const p=JSON.parse(txt);
             let filled=0;
             if(p.entry_price&&p.entry_price!='null'){document.getElementById('t-entry').value=p.entry_price;filled++;}
@@ -1354,7 +1367,8 @@ Use null for missing values. No explanation, just JSON.`}
             st.textContent=filled>0?`✓ Got ${filled} value${filled>1?'s':''} — verify before logging`:'⚠ Could not read prices — enter manually';
         }catch(e){
             st.style.color='#ff4444';
-            st.textContent='✗ Scan failed — enter prices manually';
+            st.textContent=`✗ Error: ${e.message} — check console (F12)`;
+            console.error('Scan error:', e);
         }
     },
     handleScanDrop(e){const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))this.scanTradeImage(f);},
