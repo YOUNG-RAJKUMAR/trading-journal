@@ -240,13 +240,116 @@
         </div>
     </div>
 
-    <!-- ══ CHARTS TAB (hidden, kept for PDF export compat) ══ -->
-    <div id="tab-charts" class="tab-content">
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;gap:20px;">
-            <div style="font-size:3rem;">📈</div>
-            <div style="font-size:0.7rem;color:#555;letter-spacing:3px;text-transform:uppercase;">Trading Desk</div>
-            <div style="font-size:0.65rem;color:#333;text-transform:uppercase;letter-spacing:1px;">Opening in new window...</div>
-            <button onclick="ui.launchTradingDesk()" style="background:#44ff88;color:#000;border:none;padding:14px 30px;font-size:0.75rem;font-weight:700;cursor:pointer;letter-spacing:2px;text-transform:uppercase;">⚡ Launch Trading Desk</button>
+    <!-- ══ CHARTS TAB ══ -->
+    <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
+        <!-- Toolbar -->
+        <div id="desk-toolbar" style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-wrap:wrap;">
+            <span style="font-size:.52rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-right:4px;">Colors</span>
+
+            <div style="display:flex;align-items:center;gap:4px;">
+                <label style="font-size:.55rem;color:#555;">BG</label>
+                <input type="color"  id="tv-bg"          value="#000000" oninput="syncHex('tv-bg','tv-bg-hex');ui.rebuildTVWidget()" style="width:24px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px;">
+                <input type="text"   id="tv-bg-hex"       value="#000000" oninput="syncPicker('tv-bg-hex','tv-bg');ui.rebuildTVWidget()" maxlength="7" style="width:62px;background:#0d0d0d;border:1px solid #222;color:#aaa;padding:3px 5px;font-size:.65rem;font-family:monospace;border-radius:2px;outline:none;">
+            </div>
+
+            <div style="display:flex;align-items:center;gap:4px;">
+                <label style="font-size:.55rem;color:#555;">Up</label>
+                <input type="color"  id="tv-up"           value="#26a69a" oninput="syncHex('tv-up','tv-up-hex');ui.rebuildTVWidget()" style="width:24px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px;">
+                <input type="text"   id="tv-up-hex"        value="#26a69a" oninput="syncPicker('tv-up-hex','tv-up');ui.rebuildTVWidget()" maxlength="7" style="width:62px;background:#0d0d0d;border:1px solid #222;color:#aaa;padding:3px 5px;font-size:.65rem;font-family:monospace;border-radius:2px;outline:none;">
+            </div>
+
+            <div style="display:flex;align-items:center;gap:4px;">
+                <label style="font-size:.55rem;color:#555;">Down</label>
+                <input type="color"  id="tv-down"         value="#ef5350" oninput="syncHex('tv-down','tv-down-hex');ui.rebuildTVWidget()" style="width:24px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px;">
+                <input type="text"   id="tv-down-hex"      value="#ef5350" oninput="syncPicker('tv-down-hex','tv-down');ui.rebuildTVWidget()" maxlength="7" style="width:62px;background:#0d0d0d;border:1px solid #222;color:#aaa;padding:3px 5px;font-size:.65rem;font-family:monospace;border-radius:2px;outline:none;">
+            </div>
+
+            <div style="display:flex;align-items:center;gap:4px;">
+                <label style="font-size:.55rem;color:#555;">Up Border</label>
+                <input type="color"  id="tv-upborder"     value="#26a69a" oninput="syncHex('tv-upborder','tv-upborder-hex');ui.rebuildTVWidget()" style="width:24px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px;">
+                <input type="text"   id="tv-upborder-hex"  value="#26a69a" oninput="syncPicker('tv-upborder-hex','tv-upborder');ui.rebuildTVWidget()" maxlength="7" style="width:62px;background:#0d0d0d;border:1px solid #222;color:#aaa;padding:3px 5px;font-size:.65rem;font-family:monospace;border-radius:2px;outline:none;">
+            </div>
+
+            <div style="display:flex;align-items:center;gap:4px;">
+                <label style="font-size:.55rem;color:#555;">Down Border</label>
+                <input type="color"  id="tv-downborder"   value="#ef5350" oninput="syncHex('tv-downborder','tv-downborder-hex');ui.rebuildTVWidget()" style="width:24px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px;">
+                <input type="text"   id="tv-downborder-hex" value="#ef5350" oninput="syncPicker('tv-downborder-hex','tv-downborder');ui.rebuildTVWidget()" maxlength="7" style="width:62px;background:#0d0d0d;border:1px solid #222;color:#aaa;padding:3px 5px;font-size:.65rem;font-family:monospace;border-radius:2px;outline:none;">
+            </div>
+
+            <div style="display:flex;align-items:center;gap:4px;">
+                <label style="font-size:.55rem;color:#555;">Up Wick</label>
+                <input type="color"  id="tv-upwick"       value="#26a69a" oninput="syncHex('tv-upwick','tv-upwick-hex');ui.rebuildTVWidget()" style="width:24px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px;">
+                <input type="text"   id="tv-upwick-hex"    value="#26a69a" oninput="syncPicker('tv-upwick-hex','tv-upwick');ui.rebuildTVWidget()" maxlength="7" style="width:62px;background:#0d0d0d;border:1px solid #222;color:#aaa;padding:3px 5px;font-size:.65rem;font-family:monospace;border-radius:2px;outline:none;">
+            </div>
+
+            <div style="display:flex;align-items:center;gap:4px;">
+                <label style="font-size:.55rem;color:#555;">Down Wick</label>
+                <input type="color"  id="tv-downwick"     value="#ef5350" oninput="syncHex('tv-downwick','tv-downwick-hex');ui.rebuildTVWidget()" style="width:24px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px;">
+                <input type="text"   id="tv-downwick-hex"  value="#ef5350" oninput="syncPicker('tv-downwick-hex','tv-downwick');ui.rebuildTVWidget()" maxlength="7" style="width:62px;background:#0d0d0d;border:1px solid #222;color:#aaa;padding:3px 5px;font-size:.65rem;font-family:monospace;border-radius:2px;outline:none;">
+            </div>
+
+            <button onclick="ui.resetTVColors()" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#666;padding:4px 10px;font-size:.56rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border-radius:2px;margin-left:4px;">↺ Reset</button>
+        </div>
+        <!-- Split: chart left, calculator right -->
+        <div style="display:flex;height:calc(100vh - 160px);">
+            <!-- TradingView -->
+            <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
+            <!-- Calculator -->
+            <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
+                    <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;">
+                        <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;"></span>
+                        &#9878; LOT CALCULATOR
+                    </div>
+                    <button onclick="deskRs()" style="background:transparent;border:1px solid #222;color:#555;padding:3px 8px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;">&#8635; Reset</button>
+                </div>
+                <div style="flex:1;overflow-y:auto;padding:12px;">
+                    <div style="display:flex;align-items:center;gap:7px;background:#050505;border:1px solid #1a3a1a;padding:7px 10px;border-radius:3px;margin-bottom:12px;">
+                        <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;"></span>
+                        <span style="font-size:.9rem;font-weight:700;color:#44ff88;letter-spacing:2px;">EURUSD</span>
+                    </div>
+                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Account Balance ($)</label><input type="number" id="d-bal" placeholder="e.g. 10000" oninput="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
+                    <div style="display:flex;margin-bottom:9px;">
+                        <button id="d-pb" onclick="deskSm('pct')" style="flex:1;padding:7px;font-size:.6rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;background:#050505;color:#444;border:1px solid #1a1a1a;border-right:none;">Risk %</button>
+                        <button id="d-ab" onclick="deskSm('amt')" style="flex:1;padding:7px;font-size:.6rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;background:#fff;color:#000;border:1px solid #fff;font-weight:700;">Risk $</button>
+                    </div>
+                    <div id="d-pr" style="display:none;margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Risk %</label><input type="number" id="d-rp" placeholder="1" step="0.1" min="0" oninput="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
+                    <div id="d-ar" style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Fixed Risk ($)</label><input type="number" id="d-ra" placeholder="100" value="0" min="0" oninput="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
+                    <hr style="border:none;border-top:1px solid #1a1a1a;margin:10px 0;">
+                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Instrument</label>
+                        <select id="d-inst" onchange="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;">
+                            <option value="forex">Forex</option><option value="gold">Gold</option><option value="indices">Indices</option><option value="crypto">Crypto</option>
+                        </select>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;">
+                        <div><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL (ticks)</label><input type="number" id="d-sl" placeholder="50" min="0" step="1" oninput="deskAtp();deskCl();" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
+                        <div><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Target R:R</label>
+                            <select id="d-rr" onchange="deskAtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;">
+                                <option value="0">Manual TP</option><option value="0.5">1:0.5</option><option value="1" selected>1:1</option><option value="1.5">1:1.5</option><option value="2">1:2</option><option value="2.5">1:2.5</option><option value="3">1:3</option><option value="4">1:4</option><option value="5">1:5</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP (ticks) <span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">&#9679; AUTO</span></label><input type="number" id="d-tp" placeholder="100" min="0" step="1" oninput="deskMtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;">
+                        <div id="d-rcl" style="grid-column:span 2;background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Lot Size</div><div id="d-rl" style="font-size:1.4rem;color:#44ff88;font-weight:700;">---</div><div id="d-rls" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">Enter values</div></div>
+                        <div id="d-rcr" style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Risk ($)</div><div id="d-rr2" style="font-size:.88rem;color:#ff4444;">---</div><div id="d-rrs" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">---</div></div>
+                        <div id="d-rcp" style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Profit ($)</div><div id="d-rp2" style="font-size:.88rem;color:#44ff88;">---</div><div id="d-rps" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">---</div></div>
+                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL Ticks</div><div id="d-rsout" style="font-size:.88rem;color:#fff;">---</div></div>
+                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP Ticks</div><div id="d-rt" style="font-size:.88rem;color:#fff;">---</div></div>
+                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">R:R</div><div id="d-rrr" style="font-size:.88rem;color:#fff;">---</div></div>
+                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Tick Val</div><div id="d-rtv" style="font-size:.88rem;color:#fff;">---</div></div>
+                    </div>
+                    <div id="d-qs" style="margin-top:12px;display:none;">
+                        <div style="font-size:.44rem;color:#2a2a2a;text-transform:uppercase;letter-spacing:1px;padding-top:10px;border-top:1px solid #1a1a1a;margin-bottom:7px;">Quick Risk Reference</div>
+                        <table style="width:100%;border-collapse:collapse;"><thead><tr>
+                            <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">%</th>
+                            <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">$Risk</th>
+                            <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">Lots</th>
+                            <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">Profit</th>
+                        </tr></thead><tbody id="d-qb"></tbody></table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -419,47 +522,91 @@ window.ui = {
         }
     },
 
-    /* ══ TAB SWITCHING — Charts tab launches Trading Desk directly ══ */
+    /* ══ TAB SWITCHING ══ */
     switchTab(id) {
-        if(id === 'charts') {
-            this.launchTradingDesk();
-            return;
-        }
         document.querySelectorAll('.tab-content,.tab-btn').forEach(el => el.classList.remove('active'));
         document.getElementById(`tab-${id}`).classList.add('active');
         document.getElementById(`btn-${id}`).classList.add('active');
         if(id === 'analytics') this.renderAnalytics();
         if(id === 'calendar')  { this.renderCalendar(); this.updateSideStats(); }
         if(id === 'journal')   this.renderJournal();
+        if(id === 'charts')    this.launchTradingDesk();
     },
 
     /* TRADING DESK */
     _tf: '240',
     _tvWidget: null,
 
+    _tvColors() {
+        const g = id => document.getElementById(id)?.value || null;
+        return {
+            bg:          g('tv-bg')        || '#000000',
+            up:          g('tv-up')        || '#26a69a',
+            down:        g('tv-down')      || '#ef5350',
+            upBorder:    g('tv-upborder')  || '#26a69a',
+            downBorder:  g('tv-downborder')|| '#ef5350',
+            upWick:      g('tv-upwick')    || '#26a69a',
+            downWick:    g('tv-downwick')  || '#ef5350',
+        };
+    },
+
     launchTradingDesk() {
-        // Show overlay — no window.open() needed, works in PWA and browser identically
-        const overlay = document.getElementById('desk-overlay');
-        overlay.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        // Init TradingView widget once
-        if (!this._tvWidget) {
-            this._tvWidget = new TradingView.widget({
-                container_id: 'tv-container',
-                autosize: true,
-                symbol: 'OANDA:EURUSD',
-                interval: this._tf,
-                timezone: 'Asia/Kathmandu',
-                theme: 'dark',
-                style: '1',
-                locale: 'en',
-                toolbar_bg: '#000000',
-                enable_publishing: false,
-                hide_side_toolbar: false,
-                allow_symbol_change: true,
-                save_image: false
-            });
+        const c = this._tvColors();
+        const container = document.getElementById('tv-container');
+        if (!container) return;
+        // Destroy previous widget if exists
+        if (this._tvWidget) {
+            try { container.innerHTML = ''; } catch(e) {}
+            this._tvWidget = null;
         }
+        this._tvWidget = new TradingView.widget({
+            container_id: 'tv-container',
+            autosize: true,
+            symbol: 'OANDA:EURUSD',
+            interval: this._tf,
+            timezone: 'Asia/Kathmandu',
+            theme: 'dark',
+            style: '1',
+            locale: 'en',
+            toolbar_bg: c.bg,
+            enable_publishing: false,
+            hide_side_toolbar: false,
+            allow_symbol_change: true,
+            save_image: false,
+            overrides: {
+                "paneProperties.background":             c.bg,
+                "paneProperties.backgroundType":         "solid",
+                "paneProperties.vertGridProperties.color":  "rgba(0,0,0,0)",
+                "paneProperties.horzGridProperties.color":  "rgba(0,0,0,0)",
+                "mainSeriesProperties.candleStyle.upColor":          c.up,
+                "mainSeriesProperties.candleStyle.downColor":        c.down,
+                "mainSeriesProperties.candleStyle.borderUpColor":    c.upBorder,
+                "mainSeriesProperties.candleStyle.borderDownColor":  c.downBorder,
+                "mainSeriesProperties.candleStyle.wickUpColor":      c.upWick,
+                "mainSeriesProperties.candleStyle.wickDownColor":    c.downWick,
+                "mainSeriesProperties.candleStyle.drawWick":         true,
+                "mainSeriesProperties.candleStyle.drawBorder":       true,
+            }
+        });
+    },
+
+    rebuildTVWidget() {
+        // Debounce — wait 400ms after last color change before rebuilding
+        clearTimeout(this._tvRebuildTimer);
+        this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
+    },
+
+    resetTVColors() {
+        const defaults = {
+            'tv-bg':'#000000','tv-up':'#26a69a','tv-down':'#ef5350',
+            'tv-upborder':'#26a69a','tv-downborder':'#ef5350',
+            'tv-upwick':'#26a69a','tv-downwick':'#ef5350'
+        };
+        Object.entries(defaults).forEach(([id,val]) => {
+            const el = document.getElementById(id); if(el) el.value = val;
+            const hex = document.getElementById(id+'-hex'); if(hex) hex.value = val;
+        });
+        this.launchTradingDesk();
     },
 
     /* ══ JOURNAL HELPERS ══ */
@@ -851,96 +998,70 @@ if('serviceWorker' in navigator) {
 }
 </script>
 
-<!-- TradingView -->
+
+<!-- TradingView widget library -->
 <script src="https://s3.tradingview.com/tv.js"></script>
 
-<!-- ══ TRADING DESK OVERLAY ══ -->
-<div id="desk-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#000;flex-direction:row;">
-    <!-- LEFT: TradingView chart -->
-    <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
-    <!-- RIGHT: Calculator panel -->
-    <div id="calc-panel" style="width:360px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:2px solid #1a1a1a;height:44px;flex-shrink:0;">
-            <div style="font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:7px;">
-                <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;"></span>
-                &#9878; LOT CALCULATOR
-            </div>
-            <div style="display:flex;gap:6px;align-items:center;">
-                <button onclick="deskRs()" style="background:transparent;border:1px solid #222;color:#444;padding:3px 9px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;letter-spacing:1px;">&#8635; Reset</button>
-                <button onclick="closeTradingDesk()" style="background:#ff4444;color:#fff;border:none;padding:0 12px;font-size:.6rem;font-weight:800;cursor:pointer;border-radius:3px;letter-spacing:1px;height:30px;text-transform:uppercase;">&#10005; CLOSE DESK</button>
-            </div>
-        </div>
-        <div id="calc-body" style="flex:1;overflow-y:auto;padding:12px;">
-            <div style="display:flex;align-items:center;gap:7px;background:#050505;border:1px solid #1a3a1a;padding:7px 10px;border-radius:3px;margin-bottom:12px;">
-                <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;"></span>
-                <span style="font-size:.95rem;font-weight:700;color:#44ff88;letter-spacing:2px;" id="desk-sym">EURUSD</span>
-            </div>
-            <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Account Balance ($)</label><input type="number" id="d-bal" placeholder="e.g. 10000" oninput="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;"></div>
-            <div style="display:flex;margin-bottom:9px;">
-                <button id="d-pb" onclick="deskSm('pct')" style="flex:1;padding:7px;font-size:.62rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;background:#050505;color:#444;border:1px solid #1a1a1a;border-right:none;">Risk %</button>
-                <button id="d-ab" onclick="deskSm('amt')" style="flex:1;padding:7px;font-size:.62rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;background:#fff;color:#000;border:1px solid #fff;font-weight:700;">Risk $</button>
-            </div>
-            <div id="d-pr" style="display:none;margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Risk % of Balance</label><input type="number" id="d-rp" placeholder="1" step="0.1" min="0" oninput="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;"></div>
-            <div id="d-ar" style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Fixed Risk ($)</label><input type="number" id="d-ra" placeholder="100" value="0" min="0" oninput="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;"></div>
-            <hr style="border:none;border-top:1px solid #1a1a1a;margin:10px 0;">
-            <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Instrument</label>
-                <select id="d-inst" onchange="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;">
-                    <option value="forex">Forex (EURUSD...)</option>
-                    <option value="gold">Gold / XAUUSD</option>
-                    <option value="indices">Indices (US30...)</option>
-                    <option value="crypto">Crypto (BTC...)</option>
-                </select>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;">
-                <div><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL (ticks)</label><input type="number" id="d-sl" placeholder="50" min="0" step="1" oninput="deskAtp();deskCl();" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:10px 9px;font-size:1.05rem;font-family:inherit;outline:none;border-radius:2px;"></div>
-                <div><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Target R:R</label>
-                    <select id="d-rr" onchange="deskAtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;">
-                        <option value="0">Manual TP</option><option value="0.5">1:0.5</option><option value="1" selected>1:1</option><option value="1.5">1:1.5</option><option value="2">1:2</option><option value="2.5">1:2.5</option><option value="3">1:3</option><option value="4">1:4</option><option value="5">1:5</option>
-                    </select>
-                </div>
-            </div>
-            <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP (ticks) <span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">&#9679; AUTO</span></label><input type="number" id="d-tp" placeholder="100" min="0" step="1" oninput="deskMtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:10px 9px;font-size:1.05rem;font-family:inherit;outline:none;border-radius:2px;"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:12px;">
-                <div id="d-rcl" style="grid-column:span 2;background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.46rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Lot Size</div><div id="d-rl" style="font-size:1.5rem;color:#44ff88;font-weight:700;">---</div><div id="d-rls" style="font-size:.46rem;color:#2a2a2a;margin-top:2px;">Enter values</div></div>
-                <div id="d-rcr" style="background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.46rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Risk ($)</div><div id="d-rr2" style="font-size:.92rem;color:#ff4444;">---</div><div id="d-rrs" style="font-size:.46rem;color:#2a2a2a;margin-top:2px;">---</div></div>
-                <div id="d-rcp" style="background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.46rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Profit ($)</div><div id="d-rp2" style="font-size:.92rem;color:#44ff88;">---</div><div id="d-rps" style="font-size:.46rem;color:#2a2a2a;margin-top:2px;">---</div></div>
-                <div style="background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.46rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">SL Ticks</div><div id="d-rsout" style="font-size:.92rem;color:#fff;">---</div></div>
-                <div style="background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.46rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">TP Ticks</div><div id="d-rt" style="font-size:.92rem;color:#fff;">---</div></div>
-                <div style="background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.46rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">R:R</div><div id="d-rrr" style="font-size:.92rem;color:#fff;">---</div></div>
-                <div style="background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.46rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Tick Val</div><div id="d-rtv" style="font-size:.92rem;color:#fff;">---</div></div>
-            </div>
-            <div id="d-qs" style="margin-top:12px;display:none;">
-                <div style="font-size:.46rem;color:#2a2a2a;text-transform:uppercase;letter-spacing:1px;padding-top:10px;border-top:1px solid #1a1a1a;margin-bottom:7px;">Quick Risk Reference</div>
-                <table style="width:100%;border-collapse:collapse;"><thead><tr><th style="color:#2a2a2a;font-size:.54rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">%</th><th style="color:#2a2a2a;font-size:.54rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;"></th><th style="color:#2a2a2a;font-size:.54rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">Lots</th><th style="color:#2a2a2a;font-size:.54rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">Profit</th></tr></thead>
-                <tbody id="d-qb"></tbody></table>
-            </div>
-        </div>
-    </div>
-</div><!-- /desk-overlay -->
-
 <script>
-// ── Trading Desk: close overlay ──
-function closeTradingDesk(){
-    document.getElementById('desk-overlay').style.display = 'none';
-    document.body.style.overflow = '';
-}
-
-// ── Calculator ──
+// ── Calculator (in-tab) ──
 var _dm = 'amt';
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
-function deskSm(m){_dm=m;document.getElementById('d-pr').style.display=m==='pct'?'block':'none';document.getElementById('d-ar').style.display=m==='pct'?'none':'block';document.getElementById('d-pb').style.background=m==='pct'?'#fff':'#050505';document.getElementById('d-pb').style.color=m==='pct'?'#000':'#444';document.getElementById('d-pb').style.border=m==='pct'?'1px solid #fff':'1px solid #1a1a1a';document.getElementById('d-ab').style.background=m==='amt'?'#fff':'#050505';document.getElementById('d-ab').style.color=m==='amt'?'#000':'#444';document.getElementById('d-ab').style.border=m==='amt'?'1px solid #fff':'1px solid #1a1a1a';document.getElementById('d-ab').style.fontWeight=m==='amt'?'700':'400';deskCl();}
-function deskAtp(){var rr=parseFloat(document.getElementById('d-rr').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,te=document.getElementById('d-tp'),tg=document.getElementById('d-at');if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';tg.style.display='none';deskCl();return;}if(!sl){document.getElementById('d-rr').value='0';deskCl();return;}te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';tg.style.display='inline';deskCl();}
-function deskMtp(){document.getElementById('d-rr').value='0';var te=document.getElementById('d-tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('d-at').style.display='none';deskCl();}
+function deskSm(m){
+    _dm=m;
+    document.getElementById('d-pr').style.display=m==='pct'?'block':'none';
+    document.getElementById('d-ar').style.display=m==='pct'?'none':'block';
+    var pb=document.getElementById('d-pb'),ab=document.getElementById('d-ab');
+    if(pb){pb.style.background=m==='pct'?'#fff':'#050505';pb.style.color=m==='pct'?'#000':'#444';pb.style.border=m==='pct'?'1px solid #fff':'1px solid #1a1a1a';pb.style.fontWeight=m==='pct'?'700':'400';}
+    if(ab){ab.style.background=m==='amt'?'#fff':'#050505';ab.style.color=m==='amt'?'#000':'#444';ab.style.border=m==='amt'?'1px solid #fff':'1px solid #1a1a1a';ab.style.fontWeight=m==='amt'?'700':'400';}
+    deskCl();
+}
+function deskAtp(){
+    var rr=parseFloat(document.getElementById('d-rr').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,te=document.getElementById('d-tp'),tg=document.getElementById('d-at');
+    if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';if(tg)tg.style.display='none';deskCl();return;}
+    if(!sl){document.getElementById('d-rr').value='0';deskCl();return;}
+    te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';if(tg)tg.style.display='inline';deskCl();
+}
+function deskMtp(){document.getElementById('d-rr').value='0';var te=document.getElementById('d-tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';var tg=document.getElementById('d-at');if(tg)tg.style.display='none';deskCl();}
 function deskCl(){
     var b=parseFloat(document.getElementById('d-bal').value)||0,rp=parseFloat(document.getElementById('d-rp').value)||0,ra=parseFloat(document.getElementById('d-ra').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,tp=parseFloat(document.getElementById('d-tp').value)||0,tv=1;
-    if(b>0){var rows=[0.5,1,1.5,2,3,5].map(function(p){var a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_dm==='pct'&&p===rp);return'<tr style="'+(hi?'background:#0d1a0d;':'')+'">'+'<td style="padding:3px 5px;font-size:.65rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#aaa')+';">'+p+'%</td><td style="padding:3px 5px;font-size:.65rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#aaa')+';">$'+a.toFixed(0)+'</td><td style="padding:3px 5px;font-size:.65rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#aaa')+';">'+(sl>0?l.toFixed(2):'---')+'</td><td style="padding:3px 5px;font-size:.65rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#aaa')+';">'+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');document.getElementById('d-qb').innerHTML=rows;document.getElementById('d-qs').style.display='block';}
+    var qs=document.getElementById('d-qs'),qb=document.getElementById('d-qb');
+    if(b>0&&qs&&qb){var rows=[0.5,1,1.5,2,3,5].map(function(p){var a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_dm==='pct'&&p===rp);return'<tr style="'+(hi?'background:#0d1a0d;':'')+'"><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">'+p+'%</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">$'+a.toFixed(0)+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0?l.toFixed(2):'---')+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');qb.innerHTML=rows;qs.style.display='block';}
     if(!sl){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Enter values');deskSv('d-rrs','---');deskSv('d-rps','---');return;}
     var rm=_dm==='amt'?ra:(b>0?b*rp/100:0);
     if(!rm){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Set risk amount');return;}
     var l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;
-    deskSv('d-rl',l.toFixed(2));deskSv('d-rls','Standard lots');deskSv('d-rr2','$'+ar.toFixed(2));deskSv('d-rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'--');deskSv('d-rp2',tp?'$'+pp.toFixed(2):'---');deskSv('d-rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'--');deskSv('d-rsout',sl+' ticks');deskSv('d-rt',tp?tp+' ticks':'---');deskSv('d-rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');deskSv('d-rtv','$'+tv.toFixed(2));
+    deskSv('d-rl',l.toFixed(2));deskSv('d-rls','Standard lots');
+    deskSv('d-rr2','$'+ar.toFixed(2));deskSv('d-rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'--');
+    deskSv('d-rp2',tp?'$'+pp.toFixed(2):'---');deskSv('d-rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'--');
+    deskSv('d-rsout',sl+' ticks');deskSv('d-rt',tp?tp+' ticks':'---');
+    deskSv('d-rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');deskSv('d-rtv','$'+tv.toFixed(2));
+    var rl=document.getElementById('d-rcl'),rr=document.getElementById('d-rcr'),rp=document.getElementById('d-rcp');
+    function fl(e){if(!e)return;e.style.animation='none';void e.offsetWidth;e.style.animation='';}
+    fl(rl);fl(rr);fl(rp);
 }
-function deskRs(){['d-bal','d-rp','d-sl','d-tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});document.getElementById('d-ra').value='0';document.getElementById('d-rr').value='1';var te=document.getElementById('d-tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('d-at').style.display='none';deskSm('amt');['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Enter values');document.getElementById('d-qs').style.display='none';}
+function deskRs(){
+    ['d-bal','d-rp','d-sl','d-tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
+    var ra=document.getElementById('d-ra');if(ra)ra.value='0';
+    var rrEl=document.getElementById('d-rr');if(rrEl)rrEl.value='1';
+    var te=document.getElementById('d-tp');if(te){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';}
+    var tg=document.getElementById('d-at');if(tg)tg.style.display='none';
+    deskSm('amt');
+    ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
+    deskSv('d-rls','Enter values');
+    var qs=document.getElementById('d-qs');if(qs)qs.style.display='none';
+}
+
+// ── Color picker <-> hex text sync ──
+function syncHex(pickerId, hexId) {
+    var p = document.getElementById(pickerId), h = document.getElementById(hexId);
+    if (p && h) h.value = p.value;
+}
+function syncPicker(hexId, pickerId) {
+    var h = document.getElementById(hexId), p = document.getElementById(pickerId);
+    if (!h || !p) return;
+    var v = h.value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) { p.value = v; }
+}
 </script>
 </body>
 </html>
