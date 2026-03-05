@@ -719,20 +719,26 @@ window.ui = {
 
         const c = this._getCandleColors();
 
-        // Build the overrides object once — reused both at init and after ready
+        // Build overrides — no `theme` param so these actually take effect
         const overrides = {
+            // Background
             'paneProperties.background':               c.bg,
+            'paneProperties.backgroundGradientStartColor': c.bg,
+            'paneProperties.backgroundGradientEndColor':   c.bg,
             'paneProperties.backgroundType':           'solid',
-            // Hide grid by matching background color
-            'paneProperties.vertGridProperties.color': c.bg,
-            'paneProperties.horzGridProperties.color': c.bg,
-            'scalesProperties.lineColor':              '#444444',
+            // Grid — hidden by making them transparent/invisible
+            'paneProperties.vertGridProperties.color': 'rgba(0,0,0,0)',
+            'paneProperties.horzGridProperties.color': 'rgba(0,0,0,0)',
+            'paneProperties.crossHairProperties.color':'#888888',
+            // Scales
+            'scalesProperties.backgroundColor':        c.bg,
+            'scalesProperties.lineColor':              '#333333',
             'scalesProperties.textColor':              '#888888',
-            // Bull candle
+            // Candles — bull
             'mainSeriesProperties.candleStyle.upColor':        c.bullBody,
             'mainSeriesProperties.candleStyle.borderUpColor':  c.bullBorder,
             'mainSeriesProperties.candleStyle.wickUpColor':    c.bullWick,
-            // Bear candle
+            // Candles — bear
             'mainSeriesProperties.candleStyle.downColor':      c.bearBody,
             'mainSeriesProperties.candleStyle.borderDownColor':c.bearBorder,
             'mainSeriesProperties.candleStyle.wickDownColor':  c.bearWick,
@@ -745,7 +751,6 @@ window.ui = {
             symbol:            sym,
             interval:          this._tf,
             autosize:          true,
-            theme:             'dark',
             style:             '1',
             locale:            'en',
             timezone:          'Asia/Kathmandu',
@@ -765,30 +770,6 @@ window.ui = {
             enable_publishing: false,
             overrides,
         });
-
-        // Inject bg color + hide grid lines directly into the iframe after it loads
-        // (free widget ignores some overrides until the iframe DOM is ready)
-        const applyIframeStyles = () => {
-            try {
-                const iframe = document.querySelector('#tv-widget-container iframe');
-                if (!iframe) return;
-                const iDoc = iframe.contentDocument || iframe.contentWindow?.document;
-                if (!iDoc) return;
-                // Remove any existing injected style
-                const old = iDoc.getElementById('rk-custom-styles');
-                if (old) old.remove();
-                const style = iDoc.createElement('style');
-                style.id = 'rk-custom-styles';
-                style.textContent = `
-                    .chart-markup-table canvas { background: ${c.bg} !important; }
-                    .layout__area--center { background: ${c.bg} !important; }
-                    tr.row-DHj22sXZ, .grid-DHj22sXZ { display: none !important; }
-                `;
-                iDoc.head.appendChild(style);
-            } catch(e) { /* cross-origin fallback — overrides in config still apply */ }
-        };
-        setTimeout(applyIframeStyles, 1500);
-        setTimeout(applyIframeStyles, 3000);
     },
 
     setTF(btn, tf) {
