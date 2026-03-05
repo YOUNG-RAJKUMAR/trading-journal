@@ -766,27 +766,35 @@ window.ui = {
             overrides,
         });
 
-        // The free widget ignores overrides at init time — must re-apply after ready
-        this._tvWidget.onChartReady(() => {
+        // Inject bg color + hide grid lines directly into the iframe after it loads
+        // (free widget ignores some overrides until the iframe DOM is ready)
+        const applyIframeStyles = () => {
             try {
-                this._tvWidget.activeChart().applyOverrides(overrides);
-            } catch(e) {}
-        });
+                const iframe = document.querySelector('#tv-widget-container iframe');
+                if (!iframe) return;
+                const iDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                if (!iDoc) return;
+                // Remove any existing injected style
+                const old = iDoc.getElementById('rk-custom-styles');
+                if (old) old.remove();
+                const style = iDoc.createElement('style');
+                style.id = 'rk-custom-styles';
+                style.textContent = `
+                    .chart-markup-table canvas { background: ${c.bg} !important; }
+                    .layout__area--center { background: ${c.bg} !important; }
+                    tr.row-DHj22sXZ, .grid-DHj22sXZ { display: none !important; }
+                `;
+                iDoc.head.appendChild(style);
+            } catch(e) { /* cross-origin fallback — overrides in config still apply */ }
+        };
+        setTimeout(applyIframeStyles, 1500);
+        setTimeout(applyIframeStyles, 3000);
     },
 
     setTF(btn, tf) {
         this._tf = tf;
         document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        // Try changing interval via API first (no reload)
-        if(this._tvWidget) {
-            try {
-                this._tvWidget.onChartReady(() => {
-                    this._tvWidget.activeChart().setResolution(tf, () => {});
-                });
-                return;
-            } catch(e) {}
-        }
         this.loadChart();
     },
 
