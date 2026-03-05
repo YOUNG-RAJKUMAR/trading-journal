@@ -21,13 +21,24 @@
             --primary:#ffffff; --negative:#ff4444; --positive:#44ff88;
             --text:#cccccc; --text-light:#ffffff;
         }
+        /* ── THEMES ── */
+        /* Midnight (default) */
+        body.theme-midnight { --bg:#000000; --surface:#0a0a0a; --border:#222222; --primary:#ffffff; --text:#cccccc; --text-light:#ffffff; }
+        /* Easy Eye — soft dark blue-grey, very low fatigue */
+        body.theme-easyeye  { --bg:#1a1e2e; --surface:#222840; --border:#2e3452; --primary:#c8d0e8; --text:#9ba8c8; --text-light:#dde3f5; --negative:#e07070; --positive:#5ecf8a; }
+        /* Soft Light — warm off-white, not harsh */
+        body.theme-light    { --bg:#f0ede8; --surface:#faf8f5; --border:#d8d4cc; --primary:#1a1a1a; --text:#444444; --text-light:#111111; --negative:#cc3333; --positive:#1a8a4a; }
+        /* Trader Pro — deep charcoal, green accents like terminal */
+        body.theme-trader   { --bg:#0d0f0d; --surface:#131a13; --border:#1e2e1e; --primary:#39ff14; --text:#88aa88; --text-light:#ccffcc; --negative:#ff4444; --positive:#39ff14; }
+        /* Theme transition */
+        body { transition: background 0.25s, color 0.25s; }
         * { box-sizing:border-box; }
         body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; margin:0; -webkit-font-smoothing:antialiased; }
 
         /* LOGIN */
         #login-overlay { position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center; }
         .login-card { background:var(--surface); border:1px solid var(--border); padding:40px; width:100%; max-width:350px; text-align:center; }
-        .login-input { width:100%; margin-bottom:15px; background:#000; border:1px solid var(--border); color:#fff; padding:12px; font-family:inherit; }
+        .login-input { width:100%; margin-bottom:15px; background:var(--surface); border:1px solid var(--border); color:var(--text-light); padding:12px; font-family:inherit; }
 
         .app-container { max-width:1700px; margin:0 auto; padding:40px 20px; display:none; }
         .header-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; border-bottom:1px solid var(--border); padding-bottom:20px; flex-wrap:wrap; gap:10px; }
@@ -135,10 +146,21 @@
     <header class="header-top">
         <h1 class="header-title">JOURNAL // <span id="display-user"></span></h1>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <div style="background:#111;padding:5px 10px;border:1px solid #333;display:flex;gap:5px;align-items:center;">
+            <!-- Theme Switcher -->
+            <div style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);padding:5px 10px;">
+                <span style="font-size:.55rem;color:var(--text);opacity:.5;text-transform:uppercase;letter-spacing:1px;">Theme</span>
+                <button onclick="setTheme('midnight')" id="th-midnight" title="Midnight" style="width:16px;height:16px;border-radius:50%;background:#000;border:2px solid #555;cursor:pointer;padding:0;"></button>
+                <button onclick="setTheme('easyeye')"  id="th-easyeye"  title="Easy Eye" style="width:16px;height:16px;border-radius:50%;background:#1a1e2e;border:2px solid #4a5580;cursor:pointer;padding:0;"></button>
+                <button onclick="setTheme('light')"    id="th-light"    title="Soft Light" style="width:16px;height:16px;border-radius:50%;background:#f0ede8;border:2px solid #bbb;cursor:pointer;padding:0;"></button>
+                <button onclick="setTheme('trader')"   id="th-trader"   title="Trader Pro" style="width:16px;height:16px;border-radius:50%;background:#0d0f0d;border:2px solid #39ff14;cursor:pointer;padding:0;"></button>
+                <span style="font-size:.55rem;color:var(--text);opacity:.5;margin-left:4px;">BG</span>
+                <input type="color" id="custom-bg" value="#000000" oninput="setCustomBg(this.value)" title="Custom background" style="width:22px;height:22px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:50%;">
+                <input type="text"  id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)" style="width:64px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:3px 5px;font-size:.62rem;font-family:monospace;outline:none;">
+            </div>
+            <div style="background:var(--surface);padding:5px 10px;border:1px solid var(--border);display:flex;gap:5px;align-items:center;">
                 <span style="font-size:0.6rem;color:#888;">PDF RANGE:</span>
-                <select id="export-month" onchange="ui.renderJournal()" style="padding:2px;font-size:0.7rem;background:#000;border:none;color:#fff;"></select>
-                <select id="export-year"  onchange="ui.renderJournal()" style="padding:2px;font-size:0.7rem;background:#000;border:none;color:#fff;"></select>
+                <select id="export-month" onchange="ui.renderJournal()" style="padding:2px;font-size:0.7rem;background:var(--surface);border:none;color:var(--text-light);"></select>
+                <select id="export-year"  onchange="ui.renderJournal()" style="padding:2px;font-size:0.7rem;background:var(--surface);border:none;color:var(--text-light);"></select>
                 <button class="btn-action" style="background:#fff;color:#000;padding:4px 8px;" onclick="ui.exportPDF()">Export PDF</button>
             </div>
             <button class="btn-action" onclick="ui.undoLast()">Undo</button>
@@ -1073,6 +1095,69 @@ function syncPicker(hexId, pickerId) {
     var v = h.value.trim();
     if (/^#[0-9a-fA-F]{6}$/.test(v)) { p.value = v; }
 }
+</script>
+
+<script>
+// ── Theme System ──
+var _currentTheme = localStorage.getItem('rk_theme') || 'midnight';
+
+function setTheme(name) {
+    _currentTheme = name;
+    localStorage.setItem('rk_theme', name);
+    // Remove all theme classes
+    document.body.classList.remove('theme-midnight','theme-easyeye','theme-light','theme-trader');
+    document.body.classList.add('theme-' + name);
+    // Remove custom bg when switching to a preset
+    document.body.style.setProperty('--bg', '');
+    document.body.style.setProperty('--bg-custom', '');
+    // Update active ring on theme buttons
+    ['midnight','easyeye','light','trader'].forEach(function(t) {
+        var btn = document.getElementById('th-' + t);
+        if (!btn) return;
+        btn.style.outline = t === name ? '2px solid var(--primary)' : 'none';
+        btn.style.outlineOffset = '2px';
+    });
+    // Sync custom BG input to current theme bg
+    var computed = getComputedStyle(document.body).getPropertyValue('--bg').trim();
+    var bgEl = document.getElementById('custom-bg');
+    var bgHexEl = document.getElementById('custom-bg-hex');
+    if (bgEl && computed) { try { bgEl.value = computed; } catch(e) {} }
+    if (bgHexEl && computed) bgHexEl.value = computed;
+}
+
+function setCustomBg(hex) {
+    // Override just the bg variable without changing theme
+    document.body.style.setProperty('--bg', hex);
+    var hexEl = document.getElementById('custom-bg-hex');
+    if (hexEl) hexEl.value = hex;
+    // Remove active ring from all theme buttons (custom mode)
+    ['midnight','easyeye','light','trader'].forEach(function(t) {
+        var btn = document.getElementById('th-' + t);
+        if (btn) { btn.style.outline = 'none'; }
+    });
+    localStorage.setItem('rk_custom_bg', hex);
+}
+
+function onCustomBgHex(val) {
+    val = val.trim();
+    var picker = document.getElementById('custom-bg');
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+        if (picker) picker.value = val;
+        setCustomBg(val);
+    }
+}
+
+// Apply saved theme on load
+(function initTheme() {
+    var saved = localStorage.getItem('rk_theme') || 'midnight';
+    var savedBg = localStorage.getItem('rk_custom_bg');
+    setTheme(saved);
+    if (savedBg) {
+        setTimeout(function() { // wait for CSS vars to settle
+            setCustomBg(savedBg);
+        }, 50);
+    }
+})();
 </script>
 </body>
 </html>
