@@ -214,6 +214,59 @@
             zoom: 0.7;
         }
 
+        /* ══ FAVOURITE TOOLS TOOLBAR ══ */
+        .fav-btn {
+            width: 28px;
+            height: 28px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            color: #777;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: background .12s, border-color .12s, color .12s;
+            position: relative;
+        }
+        .fav-btn:hover {
+            background: #1a1a1a;
+            border-color: #3a3a3a;
+            color: #ffffff;
+        }
+        .fav-btn.active-tool {
+            background: #1e2a1e;
+            border-color: #44ff88;
+            color: #44ff88;
+        }
+        .fav-btn-long { color: #44ff88aa; }
+        .fav-btn-long:hover { background:#0a1a0a; border-color:#44ff88; color:#44ff88; }
+        .fav-btn-short { color: #ff4444aa; }
+        .fav-btn-short:hover { background:#1a0a0a; border-color:#ff4444; color:#ff4444; }
+        /* Tooltip on hover */
+        .fav-btn::after {
+            content: attr(title);
+            position: absolute;
+            left: 34px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #111;
+            color: #ccc;
+            font-size: .52rem;
+            letter-spacing: .5px;
+            white-space: nowrap;
+            padding: 3px 7px;
+            border: 1px solid #2a2a2a;
+            border-radius: 3px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity .15s;
+            z-index: 200;
+            text-transform: uppercase;
+        }
+        .fav-btn:hover::after { opacity: 1; }
+
         /* PDF */
         .pdf-export-mode #main-content { padding:0;max-width:100%; }
         .pdf-export-mode .tab-btn,.pdf-export-mode .header-top,.pdf-export-mode .search-container { display:none!important; }
@@ -590,7 +643,119 @@
 
         <!-- Chart + Calculator split -->
         <div style="display:flex;height:calc(136vh - 80px);">
-            <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
+            <!-- Chart area with favourite tools overlay -->
+            <div style="flex:1;min-width:0;height:100%;position:relative;">
+                <div id="tv-container" style="width:100%;height:100%;"></div>
+
+                <!-- ══ FAVOURITE TOOLS OVERLAY TOOLBAR ══ -->
+                <div id="fav-toolbar" style="
+                    position:absolute;
+                    top:50px;
+                    left:4px;
+                    z-index:100;
+                    display:flex;
+                    flex-direction:column;
+                    gap:2px;
+                    background:rgba(10,10,10,0.92);
+                    border:1px solid #2a2a2a;
+                    border-radius:4px;
+                    padding:4px 3px;
+                    backdrop-filter:blur(4px);
+                    box-shadow:0 4px 20px rgba(0,0,0,0.6);
+                    user-select:none;
+                ">
+                    <!-- Label -->
+                    <div style="font-size:.38rem;color:#333;text-transform:uppercase;letter-spacing:1px;text-align:center;padding:1px 0 3px;border-bottom:1px solid #1a1a1a;margin-bottom:2px;">FAV</div>
+
+                    <!-- Cross -->
+                    <button class="fav-btn" title="Cross" onclick="activateTool('LineToolCross')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" stroke-width="1.5"/>
+                            <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+
+                    <!-- Trendline -->
+                    <button class="fav-btn" title="Trend Line" onclick="activateTool('LineToolTrendLine')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <line x1="2" y1="13" x2="14" y2="3" stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="2" cy="13" r="1.5" fill="currentColor"/>
+                            <circle cx="14" cy="3" r="1.5" fill="currentColor"/>
+                        </svg>
+                    </button>
+
+                    <!-- Horizontal Line -->
+                    <button class="fav-btn" title="Horizontal Line" onclick="activateTool('LineToolHorzLine')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <line x1="1" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2,1"/>
+                            <line x1="1" y1="8" x2="4" y2="8" stroke="currentColor" stroke-width="1.5"/>
+                            <line x1="12" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+
+                    <!-- Vertical Line -->
+                    <button class="fav-btn" title="Vertical Line" onclick="activateTool('LineToolVertLine')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <line x1="8" y1="1" x2="8" y2="15" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2,1"/>
+                            <line x1="8" y1="1" x2="8" y2="4" stroke="currentColor" stroke-width="1.5"/>
+                            <line x1="8" y1="12" x2="8" y2="15" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+
+                    <!-- Separator -->
+                    <div style="height:1px;background:#1a1a1a;margin:1px 2px;"></div>
+
+                    <!-- Long Position -->
+                    <button class="fav-btn fav-btn-long" title="Long Position" onclick="activateTool('LineToolLongPosition')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <polygon points="8,2 13,9 3,9" fill="#44ff88" opacity="0.9"/>
+                            <rect x="6" y="9" width="4" height="5" fill="#44ff88" opacity="0.5"/>
+                        </svg>
+                    </button>
+
+                    <!-- Short Position -->
+                    <button class="fav-btn fav-btn-short" title="Short Position" onclick="activateTool('LineToolShortPosition')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <polygon points="8,14 13,7 3,7" fill="#ff4444" opacity="0.9"/>
+                            <rect x="6" y="2" width="4" height="5" fill="#ff4444" opacity="0.5"/>
+                        </svg>
+                    </button>
+
+                    <!-- Separator -->
+                    <div style="height:1px;background:#1a1a1a;margin:1px 2px;"></div>
+
+                    <!-- Fib Retracement -->
+                    <button class="fav-btn" title="Fib Retracement" onclick="activateTool('LineToolFibRetracement')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <line x1="2" y1="3"  x2="14" y2="3"  stroke="currentColor" stroke-width="1" opacity="0.9"/>
+                            <line x1="2" y1="6"  x2="14" y2="6"  stroke="#aaffcc" stroke-width="1" opacity="0.8"/>
+                            <line x1="2" y1="8"  x2="14" y2="8"  stroke="#ffcc44" stroke-width="1.2" opacity="0.9"/>
+                            <line x1="2" y1="11" x2="14" y2="11" stroke="#aaffcc" stroke-width="1" opacity="0.8"/>
+                            <line x1="2" y1="13" x2="14" y2="13" stroke="currentColor" stroke-width="1" opacity="0.9"/>
+                            <text x="2" y="7.5" font-size="3" fill="#888">0.5</text>
+                        </svg>
+                    </button>
+
+                    <!-- Gann Box -->
+                    <button class="fav-btn" title="Gann Box" onclick="activateTool('LineToolGannBox')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <rect x="2" y="2" width="12" height="12" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+                            <line x1="2"  y1="2"  x2="14" y2="14" stroke="#ffcc44" stroke-width="1"/>
+                            <line x1="14" y1="2"  x2="2"  y2="14" stroke="#ffcc44" stroke-width="1" opacity="0.5"/>
+                            <line x1="8"  y1="2"  x2="8"  y2="14" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+                            <line x1="2"  y1="8"  x2="14" y2="8"  stroke="currentColor" stroke-width="1" opacity="0.4"/>
+                        </svg>
+                    </button>
+
+                    <!-- Rectangle -->
+                    <button class="fav-btn" title="Rectangle" onclick="activateTool('LineToolRectangle')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <rect x="2" y="4" width="12" height="8" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.1"/>
+                        </svg>
+                    </button>
+
+                </div>
+            </div>
             <!-- Calculator Panel -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
@@ -893,6 +1058,11 @@ window.ui = {
                 "mainSeriesProperties.candleStyle.drawWick":        true,
                 "mainSeriesProperties.candleStyle.drawBorder":      true,
             }
+        });
+
+        /* Wire chart-ready so activateTool works */
+        this._tvWidget.onChartReady(() => {
+            window._tvChart = this._tvWidget.chart();
         });
     },
 
@@ -1410,6 +1580,73 @@ if('serviceWorker' in navigator) {
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
+/* ══ FAVOURITE DRAWING TOOLS ══ */
+var _activeFavTool = null;
+
+/* Map our keys → TradingView tool IDs */
+var TV_TOOL_IDS = {
+    'LineToolCross':         'LineToolCross',
+    'LineToolTrendLine':     'LineToolTrendLine',
+    'LineToolHorzLine':      'LineToolHorzLine',
+    'LineToolVertLine':      'LineToolVertLine',
+    'LineToolLongPosition':  'LineToolLongPosition',
+    'LineToolShortPosition': 'LineToolShortPosition',
+    'LineToolFibRetracement':'LineToolFibRetracement',
+    'LineToolGannBox':       'LineToolGannBox',
+    'LineToolRectangle':     'LineToolRectangle',
+};
+
+function activateTool(toolName) {
+    /* Highlight the clicked button */
+    document.querySelectorAll('.fav-btn').forEach(function(b){ b.classList.remove('active-tool'); });
+    var btns = document.querySelectorAll('.fav-btn[onclick*="' + toolName + '"]');
+    btns.forEach(function(b){ b.classList.add('active-tool'); });
+    _activeFavTool = toolName;
+
+    /* Try TradingView chart API */
+    var chart = window._tvChart;
+    if (!chart) {
+        /* Chart not ready yet — try again in 500ms */
+        setTimeout(function(){ activateTool(toolName); }, 500);
+        return;
+    }
+
+    /* Method 1: selectLineTool (Charting Library) */
+    if (typeof chart.selectLineTool === 'function') {
+        try { chart.selectLineTool(toolName); return; } catch(e){}
+    }
+    /* Method 2: executeActionById (free widget) */
+    if (typeof chart.executeActionById === 'function') {
+        try { chart.executeActionById('drawingTool:' + toolName); return; } catch(e){}
+        try { chart.executeActionById(toolName); return; } catch(e){}
+    }
+    /* Method 3: via widget activeChart */
+    var w = window.ui._tvWidget;
+    if (w) {
+        if (typeof w.activeChart === 'function') {
+            try { w.activeChart().selectLineTool(toolName); return; } catch(e){}
+            try { w.activeChart().executeActionById('drawingTool:' + toolName); return; } catch(e){}
+        }
+        /* Method 4: iframe postMessage */
+        var iframe = document.querySelector('#tv-container iframe');
+        if (iframe && iframe.contentWindow) {
+            try {
+                iframe.contentWindow.postMessage(
+                    JSON.stringify({ name:'drawing-tool-select', data: toolName }), '*'
+                );
+            } catch(e){}
+        }
+    }
+}
+
+/* Reset active tool highlight when Escape pressed */
+document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.fav-btn').forEach(function(b){ b.classList.remove('active-tool'); });
+        _activeFavTool = null;
+    }
+});
+
 /* ── Calculator (in-tab) ── */
 var _dm = 'amt';
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
