@@ -14,8 +14,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- ✅ Official TradingView Advanced Chart Library -->
-    <script src="https://s3.tradingview.com/tv.js"></script>
     <style>
         :root {
             --bg:#000000; --surface:#0a0a0a; --border:#222222;
@@ -339,38 +337,37 @@
     <div id="tab-charts" class="tab-content">
         <div class="chart-calc-layout">
 
-            <!-- LEFT: TradingView Advanced Chart -->
+            <!-- LEFT: TradingView Embed Chart -->
             <div class="chart-panel">
-                <!-- Minimal top strip: just symbol + actions -->
+                <!-- Toolbar: symbol, TF, theme toggle, open TV -->
                 <div class="chart-toolbar">
                     <input type="text" id="chart-symbol" class="chart-symbol-input" placeholder="EURUSD" value="EURUSD"
                         onkeydown="if(event.key==='Enter')ui.loadChart()">
                     <button class="chart-go-btn" onclick="ui.loadChart()">▶ GO</button>
                     <div class="tb-sep"></div>
 
-                    <!-- Candle colors inline -->
-                    <span class="cp-label">Body</span>
-                    <input type="color" id="cp-bull-body"   value="#26a69a" title="Bull body"   onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
-                    <input type="color" id="cp-bear-body"   value="#ef5350" title="Bear body"   onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
-                    <span class="cp-label" style="margin-left:6px;">Border</span>
-                    <input type="color" id="cp-bull-border" value="#26a69a" title="Bull border" onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
-                    <input type="color" id="cp-bear-border" value="#ef5350" title="Bear border" onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
-                    <span class="cp-label" style="margin-left:6px;">Wick</span>
-                    <input type="color" id="cp-bull-wick"   value="#26a69a" title="Bull wick"   onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
-                    <input type="color" id="cp-bear-wick"   value="#ef5350" title="Bear wick"   onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
+                    <!-- Timeframes -->
+                    <button class="tf-btn" onclick="ui.setTF(this,'1')">1m</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'3')">3m</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'5')">5m</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'15')">15m</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'30')">30m</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'45')">45m</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'60')">1h</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'120')">2h</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'180')">3h</button>
+                    <button class="tf-btn active" onclick="ui.setTF(this,'240')">4h</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'D')">D</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'W')">W</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'M')">M</button>
+                    <div class="tb-sep"></div>
+
+                    <!-- Theme toggle -->
+                    <button id="theme-toggle-btn" onclick="ui.toggleTheme()" title="Toggle light/dark"
+                        style="background:#111;border:1px solid #333;color:#aaa;padding:3px 9px;font-size:0.7rem;cursor:pointer;border-radius:3px;flex-shrink:0;">🌙 Dark</button>
 
                     <div class="tb-sep"></div>
-                    <span class="cp-label">BG</span>
-                    <input type="color" id="cp-bg" value="#000000" title="Chart background" onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
-
-                    <div class="tb-sep"></div>
-                    <!-- Quick presets -->
-                    <button onclick="ui.applyPreset('green-red')"   title="Classic green/red"   style="background:#111;border:1px solid #333;color:#aaa;padding:3px 8px;font-size:0.65rem;cursor:pointer;border-radius:3px;">🟢/🔴</button>
-                    <button onclick="ui.applyPreset('white-black')" title="White/Black"          style="background:#111;border:1px solid #333;color:#aaa;padding:3px 8px;font-size:0.65rem;cursor:pointer;border-radius:3px;">⬜/⬛</button>
-                    <button onclick="ui.applyPreset('blue-red')"    title="Blue/Red"             style="background:#111;border:1px solid #333;color:#aaa;padding:3px 8px;font-size:0.65rem;cursor:pointer;border-radius:3px;">🔵/🔴</button>
-
-                    <div class="tb-sep"></div>
-                    <button class="popup-btn" onclick="ui.openTVPopup()" title="Open on TradingView.com — full settings, custom indicators, save favorites">
+                    <button class="popup-btn" onclick="ui.openTVPopup()" title="Open on TradingView.com">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                         TradingView
                     </button>
@@ -381,8 +378,11 @@
                     </div>
                 </div>
 
-                <!-- TradingView renders here — widget has its own toolbar with TF, chart type, indicators -->
-                <div id="tv-widget-container"></div>
+                <!-- Direct TradingView embed iframe — same as tradingview.com/chart -->
+                <iframe id="tv-embed-iframe"
+                    src="https://www.tradingview.com/widgetembed/?frameElementId=tv-embed-iframe&symbol=OANDA%3AEURUSD&interval=240&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0a0a&studies=[]&theme=dark&style=1&timezone=Asia%2FKathmandu&withdateranges=1&showpopupbutton=1&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en&utm_source=trades.run.place&utm_medium=widget&utm_campaign=chart"
+                    style="width:100%;height:100%;border:none;display:block;">
+                </iframe>
             </div>
 
             <!-- RIGHT: Lot Calculator -->
@@ -631,8 +631,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.ui = {
     charts: {},
-    _tf: '240',
-    _tvWidget: null,
 
     init() {
         document.getElementById('t-date').valueAsDate = new Date();
@@ -668,108 +666,42 @@ window.ui = {
         if(id === 'charts')    this.loadChart();
     },
 
-    /* ══ TRADINGVIEW ADVANCED CHART WIDGET ══ */
-    _getCandleColors() {
-        const g = id => document.getElementById(id)?.value || '#26a69a';
-        return {
-            bullBody:   g('cp-bull-body'),
-            bullBorder: g('cp-bull-border'),
-            bullWick:   g('cp-bull-wick'),
-            bearBody:   g('cp-bear-body'),
-            bearBorder: g('cp-bear-border'),
-            bearWick:   g('cp-bear-wick'),
-            bg:         document.getElementById('cp-bg')?.value || '#000000',
-        };
-    },
+    /* ══ TRADINGVIEW EMBED CHART (iframe) ══ */
+    _tf:    '240',
+    _theme: 'dark',
 
-    previewCandles() { /* colors stored in inputs, applied on loadChart */ },
-
-    applyPreset(preset) {
-        const presets = {
-            'green-red':   { bb:'#26a69a', bbr:'#26a69a', bw:'#26a69a', rb:'#ef5350', rbr:'#ef5350', rw:'#ef5350' },
-            'white-black': { bb:'#d4d4d4', bbr:'#888888', bw:'#aaaaaa', rb:'#1a1a1a', rbr:'#666666', rw:'#888888' },
-            'blue-red':    { bb:'#2196f3', bbr:'#2196f3', bw:'#2196f3', rb:'#ef5350', rbr:'#ef5350', rw:'#ef5350' },
-        };
-        const p = presets[preset]; if(!p) return;
-        document.getElementById('cp-bull-body').value   = p.bb;
-        document.getElementById('cp-bull-border').value = p.bbr;
-        document.getElementById('cp-bull-wick').value   = p.bw;
-        document.getElementById('cp-bear-body').value   = p.rb;
-        document.getElementById('cp-bear-border').value = p.rbr;
-        document.getElementById('cp-bear-wick').value   = p.rw;
-        this.loadChart();
-    },
-
-    openTVPopup() {
-        const sym = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
-        const tf  = this._tf;
-        // Map internal tf to TV URL format
-        const tfMap = {'1':'1','3':'3','5':'5','15':'15','30':'30','45':'45','60':'60','120':'120','180':'180','240':'240','D':'D','W':'W','M':'M','30S':'30S'};
-        const tvTF = tfMap[tf] || '60';
-        window.open(`https://www.tradingview.com/chart/?symbol=${sym}&interval=${tvTF}`, '_blank', 'width=1200,height=700');
+    _buildEmbedURL(sym, tf, theme) {
+        const base   = 'https://www.tradingview.com/widgetembed/';
+        const params = new URLSearchParams({
+            frameElementId: 'tv-embed-iframe',
+            symbol:         `OANDA:${sym}`,
+            interval:       tf,
+            hidesidetoolbar: '0',
+            hidetoptoolbar:  '0',
+            symboledit:      '1',
+            saveimage:       '1',
+            toolbarbg:       'f1f3f6',
+            theme:           theme,
+            style:           '1',
+            timezone:        'Asia/Kathmandu',
+            withdateranges:  '1',
+            showpopupbutton: '1',
+            locale:          'en',
+            utm_source:      location.hostname,
+            utm_medium:      'widget',
+            utm_campaign:    'chart',
+        });
+        return `${base}?${params.toString()}`;
     },
 
     loadChart() {
         const sym = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
         document.getElementById('chart-symbol').value = sym;
-        document.getElementById('side-chart-symbol').textContent = sym;
+        const sideLabel = document.getElementById('side-chart-symbol');
+        if (sideLabel) sideLabel.textContent = sym;
 
-        const container = document.getElementById('tv-widget-container');
-        container.innerHTML = '';
-
-        const c = this._getCandleColors();
-
-        // Build overrides — no `theme` param so these actually take effect
-        const overrides = {
-            // Background
-            'paneProperties.background':               c.bg,
-            'paneProperties.backgroundGradientStartColor': c.bg,
-            'paneProperties.backgroundGradientEndColor':   c.bg,
-            'paneProperties.backgroundType':           'solid',
-            // Grid — hidden by making them transparent/invisible
-            'paneProperties.vertGridProperties.color': 'rgba(0,0,0,0)',
-            'paneProperties.horzGridProperties.color': 'rgba(0,0,0,0)',
-            'paneProperties.crossHairProperties.color':'#888888',
-            // Scales
-            'scalesProperties.backgroundColor':        c.bg,
-            'scalesProperties.lineColor':              '#333333',
-            'scalesProperties.textColor':              '#888888',
-            // Candles — bull
-            'mainSeriesProperties.candleStyle.upColor':        c.bullBody,
-            'mainSeriesProperties.candleStyle.borderUpColor':  c.bullBorder,
-            'mainSeriesProperties.candleStyle.wickUpColor':    c.bullWick,
-            // Candles — bear
-            'mainSeriesProperties.candleStyle.downColor':      c.bearBody,
-            'mainSeriesProperties.candleStyle.borderDownColor':c.bearBorder,
-            'mainSeriesProperties.candleStyle.wickDownColor':  c.bearWick,
-            'mainSeriesProperties.candleStyle.drawWick':       true,
-            'mainSeriesProperties.candleStyle.drawBorder':     true,
-        };
-
-        this._tvWidget = new TradingView.widget({
-            container_id:      'tv-widget-container',
-            symbol:            sym,
-            interval:          this._tf,
-            autosize:          true,
-            style:             '1',
-            locale:            'en',
-            timezone:          'Asia/Kathmandu',
-            toolbar_bg:        '#0a0a0a',
-            hide_side_toolbar: false,
-            hide_top_toolbar:  false,
-            hide_legend:       false,
-            allow_symbol_change: true,
-            withdateranges:    true,
-            save_image:        true,
-            show_popup_button: true,
-            popup_width:       '1200',
-            popup_height:      '700',
-            details:           true,
-            hotlist:           true,
-            calendar:          false,
-            enable_publishing: false,
-            overrides,
-        });
+        const iframe = document.getElementById('tv-embed-iframe');
+        if (iframe) iframe.src = this._buildEmbedURL(sym, this._tf, this._theme);
     },
 
     setTF(btn, tf) {
@@ -777,6 +709,18 @@ window.ui = {
         document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.loadChart();
+    },
+
+    toggleTheme() {
+        this._theme = this._theme === 'dark' ? 'light' : 'dark';
+        const btn = document.getElementById('theme-toggle-btn');
+        if (btn) btn.textContent = this._theme === 'dark' ? '🌙 Dark' : '☀️ Light';
+        this.loadChart();
+    },
+
+    openTVPopup() {
+        const sym = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
+        window.open(`https://www.tradingview.com/chart/?symbol=OANDA:${sym}&interval=${this._tf}`, '_blank', 'width=1400,height=800');
     },
 
     /* ══ SIDE CALCULATOR ══ */
