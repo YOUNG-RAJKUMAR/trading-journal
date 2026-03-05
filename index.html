@@ -443,6 +443,10 @@ window.ui = {
         const calcW   = 360;
         const tvW     = sw - calcW;
         const journalURL = window.location.href;
+        // Detect PWA / standalone mode (works on Chrome, Edge, Safari iOS)
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches
+                   || window.matchMedia('(display-mode: window-controls-overlay)').matches
+                   || (window.navigator.standalone === true);
 
         const tvWin = window.open(
             `https://www.tradingview.com/chart/?symbol=OANDA%3A${sym}&interval=${this._tf}&theme=dark&timezone=Asia%2FKathmandu`,
@@ -554,8 +558,15 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
 <script>
 var _m='amt';
 var _journalURL='${journalURL}';
+var _isPWA=${isPWA ? 'true' : 'false'};
 function closeDeskAndReturn(){
-  try { var tvWin=window.open('','TVWin'); if(tvWin){tvWin.location.href=_journalURL;} } catch(e){}
+  if(_isPWA){
+    // PWA mode: bring the PWA app window back to front, leave TV open
+    try { if(window.opener && !window.opener.closed){ window.opener.focus(); } } catch(e){}
+  } else {
+    // Browser mode: navigate the TV window back to the journal tab
+    try { var tvWin=window.open('','TVWin'); if(tvWin){ tvWin.location.href=_journalURL; } } catch(e){}
+  }
   window.close();
 }
 function sM(m){_m=m;document.getElementById('pr').style.display=m==='pct'?'block':'none';document.getElementById('ar').style.display=m==='pct'?'none':'block';document.getElementById('pb').className='mb '+(m==='pct'?'on':'off');document.getElementById('ab').className='mb '+(m==='amt'?'on':'off');cl();}
