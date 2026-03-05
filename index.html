@@ -209,19 +209,9 @@
         .stat-meta { font-size:0.68rem;color:#444;margin-top:4px;display:block; }
         .analytics-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:25px; }
 
-        /* ══ CHARTS TAB 70% ZOOM ══ */
-        #charts-zoom-wrap {
-            transform: scale(0.7);
-            transform-origin: top left;
-            width: 142.857%;
-            height: 142.857%;
-            position: relative;
-        }
-        #charts-zoom-shell {
-            width: 100%;
-            overflow: hidden;
-            /* slim header ≈ 38px + slim tabs ≈ 28px = 66px total chrome */
-            height: calc((100vh - 66px) * 0.7);
+        /* ══ CHARTS TAB 70% ZOOM — zoom property reflowing correctly ══ */
+        #tab-charts {
+            zoom: 0.7;
         }
 
         /* PDF */
@@ -446,7 +436,6 @@
 
     <!-- ══ CHARTS TAB ══ -->
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
-    <div id="charts-zoom-shell"><div id="charts-zoom-wrap">
 
         <!-- ─── REDESIGNED COLOR TOOLBAR ─── -->
         <div id="desk-toolbar">
@@ -600,7 +589,7 @@
         </div><!-- /desk-toolbar -->
 
         <!-- Chart + Calculator split -->
-        <div style="display:flex;height:calc(100vh - 160px);">
+        <div style="display:flex;height:calc(136vh - 80px);">
             <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
             <!-- Calculator Panel -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
@@ -659,8 +648,6 @@
                 </div>
             </div>
         </div>
-    </div><!-- /charts-zoom-wrap -->
-    </div><!-- /charts-zoom-shell -->
     </div><!-- /tab-charts -->
 
     <!-- ══ CALENDAR TAB ══ -->
