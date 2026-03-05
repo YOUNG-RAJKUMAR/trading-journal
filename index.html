@@ -398,12 +398,12 @@
                 <!-- Info notice -->
                 <div class="tv-notice">
                     <span class="live-dot" style="width:5px;height:5px;"></span>
-                    <span>Full TradingView chart — <strong>drawing tools, indicators, multi-timeframe, alerts</strong> all available. Use the toolbar above or interact directly inside the chart.</span>
+                    <span>TradingView chart embedded. For <strong>full drawing tools & all features</strong>, click <strong>Open Full TV</strong> then use <strong>⊞ Pop Out Calc</strong> to keep the calculator floating alongside.</span>
                 </div>
 
-                <!-- ✅ Full TradingView chart iframe — all features unlocked -->
+                <!-- TradingView widget embed (only URL TV allows in iframes) -->
                 <iframe id="tv-embed-iframe"
-                    src="https://www.tradingview.com/chart/?symbol=OANDA:EURUSD&interval=240&theme=dark&timezone=Asia%2FKathmandu&hide_side_toolbar=0&locale=en"
+                    src="https://www.tradingview.com/widgetembed/?frameElementId=tv-embed-iframe&symbol=OANDA%3AEURUSD&interval=240&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0a0a&theme=dark&style=1&timezone=Asia%2FKathmandu&withdateranges=1&showpopupbutton=1&locale=en"
                     allowfullscreen
                     style="flex:1;width:100%;border:none;display:block;min-height:400px;">
                 </iframe>
@@ -694,18 +694,26 @@ window.ui = {
     _tf:    '240',
     _theme: 'dark',
 
-    // Builds the full TradingView chart URL — same as opening tradingview.com/chart
+    // TradingView only allows widgetembed in iframes — tradingview.com/chart/ blocks with X-Frame-Options: deny
     _buildEmbedURL(sym, tf, theme) {
+        const base   = 'https://www.tradingview.com/widgetembed/';
         const params = new URLSearchParams({
-            symbol:            `OANDA:${sym}`,
-            interval:          tf,
-            theme:             theme,
-            timezone:          'Asia/Kathmandu',
-            locale:            'en',
-            style:             '1',
-            hide_side_toolbar: '0',
+            frameElementId:  'tv-embed-iframe',
+            symbol:          `OANDA:${sym}`,
+            interval:        tf,
+            hidesidetoolbar: '0',
+            hidetoptoolbar:  '0',
+            symboledit:      '1',
+            saveimage:       '1',
+            toolbarbg:       '0a0a0a',
+            theme:           theme,
+            style:           '1',
+            timezone:        'Asia/Kathmandu',
+            withdateranges:  '1',
+            showpopupbutton: '1',
+            locale:          'en',
         });
-        return `https://www.tradingview.com/chart/?${params.toString()}`;
+        return `${base}?${params.toString()}`;
     },
 
     loadChart() {
@@ -914,7 +922,7 @@ function calc(){
   flashCard('card-lots');flashCard('card-risk');flashCard('card-profit');
 }
 function resetAll(){['balance','risk-pct','sl','tp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});document.getElementById('risk-amt').value='0';document.getElementById('instrument').value='forex';document.getElementById('rr').value='1';const tpEl=document.getElementById('tp');tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';document.getElementById('auto-tag').style.display='none';setMode('amt');['r-lots','r-risk','r-profit','r-sl','r-tp','r-rr','r-tv'].forEach(id=>set(id,'---'));set('r-lots-sub','Enter values above');document.getElementById('qr-section').style.display='none';}
-</script>
+<\/script>
 </body>
 </html>`;
     },
