@@ -2,22 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Trading Desk</title>
+<title>⚖ Lot Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{width:100%;height:100%;background:#000;font-family:'Inter',sans-serif;color:#aaa;overflow:hidden;}
-
-/* Layout: TV fills left, calc panel fixed on right */
-#tv-frame{position:fixed;top:0;left:0;right:360px;bottom:0;}
-#tv-frame iframe{width:100%;height:100%;border:none;}
-#tv-loading{position:absolute;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;}
-#tv-loading .ld{width:8px;height:8px;border-radius:50%;background:#44ff88;animation:pulse 1.5s infinite;}
-#tv-loading span{font-size:.6rem;color:#555;letter-spacing:2px;text-transform:uppercase;}
-
-#calc-panel{position:fixed;top:0;right:0;width:360px;bottom:0;background:#000;border-left:1px solid #1a1a1a;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;}
-
-.header{display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:2px solid #1a1a1a;height:44px;flex-shrink:0;position:sticky;top:0;z-index:10;}
+html,body{height:100%;background:#000;font-family:'Inter',sans-serif;color:#aaa;overflow-y:auto;overflow-x:hidden;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:2px solid #1a1a1a;height:44px;position:sticky;top:0;z-index:10;}
 .title{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:7px;}
 .ld{width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
@@ -25,8 +15,7 @@ html,body{width:100%;height:100%;background:#000;font-family:'Inter',sans-serif;
 .close-btn:hover{background:#cc0000;}
 .rb{background:transparent;border:1px solid #222;color:#444;padding:3px 9px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;letter-spacing:1px;}
 .rb:hover{border-color:#888;color:#aaa;}
-
-.body{padding:12px;flex:1;}
+.body{padding:12px;}
 .sym-badge{display:flex;align-items:center;gap:7px;background:#050505;border:1px solid #1a3a1a;padding:7px 10px;border-radius:3px;margin-bottom:12px;}
 .sym-name{font-size:.95rem;font-weight:700;color:#44ff88;letter-spacing:2px;}
 label{display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
@@ -63,257 +52,118 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
 </head>
 <body>
 
-<!-- TradingView occupies the left area -->
-<div id="tv-frame">
-    <div id="tv-loading">
-        <div class="ld"></div>
-        <span>Loading TradingView...</span>
+<div class="header">
+    <div class="title"><span class="ld"></span>&#9878; LOT CALCULATOR</div>
+    <div style="display:flex;gap:6px;align-items:center;">
+        <button class="rb" onclick="rs()">&#8635; Reset</button>
+        <button class="close-btn" onclick="closeDeskAndReturn()">&#10005; CLOSE DESK</button>
     </div>
 </div>
 
-<!-- Calculator panel on the right -->
-<div id="calc-panel">
-    <div class="header">
-        <div class="title"><span class="ld"></span>&#9878; LOT CALCULATOR</div>
-        <div style="display:flex;gap:6px;align-items:center;">
-            <button class="rb" onclick="rs()">&#8635; Reset</button>
-            <button class="close-btn" onclick="closeDeskAndReturn()">&#10005; CLOSE DESK</button>
-        </div>
+<div class="body">
+    <div class="sym-badge"><span class="ld"></span><span class="sym-name" id="csym">EURUSD</span></div>
+    <div class="row"><label>Account Balance ($)</label><input type="number" id="bal" placeholder="e.g. 10000" oninput="cl()"></div>
+    <div class="mt">
+        <button id="pb" class="mb off" onclick="sM('pct')">Risk %</button>
+        <button id="ab" class="mb on"  onclick="sM('amt')">Risk $</button>
     </div>
-    <div class="body">
-        <div class="sym-badge"><span class="ld"></span><span class="sym-name" id="csym">EURUSD</span></div>
-        <div class="row"><label>Account Balance ($)</label><input type="number" id="bal" placeholder="e.g. 10000" oninput="cl()"></div>
-        <div class="mt">
-            <button id="pb" class="mb off" onclick="sM('pct')">Risk %</button>
-            <button id="ab" class="mb on"  onclick="sM('amt')">Risk $</button>
-        </div>
-        <div id="pr" class="row" style="display:none;">
-            <label>Risk % of Balance</label>
-            <input type="number" id="rp" placeholder="1" step="0.1" min="0" oninput="cl()">
-        </div>
-        <div id="ar" class="row">
-            <label>Fixed Risk ($)</label>
-            <input type="number" id="ra" placeholder="100" value="0" min="0" oninput="cl()">
-        </div>
-        <hr>
-        <div class="row">
-            <label>Instrument</label>
-            <select id="inst" onchange="cl()">
-                <option value="forex">Forex (EURUSD...)</option>
-                <option value="gold">Gold / XAUUSD</option>
-                <option value="indices">Indices (US30...)</option>
-                <option value="crypto">Crypto (BTC...)</option>
+    <div id="pr" class="row" style="display:none;"><label>Risk % of Balance</label><input type="number" id="rp" placeholder="1" step="0.1" min="0" oninput="cl()"></div>
+    <div id="ar" class="row"><label>Fixed Risk ($)</label><input type="number" id="ra" placeholder="100" value="0" min="0" oninput="cl()"></div>
+    <hr>
+    <div class="row"><label>Instrument</label>
+        <select id="inst" onchange="cl()">
+            <option value="forex">Forex (EURUSD...)</option>
+            <option value="gold">Gold / XAUUSD</option>
+            <option value="indices">Indices (US30...)</option>
+            <option value="crypto">Crypto (BTC...)</option>
+        </select>
+    </div>
+    <div class="two">
+        <div><label>SL (ticks)</label><input type="number" id="sl" placeholder="50" min="0" step="1" oninput="aTP();cl();" style="font-size:1.05rem;padding:10px 9px;"></div>
+        <div><label>Target R:R</label>
+            <select id="rr" onchange="aTP()">
+                <option value="0">Manual TP</option><option value="0.5">1:0.5</option>
+                <option value="1" selected>1:1</option><option value="1.5">1:1.5</option>
+                <option value="2">1:2</option><option value="2.5">1:2.5</option>
+                <option value="3">1:3</option><option value="4">1:4</option><option value="5">1:5</option>
             </select>
         </div>
-        <div class="two">
-            <div>
-                <label>SL (ticks)</label>
-                <input type="number" id="sl" placeholder="50" min="0" step="1" oninput="aTP();cl();" style="font-size:1.05rem;padding:10px 9px;">
-            </div>
-            <div>
-                <label>Target R:R</label>
-                <select id="rr" onchange="aTP()">
-                    <option value="0">Manual TP</option>
-                    <option value="0.5">1:0.5</option>
-                    <option value="1" selected>1:1</option>
-                    <option value="1.5">1:1.5</option>
-                    <option value="2">1:2</option>
-                    <option value="2.5">1:2.5</option>
-                    <option value="3">1:3</option>
-                    <option value="4">1:4</option>
-                    <option value="5">1:5</option>
-                </select>
-            </div>
-        </div>
-        <div class="row">
-            <label>TP (ticks) <span class="at" id="at">&#9679; AUTO</span></label>
-            <input type="number" id="tp" placeholder="100" min="0" step="1" oninput="mTP()" style="font-size:1.05rem;padding:10px 9px;">
-        </div>
-        <div class="rg">
-            <div class="rc full" id="rcl"><div class="rlb">Lot Size</div><div class="rv lots" id="rl">---</div><div class="rs2" id="rls">Enter values</div></div>
-            <div class="rc" id="rcr"><div class="rlb">Risk ($)</div><div class="rv risk" id="rr2">---</div><div class="rs2" id="rrs">---</div></div>
-            <div class="rc" id="rcp"><div class="rlb">Profit ($)</div><div class="rv prof" id="rp2">---</div><div class="rs2" id="rps">---</div></div>
-            <div class="rc"><div class="rlb">SL Ticks</div><div class="rv" id="rsout">---</div></div>
-            <div class="rc"><div class="rlb">TP Ticks</div><div class="rv" id="rt">---</div></div>
-            <div class="rc"><div class="rlb">R:R</div><div class="rv" id="rrr">---</div></div>
-            <div class="rc"><div class="rlb">Tick Val</div><div class="rv" id="rtv">---</div></div>
-        </div>
-        <div class="qs" id="qs">
-            <div class="qt">Quick Risk Reference</div>
-            <table class="qtbl">
-                <thead><tr><th>%</th><th>$Risk</th><th>Lots</th><th>Profit</th></tr></thead>
-                <tbody id="qb"></tbody>
-            </table>
-        </div>
+    </div>
+    <div class="row"><label>TP (ticks) <span class="at" id="at">&#9679; AUTO</span></label>
+        <input type="number" id="tp" placeholder="100" min="0" step="1" oninput="mTP()" style="font-size:1.05rem;padding:10px 9px;"></div>
+    <div class="rg">
+        <div class="rc full" id="rcl"><div class="rlb">Lot Size</div><div class="rv lots" id="rl">---</div><div class="rs2" id="rls">Enter values</div></div>
+        <div class="rc" id="rcr"><div class="rlb">Risk ($)</div><div class="rv risk" id="rr2">---</div><div class="rs2" id="rrs">---</div></div>
+        <div class="rc" id="rcp"><div class="rlb">Profit ($)</div><div class="rv prof" id="rp2">---</div><div class="rs2" id="rps">---</div></div>
+        <div class="rc"><div class="rlb">SL Ticks</div><div class="rv" id="rsout">---</div></div>
+        <div class="rc"><div class="rlb">TP Ticks</div><div class="rv" id="rt">---</div></div>
+        <div class="rc"><div class="rlb">R:R</div><div class="rv" id="rrr">---</div></div>
+        <div class="rc"><div class="rlb">Tick Val</div><div class="rv" id="rtv">---</div></div>
+    </div>
+    <div class="qs" id="qs">
+        <div class="qt">Quick Risk Reference</div>
+        <table class="qtbl"><thead><tr><th>%</th><th>$Risk</th><th>Lots</th><th>Profit</th></tr></thead>
+        <tbody id="qb"></tbody></table>
     </div>
 </div>
 
 <script>
-// ── Read params from URL ──
 var params   = new URLSearchParams(window.location.search);
 var _isPWA   = params.get('isPWA') === 'true';
 var _tf      = params.get('tf') || '240';
 var _journal = params.get('journal') || '';
 var _sym     = 'EURUSD';
+var _tvWin   = null;
+var _m       = 'amt';
 
-// ── Open TradingView in the LEFT area using a new window positioned there ──
-// desk.html occupies the FULL screen. TradingView opens as a separate window on the left.
-// Because desk.html opens TV, desk.html has full authority to close it.
-var _tvWin = null;
-
-function openTV() {
-    var sw = window.screen.availWidth;
-    var sh = window.screen.availHeight;
-    var calcW = 360;
-    var tvW = sw - calcW;
+// Open TradingView on the LEFT — desk.html opens it, so desk.html can close it
+(function openTV(){
+    var sw=window.screen.availWidth, sh=window.screen.availHeight, calcW=360, tvW=sw-calcW;
     _tvWin = window.open(
-        'https://www.tradingview.com/chart/?symbol=OANDA%3A' + _sym + '&interval=' + _tf + '&theme=dark&timezone=Asia%2FKathmandu',
+        'https://www.tradingview.com/chart/?symbol=OANDA%3A'+_sym+'&interval='+_tf+'&theme=dark&timezone=Asia%2FKathmandu',
         'TVWin',
-        'width=' + tvW + ',height=' + sh + ',left=0,top=0,resizable=yes,scrollbars=no'
+        'width='+tvW+',height='+sh+',left=0,top=0,resizable=yes,scrollbars=no'
     );
-    document.getElementById('tv-loading').style.display = 'none';
-    // Reposition desk.html (this window) to the right side
-    try {
-        window.moveTo(tvW, 0);
-        window.resizeTo(calcW, sh);
-    } catch(e) {}
-}
+})();
 
-openTV();
+// Poll: if user closes TV manually, close desk too
+var _poll = setInterval(function(){
+    if (_tvWin && _tvWin.closed){ clearInterval(_poll); signalAndClose(); }
+}, 800);
 
-// ── CLOSE BOTH ──
-// This page opened TV, so window.close() on _tvWin is fully authorized here.
-function closeDeskAndReturn() {
-    // 1. Close TradingView — we opened it, so this works
-    try { if (_tvWin && !_tvWin.closed) { _tvWin.close(); } } catch(e) {}
-
-    // 2. Signal journal to focus (PWA) or navigate back (browser)
-    try {
-        if (window.opener && !window.opener.closed) {
-            window.opener.postMessage('DESK_CLOSED', '*');
-            if (!_isPWA && _journal) {
-                // Browser mode: journal tab may have navigated away — ensure it's on the journal
-                window.opener.focus();
-            } else if (_isPWA) {
-                window.opener.focus();
-            }
-        } else if (!_isPWA && _journal) {
-            // opener gone (e.g. was closed) — open journal in new tab
-            window.open(_journal, '_blank');
+function signalAndClose(){
+    try{
+        if(window.opener && !window.opener.closed){
+            window.opener.postMessage('DESK_CLOSED','*');
+            window.opener.focus();
         }
-    } catch(e) {}
-
-    // 3. Close this desk window
+    }catch(e){}
     window.close();
 }
 
-// If user closes TV manually, auto-close desk too after a moment
-var _tvCheckInterval = setInterval(function() {
-    if (_tvWin && _tvWin.closed) {
-        clearInterval(_tvCheckInterval);
-        try { if (window.opener && !window.opener.closed) { window.opener.postMessage('DESK_CLOSED', '*'); window.opener.focus(); } } catch(e) {}
-        window.close();
-    }
-}, 1000);
-
-// ── CALCULATOR LOGIC ──
-var _m = 'amt';
-
-function sM(m) {
-    _m = m;
-    document.getElementById('pr').style.display = m === 'pct' ? 'block' : 'none';
-    document.getElementById('ar').style.display = m === 'pct' ? 'none'  : 'block';
-    document.getElementById('pb').className = 'mb ' + (m === 'pct' ? 'on' : 'off');
-    document.getElementById('ab').className = 'mb ' + (m === 'amt' ? 'on' : 'off');
-    cl();
+// CLOSE BUTTON — desk.html opened TV so _tvWin.close() is authorised here
+function closeDeskAndReturn(){
+    clearInterval(_poll);
+    try{ if(_tvWin && !_tvWin.closed) _tvWin.close(); }catch(e){}
+    signalAndClose();
 }
 
-function aTP() {
-    var rr = parseFloat(document.getElementById('rr').value) || 0;
-    var sl = parseFloat(document.getElementById('sl').value) || 0;
-    var te = document.getElementById('tp'), tg = document.getElementById('at');
-    if (rr === 0) { te.readOnly = false; te.style.borderColor = ''; te.style.color = '#fff'; tg.style.display = 'none'; cl(); return; }
-    if (!sl) { document.getElementById('rr').value = '0'; cl(); return; }
-    te.value = Math.round(sl * rr * 10) / 10;
-    te.readOnly = true; te.style.borderColor = '#44ff88'; te.style.color = '#44ff88'; tg.style.display = 'inline';
-    cl();
+function sM(m){_m=m;document.getElementById('pr').style.display=m==='pct'?'block':'none';document.getElementById('ar').style.display=m==='pct'?'none':'block';document.getElementById('pb').className='mb '+(m==='pct'?'on':'off');document.getElementById('ab').className='mb '+(m==='amt'?'on':'off');cl();}
+function aTP(){var rr=parseFloat(document.getElementById('rr').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,te=document.getElementById('tp'),tg=document.getElementById('at');if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';tg.style.display='none';cl();return;}if(!sl){document.getElementById('rr').value='0';cl();return;}te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';tg.style.display='inline';cl();}
+function mTP(){document.getElementById('rr').value='0';var te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';cl();}
+function sv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+function fl(id){var e=document.getElementById(id);if(!e)return;e.classList.remove('fl');void e.offsetWidth;e.classList.add('fl');}
+function cl(){
+    var b=parseFloat(document.getElementById('bal').value)||0,rp=parseFloat(document.getElementById('rp').value)||0,ra=parseFloat(document.getElementById('ra').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,tp=parseFloat(document.getElementById('tp').value)||0,tv=1;
+    if(b>0){var rows=[0.5,1,1.5,2,3,5].map(function(p){var a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_m==='pct'&&p===rp);return'<tr class="'+(hi?'ac':'')+'"><td>'+p+'%</td><td>$'+a.toFixed(0)+'</td><td>'+(sl>0?l.toFixed(2):'---')+'</td><td>'+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');document.getElementById('qb').innerHTML=rows;document.getElementById('qs').style.display='block';}
+    if(!sl){['rl','rr2','rp2','rsout','rt','rrr','rtv'].forEach(function(i){sv(i,'---');});sv('rls','Enter values');sv('rrs','---');sv('rps','---');return;}
+    var rm=_m==='amt'?ra:(b>0?b*rp/100:0);
+    if(!rm){['rl','rr2','rp2','rsout','rt','rrr','rtv'].forEach(function(i){sv(i,'---');});sv('rls','Set risk amount');return;}
+    var l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;
+    sv('rl',l.toFixed(2));sv('rls','Standard lots');sv('rr2','$'+ar.toFixed(2));sv('rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'--');sv('rp2',tp?'$'+pp.toFixed(2):'---');sv('rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'--');sv('rsout',sl+' ticks');sv('rt',tp?tp+' ticks':'---');sv('rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');sv('rtv','$'+tv.toFixed(2));
+    fl('rcl');fl('rcr');fl('rcp');
 }
-
-function mTP() {
-    document.getElementById('rr').value = '0';
-    var te = document.getElementById('tp');
-    te.readOnly = false; te.style.borderColor = ''; te.style.color = '#fff';
-    document.getElementById('at').style.display = 'none';
-    cl();
-}
-
-function sv(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
-
-function fl(id) { var e = document.getElementById(id); if (!e) return; e.classList.remove('fl'); void e.offsetWidth; e.classList.add('fl'); }
-
-function cl() {
-    var b  = parseFloat(document.getElementById('bal').value) || 0;
-    var rp = parseFloat(document.getElementById('rp').value)  || 0;
-    var ra = parseFloat(document.getElementById('ra').value)  || 0;
-    var sl = parseFloat(document.getElementById('sl').value)  || 0;
-    var tp = parseFloat(document.getElementById('tp').value)  || 0;
-    var tv = 1;
-
-    if (b > 0) {
-        var rows = [0.5, 1, 1.5, 2, 3, 5].map(function(p) {
-            var a  = b * p / 100;
-            var l  = sl > 0 ? Math.floor(a / (sl * tv) * 100) / 100 : 0;
-            var pr = (tp && l) ? l * tp * tv : 0;
-            var hi = (_m === 'pct' && p === rp);
-            return '<tr class="' + (hi ? 'ac' : '') + '"><td>' + p + '%</td><td>$' + a.toFixed(0) + '</td><td>' + (sl > 0 ? l.toFixed(2) : '---') + '</td><td>' + (sl > 0 && tp ? '$' + pr.toFixed(0) : '---') + '</td></tr>';
-        }).join('');
-        document.getElementById('qb').innerHTML = rows;
-        document.getElementById('qs').style.display = 'block';
-    }
-
-    if (!sl) {
-        ['rl','rr2','rp2','rsout','rt','rrr','rtv'].forEach(function(i){ sv(i,'---'); });
-        sv('rls','Enter values'); sv('rrs','---'); sv('rps','---');
-        return;
-    }
-
-    var rm = _m === 'amt' ? ra : (b > 0 ? b * rp / 100 : 0);
-    if (!rm) {
-        ['rl','rr2','rp2','rsout','rt','rrr','rtv'].forEach(function(i){ sv(i,'---'); });
-        sv('rls','Set risk amount');
-        return;
-    }
-
-    var l   = Math.floor(rm / (sl * tv) * 100) / 100;
-    var ar  = l * sl * tv;
-    var pp  = tp ? l * tp * tv : 0;
-    var r   = tp > 0 ? tp / sl : 0;
-
-    sv('rl',    l.toFixed(2));
-    sv('rls',   'Standard lots');
-    sv('rr2',   '$' + ar.toFixed(2));
-    sv('rrs',   b > 0 ? ((ar / b) * 100).toFixed(2) + '% of bal' : '--');
-    sv('rp2',   tp ? '$' + pp.toFixed(2) : '---');
-    sv('rps',   (b > 0 && tp) ? ((pp / b) * 100).toFixed(2) + '% of bal' : '--');
-    sv('rsout', sl + ' ticks');
-    sv('rt',    tp ? tp + ' ticks' : '---');
-    sv('rrr',   r > 0 ? '1:' + parseFloat(r.toFixed(2)) : '---');
-    sv('rtv',   '$' + tv.toFixed(2));
-    fl('rcl'); fl('rcr'); fl('rcp');
-}
-
-function rs() {
-    ['bal','rp','sl','tp'].forEach(function(i){ var e = document.getElementById(i); if(e) e.value = ''; });
-    document.getElementById('ra').value = '0';
-    document.getElementById('rr').value = '1';
-    var te = document.getElementById('tp');
-    te.readOnly = false; te.style.borderColor = ''; te.style.color = '#fff';
-    document.getElementById('at').style.display = 'none';
-    sM('amt');
-    ['rl','rr2','rp2','rsout','rt','rrr','rtv'].forEach(function(i){ sv(i,'---'); });
-    sv('rls','Enter values');
-    document.getElementById('qs').style.display = 'none';
-}
+function rs(){['bal','rp','sl','tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});document.getElementById('ra').value='0';document.getElementById('rr').value='1';var te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';sM('amt');['rl','rr2','rp2','rsout','rt','rrr','rtv'].forEach(function(i){sv(i,'---');});sv('rls','Enter values');document.getElementById('qs').style.display='none';}
 </script>
 </body>
 </html>
