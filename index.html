@@ -110,109 +110,6 @@
         .pdf-export-mode table { font-size:8px!important; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1} }
 
-        /* ══ CHARTS TAB ══ */
-        .chart-calc-layout {
-            display:grid;
-            grid-template-columns:1fr 400px;
-            height:calc(100vh - 145px);
-            min-height:600px;
-            border:1px solid var(--border);
-        }
-        @media(max-width:1200px) {
-            .chart-calc-layout { grid-template-columns:1fr; height:auto; }
-            .chart-panel { height:600px; }
-        }
-
-        .chart-panel {
-            display:flex; flex-direction:column;
-            border-right:1px solid var(--border);
-            background:#000;
-            overflow:hidden;
-            height:100%;
-        }
-
-        /* TOOLBAR */
-        .chart-toolbar {
-            display:flex; align-items:center; gap:6px;
-            padding:0 10px; background:#0d0d0d;
-            border-bottom:1px solid #1a1a1a;
-            flex-shrink:0; height:38px; overflow-x:auto;
-        }
-        .chart-toolbar::-webkit-scrollbar { height:2px; }
-        .chart-toolbar::-webkit-scrollbar-thumb { background:#333; }
-
-        .chart-symbol-input {
-            background:transparent; border:none; color:#fff;
-            padding:4px 8px; font-size:0.92rem; font-weight:700;
-            letter-spacing:1px; text-transform:uppercase; width:100px;
-            border-right:1px solid #222; height:38px; flex-shrink:0;
-        }
-        .chart-symbol-input:focus { outline:none; background:#111; }
-
-        .chart-go-btn {
-            background:#44ff88; color:#000; border:none; padding:4px 12px;
-            font-size:0.68rem; font-weight:700; cursor:pointer;
-            text-transform:uppercase; letter-spacing:1px; height:26px;
-            border-radius:2px; flex-shrink:0;
-        }
-        .chart-go-btn:hover { background:#33dd77; }
-
-        .tb-sep { width:1px; background:#222; height:22px; margin:0 2px; flex-shrink:0; }
-
-        .tf-btn {
-            background:transparent; border:1px solid transparent; color:#666;
-            padding:2px 7px; font-size:0.62rem; cursor:pointer; border-radius:3px;
-            transition:all 0.15s; flex-shrink:0; height:24px;
-        }
-        .tf-btn:hover { color:#fff; border-color:#444; }
-        .tf-btn.active { background:#44ff88; color:#000; border-color:#44ff88; font-weight:700; }
-
-        .popup-btn {
-            background:transparent; border:1px solid #333; color:#aaa;
-            padding:3px 9px; font-size:0.62rem; cursor:pointer;
-            border-radius:3px; display:flex; align-items:center; gap:4px;
-            transition:all 0.15s; white-space:nowrap; flex-shrink:0; height:26px;
-        }
-        .popup-btn:hover { border-color:#44ff88; color:#44ff88; }
-
-        /* ── TV full-chart iframe — fills remaining panel height ── */
-        #tv-embed-iframe {
-            flex: 1;
-            width: 100%;
-            border: none;
-            display: block;
-            min-height: 400px;
-        }
-
-        /* TV notice banner */
-        .tv-notice {
-            background:#0d1a0d; border-bottom:1px solid #1a3a1a;
-            padding:6px 14px; font-size:0.6rem; color:#44aa66;
-            letter-spacing:1px; flex-shrink:0; display:flex; align-items:center; gap:8px;
-        }
-        .tv-notice strong { color:#44ff88; }
-
-        /* CALC SIDE */
-        .calc-side-panel { display:flex; flex-direction:column; overflow-y:auto; background:var(--surface); }
-        .calc-side-inner { padding:16px; }
-
-        .c-res-card { background:#050505; border:1px solid var(--border); padding:12px; text-align:center; }
-        .c-res-card.full { grid-column:span 2; }
-        .c-res-label { font-size:0.5rem; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
-        .c-res-val { font-size:1.05rem; font-weight:300; color:#fff; }
-        .c-res-val.lots { color:var(--positive); font-size:1.5rem; }
-        .c-res-val.risk { color:var(--negative); }
-        .c-res-val.profit { color:var(--positive); }
-        .c-res-sub { font-size:0.52rem; color:#444; margin-top:3px; }
-        .calc-results { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:12px; }
-        .calc-divider { border:none; border-top:1px solid var(--border); margin:12px 0; }
-        .calc-input-row { margin-bottom:10px; }
-        .calc-input-row label { display:block; font-size:0.58rem; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
-        .calc-input-row input,.calc-input-row select { width:100%; padding:8px; font-size:0.75rem; }
-
-        .calc-reset-btn { background:transparent; border:1px solid #333; color:#555; padding:5px 12px; font-size:0.62rem; cursor:pointer; text-transform:uppercase; letter-spacing:1px; transition:all 0.2s; }
-        .calc-reset-btn:hover { border-color:#ff4444; color:#ff4444; }
-
         /* live pulse */
         .live-dot { width:7px; height:7px; border-radius:50%; background:#44ff88; display:inline-block; animation:pulse 1.5s infinite; }
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
@@ -252,7 +149,7 @@
 
     <nav class="tab-nav">
         <button class="tab-btn active" id="btn-journal"   onclick="ui.switchTab('journal')">Journal</button>
-        <button class="tab-btn"        id="btn-charts"    onclick="ui.switchTab('charts')">📈 Charts & Calculator</button>
+        <button class="tab-btn"        id="btn-charts"    onclick="ui.switchTab('charts')" title="Opens Trading Desk in a new window" style="color:#44ff88;opacity:0.7;">📈 Charts & Calculator ↗</button>
         <button class="tab-btn"        id="btn-calendar"  onclick="ui.switchTab('calendar')">Performance Calendar</button>
         <button class="tab-btn"        id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
     </nav>
@@ -342,167 +239,13 @@
         </div>
     </div>
 
-    <!-- ══ CHARTS & CALCULATOR TAB ══ -->
+    <!-- ══ CHARTS TAB (hidden, kept for PDF export compat) ══ -->
     <div id="tab-charts" class="tab-content">
-        <div class="chart-calc-layout">
-
-            <!-- LEFT: TradingView Full Chart -->
-            <div class="chart-panel">
-
-                <!-- Toolbar -->
-                <div class="chart-toolbar">
-                    <input type="text" id="chart-symbol" class="chart-symbol-input" placeholder="EURUSD" value="EURUSD"
-                        onkeydown="if(event.key==='Enter')ui.loadChart()">
-                    <button class="chart-go-btn" onclick="ui.loadChart()">▶ GO</button>
-                    <div class="tb-sep"></div>
-
-                    <!-- Timeframes -->
-                    <button class="tf-btn" onclick="ui.setTF(this,'1')">1m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'3')">3m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'5')">5m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'15')">15m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'30')">30m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'45')">45m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'60')">1h</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'120')">2h</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'180')">3h</button>
-                    <button class="tf-btn active" onclick="ui.setTF(this,'240')">4h</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'D')">D</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'W')">W</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'M')">M</button>
-                    <div class="tb-sep"></div>
-
-                    <!-- Theme toggle -->
-                    <button id="theme-toggle-btn" onclick="ui.toggleTheme()" title="Toggle light/dark"
-                        style="background:#111;border:1px solid #333;color:#aaa;padding:3px 9px;font-size:0.7rem;cursor:pointer;border-radius:3px;flex-shrink:0;">🌙 Dark</button>
-
-                    <div class="tb-sep"></div>
-                    <!-- ONE CLICK: opens TV + Calculator perfectly tiled side by side -->
-                    <button class="popup-btn" onclick="ui.launchTradingDesk()"
-                        title="Open TradingView + Calculator side by side in one click"
-                        style="border-color:#44ff88;color:#44ff88;font-weight:700;padding:3px 14px;font-size:0.68rem;">
-                        ⚡ Launch Trading Desk
-                    </button>
-
-                    <div style="display:flex;align-items:center;gap:5px;margin-left:auto;flex-shrink:0;">
-                        <span class="live-dot"></span>
-                        <span style="font-size:0.58rem;color:#44ff88;letter-spacing:1px;font-weight:600;">LIVE</span>
-                    </div>
-                </div>
-
-                <!-- Info notice -->
-                <div class="tv-notice">
-                    <span class="live-dot" style="width:5px;height:5px;"></span>
-                    <span>TradingView chart embedded. For <strong>full drawing tools & all features</strong>, click <strong>Open Full TV</strong> then use <strong>⊞ Pop Out Calc</strong> to keep the calculator floating alongside.</span>
-                </div>
-
-                <!-- TradingView widget embed (only URL TV allows in iframes) -->
-                <iframe id="tv-embed-iframe"
-                    src="https://www.tradingview.com/widgetembed/?frameElementId=tv-embed-iframe&symbol=OANDA%3AEURUSD&interval=240&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0a0a&theme=dark&style=1&timezone=Asia%2FKathmandu&withdateranges=1&showpopupbutton=1&locale=en"
-                    allowfullscreen
-                    style="flex:1;width:100%;border:none;display:block;min-height:400px;">
-                </iframe>
-            </div>
-
-            <!-- RIGHT: Lot Calculator -->
-            <div class="calc-side-panel">
-                <div class="calc-side-inner">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-                        <span style="font-size:0.6rem;color:#555;text-transform:uppercase;letter-spacing:2px;">⚖ Lot Calculator</span>
-                        <button class="calc-reset-btn" onclick="ui.resetCalc()">↺ Reset</button>
-                    </div>
-
-                    <!-- Active chart symbol badge -->
-                    <div style="background:#050505;border:1px solid #1a3a1a;padding:8px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;border-radius:2px;">
-                        <span class="live-dot"></span>
-                        <span style="font-size:0.58rem;color:#555;text-transform:uppercase;">Chart Symbol:</span>
-                        <span id="side-chart-symbol" style="font-size:0.9rem;font-weight:700;color:#44ff88;letter-spacing:2px;">EURUSD</span>
-                    </div>
-
-                    <div class="calc-input-row">
-                        <label>Account Balance ($)</label>
-                        <input type="number" id="s-balance" placeholder="e.g. 10000" oninput="ui.calcSide()">
-                    </div>
-
-                    <div style="display:flex;margin-bottom:10px;">
-                        <button id="s-pct-btn" onclick="ui.setSideMode('pct')" style="flex:1;padding:8px;font-size:0.68rem;text-transform:uppercase;cursor:pointer;border-right:none;background:#000;color:#555;border:1px solid #333;">Risk %</button>
-                        <button id="s-amt-btn" onclick="ui.setSideMode('amt')" style="flex:1;padding:8px;font-size:0.68rem;text-transform:uppercase;cursor:pointer;background:#fff;color:#000;border:1px solid #fff;font-weight:600;">Risk $</button>
-                    </div>
-                    <div id="s-pct-row" class="calc-input-row" style="display:none;">
-                        <label>Risk % of Balance</label>
-                        <input type="number" id="s-risk-pct" placeholder="1" step="0.1" value="0" min="0" oninput="ui.calcSide()">
-                    </div>
-                    <div id="s-amt-row" class="calc-input-row">
-                        <label>Fixed Risk Amount ($)</label>
-                        <input type="number" id="s-risk-amt" placeholder="100" value="0" min="0" oninput="ui.calcSide()">
-                    </div>
-
-                    <hr class="calc-divider">
-
-                    <div class="calc-input-row">
-                        <label>Instrument</label>
-                        <select id="s-instrument" onchange="ui.calcSide()">
-                            <option value="forex">Forex (EURUSD, GBPUSD…)</option>
-                            <option value="gold">Gold / XAUUSD</option>
-                            <option value="indices">Indices (US30, NAS100…)</option>
-                            <option value="crypto">Crypto (BTCUSD…)</option>
-                        </select>
-                    </div>
-
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-                        <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>SL (ticks)</label>
-                            <input type="number" id="s-sl" placeholder="50" min="0" step="1" oninput="ui.autoSideTP();ui.calcSide();" style="font-size:1rem;padding:10px;">
-                        </div>
-                        <div class="calc-input-row" style="margin-bottom:0;">
-                            <label>Target R:R</label>
-                            <select id="s-rr" onchange="ui.autoSideTP()" style="width:100%;padding:8px;font-size:0.75rem;">
-                                <option value="0">Manual TP</option>
-                                <option value="0.5">1 : 0.5</option>
-                                <option value="1" selected>1 : 1</option>
-                                <option value="1.5">1 : 1.5</option>
-                                <option value="2">1 : 2</option>
-                                <option value="2.5">1 : 2.5</option>
-                                <option value="3">1 : 3</option>
-                                <option value="4">1 : 4</option>
-                                <option value="5">1 : 5</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="calc-input-row">
-                        <label>TP (ticks) <span id="s-tp-auto" style="color:#44ff88;font-size:0.55rem;display:none;">● AUTO</span></label>
-                        <input type="number" id="s-tp" placeholder="100" min="0" step="1" oninput="ui.manualSideTP();" style="font-size:1rem;padding:10px;">
-                    </div>
-
-                    <!-- RESULTS -->
-                    <div class="calc-results">
-                        <div class="c-res-card full">
-                            <div class="c-res-label">Recommended Lot Size</div>
-                            <div class="c-res-val lots" id="s-lots">---</div>
-                            <div class="c-res-sub" id="s-lots-sub">Enter values to calculate</div>
-                        </div>
-                        <div class="c-res-card"><div class="c-res-label">Risk ($)</div><div class="c-res-val risk" id="s-risk">---</div><div class="c-res-sub" id="s-risk-sub">---</div></div>
-                        <div class="c-res-card"><div class="c-res-label">Profit ($)</div><div class="c-res-val profit" id="s-profit">---</div><div class="c-res-sub" id="s-profit-sub">---</div></div>
-                        <div class="c-res-card"><div class="c-res-label">SL ticks</div><div class="c-res-val" id="s-sl-out">---</div></div>
-                        <div class="c-res-card"><div class="c-res-label">TP ticks</div><div class="c-res-val" id="s-tp-out">---</div></div>
-                        <div class="c-res-card"><div class="c-res-label">R : R</div><div class="c-res-val" id="s-rr-out">---</div></div>
-                        <div class="c-res-card"><div class="c-res-label">Tick Value</div><div class="c-res-val" id="s-tv-out">---</div></div>
-                    </div>
-
-                    <!-- Quick Risk Reference -->
-                    <div id="s-qr-table" style="display:none;margin-top:12px;">
-                        <div style="font-size:0.5rem;color:#444;text-transform:uppercase;letter-spacing:1px;padding-top:10px;border-top:1px solid var(--border);margin-bottom:6px;">Quick Risk Reference</div>
-                        <table style="width:100%;border-collapse:collapse;font-size:0.67rem;min-width:unset;">
-                            <thead><tr>
-                                <th style="color:#444;padding:3px 5px;text-align:left;background:transparent;border:none;white-space:nowrap;">%</th>
-                                <th style="color:#444;padding:3px 5px;text-align:left;background:transparent;border:none;white-space:nowrap;">$</th>
-                                <th style="color:#444;padding:3px 5px;text-align:left;background:transparent;border:none;white-space:nowrap;">Lots</th>
-                            </tr></thead>
-                            <tbody id="s-qr-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;gap:20px;">
+            <div style="font-size:3rem;">📈</div>
+            <div style="font-size:0.7rem;color:#555;letter-spacing:3px;text-transform:uppercase;">Trading Desk</div>
+            <div style="font-size:0.65rem;color:#333;text-transform:uppercase;letter-spacing:1px;">Opening in new window...</div>
+            <button onclick="ui.launchTradingDesk()" style="background:#44ff88;color:#000;border:none;padding:14px 30px;font-size:0.75rem;font-weight:700;cursor:pointer;letter-spacing:2px;text-transform:uppercase;">⚡ Launch Trading Desk</button>
         </div>
     </div>
 
@@ -675,354 +418,203 @@ window.ui = {
         }
     },
 
+    /* ══ TAB SWITCHING — Charts tab launches Trading Desk directly ══ */
     switchTab(id) {
+        if(id === 'charts') {
+            this.launchTradingDesk();
+            // Stay on current tab (don't switch away from journal)
+            return;
+        }
         document.querySelectorAll('.tab-content,.tab-btn').forEach(el => el.classList.remove('active'));
         document.getElementById(`tab-${id}`).classList.add('active');
         document.getElementById(`btn-${id}`).classList.add('active');
         if(id === 'analytics') this.renderAnalytics();
         if(id === 'calendar')  { this.renderCalendar(); this.updateSideStats(); }
         if(id === 'journal')   this.renderJournal();
-        if(id === 'charts')    this.loadChart();
     },
 
-    /* ══ TRADINGVIEW FULL CHART (all drawing tools) ══ */
+    /* ══ TRADING DESK (full-screen popup: TV + Calculator side by side) ══ */
     _tf:    '240',
     _theme: 'dark',
 
-    // TradingView only allows widgetembed in iframes — tradingview.com/chart/ blocks with X-Frame-Options: deny
-    _buildEmbedURL(sym, tf, theme) {
-        const base   = 'https://www.tradingview.com/widgetembed/';
-        const params = new URLSearchParams({
-            frameElementId:  'tv-embed-iframe',
-            symbol:          `OANDA:${sym}`,
-            interval:        tf,
-            hidesidetoolbar: '0',
-            hidetoptoolbar:  '0',
-            symboledit:      '1',
-            saveimage:       '1',
-            toolbarbg:       '0a0a0a',
-            theme:           theme,
-            style:           '1',
-            timezone:        'Asia/Kathmandu',
-            withdateranges:  '1',
-            showpopupbutton: '1',
-            locale:          'en',
-        });
-        return `${base}?${params.toString()}`;
-    },
-
-    loadChart() {
-        const sym = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
-        document.getElementById('chart-symbol').value = sym;
-        const sideLabel = document.getElementById('side-chart-symbol');
-        if (sideLabel) sideLabel.textContent = sym;
-
-        const iframe = document.getElementById('tv-embed-iframe');
-        if (iframe) iframe.src = this._buildEmbedURL(sym, this._tf, this._theme);
-    },
-
-    setTF(btn, tf) {
-        this._tf = tf;
-        document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.loadChart();
-    },
-
-    toggleTheme() {
-        this._theme = this._theme === 'dark' ? 'light' : 'dark';
-        const btn = document.getElementById('theme-toggle-btn');
-        if (btn) btn.textContent = this._theme === 'dark' ? '🌙 Dark' : '☀️ Light';
-        this.loadChart();
-    },
-
     launchTradingDesk() {
-        const sym   = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
-        const sw    = window.screen.width;
-        const sh    = window.screen.height;
-        const calcW = 370;
-        const tvW   = sw - calcW;
-        const top   = 0;
+        const sym  = 'EURUSD';
+        const sw   = window.screen.availWidth;
+        const sh   = window.screen.availHeight;
 
-        // 1. Open TradingView — fills left portion of screen
-        window.open(
-            `https://www.tradingview.com/chart/?symbol=OANDA:${sym}&interval=${this._tf}`,
-            'TVChart',
-            `width=${tvW},height=${sh},left=0,top=${top},resizable=yes,scrollbars=no,toolbar=no,menubar=no`
+        const desk = window.open(
+            '', 'TradingDesk',
+            `width=${sw},height=${sh},left=0,top=0,resizable=yes,scrollbars=no`
         );
+        if (!desk) { alert('Please allow popups for this page, then try again.'); return; }
 
-        // 2. Open calculator — snaps to right edge, same height
-        const calc = window.open(
-            '', 'LotCalculator',
-            `width=${calcW},height=${sh},left=${tvW},top=${top},resizable=yes,scrollbars=yes,toolbar=no,menubar=no`
-        );
-        if (!calc) { alert('Please allow popups for this page, then try again.'); return; }
-        calc.document.open();
-        calc.document.write(this._calcHTML());
-        calc.document.close();
-    },
+        const tvSrc = `https://www.tradingview.com/widgetembed/?frameElementId=tv-desk&symbol=OANDA:${sym}&interval=${this._tf}&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0a0a&theme=dark&style=1&timezone=Asia%2FKathmandu&withdateranges=1&showpopupbutton=1&locale=en`;
 
-    _calcHTML() {
-        return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>⚖ Lot Calculator</title>
+        const calcJS = `
+let _m='amt';
+function sM(m){_m=m;document.getElementById('pr').style.display=m==='pct'?'block':'none';document.getElementById('ar').style.display=m==='pct'?'none':'block';document.getElementById('pb').className='mb '+(m==='pct'?'on':'off');document.getElementById('ab').className='mb '+(m==='amt'?'on':'off');cl();}
+function aTP(){const rr=parseFloat(document.getElementById('rr').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,te=document.getElementById('tp'),tg=document.getElementById('at');if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';tg.style.display='none';cl();return;}if(!sl){document.getElementById('rr').value='0';cl();return;}te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';tg.style.display='inline';cl();}
+function mTP(){document.getElementById('rr').value='0';const te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';cl();}
+function sv(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function fl(id){const e=document.getElementById(id);if(!e)return;e.classList.remove('fl');void e.offsetWidth;e.classList.add('fl');}
+function cl(){
+  const b=parseFloat(document.getElementById('bal').value)||0,rp=parseFloat(document.getElementById('rp').value)||0,ra=parseFloat(document.getElementById('ra').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,tp=parseFloat(document.getElementById('tp').value)||0,tv=1;
+  if(b>0){const rows=[0.5,1,1.5,2,3,5].map(p=>{const a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_m==='pct'&&p===rp);return'<tr class="'+(hi?'ac':'')+'"><td>'+p+'%</td><td>$'+a.toFixed(0)+'</td><td>'+(sl>0?l.toFixed(2):'---')+'</td><td>'+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');document.getElementById('qb').innerHTML=rows;document.getElementById('qs').style.display='block';}
+  if(!sl){['rl','rr2','rp2','rs','rt','rrr','rtv'].forEach(i=>sv(i,'---'));sv('rls','Enter values');sv('rrs','---');sv('rps','---');return;}
+  const rm=_m==='amt'?ra:(b>0?b*rp/100:0);
+  if(!rm){['rl','rr2','rp2','rs','rt','rrr','rtv'].forEach(i=>sv(i,'---'));sv('rls','Set risk amount');return;}
+  const l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;
+  sv('rl',l.toFixed(2));sv('rls','Standard lots');sv('rr2','$'+ar.toFixed(2));sv('rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'—');sv('rp2',tp?'$'+pp.toFixed(2):'---');sv('rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'—');sv('rs',sl+' ticks');sv('rt',tp?tp+' ticks':'---');sv('rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');sv('rtv','$'+tv.toFixed(2));
+  fl('cl');fl('cr');fl('cp');
+}
+function rs(){['bal','rp','sl','tp'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''});document.getElementById('ra').value='0';document.getElementById('rr').value='1';const te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';sM('amt');['rl','rr2','rp2','rs','rt','rrr','rtv'].forEach(i=>sv(i,'---'));sv('rls','Enter values');document.getElementById('qs').style.display='none';}
+`;
+
+        desk.document.open();
+        desk.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>⚡ Trading Desk — ${sym}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#000;--surface:#0a0a0a;--border:#1e1e1e;--positive:#44ff88;--negative:#ff4444;--text:#aaa;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
-.header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#0d0d0d;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
-.header-title{font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;}
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--positive);display:inline-block;animation:pulse 1.5s infinite;margin-right:5px;}
+html,body{height:100%;background:#000;font-family:'Inter',sans-serif;color:#aaa;overflow:hidden;}
+.desk{display:flex;height:100vh;}
+.tv-side{flex:1;display:flex;flex-direction:column;border-right:1px solid #1a1a1a;}
+.tv-bar{display:flex;align-items:center;gap:6px;padding:0 10px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:36px;flex-shrink:0;overflow-x:auto;}
+.tv-bar::-webkit-scrollbar{height:2px;} .tv-bar::-webkit-scrollbar-thumb{background:#333;}
+.sym-in{background:transparent;border:none;color:#fff;font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;width:90px;outline:none;font-family:inherit;border-right:1px solid #222;padding-right:8px;height:36px;}
+.go{background:#44ff88;color:#000;border:none;padding:3px 10px;font-size:.65rem;font-weight:700;cursor:pointer;border-radius:2px;letter-spacing:1px;height:24px;}
+.go:hover{background:#33dd77;}
+.tf{background:transparent;border:1px solid transparent;color:#555;padding:2px 6px;font-size:.6rem;cursor:pointer;border-radius:2px;transition:all .15s;height:22px;font-family:inherit;}
+.tf:hover{color:#fff;border-color:#444;} .tf.on{background:#44ff88;color:#000;border-color:#44ff88;font-weight:700;}
+.sep{width:1px;background:#222;height:20px;flex-shrink:0;}
+.tv-frame{flex:1;width:100%;border:none;display:block;}
+.calc-side{width:340px;display:flex;flex-direction:column;background:#000;flex-shrink:0;overflow-y:auto;}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;position:sticky;top:0;z-index:5;}
+.ct{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;}
+.rb{background:transparent;border:1px solid #222;color:#444;padding:3px 9px;font-size:.55rem;cursor:pointer;border-radius:3px;transition:all .2s;font-family:inherit;}
+.rb:hover{border-color:#ff4444;color:#ff4444;}
+.cb{padding:12px;}
+.sym-badge{display:flex;align-items:center;gap:7px;background:#050505;border:1px solid #1a3a1a;padding:7px 11px;border-radius:3px;margin-bottom:12px;}
+.sym-name{font-size:.95rem;font-weight:700;color:#44ff88;letter-spacing:2px;}
+.ld{width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
-.reset-btn{background:transparent;border:1px solid #2a2a2a;color:#555;padding:4px 10px;font-size:.58rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border-radius:3px;transition:all .2s;}
-.reset-btn:hover{border-color:var(--negative);color:var(--negative);}
-.body{padding:14px;}
-.symbol-row{display:flex;align-items:center;gap:8px;background:#050505;border:1px solid #1a3a1a;padding:8px 12px;border-radius:3px;margin-bottom:14px;}
-.symbol-input{background:transparent;border:none;color:var(--positive);font-size:1rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;width:100%;outline:none;font-family:inherit;}
-.symbol-input::placeholder{color:#333;}
-label{display:block;font-size:.56rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
-input[type=number],select{width:100%;background:#050505;border:1px solid var(--border);color:#fff;padding:9px 10px;font-size:.82rem;font-family:inherit;outline:none;border-radius:2px;transition:border-color .15s;-moz-appearance:textfield;}
+label{display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+input[type=number],select{width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
-input[type=number]:focus,select:focus{border-color:#444;}
-select{cursor:pointer;}
-.row{margin-bottom:10px;}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
-.mode-toggle{display:flex;margin-bottom:10px;}
-.mode-btn{flex:1;padding:8px;font-size:.65rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;transition:all .15s;}
-.mode-btn.off{background:#050505;color:#444;border:1px solid var(--border);}
-.mode-btn.on{background:#fff;color:#000;border:1px solid #fff;font-weight:700;}
-#mode-pct-btn{border-right:none;}
-hr{border:none;border-top:1px solid var(--border);margin:12px 0;}
-.auto-tag{font-size:.52rem;color:var(--positive);display:none;margin-left:4px;}
-.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px;}
-.res-card{background:#050505;border:1px solid var(--border);padding:10px 12px;text-align:center;border-radius:3px;}
-.res-card.full{grid-column:span 2;}
-.res-label{font-size:.5rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
-.res-val{font-size:1rem;font-weight:400;color:#fff;}
-.res-val.lots{color:var(--positive);font-size:1.6rem;font-weight:700;}
-.res-val.risk{color:var(--negative);}
-.res-val.profit{color:var(--positive);}
-.res-sub{font-size:.5rem;color:#333;margin-top:3px;}
-.qr-section{margin-top:14px;display:none;}
-.qr-title{font-size:.5rem;color:#333;text-transform:uppercase;letter-spacing:1px;padding-top:12px;border-top:1px solid var(--border);margin-bottom:8px;}
-.qr-table{width:100%;border-collapse:collapse;}
-.qr-table th{color:#333;font-size:.58rem;text-align:left;padding:3px 6px;font-weight:400;border-bottom:1px solid #111;}
-.qr-table td{padding:4px 6px;font-size:.7rem;border-bottom:1px solid #0a0a0a;}
-.qr-table tr.active td{color:#fff;font-weight:700;background:#0d1a0d;}
-@keyframes flash{0%{border-color:#44ff88}100%{border-color:var(--border)}}
-.res-card.flash{animation:flash .5s ease forwards;}
-</style>
-</head>
-<body>
-<div class="header">
-  <div style="display:flex;align-items:center;gap:6px;">
-    <span class="live-dot"></span>
-    <span class="header-title">Lot Calculator</span>
-  </div>
-  <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
-</div>
-<div class="body">
-  <div class="symbol-row">
-    <span class="live-dot" style="width:6px;height:6px;flex-shrink:0;"></span>
-    <input type="text" class="symbol-input" id="symbol" placeholder="EURUSD" value="EURUSD" oninput="this.value=this.value.toUpperCase()">
-  </div>
-  <div class="row">
-    <label>Account Balance ($)</label>
-    <input type="number" id="balance" placeholder="e.g. 10000" oninput="calc()">
-  </div>
-  <div class="mode-toggle">
-    <button id="mode-pct-btn" class="mode-btn off" onclick="setMode('pct')">Risk %</button>
-    <button id="mode-amt-btn" class="mode-btn on"  onclick="setMode('amt')">Risk $</button>
-  </div>
-  <div id="pct-row" class="row" style="display:none;">
-    <label>Risk % of Balance</label>
-    <input type="number" id="risk-pct" placeholder="1" step="0.1" min="0" oninput="calc()">
-  </div>
-  <div id="amt-row" class="row">
-    <label>Fixed Risk Amount ($)</label>
-    <input type="number" id="risk-amt" placeholder="100" value="0" min="0" oninput="calc()">
-  </div>
-  <hr>
-  <div class="row">
-    <label>Instrument Type</label>
-    <select id="instrument" onchange="calc()">
-      <option value="forex">Forex (EURUSD, GBPUSD…)</option>
-      <option value="gold">Gold / XAUUSD</option>
-      <option value="indices">Indices (US30, NAS100…)</option>
-      <option value="crypto">Crypto (BTCUSD…)</option>
-    </select>
-  </div>
-  <div class="two-col">
-    <div>
-      <label>SL (ticks / pips)</label>
-      <input type="number" id="sl" placeholder="50" min="0" step="1" oninput="autoTP();calc();" style="font-size:1.1rem;padding:11px 10px;">
+input:focus,select:focus{border-color:#333;}
+.row{margin-bottom:9px;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;}
+.mt{display:flex;margin-bottom:9px;}
+.mb{flex:1;padding:7px;font-size:.62rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;transition:all .15s;}
+.mb.off{background:#050505;color:#444;border:1px solid #1a1a1a;}
+.mb.on{background:#fff;color:#000;border:1px solid #fff;font-weight:700;}
+#pb{border-right:none;}
+hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
+.at{font-size:.5rem;color:#44ff88;display:none;margin-left:3px;}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:12px;}
+.rc{background:#050505;border:1px solid #1a1a1a;padding:9px 11px;text-align:center;border-radius:3px;}
+.rc.full{grid-column:span 2;}
+.rlb{font-size:.48rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.rv{font-size:.95rem;color:#fff;}
+.rv.lots{color:#44ff88;font-size:1.5rem;font-weight:700;}
+.rv.risk{color:#ff4444;} .rv.prof{color:#44ff88;}
+.rs2{font-size:.48rem;color:#2a2a2a;margin-top:2px;}
+.qs{margin-top:12px;display:none;}
+.qt{font-size:.48rem;color:#2a2a2a;text-transform:uppercase;letter-spacing:1px;padding-top:10px;border-top:1px solid #1a1a1a;margin-bottom:7px;}
+.qtbl{width:100%;border-collapse:collapse;}
+.qtbl th{color:#2a2a2a;font-size:.55rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;}
+.qtbl td{padding:3px 5px;font-size:.67rem;border-bottom:1px solid #0a0a0a;}
+.qtbl tr.ac td{color:#fff;font-weight:700;background:#0d1a0d;}
+@keyframes fl{0%{border-color:#44ff88}100%{border-color:#1a1a1a}}
+.rc.fl{animation:fl .5s ease forwards;}
+</style></head><body>
+<div class="desk">
+  <div class="tv-side">
+    <div class="tv-bar">
+      <input class="sym-in" id="dsym" value="${sym}" onkeydown="if(event.key==='Enter')go()">
+      <button class="go" onclick="go()">▶ GO</button>
+      <div class="sep"></div>
+      <button class="tf" onclick="setTF(this,'1')">1m</button>
+      <button class="tf" onclick="setTF(this,'3')">3m</button>
+      <button class="tf" onclick="setTF(this,'5')">5m</button>
+      <button class="tf" onclick="setTF(this,'15')">15m</button>
+      <button class="tf" onclick="setTF(this,'30')">30m</button>
+      <button class="tf" onclick="setTF(this,'60')">1h</button>
+      <button class="tf" onclick="setTF(this,'120')">2h</button>
+      <button class="tf on" onclick="setTF(this,'240')">4h</button>
+      <button class="tf" onclick="setTF(this,'D')">D</button>
+      <button class="tf" onclick="setTF(this,'W')">W</button>
+      <div class="sep"></div>
+      <span id="dsym-badge" style="font-size:.7rem;font-weight:700;color:#44ff88;letter-spacing:1px;">${sym}</span>
     </div>
-    <div>
-      <label>Target R:R</label>
-      <select id="rr" onchange="autoTP()" style="padding:9px 8px;">
-        <option value="0">Manual TP</option>
-        <option value="0.5">1 : 0.5</option>
-        <option value="1" selected>1 : 1</option>
-        <option value="1.5">1 : 1.5</option>
-        <option value="2">1 : 2</option>
-        <option value="2.5">1 : 2.5</option>
-        <option value="3">1 : 3</option>
-        <option value="4">1 : 4</option>
-        <option value="5">1 : 5</option>
-      </select>
-    </div>
+    <iframe id="tv-desk" class="tv-frame" src="${tvSrc}" allowfullscreen></iframe>
   </div>
-  <div class="row">
-    <label>TP (ticks / pips) <span class="auto-tag" id="auto-tag">● AUTO</span></label>
-    <input type="number" id="tp" placeholder="100" min="0" step="1" oninput="manualTP()" style="font-size:1.1rem;padding:11px 10px;">
-  </div>
-  <div class="results-grid">
-    <div class="res-card full" id="card-lots">
-      <div class="res-label">Recommended Lot Size</div>
-      <div class="res-val lots" id="r-lots">---</div>
-      <div class="res-sub"     id="r-lots-sub">Enter values above</div>
+
+  <div class="calc-side">
+    <div class="ch">
+      <div style="display:flex;align-items:center;gap:6px;"><span class="ld"></span><span class="ct">Lot Calculator</span></div>
+      <button class="rb" onclick="rs()">↺ Reset</button>
     </div>
-    <div class="res-card" id="card-risk">
-      <div class="res-label">Risk ($)</div>
-      <div class="res-val risk"   id="r-risk">---</div>
-      <div class="res-sub"        id="r-risk-sub">---</div>
+    <div class="cb">
+      <div class="sym-badge"><span class="ld"></span><span class="sym-name" id="csym">${sym}</span></div>
+      <div class="row"><label>Account Balance ($)</label><input type="number" id="bal" placeholder="e.g. 10000" oninput="cl()"></div>
+      <div class="mt">
+        <button id="pb" class="mb off" onclick="sM('pct')">Risk %</button>
+        <button id="ab" class="mb on"  onclick="sM('amt')">Risk $</button>
+      </div>
+      <div id="pr" class="row" style="display:none;"><label>Risk % of Balance</label><input type="number" id="rp" placeholder="1" step="0.1" min="0" oninput="cl()"></div>
+      <div id="ar" class="row"><label>Fixed Risk Amount ($)</label><input type="number" id="ra" placeholder="100" value="0" min="0" oninput="cl()"></div>
+      <hr>
+      <div class="row"><label>Instrument</label>
+        <select id="inst" onchange="cl()">
+          <option value="forex">Forex (EURUSD…)</option>
+          <option value="gold">Gold / XAUUSD</option>
+          <option value="indices">Indices (US30…)</option>
+          <option value="crypto">Crypto (BTC…)</option>
+        </select>
+      </div>
+      <div class="two">
+        <div><label>SL (ticks)</label><input type="number" id="sl" placeholder="50" min="0" step="1" oninput="aTP();cl();" style="font-size:1.05rem;padding:10px 9px;"></div>
+        <div><label>Target R:R</label>
+          <select id="rr" onchange="aTP()">
+            <option value="0">Manual TP</option>
+            <option value="0.5">1:0.5</option>
+            <option value="1" selected>1:1</option>
+            <option value="1.5">1:1.5</option>
+            <option value="2">1:2</option>
+            <option value="2.5">1:2.5</option>
+            <option value="3">1:3</option>
+            <option value="4">1:4</option>
+            <option value="5">1:5</option>
+          </select>
+        </div>
+      </div>
+      <div class="row"><label>TP (ticks) <span class="at" id="at">● AUTO</span></label><input type="number" id="tp" placeholder="100" min="0" step="1" oninput="mTP()" style="font-size:1.05rem;padding:10px 9px;"></div>
+      <div class="rg">
+        <div class="rc full" id="cl"><div class="rlb">Lot Size</div><div class="rv lots" id="rl">---</div><div class="rs2" id="rls">Enter values</div></div>
+        <div class="rc" id="cr"><div class="rlb">Risk ($)</div><div class="rv risk" id="rr2">---</div><div class="rs2" id="rrs">---</div></div>
+        <div class="rc" id="cp"><div class="rlb">Profit ($)</div><div class="rv prof" id="rp2">---</div><div class="rs2" id="rps">---</div></div>
+        <div class="rc"><div class="rlb">SL Ticks</div><div class="rv" id="rs">---</div></div>
+        <div class="rc"><div class="rlb">TP Ticks</div><div class="rv" id="rt">---</div></div>
+        <div class="rc"><div class="rlb">R:R</div><div class="rv" id="rrr">---</div></div>
+        <div class="rc"><div class="rlb">Tick Val</div><div class="rv" id="rtv">---</div></div>
+      </div>
+      <div class="qs" id="qs">
+        <div class="qt">Quick Risk Reference</div>
+        <table class="qtbl"><thead><tr><th>%</th><th>$ Risk</th><th>Lots</th><th>Profit</th></tr></thead>
+        <tbody id="qb"></tbody></table>
+      </div>
     </div>
-    <div class="res-card" id="card-profit">
-      <div class="res-label">Profit ($)</div>
-      <div class="res-val profit" id="r-profit">---</div>
-      <div class="res-sub"        id="r-profit-sub">---</div>
-    </div>
-    <div class="res-card"><div class="res-label">SL Ticks</div><div class="res-val" id="r-sl">---</div></div>
-    <div class="res-card"><div class="res-label">TP Ticks</div><div class="res-val" id="r-tp">---</div></div>
-    <div class="res-card"><div class="res-label">R : R</div><div class="res-val" id="r-rr">---</div></div>
-    <div class="res-card"><div class="res-label">Tick Value</div><div class="res-val" id="r-tv">---</div></div>
-  </div>
-  <div class="qr-section" id="qr-section">
-    <div class="qr-title">Quick Risk Reference</div>
-    <table class="qr-table">
-      <thead><tr><th>%</th><th>$ Risk</th><th>Lots</th><th>Profit $</th></tr></thead>
-      <tbody id="qr-body"></tbody>
-    </table>
   </div>
 </div>
 <script>
-let _mode='amt';
-function setMode(m){_mode=m;document.getElementById('pct-row').style.display=m==='pct'?'block':'none';document.getElementById('amt-row').style.display=m==='pct'?'none':'block';document.getElementById('mode-pct-btn').className='mode-btn '+(m==='pct'?'on':'off');document.getElementById('mode-amt-btn').className='mode-btn '+(m==='amt'?'on':'off');calc();}
-function autoTP(){const rr=parseFloat(document.getElementById('rr').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,tpEl=document.getElementById('tp'),tag=document.getElementById('auto-tag');if(rr===0){tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';tag.style.display='none';calc();return;}if(!sl){document.getElementById('rr').value='0';calc();return;}tpEl.value=Math.round(sl*rr*10)/10;tpEl.readOnly=true;tpEl.style.borderColor='#44ff88';tpEl.style.color='#44ff88';tag.style.display='inline';calc();}
-function manualTP(){document.getElementById('rr').value='0';const tpEl=document.getElementById('tp');tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';document.getElementById('auto-tag').style.display='none';calc();}
-function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
-function flashCard(id){const el=document.getElementById(id);if(!el)return;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
-function calc(){
-  const balance=parseFloat(document.getElementById('balance').value)||0,riskPct=parseFloat(document.getElementById('risk-pct').value)||0,riskAmt=parseFloat(document.getElementById('risk-amt').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,tp=parseFloat(document.getElementById('tp').value)||0,tv=1;
-  if(balance>0){const rows=[0.5,1,1.5,2,3,5].map(pct=>{const amt=balance*pct/100,lots=sl>0?Math.floor(amt/(sl*tv)*100)/100:0,prof=(tp&&lots)?lots*tp*tv:0,hi=(_mode==='pct'&&pct===riskPct);return'<tr class="'+(hi?'active':'')+'"><td>'+pct+'%</td><td>$'+amt.toFixed(0)+'</td><td>'+(sl>0?lots.toFixed(2):'---')+'</td><td>'+(sl>0&&tp?'$'+prof.toFixed(0):'---')+'</td></tr>';}).join('');document.getElementById('qr-body').innerHTML=rows;document.getElementById('qr-section').style.display='block';}
-  if(!sl){['r-lots','r-risk','r-profit','r-sl','r-tp','r-rr','r-tv'].forEach(id=>set(id,'---'));set('r-lots-sub','Enter values above');set('r-risk-sub','---');set('r-profit-sub','---');return;}
-  const riskMoney=_mode==='amt'?riskAmt:(balance>0?balance*riskPct/100:0);
-  if(!riskMoney){['r-lots','r-risk','r-profit','r-sl','r-tp','r-rr','r-tv'].forEach(id=>set(id,'---'));set('r-lots-sub','Set risk amount above');return;}
-  const lots=Math.floor(riskMoney/(sl*tv)*100)/100,actualRisk=lots*sl*tv,potProfit=tp?lots*tp*tv:0,rr=tp>0?tp/sl:0;
-  set('r-lots',lots.toFixed(2));set('r-lots-sub','Standard lots (rounded down)');set('r-risk','$'+actualRisk.toFixed(2));set('r-risk-sub',balance>0?((actualRisk/balance)*100).toFixed(2)+'% of balance':'—');set('r-profit',tp?'$'+potProfit.toFixed(2):'---');set('r-profit-sub',(balance>0&&tp)?((potProfit/balance)*100).toFixed(2)+'% of balance':'—');set('r-sl',sl+' ticks');set('r-tp',tp?tp+' ticks':'---');set('r-rr',rr>0?'1 : '+parseFloat(rr.toFixed(2)):'---');set('r-tv','$'+tv.toFixed(2));
-  flashCard('card-lots');flashCard('card-risk');flashCard('card-profit');
-}
-function resetAll(){['balance','risk-pct','sl','tp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});document.getElementById('risk-amt').value='0';document.getElementById('instrument').value='forex';document.getElementById('rr').value='1';const tpEl=document.getElementById('tp');tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';document.getElementById('auto-tag').style.display='none';setMode('amt');['r-lots','r-risk','r-profit','r-sl','r-tp','r-rr','r-tv'].forEach(id=>set(id,'---'));set('r-lots-sub','Enter values above');document.getElementById('qr-section').style.display='none';}
+let _tf='240';
+function go(){const s=(document.getElementById('dsym').value||'EURUSD').toUpperCase().trim();document.getElementById('dsym').value=s;document.getElementById('dsym-badge').textContent=s;document.getElementById('csym').textContent=s;const src='https://www.tradingview.com/widgetembed/?frameElementId=tv-desk&symbol=OANDA:'+s+'&interval='+_tf+'&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0a0a&theme=dark&style=1&timezone=Asia%2FKathmandu&withdateranges=1&showpopupbutton=1&locale=en';document.getElementById('tv-desk').src=src;}
+function setTF(btn,tf){_tf=tf;document.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');go();}
+${calcJS}
 <\/script>
-</body>
-</html>`;
-    },
-
-    /* ══ SIDE CALCULATOR ══ */
-    setSideMode(mode) {
-        this._sideMode = mode;
-        const isPct = mode === 'pct';
-        document.getElementById('s-pct-row').style.display = isPct ? 'block' : 'none';
-        document.getElementById('s-amt-row').style.display = isPct ? 'none'  : 'block';
-        const on  = 'flex:1;padding:8px;font-size:0.68rem;text-transform:uppercase;cursor:pointer;background:#fff;color:#000;border:1px solid #fff;font-weight:600;';
-        const off = 'flex:1;padding:8px;font-size:0.68rem;text-transform:uppercase;cursor:pointer;background:#000;color:#555;border:1px solid #333;';
-        document.getElementById('s-pct-btn').style.cssText = (isPct ? on : off) + 'border-right:none;';
-        document.getElementById('s-amt-btn').style.cssText = isPct ? off : on;
-        this.calcSide();
-    },
-
-    autoSideTP() {
-        const rr = parseFloat(document.getElementById('s-rr').value) || 0;
-        const sl  = parseFloat(document.getElementById('s-sl').value) || 0;
-        const tag = document.getElementById('s-tp-auto');
-        const tp  = document.getElementById('s-tp');
-        if(rr === 0) { tp.readOnly = false; tp.style.borderColor = ''; tp.style.color = '#fff'; tag.style.display = 'none'; this.calcSide(); return; }
-        if(!sl)      { document.getElementById('s-rr').value = '0'; this.calcSide(); return; }
-        tp.value = Math.round(sl * rr * 10) / 10;
-        tp.readOnly = true; tp.style.borderColor = '#44ff88'; tp.style.color = '#44ff88'; tag.style.display = 'inline';
-        this.calcSide();
-    },
-
-    manualSideTP() {
-        document.getElementById('s-rr').value = '0';
-        document.getElementById('s-tp-auto').style.display = 'none';
-        const t = document.getElementById('s-tp'); t.readOnly = false; t.style.borderColor = ''; t.style.color = '#fff';
-        this.calcSide();
-    },
-
-    calcSide() {
-        const mode    = this._sideMode || 'amt';
-        const balance = parseFloat(document.getElementById('s-balance').value) || 0;
-        const riskPct = parseFloat(document.getElementById('s-risk-pct').value) || 0;
-        const riskAmt = parseFloat(document.getElementById('s-risk-amt').value) || 0;
-        const sl      = parseFloat(document.getElementById('s-sl').value) || 0;
-        const tp      = parseFloat(document.getElementById('s-tp').value) || 0;
-        const tv      = 1;
-        const set     = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
-
-        if(balance > 0) {
-            const rows = [0.5,1,1.5,2,3,5].map(pct => {
-                const amt = balance * pct / 100;
-                const est = sl > 0 ? Math.floor(amt / (sl * tv) * 100) / 100 : 0;
-                const hi  = mode === 'pct' && pct === riskPct;
-                return `<tr style="${hi ? 'color:#fff;font-weight:700;' : 'color:#555;'}">
-                    <td style="padding:3px 5px;">${pct}%</td>
-                    <td style="padding:3px 5px;">$${amt.toFixed(0)}</td>
-                    <td style="padding:3px 5px;">${sl > 0 ? est.toFixed(2) : '---'}</td>
-                </tr>`;
-            }).join('');
-            document.getElementById('s-qr-body').innerHTML = rows;
-            document.getElementById('s-qr-table').style.display = 'block';
-        }
-
-        const clr = () => {
-            ['s-lots','s-risk','s-profit','s-sl-out','s-tp-out','s-rr-out','s-tv-out'].forEach(id => set(id, '---'));
-            set('s-lots-sub','Enter values to calculate'); set('s-risk-sub','---'); set('s-profit-sub','---');
-        };
-        if(!sl) { clr(); return; }
-        const riskMoney = mode === 'amt' ? riskAmt : (balance > 0 ? balance * riskPct / 100 : 0);
-        if(!riskMoney) { clr(); return; }
-
-        const lots       = Math.floor(riskMoney / (sl * tv) * 100) / 100;
-        const actualRisk = lots * sl * tv;
-        const potProfit  = tp ? lots * tp * tv : 0;
-        const rr         = tp > 0 ? tp / sl : 0;
-
-        set('s-lots',       lots.toFixed(2));
-        set('s-lots-sub',   'Standard lots (rounded down)');
-        set('s-risk',       `$${actualRisk.toFixed(2)}`);
-        set('s-risk-sub',   balance > 0 ? `${((actualRisk/balance)*100).toFixed(2)}% of balance` : '—');
-        set('s-profit',     tp ? `$${potProfit.toFixed(2)}` : '---');
-        set('s-profit-sub', (balance > 0 && tp) ? `${((potProfit/balance)*100).toFixed(2)}% of balance` : '—');
-        set('s-sl-out',     `${sl} ticks`);
-        set('s-tp-out',     tp ? `${tp} ticks` : '---');
-        set('s-rr-out',     rr > 0 ? `1 : ${parseFloat(rr.toFixed(2))}` : '---');
-        set('s-tv-out',     `$${tv.toFixed(2)}`);
-    },
-
-    resetCalc() {
-        ['s-balance','s-risk-pct','s-sl','s-tp'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-        document.getElementById('s-risk-amt').value = '0';
-        document.getElementById('s-instrument').value = 'forex';
-        document.getElementById('s-rr').value = '1';
-        const tp = document.getElementById('s-tp'); tp.readOnly = false; tp.style.borderColor = ''; tp.style.color = '#fff';
-        document.getElementById('s-tp-auto').style.display = 'none';
-        this.setSideMode('amt');
-        ['s-lots','s-risk','s-profit','s-sl-out','s-tp-out','s-rr-out','s-tv-out'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '---'; });
-        document.getElementById('s-qr-table').style.display = 'none';
+</body></html>`);
+        desk.document.close();
     },
 
     /* ══ JOURNAL HELPERS ══ */
