@@ -433,49 +433,42 @@ window.ui = {
         if(id === 'journal')   this.renderJournal();
     },
 
-    /* ══ TRADING DESK — single owned window: TV widget iframe + calculator ══ */
+    /* ══ TRADING DESK — single owned window: tv.js Advanced Chart + calculator ══ */
     _tf: '240',
 
     launchTradingDesk() {
         const sym = 'EURUSD';
         const sw  = window.screen.availWidth;
         const sh  = window.screen.availHeight;
-
-        // ONE window we write ourselves — window.close() is ALWAYS allowed on it
         const desk = window.open('', 'TradingDesk',
             `width=${sw},height=${sh},left=0,top=0,resizable=yes,scrollbars=no`);
         if (!desk) { alert('Please allow popups for this page, then try again.'); return; }
-
-        const tvSrc = `https://www.tradingview.com/widgetembed/?frameElementId=tv-frame&symbol=OANDA:${sym}&interval=${this._tf}&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0a0a&theme=dark&style=1&timezone=Asia%2FKathmandu&withdateranges=1&showpopupbutton=1&locale=en`;
-
+        const tf = this._tf;
         desk.document.open();
         desk.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
 <title>⚡ RK Trading Desk</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:#000;font-family:'Inter',sans-serif;color:#aaa;overflow:hidden;}
+html,body{height:100%;width:100%;background:#000;font-family:'Inter',sans-serif;color:#aaa;overflow:hidden;}
 .desk{display:flex;height:100vh;width:100vw;}
 .tv-side{flex:1;display:flex;flex-direction:column;min-width:0;}
-.tv-bar{display:flex;align-items:center;gap:6px;padding:0 10px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:38px;flex-shrink:0;overflow-x:auto;}
-.tv-bar::-webkit-scrollbar{height:2px;}.tv-bar::-webkit-scrollbar-thumb{background:#333;}
-.sym-in{background:transparent;border:none;color:#fff;font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;width:90px;outline:none;font-family:inherit;border-right:1px solid #222;padding-right:8px;height:38px;}
-.go{background:#44ff88;color:#000;border:none;padding:3px 12px;font-size:.65rem;font-weight:700;cursor:pointer;border-radius:2px;letter-spacing:1px;height:26px;flex-shrink:0;}
-.go:hover{background:#33dd77;}
-.tf{background:transparent;border:1px solid transparent;color:#555;padding:2px 7px;font-size:.62rem;cursor:pointer;border-radius:3px;transition:all .15s;height:24px;font-family:inherit;flex-shrink:0;}
-.tf:hover{color:#fff;border-color:#444;}.tf.on{background:#44ff88;color:#000;border-color:#44ff88;font-weight:700;}
-.sep{width:1px;background:#222;height:22px;margin:0 2px;flex-shrink:0;}
+.top-bar{display:flex;align-items:center;gap:8px;padding:0 12px;background:#0a0a0a;border-bottom:2px solid #1a1a1a;height:42px;flex-shrink:0;}
+.top-bar::-webkit-scrollbar{height:2px;}.top-bar::-webkit-scrollbar-thumb{background:#333;}
+.bar-sym{background:transparent;border:none;color:#fff;font-size:.95rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;width:110px;outline:none;font-family:inherit;border-right:1px solid #222;padding-right:10px;height:42px;}
+.bar-go{background:#44ff88;color:#000;border:none;padding:0 14px;font-size:.65rem;font-weight:700;cursor:pointer;border-radius:2px;letter-spacing:1px;height:28px;flex-shrink:0;}
+.bar-go:hover{background:#33dd77;}
 .ld{width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
-/* RED close button — far right of toolbar */
-.close-btn{margin-left:auto;background:#ff4444;color:#fff;border:none;padding:0 16px;font-size:.68rem;font-weight:700;cursor:pointer;letter-spacing:1px;height:38px;flex-shrink:0;text-transform:uppercase;transition:background .15s;display:flex;align-items:center;gap:6px;}
+.close-btn{margin-left:auto;background:#ff4444;color:#fff;border:none;padding:0 22px;font-size:.7rem;font-weight:800;cursor:pointer;letter-spacing:2px;height:42px;flex-shrink:0;text-transform:uppercase;transition:background .15s;}
 .close-btn:hover{background:#cc0000;}
-#tv-frame{flex:1;width:100%;border:none;display:block;}
-/* calc panel */
+#tv-chart-container{flex:1;width:100%;overflow:hidden;}
+.tradingview-widget-container,.tradingview-widget-container__widget{height:100%!important;width:100%!important;}
+/* calc */
 .calc{width:340px;flex-shrink:0;display:flex;flex-direction:column;background:#000;border-left:1px solid #1a1a1a;overflow-y:auto;}
 .ch{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;position:sticky;top:0;z-index:5;}
 .ct{font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;}
-.rb{background:transparent;border:1px solid #222;color:#444;padding:3px 9px;font-size:.55rem;cursor:pointer;border-radius:3px;transition:all .2s;font-family:inherit;text-transform:uppercase;letter-spacing:1px;}
+.rb{background:transparent;border:1px solid #222;color:#444;padding:3px 9px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;letter-spacing:1px;}
 .rb:hover{border-color:#888;color:#aaa;}
 .cb{padding:12px;}
 .sym-badge{display:flex;align-items:center;gap:7px;background:#050505;border:1px solid #1a3a1a;padding:7px 10px;border-radius:3px;margin-bottom:12px;}
@@ -484,10 +477,9 @@ label{display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-
 input[type=number],select{width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
 input:focus,select:focus{border-color:#444;}
-.row{margin-bottom:9px;}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;}
+.row{margin-bottom:9px;}.two{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;}
 .mt{display:flex;margin-bottom:9px;}
-.mb{flex:1;padding:7px;font-size:.62rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;transition:all .15s;}
+.mb{flex:1;padding:7px;font-size:.62rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;}
 .mb.off{background:#050505;color:#444;border:1px solid #1a1a1a;}
 .mb.on{background:#fff;color:#000;border:1px solid #fff;font-weight:700;}
 #pb{border-right:none;}
@@ -509,46 +501,33 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
 .qtbl tr.ac td{color:#fff;font-weight:700;background:#0d1a0d;}
 @keyframes fl{0%{border-color:#44ff88}100%{border-color:#1a1a1a}}
 .rc.fl{animation:fl .5s ease forwards;}
-</style></head><body>
+</style>
+</head><body>
 <div class="desk">
-
-  <!-- TV iframe side -->
+  <!-- TV side -->
   <div class="tv-side">
-    <div class="tv-bar">
-      <input class="sym-in" id="dsym" value="${sym}" onkeydown="if(event.key==='Enter')go()">
-      <button class="go" onclick="go()">▶ GO</button>
-      <div class="sep"></div>
-      <button class="tf" onclick="setTF(this,'1')">1m</button>
-      <button class="tf" onclick="setTF(this,'5')">5m</button>
-      <button class="tf" onclick="setTF(this,'15')">15m</button>
-      <button class="tf" onclick="setTF(this,'30')">30m</button>
-      <button class="tf" onclick="setTF(this,'60')">1h</button>
-      <button class="tf" onclick="setTF(this,'120')">2h</button>
-      <button class="tf on" onclick="setTF(this,'240')">4h</button>
-      <button class="tf" onclick="setTF(this,'D')">D</button>
-      <button class="tf" onclick="setTF(this,'W')">W</button>
-      <div class="sep"></div>
-      <span class="ld"></span>
-      <span id="dsym-lbl" style="font-size:.7rem;color:#44ff88;font-weight:700;letter-spacing:1px;">${sym}</span>
-      <!-- THIS button closes OUR window — guaranteed, no cross-origin issue -->
+    <div class="top-bar">
+      <input class="bar-sym" id="dsym" value="${sym}" placeholder="EURUSD" onkeydown="if(event.key==='Enter')loadChart()">
+      <button class="bar-go" onclick="loadChart()">▶ GO</button>
+      <span class="ld" style="margin-left:4px;"></span>
+      <span id="sym-lbl" style="font-size:.7rem;color:#44ff88;font-weight:700;letter-spacing:1px;">${sym}</span>
+      <span style="font-size:.55rem;color:#2a2a2a;letter-spacing:1px;margin-left:4px;">FULL TV · ALL TOOLS · ALL INDICATORS</span>
       <button class="close-btn" onclick="closeDeskAndReturn()">✕ &nbsp;CLOSE DESK &amp; RETURN TO JOURNAL</button>
     </div>
-    <iframe id="tv-frame" src="${tvSrc}" allowfullscreen></iframe>
-  </div>
-
-  <!-- Calculator side -->
-  <div class="calc">
-    <div class="ch">
-      <div class="ct"><span class="ld"></span>⚖ Lot Calculator</div>
-      <button class="rb" onclick="rs()">↺ Reset</button>
+    <!-- TradingView Advanced Chart Widget (tv.js) — full features, not limited iframe -->
+    <div id="tv-chart-container">
+      <div class="tradingview-widget-container" style="height:100%;width:100%;">
+        <div id="tv_chart_div" style="height:100%;width:100%;"></div>
+      </div>
     </div>
+  </div>
+  <!-- Calc side -->
+  <div class="calc">
+    <div class="ch"><div class="ct"><span class="ld"></span>⚖ Lot Calculator</div><button class="rb" onclick="rs()">↺ Reset</button></div>
     <div class="cb">
       <div class="sym-badge"><span class="ld"></span><span class="sym-name" id="csym">${sym}</span></div>
       <div class="row"><label>Account Balance ($)</label><input type="number" id="bal" placeholder="e.g. 10000" oninput="cl()"></div>
-      <div class="mt">
-        <button id="pb" class="mb off" onclick="sM('pct')">Risk %</button>
-        <button id="ab" class="mb on"  onclick="sM('amt')">Risk $</button>
-      </div>
+      <div class="mt"><button id="pb" class="mb off" onclick="sM('pct')">Risk %</button><button id="ab" class="mb on" onclick="sM('amt')">Risk $</button></div>
       <div id="pr" class="row" style="display:none;"><label>Risk % of Balance</label><input type="number" id="rp" placeholder="1" step="0.1" min="0" oninput="cl()"></div>
       <div id="ar" class="row"><label>Fixed Risk ($)</label><input type="number" id="ra" placeholder="100" value="0" min="0" oninput="cl()"></div>
       <hr>
@@ -564,15 +543,10 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
         <div><label>SL (ticks)</label><input type="number" id="sl" placeholder="50" min="0" step="1" oninput="aTP();cl();" style="font-size:1.05rem;padding:10px 9px;"></div>
         <div><label>Target R:R</label>
           <select id="rr" onchange="aTP()">
-            <option value="0">Manual TP</option>
-            <option value="0.5">1:0.5</option>
-            <option value="1" selected>1:1</option>
-            <option value="1.5">1:1.5</option>
-            <option value="2">1:2</option>
-            <option value="2.5">1:2.5</option>
-            <option value="3">1:3</option>
-            <option value="4">1:4</option>
-            <option value="5">1:5</option>
+            <option value="0">Manual TP</option><option value="0.5">1:0.5</option>
+            <option value="1" selected>1:1</option><option value="1.5">1:1.5</option>
+            <option value="2">1:2</option><option value="2.5">1:2.5</option>
+            <option value="3">1:3</option><option value="4">1:4</option><option value="5">1:5</option>
           </select>
         </div>
       </div>
@@ -584,7 +558,7 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
         <div class="rc" id="rcp"><div class="rlb">Profit ($)</div><div class="rv prof" id="rp2">---</div><div class="rs2" id="rps">---</div></div>
         <div class="rc"><div class="rlb">SL Ticks</div><div class="rv" id="rsout">---</div></div>
         <div class="rc"><div class="rlb">TP Ticks</div><div class="rv" id="rt">---</div></div>
-        <div class="rc"><div class="rlb">R : R</div><div class="rv" id="rrr">---</div></div>
+        <div class="rc"><div class="rlb">R:R</div><div class="rv" id="rrr">---</div></div>
         <div class="rc"><div class="rlb">Tick Val</div><div class="rv" id="rtv">---</div></div>
       </div>
       <div class="qs" id="qs">
@@ -596,26 +570,58 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
   </div>
 </div>
 
+<script src="https://s3.tradingview.com/tv.js"><\/script>
 <script>
-var _tf='${this._tf}',_m='amt';
+var _tvWidget = null;
+var _sym = '${sym}';
+var _tf  = '${tf}';
+var _m   = 'amt';
 
-function go(){
-  var s=(document.getElementById('dsym').value||'EURUSD').toUpperCase().trim();
-  document.getElementById('dsym').value=s;
-  document.getElementById('dsym-lbl').textContent=s;
-  document.getElementById('csym').textContent=s;
-  document.getElementById('tv-frame').src='https://www.tradingview.com/widgetembed/?frameElementId=tv-frame&symbol=OANDA:'+s+'&interval='+_tf+'&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0a0a&theme=dark&style=1&timezone=Asia%2FKathmandu&withdateranges=1&showpopupbutton=1&locale=en';
+function initChart(sym, tf) {
+  _sym = sym; _tf = tf;
+  if (_tvWidget) { try { _tvWidget.remove(); } catch(e){} _tvWidget = null; }
+  _tvWidget = new TradingView.widget({
+    container_id:        'tv_chart_div',
+    autosize:            true,
+    symbol:              'OANDA:' + sym,
+    interval:            tf,
+    timezone:            'Asia/Kathmandu',
+    theme:               'dark',
+    style:               '1',
+    locale:              'en',
+    toolbar_bg:          '#0a0a0a',
+    enable_publishing:   false,
+    allow_symbol_change: true,
+    save_image:          true,
+    hide_top_toolbar:    false,
+    hide_side_toolbar:   false,
+    withdateranges:      true,
+    show_popup_button:   true,
+    studies:             [],
+  });
 }
-function setTF(btn,tf){_tf=tf;document.querySelectorAll('.tf').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');go();}
 
-/* ── CLOSE: this window was created by journal with document.write ──
-   window.close() on a window opened by script is ALWAYS permitted.
-   No cross-origin issues because this IS our own window. ── */
-function closeDeskAndReturn(){
-  try{ if(window.opener && !window.opener.closed){ window.opener.focus(); } }catch(e){}
+/* Wait for tv.js to be ready then init */
+(function wait(){
+  if (typeof TradingView !== 'undefined') { initChart(_sym, _tf); }
+  else { setTimeout(wait, 80); }
+})();
+
+function loadChart() {
+  var s = (document.getElementById('dsym').value || 'EURUSD').toUpperCase().trim();
+  document.getElementById('dsym').value = s;
+  document.getElementById('sym-lbl').textContent = s;
+  document.getElementById('csym').textContent = s;
+  initChart(s, _tf);
+}
+
+/* ── CLOSE: this is OUR window — window.close() is 100% guaranteed ── */
+function closeDeskAndReturn() {
+  try { if (window.opener && !window.opener.closed) { window.opener.focus(); } } catch(e) {}
   window.close();
 }
 
+/* ── Calculator ── */
 function sM(m){_m=m;document.getElementById('pr').style.display=m==='pct'?'block':'none';document.getElementById('ar').style.display=m==='pct'?'none':'block';document.getElementById('pb').className='mb '+(m==='pct'?'on':'off');document.getElementById('ab').className='mb '+(m==='amt'?'on':'off');cl();}
 function aTP(){var rr=parseFloat(document.getElementById('rr').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,te=document.getElementById('tp'),tg=document.getElementById('at');if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';tg.style.display='none';cl();return;}if(!sl){document.getElementById('rr').value='0';cl();return;}te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';tg.style.display='inline';cl();}
 function mTP(){document.getElementById('rr').value='0';var te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';cl();}
