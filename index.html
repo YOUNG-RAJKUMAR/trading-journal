@@ -592,28 +592,6 @@ function rs(){['bal','rp','sl','tp'].forEach(i=>{const e=document.getElementById
         desk.document.close();
     },
 
-        const calcJS = `
-let _m='amt';
-function sM(m){_m=m;document.getElementById('pr').style.display=m==='pct'?'block':'none';document.getElementById('ar').style.display=m==='pct'?'none':'block';document.getElementById('pb').className='mb '+(m==='pct'?'on':'off');document.getElementById('ab').className='mb '+(m==='amt'?'on':'off');cl();}
-function aTP(){const rr=parseFloat(document.getElementById('rr').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,te=document.getElementById('tp'),tg=document.getElementById('at');if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';tg.style.display='none';cl();return;}if(!sl){document.getElementById('rr').value='0';cl();return;}te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';tg.style.display='inline';cl();}
-function mTP(){document.getElementById('rr').value='0';const te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';cl();}
-function sv(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
-function fl(id){const e=document.getElementById(id);if(!e)return;e.classList.remove('fl');void e.offsetWidth;e.classList.add('fl');}
-function cl(){
-  const b=parseFloat(document.getElementById('bal').value)||0,rp=parseFloat(document.getElementById('rp').value)||0,ra=parseFloat(document.getElementById('ra').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,tp=parseFloat(document.getElementById('tp').value)||0,tv=1;
-  if(b>0){const rows=[0.5,1,1.5,2,3,5].map(p=>{const a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_m==='pct'&&p===rp);return'<tr class="'+(hi?'ac':'')+'"><td>'+p+'%</td><td>$'+a.toFixed(0)+'</td><td>'+(sl>0?l.toFixed(2):'---')+'</td><td>'+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');document.getElementById('qb').innerHTML=rows;document.getElementById('qs').style.display='block';}
-  if(!sl){['rl','rr2','rp2','rs','rt','rrr','rtv'].forEach(i=>sv(i,'---'));sv('rls','Enter values');sv('rrs','---');sv('rps','---');return;}
-  const rm=_m==='amt'?ra:(b>0?b*rp/100:0);
-  if(!rm){['rl','rr2','rp2','rs','rt','rrr','rtv'].forEach(i=>sv(i,'---'));sv('rls','Set risk amount');return;}
-  const l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;
-  sv('rl',l.toFixed(2));sv('rls','Standard lots');sv('rr2','$'+ar.toFixed(2));sv('rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'—');sv('rp2',tp?'$'+pp.toFixed(2):'---');sv('rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'—');sv('rs',sl+' ticks');sv('rt',tp?tp+' ticks':'---');sv('rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');sv('rtv','$'+tv.toFixed(2));
-  fl('cl');fl('cr');fl('cp');
-}
-function rs(){['bal','rp','sl','tp'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''});document.getElementById('ra').value='0';document.getElementById('rr').value='1';const te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';sM('amt');['rl','rr2','rp2','rs','rt','rrr','rtv'].forEach(i=>sv(i,'---'));sv('rls','Enter values');document.getElementById('qs').style.display='none';}
-`;
-
-
-
     /* ══ JOURNAL HELPERS ══ */
     classifySession(dateStr) {
         const tv = document.getElementById('t-start').value; if(!tv || !dateStr) return null;
