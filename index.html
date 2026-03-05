@@ -209,79 +209,10 @@
         .stat-meta { font-size:0.68rem;color:#444;margin-top:4px;display:block; }
         .analytics-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:25px; }
 
-        /* ── Lightweight Charts toolbar buttons ── */
-        .lc-tf-btn {
-            background:#050505;border:1px solid #1a1a1a;color:#555;
-            padding:3px 7px;font-size:.55rem;cursor:pointer;font-family:inherit;
-            text-transform:uppercase;letter-spacing:.5px;border-radius:2px;transition:all .1s;
-        }
-        .lc-tf-btn:hover { border-color:#444;color:#aaa; }
-        .lc-tf-active { background:#1a2a1a !important;border-color:#44ff88 !important;color:#44ff88 !important; }
-        .ind-btn {
-            background:#050505;border:1px solid #1a1a1a;color:#444;
-            padding:3px 8px;font-size:.52rem;cursor:pointer;font-family:inherit;
-            text-transform:uppercase;letter-spacing:.5px;border-radius:2px;transition:all .1s;
-        }
-        .ind-btn:hover { border-color:#333;color:#888; }
-        .ind-active { background:#111 !important;border-color:#44ff88 !important;color:#44ff88 !important; }
-
         /* ══ CHARTS TAB 70% ZOOM — zoom property reflowing correctly ══ */
         #tab-charts {
             zoom: 0.7;
         }
-
-        /* ══ FAVOURITE TOOLS TOOLBAR ══ */
-        .fav-btn {
-            width: 28px;
-            height: 28px;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 3px;
-            color: #777;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            transition: background .12s, border-color .12s, color .12s;
-            position: relative;
-        }
-        .fav-btn:hover {
-            background: #1a1a1a;
-            border-color: #3a3a3a;
-            color: #ffffff;
-        }
-        .fav-btn.active-tool {
-            background: #1e2a1e;
-            border-color: #44ff88;
-            color: #44ff88;
-        }
-        .fav-btn-long { color: #44ff88aa; }
-        .fav-btn-long:hover { background:#0a1a0a; border-color:#44ff88; color:#44ff88; }
-        .fav-btn-short { color: #ff4444aa; }
-        .fav-btn-short:hover { background:#1a0a0a; border-color:#ff4444; color:#ff4444; }
-        /* Tooltip on hover */
-        .fav-btn::after {
-            content: attr(title);
-            position: absolute;
-            left: 34px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #111;
-            color: #ccc;
-            font-size: .52rem;
-            letter-spacing: .5px;
-            white-space: nowrap;
-            padding: 3px 7px;
-            border: 1px solid #2a2a2a;
-            border-radius: 3px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity .15s;
-            z-index: 200;
-            text-transform: uppercase;
-        }
-        .fav-btn:hover::after { opacity: 1; }
 
         /* PDF */
         .pdf-export-mode #main-content { padding:0;max-width:100%; }
@@ -657,62 +588,9 @@
             </div><!-- /ctb-row2 -->
         </div><!-- /desk-toolbar -->
 
-        <!-- ─── DATA SOURCE TOOLBAR ─── -->
-        <div id="lc-data-bar" style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:#080808;border-bottom:1px solid #1a1a1a;flex-wrap:wrap;">
-            <span style="font-size:.46rem;color:#333;text-transform:uppercase;letter-spacing:1px;">Data Source</span>
-            <input type="text" id="td-api-key" placeholder="Twelve Data API Key (free at twelvedata.com)" 
-                style="flex:1;min-width:180px;max-width:280px;background:#050505;border:1px solid #1a1a1a;color:#aaa;padding:4px 8px;font-size:.6rem;font-family:monospace;outline:none;border-radius:2px;"
-                onchange="ui.loadChartData()">
-            <select id="lc-symbol" onchange="ui.loadChartData()" style="background:#050505;border:1px solid #1a1a1a;color:#ccc;padding:4px 6px;font-size:.62rem;font-family:inherit;outline:none;border-radius:2px;">
-                <option value="EUR/USD">EUR/USD</option>
-                <option value="GBP/USD">GBP/USD</option>
-                <option value="USD/JPY">USD/JPY</option>
-                <option value="XAU/USD">XAU/USD</option>
-                <option value="BTC/USD">BTC/USD</option>
-                <option value="ETH/USD">ETH/USD</option>
-                <option value="NAS100">NAS100</option>
-                <option value="SPX500">SPX500</option>
-                <option value="US30">US30</option>
-            </select>
-            <div style="display:flex;gap:2px;">
-                <button onclick="ui.setLcTf('1min')"  id="lc-tf-1m"  class="lc-tf-btn">1m</button>
-                <button onclick="ui.setLcTf('5min')"  id="lc-tf-5m"  class="lc-tf-btn">5m</button>
-                <button onclick="ui.setLcTf('15min')" id="lc-tf-15m" class="lc-tf-btn">15m</button>
-                <button onclick="ui.setLcTf('1h')"    id="lc-tf-1h"  class="lc-tf-btn lc-tf-active">1H</button>
-                <button onclick="ui.setLcTf('4h')"    id="lc-tf-4h"  class="lc-tf-btn">4H</button>
-                <button onclick="ui.setLcTf('1day')"  id="lc-tf-1d"  class="lc-tf-btn">D</button>
-                <button onclick="ui.setLcTf('1week')" id="lc-tf-1w"  class="lc-tf-btn">W</button>
-            </div>
-            <div style="display:flex;gap:2px;margin-left:6px;border-left:1px solid #1a1a1a;padding-left:8px;">
-                <span style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;align-self:center;margin-right:3px;">Indicators</span>
-                <button id="ind-btn-ema20"  onclick="ui.toggleIndicator('ema20')"  class="ind-btn ind-active">EMA 20</button>
-                <button id="ind-btn-ema50"  onclick="ui.toggleIndicator('ema50')"  class="ind-btn ind-active">EMA 50</button>
-                <button id="ind-btn-ema200" onclick="ui.toggleIndicator('ema200')" class="ind-btn">EMA 200</button>
-                <button id="ind-btn-rsi"    onclick="ui.toggleIndicator('rsi')"    class="ind-btn">RSI 14</button>
-            </div>
-            <span id="lc-status" style="font-size:.55rem;color:#555;margin-left:auto;"></span>
-        </div>
-
         <!-- Chart + Calculator split -->
-        <div style="display:flex;height:calc(136vh - 110px);">
-            <!-- Chart area with favourite tools overlay -->
-            <div style="flex:1;min-width:0;height:100%;position:relative;">
-                <div id="tv-container" style="width:100%;height:100%;"></div>
-
-                <!-- ══ LC CROSSHAIR INFO OVERLAY ══ -->
-                <div id="lc-crosshair-info" style="
-                    position:absolute;top:8px;left:8px;z-index:100;
-                    background:rgba(8,8,8,0.88);border:1px solid #222;
-                    border-radius:3px;padding:4px 8px;pointer-events:none;
-                    font-size:.58rem;color:#888;letter-spacing:1px;font-family:monospace;
-                    display:none;
-                ">
-                    <span id="lc-cross-o"></span>
-                    <span id="lc-cross-h" style="color:#44ff88;"></span>
-                    <span id="lc-cross-l" style="color:#ff5555;"></span>
-                    <span id="lc-cross-c" style="color:#fff;font-weight:700;"></span>
-                </div>
-            </div>
+        <div style="display:flex;height:calc(136vh - 80px);">
+            <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
             <!-- Calculator Panel -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
@@ -951,13 +829,8 @@ window.ui = {
         if(id === 'charts')    this.launchTradingDesk();
     },
 
-    _lcTf: '1h',
-    _lcChart: null,
-    _lcCandles: null,
-    _lcEma20: null, _lcEma50: null, _lcEma200: null,
-    _lcRsi: null,
-    _lcRawCandles: [],
-    _indicatorState: { ema20:true, ema50:true, ema200:false, rsi:false },
+    _tf: '240',
+    _tvWidget: null,
 
     _tvColors() {
         const g = id => document.getElementById(id)?.value || null;
@@ -973,228 +846,59 @@ window.ui = {
     },
 
     launchTradingDesk() {
+        const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
-        /* Destroy existing chart */
-        if (this._lcChart) { try { this._lcChart.remove(); } catch(e){} this._lcChart = null; }
-        if (this._lcResizeObs) { try { this._lcResizeObs.disconnect(); } catch(e){} }
-        container.innerHTML = '';
-
-        const c = this._tvColors();
-        this._lcChart = LightweightCharts.createChart(container, {
-            width:  container.clientWidth,
-            height: container.clientHeight,
-            layout: {
-                background: { type: 'solid', color: c.bg },
-                textColor:  '#888888',
-                fontFamily: 'Inter, sans-serif',
-                fontSize:   11,
-            },
-            grid: {
-                vertLines: { color: 'rgba(255,255,255,0.04)' },
-                horzLines: { color: 'rgba(255,255,255,0.04)' },
-            },
-            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-            timeScale: { borderColor: '#222', timeVisible: true, secondsVisible: false },
-            rightPriceScale: { borderColor: '#222' },
-        });
-
-        /* Candlestick series */
-        this._lcCandles = this._lcChart.addCandlestickSeries({
-            upColor:         c.up,
-            downColor:       c.down,
-            borderUpColor:   c.upBorder,
-            borderDownColor: c.downBorder,
-            wickUpColor:     c.upWick,
-            wickDownColor:   c.downWick,
-        });
-
-        /* EMA series */
-        this._lcEma20  = this._lcChart.addLineSeries({ color:'#ffcc00', lineWidth:1, priceLineVisible:false, lastValueVisible:true, title:'EMA20'  });
-        this._lcEma50  = this._lcChart.addLineSeries({ color:'#ff8800', lineWidth:1, priceLineVisible:false, lastValueVisible:true, title:'EMA50'  });
-        this._lcEma200 = this._lcChart.addLineSeries({ color:'#cc44ff', lineWidth:1, priceLineVisible:false, lastValueVisible:true, title:'EMA200' });
-
-        /* RSI in separate pane */
-        this._lcRsi = this._lcChart.addLineSeries({
-            color:'#00f5ff', lineWidth:1,
-            priceLineVisible:false, lastValueVisible:true, title:'RSI14',
-            pane: 1,
-            autoscaleInfoProvider: () => ({ priceRange:{ minValue:0, maxValue:100 }, margins:{ above:5, below:5 } }),
-        });
-
-        /* RSI reference lines */
-        this._lcRsi70 = this._lcChart.addLineSeries({ color:'rgba(255,100,100,0.3)', lineWidth:1, lineStyle:2, pane:1, priceLineVisible:false, lastValueVisible:false });
-        this._lcRsi30 = this._lcChart.addLineSeries({ color:'rgba(100,255,150,0.3)', lineWidth:1, lineStyle:2, pane:1, priceLineVisible:false, lastValueVisible:false });
-
-        /* Apply visibility */
-        this._applyIndicatorVisibility();
-
-        /* Crosshair info overlay */
-        this._lcChart.subscribeCrosshairMove(param => {
-            const info = document.getElementById('lc-crosshair-info');
-            if (!info) return;
-            if (!param.time || !param.seriesData || !param.seriesData.has(this._lcCandles)) {
-                info.style.display = 'none'; return;
-            }
-            const bar = param.seriesData.get(this._lcCandles);
-            if (!bar) { info.style.display = 'none'; return; }
-            const fmt = v => parseFloat(v).toFixed(5);
-            info.style.display = 'block';
-            document.getElementById('lc-cross-o').textContent = `O:${fmt(bar.open)}  `;
-            document.getElementById('lc-cross-h').textContent = `H:${fmt(bar.high)}  `;
-            document.getElementById('lc-cross-l').textContent = `L:${fmt(bar.low)}  `;
-            document.getElementById('lc-cross-c').textContent = `C:${fmt(bar.close)}`;
-        });
-
-        /* Resize observer */
-        this._lcResizeObs = new ResizeObserver(() => {
-            if (this._lcChart && container.clientWidth > 0) {
-                this._lcChart.resize(container.clientWidth, container.clientHeight);
+        if (this._tvWidget) {
+            try { container.innerHTML = ''; } catch(e) {}
+            this._tvWidget = null;
+        }
+        this._tvWidget = new TradingView.widget({
+            container_id: 'tv-container',
+            autosize: true,
+            symbol: 'OANDA:EURUSD',
+            interval: this._tf,
+            timezone: 'Asia/Kathmandu',
+            theme: 'dark',
+            style: '1',
+            locale: 'en',
+            toolbar_bg: c.bg,
+            backgroundColor: c.bg,
+            gridColor: 'rgba(0,0,0,0)',
+            enable_publishing: false,
+            hide_side_toolbar: false,
+            allow_symbol_change: true,
+            save_image: false,
+            /* ── Hide volume by default ── */
+            disabled_features: [
+                "create_volume_indicator_by_default",
+                "volume_force_overlay"
+            ],
+            overrides: {
+                "paneProperties.background":                   c.bg,
+                "paneProperties.backgroundType":               "solid",
+                "paneProperties.backgroundGradientStartColor": c.bg,
+                "paneProperties.backgroundGradientEndColor":   c.bg,
+                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.vertGridProperties.style":     1,
+                "paneProperties.horzGridProperties.style":     1,
+                "paneProperties.crossHairProperties.color":    "#555555",
+                "mainSeriesProperties.candleStyle.upColor":         c.up,
+                "mainSeriesProperties.candleStyle.downColor":       c.down,
+                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
+                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
+                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
+                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
+                "mainSeriesProperties.candleStyle.drawWick":        true,
+                "mainSeriesProperties.candleStyle.drawBorder":      true,
             }
         });
-        this._lcResizeObs.observe(container);
-
-        /* Load data */
-        this.loadChartData();
-    },
-
-    setLcTf(tf) {
-        this._lcTf = tf;
-        /* Update active TF button */
-        const tfMap = {'1min':'1m','5min':'5m','15min':'15m','1h':'1h','4h':'4h','1day':'1d','1week':'1w'};
-        document.querySelectorAll('.lc-tf-btn').forEach(b => b.classList.remove('lc-tf-active'));
-        const id = 'lc-tf-' + (tfMap[tf] || tf);
-        const btn = document.getElementById(id); if(btn) btn.classList.add('lc-tf-active');
-        this.loadChartData();
-    },
-
-    async loadChartData() {
-        const apiKey = document.getElementById('td-api-key')?.value?.trim();
-        const symbol = document.getElementById('lc-symbol')?.value || 'EUR/USD';
-        const tf     = this._lcTf || '1h';
-        const status = document.getElementById('lc-status');
-
-        if (!apiKey) {
-            if(status) { status.textContent = '⚠ Enter Twelve Data API key to load data'; status.style.color='#ffcc44'; }
-            return;
-        }
-        if(status) { status.textContent = '⟳ Loading...'; status.style.color='#555'; }
-
-        try {
-            const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(symbol)}&interval=${tf}&outputsize=300&apikey=${apiKey}`;
-            const res  = await fetch(url);
-            const json = await res.json();
-
-            if (json.status === 'error') {
-                if(status) { status.textContent = `✗ ${json.message}`; status.style.color='#ff4444'; }
-                return;
-            }
-
-            const candles = (json.values || []).map(v => ({
-                time:  Math.floor(new Date(v.datetime + (v.datetime.includes('T') ? '' : 'T00:00:00')).getTime() / 1000),
-                open:  parseFloat(v.open),
-                high:  parseFloat(v.high),
-                low:   parseFloat(v.low),
-                close: parseFloat(v.close),
-            })).filter(v => !isNaN(v.time) && !isNaN(v.close)).sort((a,b) => a.time - b.time);
-
-            if (!candles.length) { if(status) { status.textContent='✗ No data returned'; status.style.color='#ff4444'; } return; }
-
-            this._lcCandles?.setData(candles);
-            this._lcRawCandles = candles;
-            this._updateIndicators(candles);
-
-            if(status) { status.textContent = `✓ ${candles.length} bars · ${symbol} · ${tf}`; status.style.color='#44ff88'; }
-            setTimeout(() => { if(status) status.textContent=''; }, 3000);
-
-        } catch(e) {
-            if(status) { status.textContent=`✗ ${e.message}`; status.style.color='#ff4444'; }
-        }
-    },
-
-    _calcEMA(data, period) {
-        if (!data || data.length < period) return [];
-        const k = 2 / (period + 1);
-        let ema = data.slice(0, period).reduce((s,b) => s + b.close, 0) / period;
-        const result = [];
-        data.forEach((bar, i) => {
-            if (i < period - 1) return;
-            if (i === period - 1) { ema = data.slice(0,period).reduce((s,b)=>s+b.close,0)/period; }
-            else { ema = bar.close * k + ema * (1 - k); }
-            result.push({ time: bar.time, value: parseFloat(ema.toFixed(6)) });
-        });
-        return result;
-    },
-
-    _calcRSI(data, period = 14) {
-        if (!data || data.length <= period) return [];
-        let gains = 0, losses = 0;
-        for (let i = 1; i <= period; i++) {
-            const d = data[i].close - data[i-1].close;
-            if (d > 0) gains += d; else losses -= d;
-        }
-        let avgGain = gains / period, avgLoss = losses / period;
-        const result = [];
-        for (let i = period; i < data.length; i++) {
-            if (i > period) {
-                const d = data[i].close - data[i-1].close;
-                avgGain = (avgGain * (period-1) + Math.max(d, 0)) / period;
-                avgLoss = (avgLoss * (period-1) + Math.max(-d, 0)) / period;
-            }
-            const rs = avgGain / (avgLoss || 0.0001);
-            result.push({ time: data[i].time, value: parseFloat((100 - 100/(1+rs)).toFixed(2)) });
-        }
-        return result;
-    },
-
-    _updateIndicators(candles) {
-        if (!candles?.length) return;
-        const ema20Data  = this._calcEMA(candles, 20);
-        const ema50Data  = this._calcEMA(candles, 50);
-        const ema200Data = this._calcEMA(candles, 200);
-        const rsiData    = this._calcRSI(candles, 14);
-        if(this._lcEma20)  this._lcEma20.setData(ema20Data);
-        if(this._lcEma50)  this._lcEma50.setData(ema50Data);
-        if(this._lcEma200) this._lcEma200.setData(ema200Data);
-        if(this._lcRsi)    this._lcRsi.setData(rsiData);
-        /* RSI 70/30 lines */
-        if(this._lcRsi70 && rsiData.length) {
-            this._lcRsi70.setData(rsiData.map(d => ({time:d.time, value:70})));
-            this._lcRsi30.setData(rsiData.map(d => ({time:d.time, value:30})));
-        }
-    },
-
-    _applyIndicatorVisibility() {
-        const s = this._indicatorState;
-        const setV = (series, visible) => { if(series) { try { series.applyOptions({ visible }); } catch(e){} } };
-        setV(this._lcEma20,  s.ema20);
-        setV(this._lcEma50,  s.ema50);
-        setV(this._lcEma200, s.ema200);
-        setV(this._lcRsi,    s.rsi);
-        setV(this._lcRsi70,  s.rsi);
-        setV(this._lcRsi30,  s.rsi);
-    },
-
-    toggleIndicator(name) {
-        this._indicatorState[name] = !this._indicatorState[name];
-        this._applyIndicatorVisibility();
-        const btn = document.getElementById('ind-btn-' + name);
-        if (btn) btn.classList.toggle('ind-active', this._indicatorState[name]);
     },
 
     rebuildTVWidget() {
-        /* Just update colors live — no full reload needed */
-        const c = this._tvColors();
-        if (this._lcCandles) {
-            this._lcCandles.applyOptions({
-                upColor: c.up, downColor: c.down,
-                borderUpColor: c.upBorder, borderDownColor: c.downBorder,
-                wickUpColor: c.upWick, wickDownColor: c.downWick,
-            });
-        }
-        if (this._lcChart) {
-            this._lcChart.applyOptions({ layout: { background: { type:'solid', color: c.bg } } });
-        }
+        clearTimeout(this._tvRebuildTimer);
+        this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
 
     resetTVColors() {
@@ -1702,19 +1406,10 @@ if('serviceWorker' in navigator) {
 }
 </script>
 
-<!-- Lightweight Charts -->
-<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<!-- TradingView -->
+<script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
-/* ══ Keyboard shortcut: R = reload chart data ══ */
-document.addEventListener('keydown', function(e){
-    if (e.key === 'r' && !e.ctrlKey && !e.metaKey &&
-        document.activeElement.tagName !== 'INPUT' &&
-        document.activeElement.tagName !== 'TEXTAREA') {
-        if (window.ui && typeof window.ui.loadChartData === 'function') window.ui.loadChartData();
-    }
-});
-
 /* ── Calculator (in-tab) ── */
 var _dm = 'amt';
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
