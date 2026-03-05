@@ -128,23 +128,74 @@
 
         .chart-panel { display:flex; flex-direction:column; border-right:1px solid var(--border); background:#000; overflow:hidden; }
 
+        /* ══ TV-STYLE TOOLBAR ══ */
         .chart-toolbar {
-            display:flex; align-items:center; gap:8px;
-            padding:9px 12px; background:#050505;
-            border-bottom:1px solid var(--border);
-            flex-wrap:wrap; flex-shrink:0;
+            display:flex; align-items:center; gap:0;
+            padding:0 10px; background:#0d0d0d;
+            border-bottom:1px solid #1a1a1a;
+            flex-wrap:nowrap; flex-shrink:0; height:42px; overflow-x:auto;
         }
+        .chart-toolbar::-webkit-scrollbar { height:3px; }
+        .chart-toolbar::-webkit-scrollbar-thumb { background:#333; }
+
+        /* Symbol input styled like TV */
         .chart-symbol-input {
-            background:#111; border:1px solid #333; color:#fff;
-            padding:7px 12px; font-size:0.88rem; font-weight:700;
-            letter-spacing:1px; text-transform:uppercase; width:120px;
+            background:transparent; border:none; color:#fff;
+            padding:4px 8px; font-size:0.92rem; font-weight:700;
+            letter-spacing:1px; text-transform:uppercase; width:110px;
+            border-right:1px solid #222; height:42px; flex-shrink:0;
         }
-        .chart-symbol-input:focus { outline:none; border-color:#44ff88; }
-        .tf-btn { background:#111; border:1px solid #2a2a2a; color:#666; padding:6px 11px; font-size:0.68rem; cursor:pointer; letter-spacing:1px; transition:all 0.15s; }
-        .tf-btn:hover { border-color:#555; color:#ccc; }
-        .tf-btn.active { background:#fff; color:#000; border-color:#fff; font-weight:700; }
-        .chart-go-btn { background:#44ff88; color:#000; border:none; padding:7px 16px; font-size:0.72rem; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:1px; }
+        .chart-symbol-input:focus { outline:none; background:#111; }
+
+        .chart-go-btn {
+            background:#44ff88; color:#000; border:none; padding:5px 12px;
+            font-size:0.68rem; font-weight:700; cursor:pointer;
+            text-transform:uppercase; letter-spacing:1px; height:28px;
+            border-radius:2px; margin-right:8px; flex-shrink:0;
+        }
         .chart-go-btn:hover { background:#33dd77; }
+
+        .tb-sep { width:1px; background:#222; height:24px; margin:0 6px; flex-shrink:0; }
+
+        /* Timeframe buttons — TV style */
+        .tf-btn {
+            background:transparent; border:none; color:#aaa;
+            padding:4px 8px; font-size:0.72rem; cursor:pointer;
+            transition:all 0.12s; white-space:nowrap; flex-shrink:0;
+            border-radius:3px; font-weight:500; height:28px;
+        }
+        .tf-btn:hover { background:#1a1a1a; color:#fff; }
+        .tf-btn.active { background:#2962ff; color:#fff; font-weight:700; }
+
+        /* Candle color panel */
+        .candle-panel {
+            background:#0a0a0a; border-bottom:1px solid #1a1a1a;
+            padding:7px 12px; display:flex; align-items:center; gap:14px;
+            flex-shrink:0; flex-wrap:wrap;
+        }
+        .cp-label { font-size:0.55rem; color:#555; text-transform:uppercase; letter-spacing:1px; }
+        .cp-group { display:flex; align-items:center; gap:6px; }
+        .cp-group label { font-size:0.6rem; color:#666; white-space:nowrap; }
+        .cp-swatch { display:flex; gap:4px; align-items:center; }
+        .cp-swatch input[type=color] {
+            width:22px; height:22px; padding:1px; border:1px solid #333;
+            background:#111; cursor:pointer; border-radius:3px;
+        }
+        .cp-swatch span { font-size:0.55rem; color:#555; }
+        .cp-apply-btn {
+            background:#1a1a2e; border:1px solid #2962ff; color:#2962ff;
+            padding:4px 12px; font-size:0.62rem; cursor:pointer;
+            text-transform:uppercase; letter-spacing:1px; border-radius:3px;
+            transition:all 0.15s; margin-left:auto;
+        }
+        .cp-apply-btn:hover { background:#2962ff; color:#fff; }
+        .popup-btn {
+            background:transparent; border:1px solid #333; color:#aaa;
+            padding:4px 10px; font-size:0.62rem; cursor:pointer;
+            border-radius:3px; display:flex; align-items:center; gap:5px;
+            transition:all 0.15s; white-space:nowrap; flex-shrink:0;
+        }
+        .popup-btn:hover { border-color:#44ff88; color:#44ff88; }
 
         /* TV widget container — must have explicit height */
         #tv-widget-container {
@@ -316,24 +367,78 @@
 
             <!-- LEFT: TradingView Advanced Chart -->
             <div class="chart-panel">
+                <!-- ROW 1: Symbol + Timeframes (TV style) -->
                 <div class="chart-toolbar">
                     <input type="text" id="chart-symbol" class="chart-symbol-input" placeholder="EURUSD" value="EURUSD"
                         onkeydown="if(event.key==='Enter')ui.loadChart()">
-                    <button class="chart-go-btn" onclick="ui.loadChart()">▶ Load</button>
+                    <button class="chart-go-btn" onclick="ui.loadChart()">▶ GO</button>
+
+                    <!-- Timeframes matching TradingView exactly -->
+                    <button class="tf-btn" onclick="ui.setTF(this,'30S')">30s</button>
                     <button class="tf-btn" onclick="ui.setTF(this,'1')">1m</button>
                     <button class="tf-btn" onclick="ui.setTF(this,'3')">3m</button>
                     <button class="tf-btn" onclick="ui.setTF(this,'5')">5m</button>
                     <button class="tf-btn" onclick="ui.setTF(this,'15')">15m</button>
                     <button class="tf-btn" onclick="ui.setTF(this,'30')">30m</button>
-                    <button class="tf-btn active" onclick="ui.setTF(this,'60')">1H</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'240')">4H</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'45')">45m</button>
+                    <div class="tb-sep"></div>
+                    <button class="tf-btn" onclick="ui.setTF(this,'60')">1h</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'120')">2h</button>
+                    <button class="tf-btn" onclick="ui.setTF(this,'180')">3h</button>
+                    <button class="tf-btn active" onclick="ui.setTF(this,'240')">4h</button>
+                    <div class="tb-sep"></div>
                     <button class="tf-btn" onclick="ui.setTF(this,'D')">D</button>
                     <button class="tf-btn" onclick="ui.setTF(this,'W')">W</button>
-                    <div style="display:flex;align-items:center;gap:5px;margin-left:6px;">
+                    <button class="tf-btn" onclick="ui.setTF(this,'M')">M</button>
+                    <div class="tb-sep"></div>
+
+                    <!-- Open in TradingView popup -->
+                    <button class="popup-btn" onclick="ui.openTVPopup()" title="Open full TradingView chart with all settings, indicators & drawing tools">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        Full Chart
+                    </button>
+
+                    <div style="display:flex;align-items:center;gap:5px;margin-left:8px;flex-shrink:0;">
                         <span class="live-dot"></span>
                         <span style="font-size:0.58rem;color:#44ff88;letter-spacing:1px;font-weight:600;">LIVE</span>
                     </div>
                 </div>
+
+                <!-- ROW 2: Candle Color Customizer -->
+                <div class="candle-panel">
+                    <span class="cp-label">🕯 Candles</span>
+                    <div class="cp-group">
+                        <label>Bull Body</label>
+                        <div class="cp-swatch">
+                            <input type="color" id="cp-bull-body" value="#26a69a" onchange="ui.previewCandles()">
+                            <input type="color" id="cp-bull-border" value="#26a69a" onchange="ui.previewCandles()">
+                        </div>
+                    </div>
+                    <div class="cp-group">
+                        <label>Bull Wick</label>
+                        <input type="color" id="cp-bull-wick" value="#26a69a" onchange="ui.previewCandles()">
+                    </div>
+                    <div class="tb-sep" style="margin:0 4px;"></div>
+                    <div class="cp-group">
+                        <label>Bear Body</label>
+                        <div class="cp-swatch">
+                            <input type="color" id="cp-bear-body" value="#ef5350" onchange="ui.previewCandles()">
+                            <input type="color" id="cp-bear-border" value="#ef5350" onchange="ui.previewCandles()">
+                        </div>
+                    </div>
+                    <div class="cp-group">
+                        <label>Bear Wick</label>
+                        <input type="color" id="cp-bear-wick" value="#ef5350" onchange="ui.previewCandles()">
+                    </div>
+                    <div class="tb-sep" style="margin:0 4px;"></div>
+                    <div class="cp-group" style="gap:4px;">
+                        <button class="cp-apply-btn" onclick="ui.applyPreset('green-red')" title="Classic green/red">🟢/🔴</button>
+                        <button class="cp-apply-btn" onclick="ui.applyPreset('white-black')" title="White/Black hollow">⬜/⬛</button>
+                        <button class="cp-apply-btn" onclick="ui.applyPreset('blue-red')" title="Blue/Red">🔵/🔴</button>
+                    </div>
+                    <button class="cp-apply-btn" onclick="ui.loadChart()">✓ Apply Colors</button>
+                </div>
+
                 <!-- TradingView renders here -->
                 <div id="tv-widget-container"></div>
             </div>
@@ -584,7 +689,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.ui = {
     charts: {},
-    _tf: '60',
+    _tf: '240',
     _tvWidget: null,
 
     init() {
@@ -622,19 +727,60 @@ window.ui = {
     },
 
     /* ══ TRADINGVIEW ADVANCED CHART WIDGET ══ */
+    _getCandleColors() {
+        const g = id => document.getElementById(id)?.value || '#26a69a';
+        return {
+            bullBody:   g('cp-bull-body'),
+            bullBorder: g('cp-bull-border'),
+            bullWick:   g('cp-bull-wick'),
+            bearBody:   g('cp-bear-body'),
+            bearBorder: g('cp-bear-border'),
+            bearWick:   g('cp-bear-wick'),
+        };
+    },
+
+    previewCandles() { /* colors stored in inputs, applied on loadChart */ },
+
+    applyPreset(preset) {
+        const presets = {
+            'green-red':   { bb:'#26a69a', bbr:'#26a69a', bw:'#26a69a', rb:'#ef5350', rbr:'#ef5350', rw:'#ef5350' },
+            'white-black': { bb:'#d4d4d4', bbr:'#888888', bw:'#aaaaaa', rb:'#1a1a1a', rbr:'#666666', rw:'#888888' },
+            'blue-red':    { bb:'#2196f3', bbr:'#2196f3', bw:'#2196f3', rb:'#ef5350', rbr:'#ef5350', rw:'#ef5350' },
+        };
+        const p = presets[preset]; if(!p) return;
+        document.getElementById('cp-bull-body').value   = p.bb;
+        document.getElementById('cp-bull-border').value = p.bbr;
+        document.getElementById('cp-bull-wick').value   = p.bw;
+        document.getElementById('cp-bear-body').value   = p.rb;
+        document.getElementById('cp-bear-border').value = p.rbr;
+        document.getElementById('cp-bear-wick').value   = p.rw;
+        this.loadChart();
+    },
+
+    openTVPopup() {
+        const sym = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
+        const tf  = this._tf;
+        // Map internal tf to TV URL format
+        const tfMap = {'1':'1','3':'3','5':'5','15':'15','30':'30','45':'45','60':'60','120':'120','180':'180','240':'240','D':'D','W':'W','M':'M','30S':'30S'};
+        const tvTF = tfMap[tf] || '60';
+        window.open(`https://www.tradingview.com/chart/?symbol=${sym}&interval=${tvTF}`, '_blank', 'width=1200,height=700');
+    },
+
     loadChart() {
         const sym = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
         document.getElementById('chart-symbol').value = sym;
         document.getElementById('side-chart-symbol').textContent = sym;
 
         const container = document.getElementById('tv-widget-container');
-        container.innerHTML = ''; // clear old widget
+        container.innerHTML = '';
+
+        const c = this._getCandleColors();
 
         this._tvWidget = new TradingView.widget({
             container_id:      'tv-widget-container',
             symbol:            sym,
             interval:          this._tf,
-            autosize:          true,          // ✅ Fix: lets widget measure container properly
+            autosize:          true,
             theme:             'dark',
             style:             '1',
             locale:            'en',
@@ -646,26 +792,32 @@ window.ui = {
             withdateranges:    true,
             save_image:        true,
             show_popup_button: true,
-            popup_width:       '1000',
-            popup_height:      '650',
+            popup_width:       '1200',
+            popup_height:      '700',
             details:           true,
             hotlist:           true,
             calendar:          false,
             enable_publishing: false,
-            disabled_features: [
-                'use_localstorage_for_settings'   // ✅ Fix: prevents settings from being silently blocked
-            ],
-            enabled_features: [
-                'study_templates',
-                'side_toolbar_in_fullscreen_mode'
-            ],
+            disabled_features: ['use_localstorage_for_settings'],
+            enabled_features:  ['study_templates', 'side_toolbar_in_fullscreen_mode'],
             overrides: {
+                // Background & grid
                 'paneProperties.background':               '#000000',
                 'paneProperties.backgroundType':           'solid',
                 'paneProperties.vertGridProperties.color': '#111111',
                 'paneProperties.horzGridProperties.color': '#111111',
                 'scalesProperties.lineColor':              '#333333',
                 'scalesProperties.textColor':              '#888888',
+                // Candle colors — bull (up)
+                'mainSeriesProperties.candleStyle.upColor':        c.bullBody,
+                'mainSeriesProperties.candleStyle.borderUpColor':  c.bullBorder,
+                'mainSeriesProperties.candleStyle.wickUpColor':    c.bullWick,
+                // Candle colors — bear (down)
+                'mainSeriesProperties.candleStyle.downColor':      c.bearBody,
+                'mainSeriesProperties.candleStyle.borderDownColor':c.bearBorder,
+                'mainSeriesProperties.candleStyle.wickDownColor':  c.bearWick,
+                'mainSeriesProperties.candleStyle.drawWick':       true,
+                'mainSeriesProperties.candleStyle.drawBorder':     true,
             },
         });
     },
