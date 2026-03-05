@@ -593,12 +593,16 @@ function cl(){
 }
 function rs(){['bal','rp','sl','tp'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''});document.getElementById('ra').value='0';document.getElementById('rr').value='1';const te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';sM('amt');['rl','rr2','rp2','rs','rt','rrr','rtv'].forEach(i=>sv(i,'---'));sv('rls','Enter values above');document.getElementById('qs').style.display='none';}
 function closeBoth(){
-  // Ask the journal (opener) to close TradingView — only the opener can close windows it opened
   if(window.opener && !window.opener.closed){
     window.opener.postMessage('CLOSE_TV_WIN','*');
-    setTimeout(function(){window.opener.focus();}, 100);
+    // Give message time to fire before closing this window
+    setTimeout(function(){
+      window.opener.focus();
+      window.close();
+    }, 150);
+  } else {
+    window.close();
   }
-  window.close();
 }
 <\/script>
 </body></html>`);
@@ -978,9 +982,12 @@ window._installPrompt = null;
 // Listen for calculator popup requesting TV window close
 window.addEventListener('message', function(e) {
     if(e.data === 'CLOSE_TV_WIN') {
-        if(window._tvWin && !window._tvWin.closed) {
-            window._tvWin.close();
-        }
+        // window.open('','name') on an already-open named window returns its reference
+        // — works even cross-origin because the JOURNAL is the opener doing the call
+        try {
+            const tvRef = window.open('', 'TradingViewFull');
+            if(tvRef) tvRef.close();
+        } catch(err) {}
         window.focus();
     }
 });
