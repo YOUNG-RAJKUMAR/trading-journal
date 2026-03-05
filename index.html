@@ -382,6 +382,13 @@
                         Open Full TV
                     </button>
 
+                    <!-- Pop out calculator — use alongside full TV window -->
+                    <button class="popup-btn" onclick="ui.openCalcPopup()" title="Open Lot Calculator in a separate window"
+                        style="border-color:#1a3a1a;color:#44ff88;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        ⊞ Pop Out Calc
+                    </button>
+
                     <div style="display:flex;align-items:center;gap:5px;margin-left:auto;flex-shrink:0;">
                         <span class="live-dot"></span>
                         <span style="font-size:0.58rem;color:#44ff88;letter-spacing:1px;font-weight:600;">LIVE</span>
@@ -728,6 +735,188 @@ window.ui = {
     openTVPopup() {
         const sym = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
         window.open(`https://www.tradingview.com/chart/?symbol=OANDA:${sym}&interval=${this._tf}`, '_blank', 'width=1400,height=800');
+    },
+
+    openCalcPopup() {
+        const w = 360, h = 820;
+        const left = window.screen.width - w - 10;
+        const top  = Math.round((window.screen.height - h) / 2);
+        const popup = window.open('', 'LotCalculator',
+            `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+        if (!popup) { alert('Allow popups for this site to use the floating calculator.'); return; }
+        popup.document.open();
+        popup.document.write(this._calcHTML());
+        popup.document.close();
+    },
+
+    _calcHTML() {
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>⚖ Lot Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--surface:#0a0a0a;--border:#1e1e1e;--positive:#44ff88;--negative:#ff4444;--text:#aaa;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#0d0d0d;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+.header-title{font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--positive);display:inline-block;animation:pulse 1.5s infinite;margin-right:5px;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.reset-btn{background:transparent;border:1px solid #2a2a2a;color:#555;padding:4px 10px;font-size:.58rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border-radius:3px;transition:all .2s;}
+.reset-btn:hover{border-color:var(--negative);color:var(--negative);}
+.body{padding:14px;}
+.symbol-row{display:flex;align-items:center;gap:8px;background:#050505;border:1px solid #1a3a1a;padding:8px 12px;border-radius:3px;margin-bottom:14px;}
+.symbol-input{background:transparent;border:none;color:var(--positive);font-size:1rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;width:100%;outline:none;font-family:inherit;}
+.symbol-input::placeholder{color:#333;}
+label{display:block;font-size:.56rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+input[type=number],select{width:100%;background:#050505;border:1px solid var(--border);color:#fff;padding:9px 10px;font-size:.82rem;font-family:inherit;outline:none;border-radius:2px;transition:border-color .15s;-moz-appearance:textfield;}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type=number]:focus,select:focus{border-color:#444;}
+select{cursor:pointer;}
+.row{margin-bottom:10px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.mode-toggle{display:flex;margin-bottom:10px;}
+.mode-btn{flex:1;padding:8px;font-size:.65rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;transition:all .15s;}
+.mode-btn.off{background:#050505;color:#444;border:1px solid var(--border);}
+.mode-btn.on{background:#fff;color:#000;border:1px solid #fff;font-weight:700;}
+#mode-pct-btn{border-right:none;}
+hr{border:none;border-top:1px solid var(--border);margin:12px 0;}
+.auto-tag{font-size:.52rem;color:var(--positive);display:none;margin-left:4px;}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px;}
+.res-card{background:#050505;border:1px solid var(--border);padding:10px 12px;text-align:center;border-radius:3px;}
+.res-card.full{grid-column:span 2;}
+.res-label{font-size:.5rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.res-val{font-size:1rem;font-weight:400;color:#fff;}
+.res-val.lots{color:var(--positive);font-size:1.6rem;font-weight:700;}
+.res-val.risk{color:var(--negative);}
+.res-val.profit{color:var(--positive);}
+.res-sub{font-size:.5rem;color:#333;margin-top:3px;}
+.qr-section{margin-top:14px;display:none;}
+.qr-title{font-size:.5rem;color:#333;text-transform:uppercase;letter-spacing:1px;padding-top:12px;border-top:1px solid var(--border);margin-bottom:8px;}
+.qr-table{width:100%;border-collapse:collapse;}
+.qr-table th{color:#333;font-size:.58rem;text-align:left;padding:3px 6px;font-weight:400;border-bottom:1px solid #111;}
+.qr-table td{padding:4px 6px;font-size:.7rem;border-bottom:1px solid #0a0a0a;}
+.qr-table tr.active td{color:#fff;font-weight:700;background:#0d1a0d;}
+@keyframes flash{0%{border-color:#44ff88}100%{border-color:var(--border)}}
+.res-card.flash{animation:flash .5s ease forwards;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span class="live-dot"></span>
+    <span class="header-title">Lot Calculator</span>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+</div>
+<div class="body">
+  <div class="symbol-row">
+    <span class="live-dot" style="width:6px;height:6px;flex-shrink:0;"></span>
+    <input type="text" class="symbol-input" id="symbol" placeholder="EURUSD" value="EURUSD" oninput="this.value=this.value.toUpperCase()">
+  </div>
+  <div class="row">
+    <label>Account Balance ($)</label>
+    <input type="number" id="balance" placeholder="e.g. 10000" oninput="calc()">
+  </div>
+  <div class="mode-toggle">
+    <button id="mode-pct-btn" class="mode-btn off" onclick="setMode('pct')">Risk %</button>
+    <button id="mode-amt-btn" class="mode-btn on"  onclick="setMode('amt')">Risk $</button>
+  </div>
+  <div id="pct-row" class="row" style="display:none;">
+    <label>Risk % of Balance</label>
+    <input type="number" id="risk-pct" placeholder="1" step="0.1" min="0" oninput="calc()">
+  </div>
+  <div id="amt-row" class="row">
+    <label>Fixed Risk Amount ($)</label>
+    <input type="number" id="risk-amt" placeholder="100" value="0" min="0" oninput="calc()">
+  </div>
+  <hr>
+  <div class="row">
+    <label>Instrument Type</label>
+    <select id="instrument" onchange="calc()">
+      <option value="forex">Forex (EURUSD, GBPUSD…)</option>
+      <option value="gold">Gold / XAUUSD</option>
+      <option value="indices">Indices (US30, NAS100…)</option>
+      <option value="crypto">Crypto (BTCUSD…)</option>
+    </select>
+  </div>
+  <div class="two-col">
+    <div>
+      <label>SL (ticks / pips)</label>
+      <input type="number" id="sl" placeholder="50" min="0" step="1" oninput="autoTP();calc();" style="font-size:1.1rem;padding:11px 10px;">
+    </div>
+    <div>
+      <label>Target R:R</label>
+      <select id="rr" onchange="autoTP()" style="padding:9px 8px;">
+        <option value="0">Manual TP</option>
+        <option value="0.5">1 : 0.5</option>
+        <option value="1" selected>1 : 1</option>
+        <option value="1.5">1 : 1.5</option>
+        <option value="2">1 : 2</option>
+        <option value="2.5">1 : 2.5</option>
+        <option value="3">1 : 3</option>
+        <option value="4">1 : 4</option>
+        <option value="5">1 : 5</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <label>TP (ticks / pips) <span class="auto-tag" id="auto-tag">● AUTO</span></label>
+    <input type="number" id="tp" placeholder="100" min="0" step="1" oninput="manualTP()" style="font-size:1.1rem;padding:11px 10px;">
+  </div>
+  <div class="results-grid">
+    <div class="res-card full" id="card-lots">
+      <div class="res-label">Recommended Lot Size</div>
+      <div class="res-val lots" id="r-lots">---</div>
+      <div class="res-sub"     id="r-lots-sub">Enter values above</div>
+    </div>
+    <div class="res-card" id="card-risk">
+      <div class="res-label">Risk ($)</div>
+      <div class="res-val risk"   id="r-risk">---</div>
+      <div class="res-sub"        id="r-risk-sub">---</div>
+    </div>
+    <div class="res-card" id="card-profit">
+      <div class="res-label">Profit ($)</div>
+      <div class="res-val profit" id="r-profit">---</div>
+      <div class="res-sub"        id="r-profit-sub">---</div>
+    </div>
+    <div class="res-card"><div class="res-label">SL Ticks</div><div class="res-val" id="r-sl">---</div></div>
+    <div class="res-card"><div class="res-label">TP Ticks</div><div class="res-val" id="r-tp">---</div></div>
+    <div class="res-card"><div class="res-label">R : R</div><div class="res-val" id="r-rr">---</div></div>
+    <div class="res-card"><div class="res-label">Tick Value</div><div class="res-val" id="r-tv">---</div></div>
+  </div>
+  <div class="qr-section" id="qr-section">
+    <div class="qr-title">Quick Risk Reference</div>
+    <table class="qr-table">
+      <thead><tr><th>%</th><th>$ Risk</th><th>Lots</th><th>Profit $</th></tr></thead>
+      <tbody id="qr-body"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+let _mode='amt';
+function setMode(m){_mode=m;document.getElementById('pct-row').style.display=m==='pct'?'block':'none';document.getElementById('amt-row').style.display=m==='pct'?'none':'block';document.getElementById('mode-pct-btn').className='mode-btn '+(m==='pct'?'on':'off');document.getElementById('mode-amt-btn').className='mode-btn '+(m==='amt'?'on':'off');calc();}
+function autoTP(){const rr=parseFloat(document.getElementById('rr').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,tpEl=document.getElementById('tp'),tag=document.getElementById('auto-tag');if(rr===0){tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';tag.style.display='none';calc();return;}if(!sl){document.getElementById('rr').value='0';calc();return;}tpEl.value=Math.round(sl*rr*10)/10;tpEl.readOnly=true;tpEl.style.borderColor='#44ff88';tpEl.style.color='#44ff88';tag.style.display='inline';calc();}
+function manualTP(){document.getElementById('rr').value='0';const tpEl=document.getElementById('tp');tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';document.getElementById('auto-tag').style.display='none';calc();}
+function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function flashCard(id){const el=document.getElementById(id);if(!el)return;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
+function calc(){
+  const balance=parseFloat(document.getElementById('balance').value)||0,riskPct=parseFloat(document.getElementById('risk-pct').value)||0,riskAmt=parseFloat(document.getElementById('risk-amt').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,tp=parseFloat(document.getElementById('tp').value)||0,tv=1;
+  if(balance>0){const rows=[0.5,1,1.5,2,3,5].map(pct=>{const amt=balance*pct/100,lots=sl>0?Math.floor(amt/(sl*tv)*100)/100:0,prof=(tp&&lots)?lots*tp*tv:0,hi=(_mode==='pct'&&pct===riskPct);return'<tr class="'+(hi?'active':'')+'"><td>'+pct+'%</td><td>$'+amt.toFixed(0)+'</td><td>'+(sl>0?lots.toFixed(2):'---')+'</td><td>'+(sl>0&&tp?'$'+prof.toFixed(0):'---')+'</td></tr>';}).join('');document.getElementById('qr-body').innerHTML=rows;document.getElementById('qr-section').style.display='block';}
+  if(!sl){['r-lots','r-risk','r-profit','r-sl','r-tp','r-rr','r-tv'].forEach(id=>set(id,'---'));set('r-lots-sub','Enter values above');set('r-risk-sub','---');set('r-profit-sub','---');return;}
+  const riskMoney=_mode==='amt'?riskAmt:(balance>0?balance*riskPct/100:0);
+  if(!riskMoney){['r-lots','r-risk','r-profit','r-sl','r-tp','r-rr','r-tv'].forEach(id=>set(id,'---'));set('r-lots-sub','Set risk amount above');return;}
+  const lots=Math.floor(riskMoney/(sl*tv)*100)/100,actualRisk=lots*sl*tv,potProfit=tp?lots*tp*tv:0,rr=tp>0?tp/sl:0;
+  set('r-lots',lots.toFixed(2));set('r-lots-sub','Standard lots (rounded down)');set('r-risk','$'+actualRisk.toFixed(2));set('r-risk-sub',balance>0?((actualRisk/balance)*100).toFixed(2)+'% of balance':'—');set('r-profit',tp?'$'+potProfit.toFixed(2):'---');set('r-profit-sub',(balance>0&&tp)?((potProfit/balance)*100).toFixed(2)+'% of balance':'—');set('r-sl',sl+' ticks');set('r-tp',tp?tp+' ticks':'---');set('r-rr',rr>0?'1 : '+parseFloat(rr.toFixed(2)):'---');set('r-tv','$'+tv.toFixed(2));
+  flashCard('card-lots');flashCard('card-risk');flashCard('card-profit');
+}
+function resetAll(){['balance','risk-pct','sl','tp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});document.getElementById('risk-amt').value='0';document.getElementById('instrument').value='forex';document.getElementById('rr').value='1';const tpEl=document.getElementById('tp');tpEl.readOnly=false;tpEl.style.borderColor='';tpEl.style.color='#fff';document.getElementById('auto-tag').style.display='none';setMode('amt');['r-lots','r-risk','r-profit','r-sl','r-tp','r-rr','r-tv'].forEach(id=>set(id,'---'));set('r-lots-sub','Enter values above');document.getElementById('qr-section').style.display='none';}
+</script>
+</body>
+</html>`;
     },
 
     /* ══ SIDE CALCULATOR ══ */
