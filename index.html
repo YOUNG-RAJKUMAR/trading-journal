@@ -377,16 +377,11 @@
                         style="background:#111;border:1px solid #333;color:#aaa;padding:3px 9px;font-size:0.7rem;cursor:pointer;border-radius:3px;flex-shrink:0;">🌙 Dark</button>
 
                     <div class="tb-sep"></div>
-                    <button class="popup-btn" onclick="ui.openTVPopup()" title="Open on TradingView.com">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        Open Full TV
-                    </button>
-
-                    <!-- Pop out calculator — use alongside full TV window -->
-                    <button class="popup-btn" onclick="ui.openCalcPopup()" title="Open Lot Calculator in a separate window"
-                        style="border-color:#1a3a1a;color:#44ff88;">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                        ⊞ Pop Out Calc
+                    <!-- ONE CLICK: opens TV + Calculator perfectly tiled side by side -->
+                    <button class="popup-btn" onclick="ui.launchTradingDesk()"
+                        title="Open TradingView + Calculator side by side in one click"
+                        style="border-color:#44ff88;color:#44ff88;font-weight:700;padding:3px 14px;font-size:0.68rem;">
+                        ⚡ Launch Trading Desk
                     </button>
 
                     <div style="display:flex;align-items:center;gap:5px;margin-left:auto;flex-shrink:0;">
@@ -740,21 +735,30 @@ window.ui = {
         this.loadChart();
     },
 
-    openTVPopup() {
-        const sym = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
-        window.open(`https://www.tradingview.com/chart/?symbol=OANDA:${sym}&interval=${this._tf}`, '_blank', 'width=1400,height=800');
-    },
+    launchTradingDesk() {
+        const sym   = (document.getElementById('chart-symbol').value || 'EURUSD').toUpperCase().trim();
+        const sw    = window.screen.width;
+        const sh    = window.screen.height;
+        const calcW = 370;
+        const tvW   = sw - calcW;
+        const top   = 0;
 
-    openCalcPopup() {
-        const w = 360, h = 820;
-        const left = window.screen.width - w - 10;
-        const top  = Math.round((window.screen.height - h) / 2);
-        const popup = window.open('', 'LotCalculator',
-            `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-        if (!popup) { alert('Allow popups for this site to use the floating calculator.'); return; }
-        popup.document.open();
-        popup.document.write(this._calcHTML());
-        popup.document.close();
+        // 1. Open TradingView — fills left portion of screen
+        window.open(
+            `https://www.tradingview.com/chart/?symbol=OANDA:${sym}&interval=${this._tf}`,
+            'TVChart',
+            `width=${tvW},height=${sh},left=0,top=${top},resizable=yes,scrollbars=no,toolbar=no,menubar=no`
+        );
+
+        // 2. Open calculator — snaps to right edge, same height
+        const calc = window.open(
+            '', 'LotCalculator',
+            `width=${calcW},height=${sh},left=${tvW},top=${top},resizable=yes,scrollbars=yes,toolbar=no,menubar=no`
+        );
+        if (!calc) { alert('Please allow popups for this page, then try again.'); return; }
+        calc.document.open();
+        calc.document.write(this._calcHTML());
+        calc.document.close();
     },
 
     _calcHTML() {
