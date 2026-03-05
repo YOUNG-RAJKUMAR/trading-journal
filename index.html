@@ -462,6 +462,9 @@ window.ui = {
         );
         if (!desk) { return; }
 
+        // Pass reference so calc can close TV window too
+        desk._tvWin = tvWin;
+
         // Write the standalone calculator popup
         desk.document.open();
         desk.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
@@ -476,6 +479,8 @@ html,body{height:100%;background:#000;font-family:'Inter',sans-serif;color:#aaa;
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
 .rb{background:transparent;border:1px solid #222;color:#444;padding:4px 10px;font-size:.58rem;cursor:pointer;border-radius:3px;transition:all .2s;font-family:inherit;text-transform:uppercase;letter-spacing:1px;}
 .rb:hover{border-color:#ff4444;color:#ff4444;}
+.cb-btn{background:#1a0000;border:1px solid #440000;color:#ff4444;padding:5px 12px;font-size:.62rem;font-weight:700;cursor:pointer;border-radius:3px;transition:all .2s;font-family:inherit;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:5px;}
+.cb-btn:hover{background:#ff4444;color:#000;border-color:#ff4444;}
 .body{padding:14px;}
 .sym-badge{display:flex;align-items:center;gap:8px;background:#050505;border:1px solid #1a3a1a;padding:8px 12px;border-radius:3px;margin-bottom:14px;}
 .sym-label{font-size:.52rem;color:#555;text-transform:uppercase;letter-spacing:1px;}
@@ -512,7 +517,10 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:12px 0;}
 </style></head><body>
 <div class="header">
   <div class="title"><span class="ld"></span>⚖ Lot Calculator</div>
-  <button class="rb" onclick="rs()">↺ Reset</button>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <button class="rb" onclick="rs()">↺ Reset</button>
+    <button class="cb-btn" onclick="closeBoth()" title="Close chart + calculator, return to journal">✕ Close Desk</button>
+  </div>
 </div>
 <div class="body">
   <div class="sym-badge">
@@ -587,6 +595,7 @@ function cl(){
   fl('cl');fl('cr');fl('cp');
 }
 function rs(){['bal','rp','sl','tp'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''});document.getElementById('ra').value='0';document.getElementById('rr').value='1';const te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';sM('amt');['rl','rr2','rp2','rs','rt','rrr','rtv'].forEach(i=>sv(i,'---'));sv('rls','Enter values above');document.getElementById('qs').style.display='none';}
+function closeBoth(){try{if(window._tvWin&&!window._tvWin.closed)window._tvWin.close();}catch(e){}if(window.opener&&!window.opener.closed){window.opener.focus();}window.close();}
 <\/script>
 </body></html>`);
         desk.document.close();
