@@ -568,16 +568,27 @@ window.ui = {
             theme: 'dark',
             style: '1',
             locale: 'en',
-            toolbar_bg: c.bg,
+            toolbar_bg:      c.bg,
+            // Direct params — these work in all widget versions for bg + grid
+            backgroundColor: c.bg,
+            gridColor:       'rgba(0,0,0,0)',
             enable_publishing: false,
             hide_side_toolbar: false,
             allow_symbol_change: true,
             save_image: false,
             overrides: {
-                "paneProperties.background":             c.bg,
-                "paneProperties.backgroundType":         "solid",
-                "paneProperties.vertGridProperties.color":  "rgba(0,0,0,0)",
-                "paneProperties.horzGridProperties.color":  "rgba(0,0,0,0)",
+                // Background — cover all known key variants across TV widget versions
+                "paneProperties.background":                    c.bg,
+                "paneProperties.backgroundType":                "solid",
+                "paneProperties.backgroundGradientStartColor":  c.bg,
+                "paneProperties.backgroundGradientEndColor":    c.bg,
+                // Grid — fully transparent via all known keys
+                "paneProperties.vertGridProperties.color":      "rgba(0,0,0,0)",
+                "paneProperties.horzGridProperties.color":      "rgba(0,0,0,0)",
+                "paneProperties.vertGridProperties.style":      1,
+                "paneProperties.horzGridProperties.style":      1,
+                "paneProperties.crossHairProperties.color":     "#555555",
+                // Candles
                 "mainSeriesProperties.candleStyle.upColor":          c.up,
                 "mainSeriesProperties.candleStyle.downColor":        c.down,
                 "mainSeriesProperties.candleStyle.borderUpColor":    c.upBorder,
