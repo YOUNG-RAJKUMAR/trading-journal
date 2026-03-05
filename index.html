@@ -724,7 +724,14 @@
                 </button>
             </div>
 
-            <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
+            <!-- TV Chart + Canvas Drawing Overlay -->
+            <div id="tv-wrapper" style="flex:1;min-width:0;height:100%;position:relative;overflow:hidden;">
+                <div id="tv-container" style="width:100%;height:100%;"></div>
+                <canvas id="draw-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;display:block;"></canvas>
+                <!-- Crosshair overlay lines -->
+                <div id="ch-h" style="position:absolute;left:0;right:0;height:1px;background:rgba(255,255,255,.25);pointer-events:none;display:none;border-top:1px dashed rgba(255,255,255,.3);"></div>
+                <div id="ch-v" style="position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.25);pointer-events:none;display:none;border-left:1px dashed rgba(255,255,255,.3);"></div>
+            </div>
             <!-- Calculator -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
@@ -1077,121 +1084,455 @@ _buildSwatchPopup();
 </script>
 
 <!-- ══════════════════════════════════════════
-     DRAWING TOOLS JS
+     DRAWING TOOLS JS — Canvas Overlay Engine
 ══════════════════════════════════════════ -->
 <script>
-// Active drawing tool state
-var _dtActive = null;   // currently active tool ID string
+/* ─────────────────────────────────────────────────────────────
+   CANVAS DRAWING ENGINE
+   All drawing happens on a transparent canvas that overlays the
+   TradingView iframe. Shapes are pixel-based and fully moveable.
+───────────────────────────────────────────────────────────────*/
 
-// Activate a drawing tool button and call TradingView API
+var DT = {
+    tool:    '',          // active tool id
+    shapes:  [],          // all committed shapes
+    preview: null,        // shape being drawn (not yet committed)
+    selected: null,       // index of selected shape
+    dragStart: null,      // {x,y} when drag begins
+    dragOffset: null,     // offset from shape anchor to mouse
+    dragMode:  null,      // 'move' | 'p0' | 'p1' (handle drag)
+    isDrawing: false,
+    mousePos: {x:0, y:0},
+    canvas:  null,
+    ctx:     null,
+
+    COLORS: {
+        default:  '#ffffff',
+        fib:      '#f0c040',
+        long:     '#26a69a',
+        short:    '#ef5350',
+        gann:     '#9966ff',
+    },
+
+    init() {
+        this.canvas = document.getElementById('draw-canvas');
+        if (!this.canvas) return;
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        this.canvas.addEventListener('mousedown',  e => this.onDown(e));
+        this.canvas.addEventListener('mousemove',  e => this.onMove(e));
+        this.canvas.addEventListener('mouseup',    e => this.onUp(e));
+        this.canvas.addEventListener('dblclick',   e => this.onDbl(e));
+        this.canvas.addEventListener('mouseleave', e => this.hideCrosshair());
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape')  { dtActivate(document.getElementById('dt-cursor'), ''); }
+            if (e.key === 'Delete' || e.key === 'Backspace') { this.deleteSelected(); }
+            if (e.key === 'z' && (e.ctrlKey||e.metaKey)) { this.undo(); e.preventDefault(); }
+        });
+        this.redraw();
+    },
+
+    resize() {
+        var c = this.canvas;
+        var wrap = document.getElementById('tv-wrapper');
+        if (!c || !wrap) return;
+        var w = wrap.clientWidth, h = wrap.clientHeight;
+        c.width  = w;
+        c.height = h;
+        this.redraw();
+    },
+
+    pos(e) {
+        var r = this.canvas.getBoundingClientRect();
+        return { x: e.clientX - r.left, y: e.clientY - r.top };
+    },
+
+    /* ── pointer events ── */
+    onDown(e) {
+        var p = this.pos(e);
+        this.mousePos = p;
+
+        if (!this.tool) {
+            // cursor mode — try to select / start drag
+            var hit = this.hitTest(p);
+            if (hit !== null) {
+                this.selected = hit;
+                this.dragMode  = 'move';
+                this.dragStart = p;
+                var s = this.shapes[hit];
+                this.dragOffset = { x: p.x - s.pts[0].x, y: p.y - s.pts[0].y };
+            } else {
+                this.selected = null;
+            }
+            this.redraw();
+            return;
+        }
+
+        // start drawing a new shape
+        this.isDrawing = true;
+        this.preview = { type: this.tool, pts: [p, {...p}], color: this.toolColor() };
+    },
+
+    onMove(e) {
+        var p = this.pos(e);
+        this.mousePos = p;
+        this.showCrosshair(p);
+
+        if (this.dragMode === 'move' && this.dragStart && this.selected !== null) {
+            var s = this.shapes[this.selected];
+            var dx = p.x - this.dragStart.x, dy = p.y - this.dragStart.y;
+            s.pts = s.pts.map(pt => ({ x: pt.x + dx, y: pt.y + dy }));
+            this.dragStart = p;
+            this.redraw();
+            return;
+        }
+
+        if (this.isDrawing && this.preview) {
+            this.preview.pts[1] = {...p};
+            // For Long/Short: third point tracks vertically from p0
+            if (this.preview.type === 'long' || this.preview.type === 'short') {
+                var p0 = this.preview.pts[0];
+                var rng = Math.abs(p.y - p0.y);
+                if (this.preview.type === 'long') {
+                    this.preview.pts[2] = { x: p.x, y: p0.y + rng };   // SL below entry
+                } else {
+                    this.preview.pts[2] = { x: p.x, y: p0.y - rng };   // SL above entry
+                }
+            }
+            this.redraw();
+        }
+    },
+
+    onUp(e) {
+        if (this.dragMode) { this.dragMode = null; this.dragStart = null; return; }
+        if (!this.isDrawing || !this.preview) return;
+        var p = this.pos(e);
+        this.preview.pts[1] = p;
+
+        // Only commit if the shape has meaningful size
+        var dx = p.x - this.preview.pts[0].x, dy = p.y - this.preview.pts[0].y;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3 || this.preview.type === 'hline' || this.preview.type === 'vline') {
+            this.shapes.push(JSON.parse(JSON.stringify(this.preview)));
+        }
+        this.preview  = null;
+        this.isDrawing = false;
+        // After single-click tools (hline, vline), revert to cursor
+        if (this.tool === 'hline' || this.tool === 'vline') {
+            dtActivate(document.getElementById('dt-cursor'), '');
+        }
+        this.redraw();
+    },
+
+    onDbl(e) {
+        var p = this.pos(e);
+        var hit = this.hitTest(p);
+        if (hit !== null) { this.shapes.splice(hit,1); this.selected = null; this.redraw(); }
+    },
+
+    toolColor() {
+        if (this.tool === 'long')  return this.COLORS.long;
+        if (this.tool === 'short') return this.COLORS.short;
+        if (this.tool === 'fib')   return this.COLORS.fib;
+        if (this.tool === 'gann')  return this.COLORS.gann;
+        return this.COLORS.default;
+    },
+
+    /* ── Hit testing ── */
+    hitTest(p) {
+        for (var i = this.shapes.length - 1; i >= 0; i--) {
+            if (this.shapeHit(this.shapes[i], p)) return i;
+        }
+        return null;
+    },
+
+    shapeHit(s, p) {
+        var TOL = 8;
+        var p0 = s.pts[0], p1 = s.pts[1];
+        switch(s.type) {
+            case 'trend': return this.ptNearSeg(p, p0, p1, TOL);
+            case 'hline': return Math.abs(p.y - p0.y) < TOL;
+            case 'vline': return Math.abs(p.x - p0.x) < TOL;
+            case 'rect':
+            case 'long':
+            case 'short':
+            case 'gann': {
+                var x0=Math.min(p0.x,p1.x), x1=Math.max(p0.x,p1.x);
+                var y0=Math.min(p0.y,p1.y), y1=Math.max(p0.y,p1.y);
+                return p.x>=x0-TOL&&p.x<=x1+TOL&&p.y>=y0-TOL&&p.y<=y1+TOL &&
+                       (p.x<=x0+TOL||p.x>=x1-TOL||p.y<=y0+TOL||p.y>=y1-TOL);
+            }
+            case 'fib': return this.ptNearSeg(p, p0, p1, TOL) || Math.abs(p.x - p0.x) < TOL;
+            default: return false;
+        }
+    },
+
+    ptNearSeg(p, a, b, tol) {
+        var dx=b.x-a.x, dy=b.y-a.y, len2=dx*dx+dy*dy;
+        if(len2===0) return Math.hypot(p.x-a.x,p.y-a.y)<tol;
+        var t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/len2));
+        return Math.hypot(p.x-(a.x+t*dx), p.y-(a.y+t*dy)) < tol;
+    },
+
+    deleteSelected() {
+        if (this.selected !== null) {
+            this.shapes.splice(this.selected, 1);
+            this.selected = null;
+            this.redraw();
+        }
+    },
+
+    undo() {
+        if (this.shapes.length) { this.shapes.pop(); this.selected = null; this.redraw(); }
+    },
+
+    clearAll() {
+        this.shapes = [];
+        this.preview = null;
+        this.selected = null;
+        this.redraw();
+    },
+
+    /* ── Crosshair helper ── */
+    showCrosshair(p) {
+        var ch = this.tool === 'cross';
+        var hEl = document.getElementById('ch-h'), vEl = document.getElementById('ch-v');
+        if (!hEl || !vEl) return;
+        if (ch) {
+            hEl.style.display = 'block'; hEl.style.top = p.y + 'px';
+            vEl.style.display = 'block'; vEl.style.left = p.x + 'px';
+        } else { hEl.style.display='none'; vEl.style.display='none'; }
+    },
+    hideCrosshair() {
+        var hEl=document.getElementById('ch-h'),vEl=document.getElementById('ch-v');
+        if(hEl)hEl.style.display='none'; if(vEl)vEl.style.display='none';
+    },
+
+    /* ── MAIN REDRAW ── */
+    redraw() {
+        if (!this.ctx || !this.canvas) return;
+        var W = this.canvas.width, H = this.canvas.height;
+        this.ctx.clearRect(0, 0, W, H);
+
+        this.shapes.forEach((s, i) => this.drawShape(s, i === this.selected, W, H));
+        if (this.preview) this.drawShape(this.preview, false, W, H, true);
+    },
+
+    drawShape(s, selected, W, H, isPreview) {
+        var ctx = this.ctx;
+        var p0 = s.pts[0], p1 = s.pts[1];
+        var col = s.color || '#fff';
+        var alpha = isPreview ? 0.65 : 1;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = col;
+        ctx.fillStyle   = col;
+        ctx.lineWidth   = selected ? 2 : 1.5;
+
+        if (selected) {
+            ctx.shadowColor = col;
+            ctx.shadowBlur  = 6;
+        }
+
+        switch(s.type) {
+
+            case 'trend': {
+                ctx.setLineDash([]);
+                ctx.beginPath(); ctx.moveTo(p0.x,p0.y); ctx.lineTo(p1.x,p1.y); ctx.stroke();
+                // Extend line slightly beyond endpoints
+                this.drawHandle(p0, col); this.drawHandle(p1, col);
+                break;
+            }
+
+            case 'hline': {
+                ctx.setLineDash([5,4]);
+                ctx.beginPath(); ctx.moveTo(0,p0.y); ctx.lineTo(W,p0.y); ctx.stroke();
+                ctx.setLineDash([]);
+                // Price label
+                ctx.fillStyle = col; ctx.font = '10px monospace';
+                ctx.fillText('─ H', W - 28, p0.y - 4);
+                break;
+            }
+
+            case 'vline': {
+                ctx.setLineDash([5,4]);
+                ctx.beginPath(); ctx.moveTo(p0.x,0); ctx.lineTo(p0.x,H); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = col; ctx.font = '10px monospace';
+                ctx.fillText('V', p0.x + 4, 14);
+                break;
+            }
+
+            case 'rect': {
+                var rw = p1.x-p0.x, rh = p1.y-p0.y;
+                ctx.setLineDash([]);
+                ctx.fillStyle = col + '18';
+                ctx.fillRect(p0.x, p0.y, rw, rh);
+                ctx.strokeRect(p0.x, p0.y, rw, rh);
+                this.drawHandle(p0, col); this.drawHandle(p1, col);
+                this.drawHandle({x:p1.x,y:p0.y}, col); this.drawHandle({x:p0.x,y:p1.y}, col);
+                break;
+            }
+
+            case 'long': {
+                var ew = p1.x - p0.x;
+                var entryY = p0.y;
+                var tpY    = p1.y;          // TP = drag point (above entry)
+                var slY    = s.pts[2] ? s.pts[2].y : p0.y + Math.abs(p1.y-p0.y);
+                var x0     = Math.min(p0.x, p1.x);
+                var x1     = Math.max(p0.x, p1.x);
+                var w      = x1 - x0 || 120;
+                // TP zone (green)
+                ctx.fillStyle = 'rgba(38,166,154,0.18)';
+                ctx.fillRect(x0, tpY, w, entryY - tpY);
+                ctx.strokeStyle = '#26a69a'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+                ctx.strokeRect(x0, tpY, w, entryY - tpY);
+                // SL zone (red)
+                ctx.fillStyle = 'rgba(239,83,80,0.18)';
+                ctx.fillRect(x0, entryY, w, slY - entryY);
+                ctx.strokeStyle = '#ef5350'; ctx.lineWidth=1.5;
+                ctx.strokeRect(x0, entryY, w, slY - entryY);
+                // Entry line
+                ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+                ctx.beginPath(); ctx.moveTo(x0,entryY); ctx.lineTo(x1,entryY); ctx.stroke();
+                ctx.setLineDash([]);
+                // Labels
+                ctx.font='bold 10px monospace';
+                ctx.fillStyle='#26a69a'; ctx.fillText('TP', x0+4, tpY+12);
+                ctx.fillStyle='#ef5350'; ctx.fillText('SL', x0+4, slY-4);
+                ctx.fillStyle='#fff';    ctx.fillText('ENTRY', x0+4, entryY-4);
+                // R:R
+                var risk = Math.abs(slY-entryY), reward = Math.abs(tpY-entryY);
+                if(risk>0){ var rr=(reward/risk).toFixed(2);
+                    ctx.fillStyle='#aaa'; ctx.font='9px monospace';
+                    ctx.fillText('R:R 1:'+rr, x0+4, entryY+12); }
+                break;
+            }
+
+            case 'short': {
+                var ew = p1.x - p0.x;
+                var entryY = p0.y;
+                var tpY    = p1.y;          // TP below entry
+                var slY    = s.pts[2] ? s.pts[2].y : p0.y - Math.abs(p1.y-p0.y);
+                var x0     = Math.min(p0.x, p1.x);
+                var x1     = Math.max(p0.x, p1.x);
+                var w      = x1 - x0 || 120;
+                // TP zone (green — below entry for short)
+                ctx.fillStyle = 'rgba(38,166,154,0.18)';
+                ctx.fillRect(x0, entryY, w, tpY - entryY);
+                ctx.strokeStyle = '#26a69a'; ctx.lineWidth=1.5; ctx.setLineDash([]);
+                ctx.strokeRect(x0, entryY, w, tpY - entryY);
+                // SL zone (red — above entry for short)
+                ctx.fillStyle = 'rgba(239,83,80,0.18)';
+                ctx.fillRect(x0, slY, w, entryY - slY);
+                ctx.strokeStyle = '#ef5350'; ctx.lineWidth=1.5;
+                ctx.strokeRect(x0, slY, w, entryY - slY);
+                // Entry line
+                ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+                ctx.beginPath(); ctx.moveTo(x0,entryY); ctx.lineTo(x1,entryY); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.font='bold 10px monospace';
+                ctx.fillStyle='#26a69a'; ctx.fillText('TP', x0+4, tpY-4);
+                ctx.fillStyle='#ef5350'; ctx.fillText('SL', x0+4, slY+12);
+                ctx.fillStyle='#fff';    ctx.fillText('ENTRY', x0+4, entryY-4);
+                var risk=Math.abs(slY-entryY),reward=Math.abs(tpY-entryY);
+                if(risk>0){var rr=(reward/risk).toFixed(2);ctx.fillStyle='#aaa';ctx.font='9px monospace';ctx.fillText('R:R 1:'+rr,x0+4,entryY+12);}
+                break;
+            }
+
+            case 'fib': {
+                var levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+                var colors = ['#888','#f0c040','#26a69a','#fff','#26a69a','#f0c040','#888'];
+                var dy = p1.y - p0.y;
+                var x0c = Math.min(p0.x,p1.x), x1c=Math.max(p0.x,p1.x);
+                var fw = x1c-x0c||W;
+                levels.forEach((lvl, i) => {
+                    var y = p0.y + dy * lvl;
+                    ctx.strokeStyle = colors[i]; ctx.lineWidth = lvl===0.618||lvl===0.5?1.5:1;
+                    ctx.setLineDash(lvl===0||lvl===1?[]:[4,3]);
+                    ctx.beginPath(); ctx.moveTo(x0c,y); ctx.lineTo(x1c||W,y); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle=colors[i]; ctx.font='9px monospace';
+                    ctx.fillText((lvl*100).toFixed(1)+'%', x0c+3, y-3);
+                });
+                this.drawHandle(p0, col); this.drawHandle(p1, col);
+                break;
+            }
+
+            case 'gann': {
+                var x0g=Math.min(p0.x,p1.x), x1g=Math.max(p0.x,p1.x);
+                var y0g=Math.min(p0.y,p1.y), y1g=Math.max(p0.y,p1.y);
+                var wg=x1g-x0g, hg=y1g-y0g;
+                // Box
+                ctx.setLineDash([]); ctx.strokeStyle=col; ctx.lineWidth=1.5;
+                ctx.strokeRect(x0g,y0g,wg,hg);
+                // Internal grid
+                ctx.lineWidth=0.6; ctx.setLineDash([2,3]); ctx.strokeStyle=col;
+                [0.25,0.5,0.75].forEach(f => {
+                    ctx.beginPath(); ctx.moveTo(x0g+wg*f,y0g); ctx.lineTo(x0g+wg*f,y1g); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x0g,y0g+hg*f); ctx.lineTo(x1g,y0g+hg*f); ctx.stroke();
+                });
+                // Diagonals
+                ctx.lineWidth=1; ctx.setLineDash([]); ctx.strokeStyle='#9966ff';
+                ctx.beginPath(); ctx.moveTo(x0g,y0g); ctx.lineTo(x1g,y1g); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x1g,y0g); ctx.lineTo(x0g,y1g); ctx.stroke();
+                // 1:1, 1:2, 2:1 fan lines from top-left
+                ctx.lineWidth=0.8; ctx.strokeStyle='#f0c040'; ctx.setLineDash([3,3]);
+                [[1,2],[2,1],[1,4],[4,1]].forEach(([a,b]) => {
+                    var ex=x0g+wg, ey=y0g+hg*a/b;
+                    if(ey>=y0g&&ey<=y1g){ctx.beginPath();ctx.moveTo(x0g,y0g);ctx.lineTo(ex,ey);ctx.stroke();}
+                });
+                ctx.setLineDash([]);
+                this.drawHandle(p0, col); this.drawHandle(p1, col);
+                break;
+            }
+        }
+        ctx.restore();
+    },
+
+    drawHandle(p, color) {
+        var ctx=this.ctx;
+        ctx.save();
+        ctx.fillStyle=color||'#fff';
+        ctx.strokeStyle='#000';
+        ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
+};
+
+/* ── Public API called by toolbar buttons ── */
 function dtActivate(btn, toolId) {
-    // Deactivate all buttons
     document.querySelectorAll('.dt-btn').forEach(function(b) {
         if (!b.classList.contains('dt-del')) b.classList.remove('dt-active');
     });
-
-    _dtActive = toolId;
-
-    // Mark this button active
+    DT.tool = toolId;
     if (btn && !btn.classList.contains('dt-del')) btn.classList.add('dt-active');
 
-    // Try to activate via TradingView chart API
-    dtSendTool(toolId);
+    // Canvas pointer-events: passthrough when cursor, active when drawing
+    var canvas = document.getElementById('draw-canvas');
+    if (canvas) canvas.style.pointerEvents = toolId ? 'auto' : 'none';
+    // Also show crosshair cursor on canvas when a tool is active
+    if (canvas) canvas.style.cursor = toolId === '' ? 'default' : 'crosshair';
 }
 
-function dtSendTool(toolId) {
-    // Method 1: Direct charting library API (works with full TV library)
-    if (window._tvChartReady && window._tvChart) {
-        try {
-            if (!toolId) {
-                window._tvChart.setActiveLineTool && window._tvChart.setActiveLineTool('cursor');
-            } else {
-                window._tvChart.startDrawing && window._tvChart.startDrawing(toolId);
-            }
-            return;
-        } catch(e) { /* fall through to keyboard shortcut */ }
-    }
+function dtUndo()     { DT.undo(); }
+function dtClearAll() { if(confirm('Remove all drawings?')) DT.clearAll(); }
 
-    // Method 2: Keyboard shortcuts into the iframe (free widget fallback)
-    var iframe = document.querySelector('#tv-container iframe');
-    if (!iframe) return;
-    var keyMap = {
-        'LineToolTrendLine':       { key: 'a', shift: false },
-        'LineToolHorzLine':        { key: 'h', shift: false },
-        'LineToolVertLine':        { key: 'v', shift: false },
-        'LineToolRectangle':       { key: 'r', shift: false },
-        'LineToolFibRetracement':  { key: 'f', shift: false },
-        'LineToolRiskRewardLong':  { key: 'l', shift: true  },
-        'LineToolRiskRewardShort': { key: 's', shift: true  },
-        'LineToolGannSquare':      { key: 'g', shift: false },
-        'LineToolCross':           { key: 'Escape', shift: false },
-    };
-    if (!toolId) {
-        try { iframe.contentWindow.focus(); } catch(e) {}
-        return;
-    }
-    var km = keyMap[toolId];
-    if (!km) return;
-    try {
-        iframe.contentWindow.focus();
-        var ev = new KeyboardEvent('keydown', {
-            key: km.key, code: 'Key' + km.key.toUpperCase(),
-            shiftKey: km.shift, bubbles: true
-        });
-        iframe.contentWindow.document.dispatchEvent(ev);
-    } catch(e) { /* cross-origin — chart API is primary method */ }
-}
-
-// Undo the last drawn shape
-function dtUndo() {
-    if (window._tvChartReady && window._tvChart) {
-        try {
-            // Remove most recently created shape
-            var shapes = window._tvChart.getAllShapes ? window._tvChart.getAllShapes() : [];
-            if (shapes.length > 0) {
-                window._tvChart.removeEntity(shapes[shapes.length - 1].id);
-                return;
-            }
-        } catch(e) {}
-    }
-    // Keyboard fallback: Ctrl+Z into iframe
-    var iframe = document.querySelector('#tv-container iframe');
-    if (!iframe) return;
-    try {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.document.dispatchEvent(
-            new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true })
-        );
-    } catch(e) {}
-}
-
-// Clear ALL drawings
-function dtClearAll() {
-    if (!confirm('Remove all drawings from chart?')) return;
-    if (window._tvChartReady && window._tvChart) {
-        try {
-            window._tvChart.removeAllShapes && window._tvChart.removeAllShapes();
-            return;
-        } catch(e) {}
-    }
-    // Keyboard fallback: TV keyboard shortcut Alt+R clears drawings
-    var iframe = document.querySelector('#tv-container iframe');
-    if (!iframe) return;
-    try {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.document.dispatchEvent(
-            new KeyboardEvent('keydown', { key: 'r', altKey: true, bubbles: true })
-        );
-    } catch(e) {}
-}
-
-// After each drawing is placed, revert button to cursor mode
-// (so user doesn't accidentally keep drawing)
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        dtActivate(document.getElementById('dt-cursor'), '');
-    }
+/* Initialize after DOM is ready */
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() { DT.init(); }, 300);
 });
+/* Also init if TV tab is opened */
+window._dtInitialized = false;
+var _dtOrigLaunch = null;
+</script>
+
 </script>
 
 <!-- ══════════════════════════════════════════
@@ -1277,7 +1618,7 @@ window.ui = {
         if(id === 'analytics') this.renderAnalytics();
         if(id === 'calendar')  { this.renderCalendar(); this.updateSideStats(); }
         if(id === 'journal')   this.renderJournal();
-        if(id === 'charts')    this.launchTradingDesk();
+        if(id === 'charts')    { this.launchTradingDesk(); setTimeout(()=>{ if(DT&&DT.init&&!DT.ctx) DT.init(); else if(DT&&DT.resize) DT.resize(); },500); }
     },
 
     _tf: '240',
@@ -1338,13 +1679,12 @@ window.ui = {
                 "mainSeriesProperties.candleStyle.drawBorder": true,
             }
         });
-        // Hook onChartReady so drawing tools can be activated after chart loads
+        // After chart loads, resize canvas to match
         if (this._tvWidget.onChartReady) {
             this._tvWidget.onChartReady(() => {
                 window._tvChartReady = true;
-                window._tvChart = this._tvWidget.activeChart();
-                // Restore cursor to default after each rebuild
-                dtActivate(document.getElementById('dt-cursor'), '');
+                // Re-init canvas in case dimensions changed
+                if (DT && DT.resize) DT.resize();
             });
         }
     },
