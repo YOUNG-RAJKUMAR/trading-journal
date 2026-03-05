@@ -23,23 +23,9 @@
             --glow:none; --card-radius:0px; --font-body:'Inter',sans-serif;
             --header-glow:none; --accent:#ffffff; --tab-active-color:#ffffff;
         }
-        body.theme-midnight {
-            --bg:#000000; --surface:#0a0a0a; --border:#222222;
-            --primary:#ffffff; --accent:#ffffff;
-            --text:#cccccc; --text-light:#ffffff;
-            --negative:#ff4444; --positive:#44ff88;
-            --glow:none; --card-radius:0px;
-            --tab-active-color:#ffffff;
-        }
-        body.theme-neon {
-            --bg:#050510; --surface:#0a0a1a; --border:#0ff3;
-            --primary:#00f5ff; --accent:#ff00cc;
-            --text:#88ccff; --text-light:#00f5ff;
-            --negative:#ff003c; --positive:#00ff9d;
-            --glow:0 0 8px #00f5ff88; --card-radius:4px;
-            --tab-active-color:#00f5ff;
-        }
-        body.theme-neon .card,body.theme-neon .stat-card,body.theme-neon .table-wrap { box-shadow: 0 0 0 1px #00f5ff22, inset 0 0 20px #00f5ff08; border-color:#00f5ff33; }
+        body.theme-midnight { --bg:#000000; --surface:#0a0a0a; --border:#222222; --primary:#ffffff; --accent:#ffffff; --text:#cccccc; --text-light:#ffffff; --negative:#ff4444; --positive:#44ff88; --glow:none; --card-radius:0px; --tab-active-color:#ffffff; }
+        body.theme-neon { --bg:#050510; --surface:#0a0a1a; --border:#0ff3; --primary:#00f5ff; --accent:#ff00cc; --text:#88ccff; --text-light:#00f5ff; --negative:#ff003c; --positive:#00ff9d; --glow:0 0 8px #00f5ff88; --card-radius:4px; --tab-active-color:#00f5ff; }
+        body.theme-neon .card, body.theme-neon .stat-card, body.theme-neon .table-wrap { box-shadow: 0 0 0 1px #00f5ff22, inset 0 0 20px #00f5ff08; border-color:#00f5ff33; }
         body.theme-neon .header-title { color:#00f5ff; text-shadow:0 0 20px #00f5ffaa, 0 0 40px #00f5ff44; }
         body.theme-neon .tab-btn.active { color:#00f5ff; border-bottom-color:#00f5ff; text-shadow:0 0 10px #00f5ff88; }
         body.theme-neon .save-btn { background: linear-gradient(90deg,#00f5ff,#ff00cc); color:#000; font-weight:800; border:none; }
@@ -55,15 +41,8 @@
         body.theme-neon .rr-badge.good { background:#00ff9d11; border-color:#00ff9d44; color:#00ff9d; }
         body.theme-neon .outcome-badge.tp-hit { background:#00ff9d11; border-color:#00ff9d44; color:#00ff9d; }
         body.theme-neon .stat-val { color:#00f5ff; }
-        body.theme-easyeye {
-            --bg:#1c2033; --surface:#242840; --border:#303660;
-            --primary:#a8b8e8; --accent:#6c8ebf;
-            --text:#8898c8; --text-light:#c8d4f0;
-            --negative:#e07878; --positive:#60c890;
-            --glow:none; --card-radius:6px;
-            --tab-active-color:#a8b8e8;
-        }
-        body.theme-easyeye .card,body.theme-easyeye .stat-card,body.theme-easyeye .table-wrap { border-radius:6px; }
+        body.theme-easyeye { --bg:#1c2033; --surface:#242840; --border:#303660; --primary:#a8b8e8; --accent:#6c8ebf; --text:#8898c8; --text-light:#c8d4f0; --negative:#e07878; --positive:#60c890; --glow:none; --card-radius:6px; --tab-active-color:#a8b8e8; }
+        body.theme-easyeye .card, body.theme-easyeye .stat-card, body.theme-easyeye .table-wrap { border-radius:6px; }
         body.theme-easyeye .header-title { color:#c8d4f0; font-weight:400; letter-spacing:3px; }
         body.theme-easyeye .save-btn { background:#6c8ebf; color:#fff; border-radius:4px; }
         body.theme-easyeye .btn-action { border-radius:4px; }
@@ -71,14 +50,7 @@
         body.theme-easyeye .tab-btn.active { color:#a8b8e8; border-bottom-color:#6c8ebf; }
         body.theme-easyeye .month-header td { background:#1c2033; color:#a8b8e8; }
         body.theme-easyeye .stat-val { color:#c8d4f0; }
-        body.theme-light {
-            --bg:#f2ede6; --surface:#faf7f2; --border:#ddd8d0;
-            --primary:#2a2a2a; --accent:#7a6a52;
-            --text:#5a5040; --text-light:#1a1a1a;
-            --negative:#c03030; --positive:#2a7a3a;
-            --glow:none; --card-radius:6px;
-            --tab-active-color:#2a2a2a;
-        }
+        body.theme-light { --bg:#f2ede6; --surface:#faf7f2; --border:#ddd8d0; --primary:#2a2a2a; --accent:#7a6a52; --text:#5a5040; --text-light:#1a1a1a; --negative:#c03030; --positive:#2a7a3a; --glow:none; --card-radius:6px; --tab-active-color:#2a2a2a; }
         body.theme-light { background:#f2ede6; color:#5a5040; }
         body.theme-light input,body.theme-light select,body.theme-light textarea,body.theme-light button { color:#2a2a2a; background:#faf7f2; }
         body.theme-light .card,body.theme-light .stat-card,body.theme-light .table-wrap { border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
@@ -97,14 +69,7 @@
         body.theme-light .outcome-badge.tp-hit { background:#d4f0dc; border-color:#aaddbb; color:#1a6a2a; }
         body.theme-light .outcome-badge.sl-hit { background:#f5d4d4; border-color:#ddaaaa; color:#882222; }
         body.theme-light .login-card { background:#faf7f2; }
-        body.theme-trader {
-            --bg:#080c08; --surface:#0e130e; --border:#1c2e1c;
-            --primary:#00e600; --accent:#00e600;
-            --text:#669966; --text-light:#99ff99;
-            --negative:#ff3344; --positive:#00e600;
-            --glow:0 0 6px #00e60044; --card-radius:0px;
-            --tab-active-color:#00e600;
-        }
+        body.theme-trader { --bg:#080c08; --surface:#0e130e; --border:#1c2e1c; --primary:#00e600; --accent:#00e600; --text:#669966; --text-light:#99ff99; --negative:#ff3344; --positive:#00e600; --glow:0 0 6px #00e60044; --card-radius:0px; --tab-active-color:#00e600; }
         body.theme-trader { font-family:'Courier New',monospace; }
         body.theme-trader .header-title { color:#00e600; text-shadow:0 0 15px #00e60066; letter-spacing:4px; font-weight:700; }
         body.theme-trader .card,body.theme-trader .stat-card { border-color:#1c2e1c; border-left:2px solid #00e60044; }
@@ -123,13 +88,9 @@
         body.theme-trader .rr-badge.good { background:#001a00; border-color:#00e60044; color:#00e600; }
         body.theme-trader .outcome-badge.tp-hit { background:#001a00; border-color:#00e60044; color:#00e600; }
         body.theme-trader .lot-badge { border-color:#1c2e1c; color:#00e600; }
-        body, .card, .stat-card, .table-wrap, .btn-action, .tab-btn, .header-title, .stat-val {
-            transition: background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
-        }
+        body, .card, .stat-card, .table-wrap, .btn-action, .tab-btn, .header-title, .stat-val { transition: background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s; }
         * { box-sizing:border-box; }
         body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; margin:0; -webkit-font-smoothing:antialiased; }
-
-        /* LOGIN */
         #login-overlay { position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center; }
         .login-card { background:var(--surface); border:1px solid var(--border); padding:40px; width:100%; max-width:350px; text-align:center; }
         .login-input { width:100%; margin-bottom:15px; background:var(--surface); border:1px solid var(--border); color:var(--text-light); padding:12px; font-family:inherit; }
@@ -203,187 +164,210 @@
         .live-dot { width:7px; height:7px; border-radius:50%; background:#44ff88; display:inline-block; animation:pulse 1.5s infinite; }
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
 
-        /* ══════════════════════════════
-           COLOR PALETTE PICKER STYLES
-        ══════════════════════════════ */
-        .cpicker-wrap {
+        /* ════════════════════════════════
+           COLOR PICKER POPUP — TV Style
+        ════════════════════════════════ */
+        .cp-wrap {
             position: relative;
             display: inline-flex;
             align-items: center;
             gap: 4px;
         }
-        .cpicker-swatch {
+        .cp-swatch {
             width: 22px;
             height: 22px;
             border-radius: 3px;
             border: 1px solid #333;
             cursor: pointer;
             flex-shrink: 0;
-            transition: transform 0.15s, border-color 0.15s;
+            transition: border-color 0.15s, transform 0.1s;
             position: relative;
         }
-        .cpicker-swatch:hover { transform: scale(1.1); border-color: #888; }
-        .cpicker-swatch::after {
-            content: '';
+        .cp-swatch:hover { border-color: #fff; transform: scale(1.1); }
+        .cp-popup {
             position: absolute;
-            inset: 0;
-            border-radius: 2px;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-        }
-        .cpicker-hex {
-            width: 60px;
-            background: #0d0d0d;
-            border: 1px solid #222;
-            color: #aaa;
-            padding: 3px 5px;
-            font-size: .62rem;
-            font-family: monospace;
-            border-radius: 2px;
-            outline: none;
-        }
-        .cpicker-popup {
-            position: absolute;
-            top: 28px;
+            top: calc(100% + 6px);
             left: 0;
             z-index: 9999;
-            background: #1a1a1a;
+            background: #1e1e1e;
             border: 1px solid #333;
             border-radius: 6px;
             padding: 10px;
+            width: 230px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.8);
             display: none;
-            width: 220px;
         }
-        .cpicker-popup.open { display: block; }
-        .cpicker-grid {
+        .cp-popup.open { display: block; animation: cpFadeIn 0.12s ease; }
+        @keyframes cpFadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+        .cp-grid {
             display: grid;
-            grid-template-columns: repeat(10, 18px);
-            gap: 3px;
+            grid-template-columns: repeat(14, 1fr);
+            gap: 2px;
             margin-bottom: 8px;
         }
-        .cpicker-cell {
-            width: 18px;
-            height: 18px;
+        .cp-cell {
+            width: 14px;
+            height: 14px;
             border-radius: 2px;
             cursor: pointer;
             border: 1px solid transparent;
             transition: transform 0.1s, border-color 0.1s;
+            flex-shrink: 0;
         }
-        .cpicker-cell:hover {
-            transform: scale(1.25);
-            border-color: #fff;
-            z-index: 1;
-            position: relative;
-        }
-        .cpicker-cell.selected {
-            border-color: #fff;
-            box-shadow: 0 0 0 1px #fff;
-        }
-        .cpicker-grays {
+        .cp-cell:hover { transform: scale(1.3); border-color: #fff; z-index: 2; position: relative; }
+        .cp-cell.selected { border-color: #fff; box-shadow: 0 0 0 1px #fff; }
+        .cp-sep { border: none; border-top: 1px solid #333; margin: 6px 0; }
+        .cp-bottom-row {
             display: grid;
-            grid-template-columns: repeat(10, 18px);
-            gap: 3px;
+            grid-template-columns: repeat(14, 1fr);
+            gap: 2px;
             margin-bottom: 8px;
-            padding-top: 6px;
-            border-top: 1px solid #2a2a2a;
         }
-        .cpicker-opacity-row {
-            padding-top: 6px;
-            border-top: 1px solid #2a2a2a;
-        }
-        .cpicker-opacity-label {
-            font-size: 0.52rem;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
+        .cp-opacity-row {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 8px;
+            margin-top: 4px;
         }
-        .cpicker-opacity-slider {
-            width: 100%;
-            height: 8px;
+        .cp-opacity-label { font-size: 0.58rem; color: #888; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+        .cp-opacity-slider {
+            flex: 1;
             -webkit-appearance: none;
-            appearance: none;
-            border-radius: 4px;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
             border: none;
             padding: 0;
-            cursor: pointer;
-            outline: none;
-            background: linear-gradient(to right, transparent, var(--swatch-color, #ffffff));
+            background: linear-gradient(to right, #1e1e1e, #fff);
         }
-        .cpicker-opacity-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #fff;
-            border: 2px solid #555;
-            cursor: pointer;
-        }
-        .cpicker-hex-row {
+        .cp-opacity-slider::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:#fff; border:2px solid #1e1e1e; cursor:pointer; box-shadow:0 0 3px rgba(0,0,0,0.5); }
+        .cp-opacity-val { font-size: 0.65rem; color: #ccc; font-family: monospace; min-width: 30px; text-align: right; }
+        .cp-hex-row {
             display: flex;
-            gap: 5px;
-            margin-top: 6px;
             align-items: center;
+            gap: 6px;
+            margin-top: 6px;
         }
-        .cpicker-hex-input {
+        .cp-hex-input {
             flex: 1;
-            background: #0d0d0d;
+            background: #111;
             border: 1px solid #333;
             color: #ccc;
-            padding: 5px 8px;
-            font-size: 0.7rem;
+            padding: 4px 7px;
+            font-size: 0.65rem;
             font-family: monospace;
             border-radius: 3px;
             outline: none;
         }
-        .cpicker-hex-input:focus { border-color: #555; }
-        .cpicker-preview-box {
-            width: 28px;
-            height: 28px;
-            border-radius: 3px;
-            border: 1px solid #444;
-            flex-shrink: 0;
-        }
-
-        /* PRESET BUTTONS */
-        .tv-preset-btn {
+        .cp-hex-input:focus { border-color: #555; }
+        .cp-add-custom {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            border: 1px dashed #555;
+            background: transparent;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 5px 10px;
-            background: #0d0d0d;
-            border: 1px solid #2a2a2a;
-            color: #888;
-            font-size: .55rem;
+            justify-content: center;
+            font-size: 10px;
+            color: #555;
+            padding: 0;
+            transition: border-color 0.1s, color 0.1s;
+        }
+        .cp-add-custom:hover { border-color: #fff; color: #fff; }
+
+        /* ════════════════════════════
+           TRADING DESK TOOLBAR (NEW)
+        ════════════════════════════ */
+        #desk-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 0 10px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #1a1a1a;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            height: 48px;
+            min-height: 48px;
+        }
+        #desk-toolbar::-webkit-scrollbar { height: 3px; }
+        #desk-toolbar::-webkit-scrollbar-track { background: #0a0a0a; }
+        #desk-toolbar::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+        .tb-section {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0 10px;
+            border-right: 1px solid #1e1e1e;
+            height: 100%;
+            flex-shrink: 0;
+        }
+        .tb-section:last-child { border-right: none; }
+        .tb-label {
+            font-size: 0.5rem;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            white-space: nowrap;
+            margin-right: 2px;
+        }
+        .tb-preset-btn {
+            padding: 4px 10px;
+            font-size: 0.55rem;
             cursor: pointer;
+            font-family: inherit;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-radius: 3px;
+            border: 1px solid #2a2a2a;
+            background: #111;
+            color: #888;
+            white-space: nowrap;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .tb-preset-btn:hover { border-color: #555; color: #ccc; }
+        .tb-preset-btn.active-preset { border-color: #44ff88; color: #44ff88; background: #001a00; }
+        .tb-cp-label {
+            font-size: 0.5rem;
+            color: #444;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-radius: 3px;
             white-space: nowrap;
-            transition: border-color 0.2s, color 0.2s;
         }
-        .tv-preset-btn:hover { border-color: #555; color: #ccc; }
-        .tv-preset-btn .candle-preview {
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
+        .tb-reset-btn {
+            padding: 4px 9px;
+            font-size: 0.52rem;
+            cursor: pointer;
+            border: 1px solid #222;
+            background: #0d0d0d;
+            color: #555;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.15s;
+            flex-shrink: 0;
         }
-        .tv-preset-btn .c-body {
-            width: 8px;
-            height: 12px;
-            border-radius: 1px;
-            border: 1px solid;
+        .tb-reset-btn:hover { border-color: #555; color: #ccc; }
+        .tb-remove-drawings-btn {
+            padding: 4px 11px;
+            font-size: 0.52rem;
+            cursor: pointer;
+            border: 1px solid #3a1a1a;
+            background: #150505;
+            color: #ff5555;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
-        .tv-preset-btn .c-wick {
-            width: 1px;
-            height: 16px;
-            position: absolute;
-            left: 50%;
-            top: -2px;
-        }
+        .tb-remove-drawings-btn:hover { border-color: #ff4444; background: #220a0a; color: #ff6666; box-shadow: 0 0 8px #ff444433; }
     </style>
 </head>
 <body>
@@ -408,12 +392,12 @@
             <div style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);padding:5px 10px;flex-wrap:wrap;">
                 <span style="font-size:.52rem;color:var(--text);opacity:.5;text-transform:uppercase;letter-spacing:1px;">Style</span>
                 <button onclick="setTheme('midnight')" id="th-midnight" title="Midnight" style="padding:3px 8px;font-size:.52rem;cursor:pointer;border:1px solid #444;background:#000;color:#fff;text-transform:uppercase;letter-spacing:1px;border-radius:2px;">⬛ Midnight</button>
-                <button onclick="setTheme('neon')"     id="th-neon"     title="Neon Tokyo" style="padding:3px 8px;font-size:.52rem;cursor:pointer;border:1px solid #00f5ff55;background:#050510;color:#00f5ff;text-transform:uppercase;letter-spacing:1px;border-radius:2px;text-shadow:0 0 8px #00f5ff;">⚡ Neon</button>
-                <button onclick="setTheme('easyeye')"  id="th-easyeye"  title="Easy Eye" style="padding:3px 8px;font-size:.52rem;cursor:pointer;border:1px solid #303660;background:#1c2033;color:#a8b8e8;text-transform:uppercase;letter-spacing:1px;border-radius:2px;">🌙 Easy Eye</button>
-                <button onclick="setTheme('light')"    id="th-light"    title="Soft Light" style="padding:3px 8px;font-size:.52rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;text-transform:uppercase;letter-spacing:1px;border-radius:2px;">☀ Light</button>
-                <button onclick="setTheme('trader')"   id="th-trader"   title="Trader Pro" style="padding:3px 8px;font-size:.52rem;cursor:pointer;border:1px solid #1c2e1c;background:#080c08;color:#00e600;text-transform:uppercase;letter-spacing:1px;border-radius:2px;text-shadow:0 0 6px #00e600;">📊 Trader</button>
+                <button onclick="setTheme('neon')" id="th-neon" title="Neon Tokyo" style="padding:3px 8px;font-size:.52rem;cursor:pointer;border:1px solid #00f5ff55;background:#050510;color:#00f5ff;text-transform:uppercase;letter-spacing:1px;border-radius:2px;text-shadow:0 0 8px #00f5ff;">⚡ Neon</button>
+                <button onclick="setTheme('easyeye')" id="th-easyeye" title="Easy Eye" style="padding:3px 8px;font-size:.52rem;cursor:pointer;border:1px solid #303660;background:#1c2033;color:#a8b8e8;text-transform:uppercase;letter-spacing:1px;border-radius:2px;">🌙 Easy Eye</button>
+                <button onclick="setTheme('light')" id="th-light" title="Soft Light" style="padding:3px 8px;font-size:.52rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;text-transform:uppercase;letter-spacing:1px;border-radius:2px;">☀ Light</button>
+                <button onclick="setTheme('trader')" id="th-trader" title="Trader Pro" style="padding:3px 8px;font-size:.52rem;cursor:pointer;border:1px solid #1c2e1c;background:#080c08;color:#00e600;text-transform:uppercase;letter-spacing:1px;border-radius:2px;text-shadow:0 0 6px #00e600;">📊 Trader</button>
                 <span style="font-size:.52rem;color:var(--text);opacity:.4;margin-left:4px;">BG</span>
-                <input type="color" id="custom-bg" value="#000000" oninput="setCustomBg(this.value)" title="Custom background" style="width:22px;height:22px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
+                <input type="color" id="custom-bg" value="#000000" oninput="setCustomBg(this.value)" title="Custom background color" style="width:22px;height:22px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
                 <input type="text" id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)" style="width:64px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:3px 5px;font-size:.62rem;font-family:monospace;outline:none;border-radius:2px;">
             </div>
             <div style="background:var(--surface);padding:5px 10px;border:1px solid var(--border);display:flex;gap:5px;align-items:center;">
@@ -471,28 +455,22 @@
                     </div>
                 </div>
                 <div style="grid-column:span 2;">
-                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9312; Scan Setup Screenshot — Auto-fills Entry &amp; SL</div>
-                    <div class="scan-zone" id="scan-zone"
-                        ondragover="event.preventDefault();this.classList.add('drag-over')"
-                        ondragleave="this.classList.remove('drag-over')"
-                        ondrop="event.preventDefault();this.classList.remove('drag-over');ui.handleScanDrop(event)">
+                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">① Scan Setup Screenshot — Auto-fills Entry & SL</div>
+                    <div class="scan-zone" id="scan-zone" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="event.preventDefault();this.classList.remove('drag-over');ui.handleScanDrop(event)">
                         <input type="file" id="t-scan-img" accept="image/*" onchange="ui.scanTradeImage(this.files[0])">
-                        <div class="scan-zone-label">&#128247; Drop / Paste / Click to scan screenshot<br><span>Entry + SL auto-filled by AI &bull; R:R 1:1 auto-set</span></div>
+                        <div class="scan-zone-label">📷 Drop / Paste / Click to scan screenshot<br><span>Entry + SL auto-filled by AI • R:R 1:1 auto-set</span></div>
                         <div class="scan-status" id="scan-status"></div>
                     </div>
                 </div>
                 <div style="grid-column:span 2;">
-                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9313; Trade Media — Chart Screenshot (saved to record)</div>
-                    <div class="media-zone" id="media-zone"
-                        ondragover="event.preventDefault();this.classList.add('drag-over')"
-                        ondragleave="this.classList.remove('drag-over')"
-                        ondrop="event.preventDefault();this.classList.remove('drag-over');ui.dropMedia(event)">
+                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">② Trade Media — Chart Screenshot (saved to record)</div>
+                    <div class="media-zone" id="media-zone" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="event.preventDefault();this.classList.remove('drag-over');ui.dropMedia(event)">
                         <input type="file" id="t-img" accept="image/*" onchange="ui.previewMedia(this)">
-                        <div id="media-zone-label" style="font-size:0.65rem;color:#333;letter-spacing:1px;pointer-events:none;">&#128444; Drop / Click to attach chart screenshot</div>
+                        <div id="media-zone-label" style="font-size:0.65rem;color:#333;letter-spacing:1px;pointer-events:none;">🖼 Drop / Click to attach chart screenshot</div>
                         <img id="media-preview-img" class="media-preview">
                     </div>
                     <div style="display:flex;gap:6px;margin-top:6px;">
-                        <button onclick="ui.pasteMediaFromClipboard()" style="flex:1;background:#0a0a0a;border:1px solid #333;color:#888;padding:8px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">&#128203; Paste Screenshot</button>
+                        <button onclick="ui.pasteMediaFromClipboard()" style="flex:1;background:#0a0a0a;border:1px solid #333;color:#888;padding:8px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">📋 Paste Screenshot</button>
                         <button onclick="ui.clearMedia()" id="media-clear-btn" style="background:#0a0a0a;border:1px solid #2a0000;color:#ff4444;padding:8px 12px;font-size:0.65rem;cursor:pointer;display:none;">✕</button>
                     </div>
                 </div>
@@ -505,9 +483,7 @@
         </div>
         <div class="table-wrap">
             <table>
-                <thead>
-                    <tr><th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>Session</th><th>Prices</th><th>Outcome</th><th>Risk:Reward</th><th>P/L ($)</th><th>Notes</th><th></th></tr>
-                </thead>
+                <thead><tr><th>Date</th><th>Symbol</th><th>Lots</th><th>Side</th><th>Session</th><th>Prices</th><th>Outcome</th><th>Risk:Reward</th><th>P/L ($)</th><th>Notes</th><th></th></tr></thead>
                 <tbody id="tradeBody"></tbody>
             </table>
         </div>
@@ -515,151 +491,90 @@
 
     <!-- ══ CHARTS TAB ══ -->
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
-        <!-- Toolbar with Color Palette Pickers -->
-        <div id="desk-toolbar" style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-wrap:wrap;">
-
-            <!-- BG Color -->
-            <div style="display:flex;align-items:center;gap:5px;">
-                <label style="font-size:.52rem;color:#555;text-transform:uppercase;letter-spacing:1px;">BG</label>
-                <div class="cpicker-wrap" id="cpw-bg">
-                    <div class="cpicker-swatch" id="csw-bg" style="background:#000000;" onclick="togglePicker('bg')" title="Chart Background"></div>
-                    <input type="text" class="cpicker-hex" id="chex-bg" value="#000000" oninput="onPickerHexInput('bg',this.value)" maxlength="7" placeholder="#000000">
-                    <div class="cpicker-popup" id="cpop-bg"></div>
-                </div>
-            </div>
-
-            <div style="width:1px;height:22px;background:#1a1a1a;flex-shrink:0;"></div>
-
-            <!-- UP candle -->
-            <span style="font-size:.52rem;color:#26a69a;text-transform:uppercase;letter-spacing:1px;font-weight:600;">▲ UP</span>
-            <div style="display:flex;align-items:center;gap:5px;">
-                <label style="font-size:.5rem;color:#444;">Body</label>
-                <div class="cpicker-wrap" id="cpw-up">
-                    <div class="cpicker-swatch" id="csw-up" style="background:#26a69a;" onclick="togglePicker('up')"></div>
-                    <input type="text" class="cpicker-hex" id="chex-up" value="#26a69a" oninput="onPickerHexInput('up',this.value)" maxlength="7" placeholder="#26a69a">
-                    <div class="cpicker-popup" id="cpop-up"></div>
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;">
-                <label style="font-size:.5rem;color:#444;">Border</label>
-                <div class="cpicker-wrap" id="cpw-upborder">
-                    <div class="cpicker-swatch" id="csw-upborder" style="background:#26a69a;" onclick="togglePicker('upborder')"></div>
-                    <input type="text" class="cpicker-hex" id="chex-upborder" value="#26a69a" oninput="onPickerHexInput('upborder',this.value)" maxlength="7" placeholder="#26a69a">
-                    <div class="cpicker-popup" id="cpop-upborder"></div>
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;">
-                <label style="font-size:.5rem;color:#444;">Wick</label>
-                <div class="cpicker-wrap" id="cpw-upwick">
-                    <div class="cpicker-swatch" id="csw-upwick" style="background:#26a69a;" onclick="togglePicker('upwick')"></div>
-                    <input type="text" class="cpicker-hex" id="chex-upwick" value="#26a69a" oninput="onPickerHexInput('upwick',this.value)" maxlength="7" placeholder="#26a69a">
-                    <div class="cpicker-popup" id="cpop-upwick"></div>
-                </div>
-            </div>
-
-            <div style="width:1px;height:22px;background:#1a1a1a;flex-shrink:0;"></div>
-
-            <!-- DOWN candle -->
-            <span style="font-size:.52rem;color:#ef5350;text-transform:uppercase;letter-spacing:1px;font-weight:600;">▼ DOWN</span>
-            <div style="display:flex;align-items:center;gap:5px;">
-                <label style="font-size:.5rem;color:#444;">Body</label>
-                <div class="cpicker-wrap" id="cpw-down">
-                    <div class="cpicker-swatch" id="csw-down" style="background:#ef5350;" onclick="togglePicker('down')"></div>
-                    <input type="text" class="cpicker-hex" id="chex-down" value="#ef5350" oninput="onPickerHexInput('down',this.value)" maxlength="7" placeholder="#ef5350">
-                    <div class="cpicker-popup" id="cpop-down"></div>
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;">
-                <label style="font-size:.5rem;color:#444;">Border</label>
-                <div class="cpicker-wrap" id="cpw-downborder">
-                    <div class="cpicker-swatch" id="csw-downborder" style="background:#ef5350;" onclick="togglePicker('downborder')"></div>
-                    <input type="text" class="cpicker-hex" id="chex-downborder" value="#ef5350" oninput="onPickerHexInput('downborder',this.value)" maxlength="7" placeholder="#ef5350">
-                    <div class="cpicker-popup" id="cpop-downborder"></div>
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;">
-                <label style="font-size:.5rem;color:#444;">Wick</label>
-                <div class="cpicker-wrap" id="cpw-downwick">
-                    <div class="cpicker-swatch" id="csw-downwick" style="background:#ef5350;" onclick="togglePicker('downwick')"></div>
-                    <input type="text" class="cpicker-hex" id="chex-downwick" value="#ef5350" oninput="onPickerHexInput('downwick',this.value)" maxlength="7" placeholder="#ef5350">
-                    <div class="cpicker-popup" id="cpop-downwick"></div>
-                </div>
-            </div>
-
-            <div style="width:1px;height:22px;background:#1a1a1a;flex-shrink:0;"></div>
-
+        <!-- NEW TOOLBAR -->
+        <div id="desk-toolbar">
             <!-- PRESETS -->
-            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                <span style="font-size:.5rem;color:#444;text-transform:uppercase;letter-spacing:1px;">Presets:</span>
-
-                <!-- Preset 1: Dark Blue Up / All Black Down -->
-                <button class="tv-preset-btn" onclick="applyPreset('darkblue_black')" title="Up: Dark Blue body, Black wick/border | Down: All Black">
-                    <span style="display:inline-flex;align-items:center;gap:3px;">
-                        <!-- Up candle preview -->
-                        <span style="display:inline-flex;flex-direction:column;align-items:center;gap:0;">
-                            <span style="width:1px;height:4px;background:#000;display:block;"></span>
-                            <span style="width:8px;height:11px;background:#1a3a6b;border:1px solid #000;border-radius:1px;display:block;"></span>
-                            <span style="width:1px;height:4px;background:#000;display:block;"></span>
-                        </span>
-                        <!-- Down candle preview -->
-                        <span style="display:inline-flex;flex-direction:column;align-items:center;gap:0;">
-                            <span style="width:1px;height:4px;background:#000;display:block;"></span>
-                            <span style="width:8px;height:11px;background:#000;border:1px solid #000;border-radius:1px;display:block;"></span>
-                            <span style="width:1px;height:4px;background:#000;display:block;"></span>
-                        </span>
-                    </span>
-                    Dark Blue / Black
+            <div class="tb-section">
+                <span class="tb-label">Presets</span>
+                <button class="tb-preset-btn" id="preset-charade" onclick="applyPreset('charade')" title="Charade BG + Phthalo Blue up body, black wick/border + Black down">
+                    🎨 Charade
                 </button>
-
-                <!-- Preset 2: Classic Green/Red -->
-                <button class="tv-preset-btn" onclick="applyPreset('classic')" title="Classic: Green up, Red down">
-                    <span style="display:inline-flex;align-items:center;gap:3px;">
-                        <span style="display:inline-flex;flex-direction:column;align-items:center;gap:0;">
-                            <span style="width:1px;height:4px;background:#26a69a;display:block;"></span>
-                            <span style="width:8px;height:11px;background:#26a69a;border:1px solid #26a69a;border-radius:1px;display:block;"></span>
-                            <span style="width:1px;height:4px;background:#26a69a;display:block;"></span>
-                        </span>
-                        <span style="display:inline-flex;flex-direction:column;align-items:center;gap:0;">
-                            <span style="width:1px;height:4px;background:#ef5350;display:block;"></span>
-                            <span style="width:8px;height:11px;background:#ef5350;border:1px solid #ef5350;border-radius:1px;display:block;"></span>
-                            <span style="width:1px;height:4px;background:#ef5350;display:block;"></span>
-                        </span>
-                    </span>
+                <button class="tb-preset-btn" id="preset-default" onclick="applyPreset('default')" title="Default TradingView colors">
+                    Default
+                </button>
+                <button class="tb-preset-btn" id="preset-classic" onclick="applyPreset('classic')" title="Classic green/red">
                     Classic
                 </button>
-
-                <!-- Preset 3: Hollow (white border) -->
-                <button class="tv-preset-btn" onclick="applyPreset('hollow')" title="Hollow: White border up, Red border down">
-                    <span style="display:inline-flex;align-items:center;gap:3px;">
-                        <span style="display:inline-flex;flex-direction:column;align-items:center;gap:0;">
-                            <span style="width:1px;height:4px;background:#fff;display:block;"></span>
-                            <span style="width:8px;height:11px;background:transparent;border:1px solid #fff;border-radius:1px;display:block;"></span>
-                            <span style="width:1px;height:4px;background:#fff;display:block;"></span>
-                        </span>
-                        <span style="display:inline-flex;flex-direction:column;align-items:center;gap:0;">
-                            <span style="width:1px;height:4px;background:#ef5350;display:block;"></span>
-                            <span style="width:8px;height:11px;background:#ef5350;border:1px solid #ef5350;border-radius:1px;display:block;"></span>
-                            <span style="width:1px;height:4px;background:#ef5350;display:block;"></span>
-                        </span>
-                    </span>
-                    Hollow
+                <button class="tb-preset-btn" id="preset-mono" onclick="applyPreset('mono')" title="Monochrome">
+                    Mono
                 </button>
+            </div>
 
-                <button onclick="resetTVColors()" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#555;padding:4px 10px;font-size:.54rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border-radius:3px;">↺ Reset</button>
+            <!-- BG -->
+            <div class="tb-section">
+                <span class="tb-cp-label">BG</span>
+                <div class="cp-wrap" id="cpw-bg">
+                    <div class="cp-swatch" id="swatch-bg" onclick="togglePicker('bg')" title="Chart Background"></div>
+                    <div class="cp-popup" id="picker-bg"></div>
+                </div>
+            </div>
+
+            <!-- UP CANDLE -->
+            <div class="tb-section">
+                <span class="tb-cp-label">Up</span>
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <span style="font-size:0.45rem;color:#333;width:26px;">Body</span>
+                        <div class="cp-wrap" id="cpw-up"><div class="cp-swatch" id="swatch-up" onclick="togglePicker('up')" title="Up Body"></div><div class="cp-popup" id="picker-up"></div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <span style="font-size:0.45rem;color:#333;width:26px;">Border</span>
+                        <div class="cp-wrap" id="cpw-upborder"><div class="cp-swatch" id="swatch-upborder" onclick="togglePicker('upborder')" title="Up Border"></div><div class="cp-popup" id="picker-upborder"></div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <span style="font-size:0.45rem;color:#333;width:26px;">Wick</span>
+                        <div class="cp-wrap" id="cpw-upwick"><div class="cp-swatch" id="swatch-upwick" onclick="togglePicker('upwick')" title="Up Wick"></div><div class="cp-popup" id="picker-upwick"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DOWN CANDLE -->
+            <div class="tb-section">
+                <span class="tb-cp-label">Down</span>
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <span style="font-size:0.45rem;color:#333;width:26px;">Body</span>
+                        <div class="cp-wrap" id="cpw-down"><div class="cp-swatch" id="swatch-down" onclick="togglePicker('down')" title="Down Body"></div><div class="cp-popup" id="picker-down"></div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <span style="font-size:0.45rem;color:#333;width:26px;">Border</span>
+                        <div class="cp-wrap" id="cpw-downborder"><div class="cp-swatch" id="swatch-downborder" onclick="togglePicker('downborder')" title="Down Border"></div><div class="cp-popup" id="picker-downborder"></div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <span style="font-size:0.45rem;color:#333;width:26px;">Wick</span>
+                        <div class="cp-wrap" id="cpw-downwick"><div class="cp-swatch" id="swatch-downwick" onclick="togglePicker('downwick')" title="Down Wick"></div><div class="cp-popup" id="picker-downwick"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="tb-section">
+                <button class="tb-reset-btn" onclick="resetAllTVColors()">↺ Reset</button>
+                <button class="tb-remove-drawings-btn" onclick="removeAllDrawings()" title="Remove all drawings from chart">✕ Clear Drawings</button>
             </div>
         </div>
 
         <!-- Split: chart left, calculator right -->
-        <div style="display:flex;height:calc(100vh - 160px);">
+        <div style="display:flex;height:calc(100vh - 198px);">
             <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
-            <!-- Calculator Panel -->
+            <!-- Calculator (unchanged) -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
                     <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;">
                         <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;"></span>
-                        &#9878; LOT CALCULATOR
+                        ⚓ LOT CALCULATOR
                     </div>
-                    <button onclick="deskRs()" style="background:transparent;border:1px solid #222;color:#555;padding:3px 8px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;">&#8635; Reset</button>
+                    <button onclick="deskRs()" style="background:transparent;border:1px solid #222;color:#555;padding:3px 8px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;">⟳ Reset</button>
                 </div>
                 <div style="flex:1;overflow-y:auto;padding:12px;">
                     <div style="display:flex;align-items:center;gap:7px;background:#050505;border:1px solid #1a3a1a;padding:7px 10px;border-radius:3px;margin-bottom:12px;">
@@ -687,7 +602,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP (ticks) <span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">&#9679; AUTO</span></label><input type="number" id="d-tp" placeholder="100" min="0" step="1" oninput="deskMtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
+                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP (ticks) <span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">● AUTO</span></label><input type="number" id="d-tp" placeholder="100" min="0" step="1" oninput="deskMtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;">
                         <div id="d-rcl" style="grid-column:span 2;background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Lot Size</div><div id="d-rl" style="font-size:1.4rem;color:#44ff88;font-weight:700;">---</div><div id="d-rls" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">Enter values</div></div>
                         <div id="d-rcr" style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Risk ($)</div><div id="d-rr2" style="font-size:.88rem;color:#ff4444;">---</div><div id="d-rrs" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">---</div></div>
@@ -807,6 +722,323 @@
 
 </div><!-- /app -->
 
+<!-- ══ COLOR PICKER ENGINE ══ -->
+<script>
+// TV-style color palette (14 columns × 10 rows)
+const CP_PALETTE = [
+    // Row 1 — blacks/greys/whites
+    '#000000','#1a1a1a','#2a2a2a','#3a3a3a','#4a4a4a','#5a5a5a','#6b6b6b','#7c7c7c','#8d8d8d','#9e9e9e','#b0b0b0','#c2c2c2','#d5d5d5','#ffffff',
+    // Row 2 — reds
+    '#1a0000','#330000','#4d0000','#660000','#800000','#990000','#b30000','#cc0000','#e60000','#ff0000','#ff3333','#ff6666','#ff9999','#ffcccc',
+    // Row 3 — oranges
+    '#1a0a00','#331400','#4d1e00','#662800','#803200','#993c00','#b34600','#cc5000','#e65a00','#ff6400','#ff8233','#ff9f66','#ffbc99','#ffd8cc',
+    // Row 4 — yellows
+    '#1a1600','#332c00','#4d4200','#665800','#806e00','#998400','#b39a00','#ccb000','#e6c600','#ffdc00','#ffe333','#ffea66','#fff299','#fff8cc',
+    // Row 5 — yellow-greens
+    '#0d1a00','#1a3300','#274d00','#346600','#418000','#4e9900','#5bb300','#68cc00','#75e600','#82ff00','#9bff33','#b4ff66','#cdff99','#e6ffcc',
+    // Row 6 — greens
+    '#001a00','#003300','#004d00','#006600','#008000','#009900','#00b300','#00cc00','#00e600','#00ff00','#33ff33','#66ff66','#99ff99','#ccffcc',
+    // Row 7 — teals / cyans
+    '#001a1a','#003333','#004d4d','#006666','#008080','#009999','#00b3b3','#00cccc','#00e6e6','#00ffff','#33ffff','#66ffff','#99ffff','#ccffff',
+    // Row 8 — blues
+    '#00001a','#000033','#00004d','#000066','#000080','#000099','#0000b3','#0000cc','#0000e6','#0000ff','#3333ff','#6666ff','#9999ff','#ccccff',
+    // Row 9 — purples / magentas
+    '#0d001a','#1a0033','#26004d','#330066','#400080','#4d0099','#5900b3','#6600cc','#7300e6','#8000ff','#9933ff','#b366ff','#cc99ff','#e6ccff',
+    // Row 10 — pinks
+    '#1a0014','#330029','#4d003e','#660053','#800068','#99007c','#b30091','#cc00a5','#e600ba','#ff00cf','#ff33d8','#ff66e2','#ff99ec','#ffccf5',
+];
+
+// Special bottom row: grays + pure colors + transparent
+const CP_BOTTOM = [
+    '#ffffff','#e0e0e0','#bdbdbd','#9e9e9e','#757575','#616161','#424242','#212121','#000000',
+    '#ff0000','#ff9800','#ffeb3b','#4caf50','#00bcd4','#2196f3','#9c27b0',
+];
+
+// TV color config store
+window._tvCfg = {
+    bg:         '#000000',
+    up:         '#1B3A6B',  // Phthalo Blue
+    down:       '#000000',
+    upborder:   '#000000',
+    downborder: '#000000',
+    upwick:     '#000000',
+    downwick:   '#000000',
+};
+
+// Color picker state
+window._cpOpen = null;
+
+function buildPicker(key) {
+    const popup = document.getElementById('picker-' + key);
+    if (!popup || popup.dataset.built) return;
+    popup.dataset.built = '1';
+
+    // Main grid
+    const grid = document.createElement('div');
+    grid.className = 'cp-grid';
+    CP_PALETTE.forEach(color => {
+        const cell = document.createElement('div');
+        cell.className = 'cp-cell';
+        cell.style.background = color;
+        cell.title = color;
+        cell.onclick = (e) => { e.stopPropagation(); setTVColor(key, color); updatePickerSelected(key, color); updateOpacityGradient(key, color); };
+        grid.appendChild(cell);
+    });
+    popup.appendChild(grid);
+
+    // Separator
+    const sep = document.createElement('hr');
+    sep.className = 'cp-sep';
+    popup.appendChild(sep);
+
+    // Bottom row (special colors)
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'cp-bottom-row';
+    CP_BOTTOM.forEach(color => {
+        const cell = document.createElement('div');
+        cell.className = 'cp-cell';
+        cell.style.background = color;
+        if (color === 'transparent') { cell.style.background = 'none'; cell.style.border = '1px dashed #555'; cell.innerHTML = '<span style="font-size:8px;color:#555;">⊘</span>'; }
+        cell.title = color;
+        cell.onclick = (e) => { e.stopPropagation(); setTVColor(key, color); updatePickerSelected(key, color); };
+        bottomRow.appendChild(cell);
+    });
+    // + custom button
+    const addBtn = document.createElement('div');
+    addBtn.className = 'cp-add-custom cp-cell';
+    addBtn.innerHTML = '+';
+    addBtn.title = 'Custom color';
+    addBtn.onclick = (e) => { e.stopPropagation(); const hInp = popup.querySelector('.cp-hex-input'); if(hInp) hInp.focus(); };
+    bottomRow.appendChild(addBtn);
+    popup.appendChild(bottomRow);
+
+    // Separator
+    const sep2 = document.createElement('hr');
+    sep2.className = 'cp-sep';
+    popup.appendChild(sep2);
+
+    // Opacity row
+    const opRow = document.createElement('div');
+    opRow.className = 'cp-opacity-row';
+    const opLabel = document.createElement('span');
+    opLabel.className = 'cp-opacity-label';
+    opLabel.textContent = 'Opacity';
+    const opSlider = document.createElement('input');
+    opSlider.type = 'range';
+    opSlider.min = '0'; opSlider.max = '100'; opSlider.value = '100';
+    opSlider.className = 'cp-opacity-slider';
+    opSlider.dataset.key = key;
+    const opVal = document.createElement('span');
+    opVal.className = 'cp-opacity-val';
+    opVal.textContent = '100%';
+    opSlider.oninput = () => {
+        opVal.textContent = opSlider.value + '%';
+        applyOpacityToColor(key, parseInt(opSlider.value));
+    };
+    opRow.appendChild(opLabel);
+    opRow.appendChild(opSlider);
+    opRow.appendChild(opVal);
+    popup.appendChild(opRow);
+
+    // Hex input row
+    const hexRow = document.createElement('div');
+    hexRow.className = 'cp-hex-row';
+    const hexLabel = document.createElement('span');
+    hexLabel.style.cssText = 'font-size:.5rem;color:#444;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;';
+    hexLabel.textContent = '#HEX';
+    const hexInput = document.createElement('input');
+    hexInput.type = 'text';
+    hexInput.className = 'cp-hex-input';
+    hexInput.maxLength = 7;
+    hexInput.placeholder = '#000000';
+    hexInput.value = window._tvCfg[key] || '#000000';
+    hexInput.oninput = () => {
+        const v = hexInput.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(v)) { setTVColor(key, v); updatePickerSelected(key, v); updateOpacityGradient(key, v); }
+    };
+    hexInput.onclick = (e) => e.stopPropagation();
+    hexRow.appendChild(hexLabel);
+    hexRow.appendChild(hexInput);
+    popup.appendChild(hexRow);
+}
+
+function updateOpacityGradient(key, hex) {
+    const popup = document.getElementById('picker-' + key);
+    if (!popup) return;
+    const slider = popup.querySelector('.cp-opacity-slider');
+    if (slider) slider.style.background = `linear-gradient(to right, transparent, ${hex})`;
+}
+
+function applyOpacityToColor(key, opacity) {
+    const baseHex = window._tvCfg[key] || '#000000';
+    const alpha = Math.round(opacity / 100 * 255);
+    const alphaHex = alpha.toString(16).padStart(2, '0');
+    const colorWithAlpha = baseHex.slice(0, 7) + (opacity < 100 ? alphaHex : '');
+    setTVColor(key, colorWithAlpha, false);
+}
+
+function updatePickerSelected(key, color) {
+    const popup = document.getElementById('picker-' + key);
+    if (!popup) return;
+    popup.querySelectorAll('.cp-cell').forEach(c => {
+        c.classList.toggle('selected', c.title === color || c.style.background === color);
+    });
+    const hexInput = popup.querySelector('.cp-hex-input');
+    if (hexInput) hexInput.value = color.slice(0, 7);
+}
+
+function togglePicker(key) {
+    buildPicker(key);
+    const popup = document.getElementById('picker-' + key);
+    const isOpen = popup.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.cp-popup').forEach(p => p.classList.remove('open'));
+    window._cpOpen = null;
+    if (!isOpen) {
+        popup.classList.add('open');
+        window._cpOpen = key;
+        // Position popup smartly
+        const wrap = document.getElementById('cpw-' + key);
+        if (wrap) {
+            const rect = wrap.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow < 340) {
+                popup.style.top = 'auto';
+                popup.style.bottom = 'calc(100% + 6px)';
+            } else {
+                popup.style.top = 'calc(100% + 6px)';
+                popup.style.bottom = 'auto';
+            }
+            // Prevent clipping on right
+            const spaceRight = window.innerWidth - rect.left;
+            if (spaceRight < 240) { popup.style.left = 'auto'; popup.style.right = '0'; }
+            else { popup.style.left = '0'; popup.style.right = 'auto'; }
+        }
+        updatePickerSelected(key, window._tvCfg[key] || '#000000');
+        updateOpacityGradient(key, window._tvCfg[key] || '#000000');
+    }
+}
+
+// Close picker on outside click
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.cp-wrap')) {
+        document.querySelectorAll('.cp-popup').forEach(p => p.classList.remove('open'));
+        window._cpOpen = null;
+    }
+});
+
+function setTVColor(key, hex, rebuild) {
+    window._tvCfg[key] = hex;
+    // Update swatch
+    const swatch = document.getElementById('swatch-' + key);
+    if (swatch) swatch.style.background = hex;
+    // Mark no active preset (unless called from preset)
+    if (rebuild !== false) {
+        clearPresetActive();
+        scheduleTVRebuild();
+    }
+    saveTVColors();
+}
+
+function updateAllSwatches() {
+    Object.keys(window._tvCfg).forEach(key => {
+        const swatch = document.getElementById('swatch-' + key);
+        if (swatch) swatch.style.background = window._tvCfg[key];
+    });
+}
+
+// ═══ PRESETS ═══
+const TV_PRESETS = {
+    charade: {
+        name: 'Charade',
+        // Charade = dark blue-grey #444C5C
+        bg:         '#444C5C',
+        up:         '#1B3A6B',  // Phthalo Blue body
+        upborder:   '#000000',  // black border
+        upwick:     '#000000',  // black wick
+        down:       '#000000',  // black body
+        downborder: '#000000',  // black border
+        downwick:   '#000000',  // black wick
+    },
+    default: {
+        bg: '#000000', up: '#26a69a', down: '#ef5350',
+        upborder: '#26a69a', downborder: '#ef5350',
+        upwick: '#26a69a', downwick: '#ef5350',
+    },
+    classic: {
+        bg: '#131722', up: '#22ab94', down: '#f7525f',
+        upborder: '#22ab94', downborder: '#f7525f',
+        upwick: '#22ab94', downwick: '#f7525f',
+    },
+    mono: {
+        bg: '#0a0a0a', up: '#ffffff', down: '#333333',
+        upborder: '#ffffff', downborder: '#555555',
+        upwick: '#aaaaaa', downwick: '#555555',
+    },
+};
+
+function applyPreset(name) {
+    const p = TV_PRESETS[name];
+    if (!p) return;
+    Object.assign(window._tvCfg, p);
+    updateAllSwatches();
+    clearPresetActive();
+    const btn = document.getElementById('preset-' + name);
+    if (btn) btn.classList.add('active-preset');
+    scheduleTVRebuild();
+    saveTVColors();
+}
+
+function clearPresetActive() {
+    document.querySelectorAll('.tb-preset-btn').forEach(b => b.classList.remove('active-preset'));
+}
+
+function resetAllTVColors() {
+    applyPreset('default');
+}
+
+// Remove all drawings from TV chart
+function removeAllDrawings() {
+    if (window.ui && window.ui._tvWidget) {
+        try {
+            const chart = window.ui._tvWidget.chart();
+            if (chart && chart.removeAllShapes) { chart.removeAllShapes(); return; }
+            if (chart && chart.getShapeById) {
+                // Fallback: try executeActionById
+                window.ui._tvWidget.executeActionById('drawingToolbarAction');
+            }
+        } catch(e) { /* silent */ }
+        // Most reliable approach: call the action
+        try { window.ui._tvWidget.executeActionById('removeAllDrawingTools'); } catch(e) {}
+        try {
+            const chart = window.ui._tvWidget.chart();
+            if (chart) { chart.removeAllShapes(); }
+        } catch(e) {}
+    }
+}
+
+// Save/load TV colors to localStorage
+function saveTVColors() { try { localStorage.setItem('rk_tv_colors', JSON.stringify(window._tvCfg)); } catch(e) {} }
+function loadTVColors() {
+    try {
+        const s = localStorage.getItem('rk_tv_colors');
+        if (s) { Object.assign(window._tvCfg, JSON.parse(s)); }
+    } catch(e) {}
+}
+
+function scheduleTVRebuild() {
+    clearTimeout(window._tvRebuildT);
+    window._tvRebuildT = setTimeout(() => { if(window.ui) window.ui.launchTradingDesk(); }, 350);
+}
+
+// Init swatches on load
+document.addEventListener('DOMContentLoaded', () => {
+    loadTVColors();
+    updateAllSwatches();
+    // Pre-build pickers on tab open
+});
+</script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, orderBy,
@@ -893,23 +1125,17 @@ window.ui = {
     _tvWidget: null,
 
     _tvColors() {
-        const g = id => document.getElementById(id)?.value || null;
-        return {
-            bg:         g('chex-bg')        || '#000000',
-            up:         g('chex-up')        || '#26a69a',
-            down:       g('chex-down')      || '#ef5350',
-            upBorder:   g('chex-upborder')  || '#26a69a',
-            downBorder: g('chex-downborder')|| '#ef5350',
-            upWick:     g('chex-upwick')    || '#26a69a',
-            downWick:   g('chex-downwick')  || '#ef5350',
-        };
+        return window._tvCfg;
     },
 
     launchTradingDesk() {
         const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
-        if (this._tvWidget) { try { container.innerHTML = ''; } catch(e) {} this._tvWidget = null; }
+        if (this._tvWidget) {
+            try { container.innerHTML = ''; } catch(e) {}
+            this._tvWidget = null;
+        }
         this._tvWidget = new TradingView.widget({
             container_id: 'tv-container',
             autosize: true,
@@ -926,45 +1152,24 @@ window.ui = {
             hide_side_toolbar: false,
             allow_symbol_change: true,
             save_image: false,
-            /* ── DISABLE DRAWING TOOLS ── */
-            drawings_access: { type: 'black', tools: [{ name: "Regression Trend" }] },
-            disabled_features: [
-                "header_widget",
-                "left_toolbar",
-                "context_menus",
-                "control_bar",
-                "timeframes_toolbar",
-                "go_to_date",
-                "header_fullscreen_button",
-            ],
-            enabled_features: [
-                "hide_left_toolbar_by_default",
-            ],
             overrides: {
-                "paneProperties.background":                   c.bg,
-                "paneProperties.backgroundType":               "solid",
+                "paneProperties.background": c.bg,
+                "paneProperties.backgroundType": "solid",
                 "paneProperties.backgroundGradientStartColor": c.bg,
-                "paneProperties.backgroundGradientEndColor":   c.bg,
-                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.vertGridProperties.style":     1,
-                "paneProperties.horzGridProperties.style":     1,
-                "paneProperties.crossHairProperties.color":    "#555555",
+                "paneProperties.backgroundGradientEndColor": c.bg,
+                "paneProperties.vertGridProperties.color": "rgba(0,0,0,0)",
+                "paneProperties.horzGridProperties.color": "rgba(0,0,0,0)",
+                "paneProperties.crossHairProperties.color": "#555555",
                 "mainSeriesProperties.candleStyle.upColor":         c.up,
                 "mainSeriesProperties.candleStyle.downColor":       c.down,
-                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
-                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
-                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
-                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
+                "mainSeriesProperties.candleStyle.borderUpColor":   c.upborder,
+                "mainSeriesProperties.candleStyle.borderDownColor": c.downborder,
+                "mainSeriesProperties.candleStyle.wickUpColor":     c.upwick,
+                "mainSeriesProperties.candleStyle.wickDownColor":   c.downwick,
                 "mainSeriesProperties.candleStyle.drawWick":        true,
                 "mainSeriesProperties.candleStyle.drawBorder":      true,
             }
         });
-    },
-
-    rebuildTVWidget() {
-        clearTimeout(this._tvRebuildTimer);
-        this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
 
     classifySession(dateStr) {
@@ -1023,24 +1228,8 @@ window.ui = {
             const d = new Date(t.date), ms = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
             if(ms !== curMonth) { body.insertAdjacentHTML('beforeend', `<tr class="month-header"><td colspan="11">${ms.toUpperCase()}</td></tr>`); curMonth = ms; }
             const rr = this.calcRR(t), oc = this.getOutcome(t), fmt = v => v ? parseFloat(v).toFixed(5) : '---';
-            const pc = `<div class="price-cell">
-                <div class="price-row"><span class="price-dot entry"></span><span class="price-lbl">ENTRY</span><span class="price-val">${fmt(t.entry)}</span></div>
-                <div class="price-row"><span class="price-dot sl"></span><span class="price-lbl">SL</span><span class="price-val" style="color:#ff7777;">${fmt(t.sl)}</span></div>
-                <div class="price-row"><span class="price-dot tp"></span><span class="price-lbl">TP</span><span class="price-val" style="color:#77ff99;">${fmt(t.tp)}</span></div>
-                <div class="price-row"><span class="price-dot exit"></span><span class="price-lbl">EXIT</span><span class="price-val" style="color:#fff;">${fmt(t.exit)}</span></div>
-            </div>`;
-            body.insertAdjacentHTML('beforeend', `<tr>
-                <td>${t.date}</td><td><b>${t.symbol}</b></td>
-                <td><span class="lot-badge">${t.lots}</span></td>
-                <td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'};">${t.side}</td>
-                <td>${t.session}</td><td>${pc}</td>
-                <td><span class="outcome-badge ${oc.cls}">${oc.label}</span></td>
-                <td><span class="rr-badge ${rr.cls}">${rr.label}</span></td>
-                <td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'};font-weight:600;">$${t.profit.toFixed(2)}</td>
-                <td>${t.img?`<img src="${t.img}" class="img-preview">`:''}
-                    <div style="font-size:0.6rem;color:#555;">${t.notes||''}</div></td>
-                <td><button onclick="ui.deleteTrade('${t.id}')" style="background:transparent;border:1px solid #2a0000;color:#ff4444;padding:5px 9px;font-size:0.7rem;cursor:pointer;">✕</button></td>
-            </tr>`);
+            const pc = `<div class="price-cell"><div class="price-row"><span class="price-dot entry"></span><span class="price-lbl">ENTRY</span><span class="price-val">${fmt(t.entry)}</span></div><div class="price-row"><span class="price-dot sl"></span><span class="price-lbl">SL</span><span class="price-val" style="color:#ff7777;">${fmt(t.sl)}</span></div><div class="price-row"><span class="price-dot tp"></span><span class="price-lbl">TP</span><span class="price-val" style="color:#77ff99;">${fmt(t.tp)}</span></div><div class="price-row"><span class="price-dot exit"></span><span class="price-lbl">EXIT</span><span class="price-val" style="color:#fff;">${fmt(t.exit)}</span></div></div>`;
+            body.insertAdjacentHTML('beforeend', `<tr><td>${t.date}</td><td><b>${t.symbol}</b></td><td><span class="lot-badge">${t.lots}</span></td><td style="color:${t.side==='BUY'?'var(--positive)':'var(--negative)'};">${t.side}</td><td>${t.session}</td><td>${pc}</td><td><span class="outcome-badge ${oc.cls}">${oc.label}</span></td><td><span class="rr-badge ${rr.cls}">${rr.label}</span></td><td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'};font-weight:600;">$${t.profit.toFixed(2)}</td><td>${t.img?`<img src="${t.img}" class="img-preview">`:''}  <div style="font-size:0.6rem;color:#555;">${t.notes||''}</div></td><td><button onclick="ui.deleteTrade('${t.id}')" style="background:transparent;border:1px solid #2a0000;color:#ff4444;padding:5px 9px;font-size:0.7rem;cursor:pointer;">✕</button></td></tr>`);
         });
     },
 
@@ -1074,13 +1263,7 @@ window.ui = {
             const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
             const dt = cachedTrades.filter(t=>t.date===dStr), pl = dt.reduce((s,t)=>s+t.profit,0), cnt = dt.length;
             const isToday = dStr === new Date().toISOString().split('T')[0];
-            grid.innerHTML += `<div class="cal-day ${pl>0?'profit':pl<0?'loss':''}" style="cursor:${cnt>0?'pointer':'default'};${isToday?'outline:1px solid #444;':''}" onclick="ui.showDayDetail('${dStr}')">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                    <b style="font-size:0.82rem;${isToday?'color:#fff;':'color:#aaa;'}">${i}</b>
-                    ${cnt>0?`<span style="font-size:0.55rem;color:#555;background:#111;padding:1px 5px;border-radius:2px;">${cnt}T</span>`:''}
-                </div>
-                ${pl!==0?`<div style="font-size:0.72rem;color:${pl>0?'var(--positive)':'var(--negative)'};margin-top:4px;font-weight:600;">$${pl.toFixed(0)}</div>`:''}
-            </div>`;
+            grid.innerHTML += `<div class="cal-day ${pl>0?'profit':pl<0?'loss':''}" style="cursor:${cnt>0?'pointer':'default'};${isToday?'outline:1px solid #444;':''}" onclick="ui.showDayDetail('${dStr}')"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><b style="font-size:0.82rem;${isToday?'color:#fff;':'color:#aaa;'}">${i}</b>${cnt>0?`<span style="font-size:0.55rem;color:#555;background:#111;padding:1px 5px;border-radius:2px;">${cnt}T</span>`:''}</div>${pl!==0?`<div style="font-size:0.72rem;color:${pl>0?'var(--positive)':'var(--negative)'};margin-top:4px;font-weight:600;">$${pl.toFixed(0)}</div>`:''}</div>`;
         }
     },
 
@@ -1097,19 +1280,7 @@ window.ui = {
         tbody.innerHTML = '';
         dt.forEach(t => {
             const rr = this.calcRR(t), oc = this.getOutcome(t);
-            tbody.innerHTML += `<tr>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;"><b>${t.symbol}</b></td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:${t.side==='BUY'?'var(--positive)':'var(--negative)'};">${t.side}</td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;"><span style="background:#1a1a1a;padding:2px 6px;border-radius:3px;border:1px solid #333;">${t.lots}</span></td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#666;">${t.session}</td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#aaa;">${fmt(t.entry)}</td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#ff8888;">${fmt(t.sl)}</td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#88ff99;">${fmt(t.tp)}</td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#fff;">${fmt(t.exit)}</td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;"><span class="outcome-badge ${oc.cls}">${oc.label}</span></td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;"><span class="rr-badge ${rr.cls}">${rr.label}</span></td>
-                <td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;font-weight:600;color:${t.profit>=0?'var(--positive)':'var(--negative)'};">$${t.profit.toFixed(2)}</td>
-            </tr>`;
+            tbody.innerHTML += `<tr><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;"><b>${t.symbol}</b></td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:${t.side==='BUY'?'var(--positive)':'var(--negative)'};">${t.side}</td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;"><span style="background:#1a1a1a;padding:2px 6px;border-radius:3px;border:1px solid #333;">${t.lots}</span></td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#666;">${t.session}</td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#aaa;">${fmt(t.entry)}</td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#ff8888;">${fmt(t.sl)}</td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#88ff99;">${fmt(t.tp)}</td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;color:#fff;">${fmt(t.exit)}</td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;"><span class="outcome-badge ${oc.cls}">${oc.label}</span></td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;"><span class="rr-badge ${rr.cls}">${rr.label}</span></td><td style="padding:10px 14px;font-size:0.78rem;border-bottom:1px solid #111;font-weight:600;color:${t.profit>=0?'var(--positive)':'var(--negative)'};">$${t.profit.toFixed(2)}</td></tr>`;
         });
         detail.style.display = 'block';
         detail.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1193,14 +1364,7 @@ window.ui = {
         const st = document.getElementById('scan-status'); st.style.color='#888'; st.textContent='⟳ Scanning image...';
         const base64 = await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(file);});
         try {
-            const resp = await fetch('https://api.groq.com/openai/v1/chat/completions',{
-                method:'POST',
-                headers:{'Content-Type':'application/json','Authorization':'Bearer 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'},
-                body:JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct',messages:[{role:'user',content:[
-                    {type:'image_url',image_url:{url:base64}},
-                    {type:'text',text:`Extract from this trading screenshot:\n1. entry_price\n2. sl_price\n3. side: BUY or SELL\nRespond ONLY as JSON: {"entry_price":"...","sl_price":"...","side":"..."}\nUse null for missing.`}
-                ]}],max_tokens:200,temperature:0})
-            });
+            const resp = await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer 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'},body:JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct',messages:[{role:'user',content:[{type:'image_url',image_url:{url:base64}},{type:'text',text:`Extract from this trading screenshot:\n1. entry_price\n2. sl_price\n3. side: BUY or SELL\nRespond ONLY as JSON: {"entry_price":"...","sl_price":"...","side":"..."}\nUse null for missing.`}]}],max_tokens:200,temperature:0})});
             const res = await resp.json();
             if(res.error){st.style.color='#ff4444';st.textContent=`✗ Error: ${res.error.message}`;return;}
             const txt = ((res.choices?.[0]?.message?.content)||'').replace(/```json|```/g,'').trim();
@@ -1216,7 +1380,7 @@ window.ui = {
     },
 
     handleScanDrop(e) { const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) this.scanTradeImage(f); },
-    dropMedia(e)      { const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) this.pasteMedia(f); },
+    dropMedia(e) { const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) this.pasteMedia(f); },
 
     async pasteMediaFromClipboard() {
         try {
@@ -1270,16 +1434,7 @@ window.ui = {
         const lots=parseFloat(document.getElementById('t-lots').value);
         const mult=parseFloat(document.getElementById('t-asset').value);
         const side=document.getElementById('t-side').value;
-        await addDoc(tradesCol,{
-            user_id:currentUser, timestamp:Date.now(),
-            symbol:document.getElementById('t-symbol').value.toUpperCase(),
-            lots, side, session:document.getElementById('t-session').value,
-            profit:(exit-entry)*lots*mult*(side==='BUY'?1:-1),
-            entry, exit, sl, tp,
-            date:document.getElementById('t-date').value,
-            notes:document.getElementById('t-notes').value,
-            img:imgData
-        });
+        await addDoc(tradesCol,{user_id:currentUser,timestamp:Date.now(),symbol:document.getElementById('t-symbol').value.toUpperCase(),lots,side,session:document.getElementById('t-session').value,profit:(exit-entry)*lots*mult*(side==='BUY'?1:-1),entry,exit,sl,tp,date:document.getElementById('t-date').value,notes:document.getElementById('t-notes').value,img:imgData});
         ['t-symbol','t-lots','t-entry','t-sl','t-tp','t-exit','t-start','t-end','t-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
         ['t-session','t-asset','t-side'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
         document.getElementById('t-img').value='';
@@ -1325,402 +1480,43 @@ window.ui = {
 };
 </script>
 
-<!-- ══ COLOR PALETTE PICKER ENGINE ══ -->
 <script>
-// The exact TradingView-style color palette
-// 10 columns × 9 rows of colors + gray row
-var TV_PALETTE = [
-    // Row 1 — near-black to near-white steps
-    '#000000','#1a1a1a','#333333','#4d4d4d','#666666','#808080','#999999','#b3b3b3','#cccccc','#ffffff',
-    // Row 2 — reds
-    '#4c0000','#7a0000','#a10000','#c20000','#e30000','#ff0000','#ff3333','#ff6666','#ff9999','#ffcccc',
-    // Row 3 — oranges
-    '#4c1a00','#7a2b00','#a13800','#c24600','#e35400','#ff6600','#ff8533','#ffa366','#ffc299','#ffe0cc',
-    // Row 4 — yellows
-    '#4c3d00','#7a6200','#a18200','#c29c00','#e3b800','#ffd700','#ffdf33','#ffe766','#ffef99','#fff7cc',
-    // Row 5 — greens
-    '#00330a','#005212','#007019','#008f21','#00ad29','#00cc33','#33d957','#66e07b','#99eba0','#ccf5c5',
-    // Row 6 — teals
-    '#003333','#005252','#007070','#008f8f','#00adad','#00cccc','#33d9d9','#66e0e0','#99ebe8','#ccf5f2',
-    // Row 7 — blues
-    '#00004c','#000080','#0000b3','#0000e6','#0000ff','#3333ff','#6666ff','#9999ff','#ccccff','#e6e6ff',
-    // Row 8 — dark blues / navy
-    '#000d33','#001466','#001a99','#0021cc','#0033ff','#2952ff','#6680ff','#99aaff','#ccd5ff','#e6eaff',
-    // Row 9 — purples
-    '#2d004c','#4a007a','#6200a1','#7b00c2','#9300e3','#aa00ff','#bb33ff','#cc66ff','#dd99ff','#eeccff',
-    // Row 10 — pinks
-    '#4c0033','#7a0052','#a1006d','#c20085','#e3009c','#ff00b3','#ff33c2','#ff66d1','#ff99e1','#ffccf0',
-];
-
-var TV_GRAYS = [
-    '#0d0d0d','#1a1a1a','#262626','#333333','#404040',
-    '#595959','#737373','#8c8c8c','#a6a6a6','#bfbfbf'
-];
-
-var _activePicker = null;
-var _pickerColors = {
-    bg: '#000000', up: '#26a69a', down: '#ef5350',
-    upborder: '#26a69a', downborder: '#ef5350',
-    upwick: '#26a69a', downwick: '#ef5350'
+window._installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); window._installPrompt = e; const btn = document.getElementById('install-btn'); if(btn) btn.style.display = 'block'; });
+window.addEventListener('appinstalled', () => { const btn = document.getElementById('install-btn'); if(btn) btn.style.display = 'none'; window._installPrompt = null; });
+window.installApp = async function() {
+    if(window._installPrompt) { window._installPrompt.prompt(); const {outcome} = await window._installPrompt.userChoice; if(outcome === 'accepted') window._installPrompt = null; }
+    else { alert('To install:\n\niPhone/iPad → Share → "Add to Home Screen"\nAndroid → Menu (⋮) → "Add to Home screen"\nDesktop → Install icon in address bar ⊕'); }
 };
-var _pickerOpacity = {
-    bg: 100, up: 100, down: 100,
-    upborder: 100, downborder: 100,
-    upwick: 100, downwick: 100
-};
+if('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').then(() => {}).catch(() => {})); }
+</script>
 
-function hexToRgba(hex, opacity) {
-    var r = parseInt(hex.slice(1,3),16);
-    var g = parseInt(hex.slice(3,5),16);
-    var b = parseInt(hex.slice(5,7),16);
-    var a = opacity / 100;
-    return `rgba(${r},${g},${b},${a})`;
-}
+<script src="https://s3.tradingview.com/tv.js"></script>
 
-function rgbaToHex(color) {
-    if(color.startsWith('#')) return color;
-    var m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-    if(!m) return '#000000';
-    return '#' + [m[1],m[2],m[3]].map(n => parseInt(n).toString(16).padStart(2,'0')).join('');
-}
-
-function buildPicker(key) {
-    var pop = document.getElementById('cpop-' + key);
-    if(!pop) return;
-    var currentColor = _pickerColors[key] || '#000000';
-    var currentOpacity = _pickerOpacity[key] !== undefined ? _pickerOpacity[key] : 100;
-
-    // Build main color grid
-    var gridHtml = '<div class="cpicker-grid">';
-    TV_PALETTE.forEach(function(c) {
-        var isSel = c.toLowerCase() === currentColor.toLowerCase();
-        gridHtml += `<div class="cpicker-cell${isSel?' selected':''}" style="background:${c};" 
-            onclick="selectPickerColor('${key}','${c}')" title="${c}"></div>`;
-    });
-    gridHtml += '</div>';
-
-    // Gray row
-    var grayHtml = '<div class="cpicker-grays">';
-    TV_GRAYS.forEach(function(c) {
-        var isSel = c.toLowerCase() === currentColor.toLowerCase();
-        grayHtml += `<div class="cpicker-cell${isSel?' selected':''}" style="background:${c};" 
-            onclick="selectPickerColor('${key}','${c}')" title="${c}"></div>`;
-    });
-    grayHtml += '</div>';
-
-    // Opacity row - gradient bg changes with current color
-    var opacHtml = `<div class="cpicker-opacity-row">
-        <div class="cpicker-opacity-label">
-            <span>Opacity</span>
-            <span id="copac-val-${key}" style="color:#fff;">${currentOpacity}%</span>
-        </div>
-        <input type="range" class="cpicker-opacity-slider" id="copac-${key}"
-            min="0" max="100" value="${currentOpacity}"
-            style="--swatch-color:${currentColor};"
-            oninput="onPickerOpacity('${key}',this.value)">
-    </div>`;
-
-    // Hex row
-    var hexRow = `<div class="cpicker-hex-row">
-        <div class="cpicker-preview-box" id="cprev-${key}" style="background:${currentColor};"></div>
-        <input type="text" class="cpicker-hex-input" id="cpopinput-${key}"
-            value="${currentColor}" maxlength="7" placeholder="#rrggbb"
-            oninput="onPickerPopHex('${key}',this.value)">
-    </div>`;
-
-    pop.innerHTML = gridHtml + grayHtml + opacHtml + hexRow;
-}
-
-function togglePicker(key) {
-    // Close other open pickers
-    document.querySelectorAll('.cpicker-popup.open').forEach(function(p) {
-        if(p.id !== 'cpop-' + key) p.classList.remove('open');
-    });
-
-    var pop = document.getElementById('cpop-' + key);
-    if(!pop) return;
-
-    if(pop.classList.contains('open')) {
-        pop.classList.remove('open');
-        _activePicker = null;
-    } else {
-        buildPicker(key);
-        pop.classList.add('open');
-        _activePicker = key;
-    }
-}
-
-// Close pickers on outside click
-document.addEventListener('click', function(e) {
-    if(!e.target.closest('.cpicker-wrap')) {
-        document.querySelectorAll('.cpicker-popup.open').forEach(function(p) {
-            p.classList.remove('open');
-        });
-        _activePicker = null;
-    }
-});
-
-function applyPickerColor(key, hex, opacity) {
-    _pickerColors[key] = hex;
-    _pickerOpacity[key] = opacity;
-
-    // Update swatch
-    var swatch = document.getElementById('csw-' + key);
-    if(swatch) {
-        if(opacity < 100) {
-            swatch.style.background = hexToRgba(hex, opacity);
-        } else {
-            swatch.style.background = hex;
-        }
-    }
-
-    // Update hex input next to swatch
-    var hexEl = document.getElementById('chex-' + key);
-    if(hexEl) hexEl.value = hex;
-
-    // Rebuild the TV widget
-    if(window.ui && window.ui.rebuildTVWidget) window.ui.rebuildTVWidget();
-}
-
-function selectPickerColor(key, hex) {
-    _pickerColors[key] = hex;
-    var opacity = _pickerOpacity[key] !== undefined ? _pickerOpacity[key] : 100;
-
-    // Update selected state in grid
-    var pop = document.getElementById('cpop-' + key);
-    if(pop) {
-        pop.querySelectorAll('.cpicker-cell').forEach(function(c) {
-            c.classList.toggle('selected', c.style.backgroundColor && rgbaToHex(c.style.backgroundColor).toLowerCase() === hex.toLowerCase());
-        });
-        // Update preview box
-        var prev = document.getElementById('cprev-' + key);
-        if(prev) prev.style.background = hex;
-        // Update hex input in popup
-        var inp = document.getElementById('cpopinput-' + key);
-        if(inp) inp.value = hex;
-        // Update opacity slider gradient
-        var opacSlider = document.getElementById('copac-' + key);
-        if(opacSlider) opacSlider.style.setProperty('--swatch-color', hex);
-    }
-
-    applyPickerColor(key, hex, opacity);
-}
-
-function onPickerOpacity(key, val) {
-    var opacity = parseInt(val);
-    _pickerOpacity[key] = opacity;
-    var valEl = document.getElementById('copac-val-' + key);
-    if(valEl) valEl.textContent = opacity + '%';
-    applyPickerColor(key, _pickerColors[key], opacity);
-}
-
-function onPickerPopHex(key, val) {
-    val = val.trim();
-    if(!/^#[0-9a-fA-F]{6}$/.test(val)) return;
-    selectPickerColor(key, val);
-}
-
-function onPickerHexInput(key, val) {
-    val = val.trim();
-    if(!/^#[0-9a-fA-F]{6}$/.test(val)) return;
-    applyPickerColor(key, val, _pickerOpacity[key] || 100);
-}
-
-// Override _tvColors to use picker state
-window._getTVColors = function() {
-    var getColor = function(key) {
-        var hex = _pickerColors[key] || '#000000';
-        var opacity = _pickerOpacity[key] !== undefined ? _pickerOpacity[key] : 100;
-        return opacity < 100 ? hexToRgba(hex, opacity) : hex;
-    };
-    return {
-        bg:         getColor('bg'),
-        up:         getColor('up'),
-        down:       getColor('down'),
-        upBorder:   getColor('upborder'),
-        downBorder: getColor('downborder'),
-        upWick:     getColor('upwick'),
-        downWick:   getColor('downwick'),
-    };
-};
-
-// Patch ui._tvColors
-document.addEventListener('DOMContentLoaded', function() {
-    if(window.ui) {
-        window.ui._tvColors = window._getTVColors;
-    }
-});
-
-// ── PRESETS ──
-var TV_PRESETS = {
-    darkblue_black: {
-        bg: '#000000',
-        up: '#1a3a6b',       // dark blue body
-        upborder: '#000000', // black border
-        upwick: '#000000',   // black wick
-        down: '#000000',     // all black
-        downborder: '#000000',
-        downwick: '#000000',
-    },
-    classic: {
-        bg: '#000000',
-        up: '#26a69a', upborder: '#26a69a', upwick: '#26a69a',
-        down: '#ef5350', downborder: '#ef5350', downwick: '#ef5350',
-    },
-    hollow: {
-        bg: '#000000',
-        up: '#000000', upborder: '#ffffff', upwick: '#ffffff',
-        down: '#ef5350', downborder: '#ef5350', downwick: '#ef5350',
-    }
-};
-
-function applyPreset(name) {
-    var p = TV_PRESETS[name];
-    if(!p) return;
-    Object.keys(p).forEach(function(key) {
-        var hex = p[key];
-        _pickerColors[key] = hex;
-        _pickerOpacity[key] = 100;
-        // Update swatch
-        var swatch = document.getElementById('csw-' + key);
-        if(swatch) swatch.style.background = hex;
-        // Update hex input
-        var hexEl = document.getElementById('chex-' + key);
-        if(hexEl) hexEl.value = hex;
-    });
-    if(window.ui && window.ui.rebuildTVWidget) window.ui.rebuildTVWidget();
-}
-
-function resetTVColors() {
-    applyPreset('classic');
-}
-
-// ── CALCULATOR ──
+<script>
 var _dm = 'amt';
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
-function deskSm(m){
-    _dm=m;
-    document.getElementById('d-pr').style.display=m==='pct'?'block':'none';
-    document.getElementById('d-ar').style.display=m==='pct'?'none':'block';
-    var pb=document.getElementById('d-pb'),ab=document.getElementById('d-ab');
-    if(pb){pb.style.background=m==='pct'?'#fff':'#050505';pb.style.color=m==='pct'?'#000':'#444';pb.style.border=m==='pct'?'1px solid #fff':'1px solid #1a1a1a';pb.style.fontWeight=m==='pct'?'700':'400';}
-    if(ab){ab.style.background=m==='amt'?'#fff':'#050505';ab.style.color=m==='amt'?'#000':'#444';ab.style.border=m==='amt'?'1px solid #fff':'1px solid #1a1a1a';ab.style.fontWeight=m==='amt'?'700':'400';}
-    deskCl();
-}
-function deskAtp(){
-    var rr=parseFloat(document.getElementById('d-rr').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,te=document.getElementById('d-tp'),tg=document.getElementById('d-at');
-    if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';if(tg)tg.style.display='none';deskCl();return;}
-    if(!sl){document.getElementById('d-rr').value='0';deskCl();return;}
-    te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';if(tg)tg.style.display='inline';deskCl();
-}
+function deskSm(m){_dm=m;document.getElementById('d-pr').style.display=m==='pct'?'block':'none';document.getElementById('d-ar').style.display=m==='pct'?'none':'block';var pb=document.getElementById('d-pb'),ab=document.getElementById('d-ab');if(pb){pb.style.background=m==='pct'?'#fff':'#050505';pb.style.color=m==='pct'?'#000':'#444';pb.style.border=m==='pct'?'1px solid #fff':'1px solid #1a1a1a';pb.style.fontWeight=m==='pct'?'700':'400';}if(ab){ab.style.background=m==='amt'?'#fff':'#050505';ab.style.color=m==='amt'?'#000':'#444';ab.style.border=m==='amt'?'1px solid #fff':'1px solid #1a1a1a';ab.style.fontWeight=m==='amt'?'700':'400';}deskCl();}
+function deskAtp(){var rr=parseFloat(document.getElementById('d-rr').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,te=document.getElementById('d-tp'),tg=document.getElementById('d-at');if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';if(tg)tg.style.display='none';deskCl();return;}if(!sl){document.getElementById('d-rr').value='0';deskCl();return;}te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';if(tg)tg.style.display='inline';deskCl();}
 function deskMtp(){document.getElementById('d-rr').value='0';var te=document.getElementById('d-tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';var tg=document.getElementById('d-at');if(tg)tg.style.display='none';deskCl();}
-function deskCl(){
-    var b=parseFloat(document.getElementById('d-bal').value)||0,rp=parseFloat(document.getElementById('d-rp').value)||0,ra=parseFloat(document.getElementById('d-ra').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,tp=parseFloat(document.getElementById('d-tp').value)||0,tv=1;
-    var qs=document.getElementById('d-qs'),qb=document.getElementById('d-qb');
-    if(b>0&&qs&&qb){var rows=[0.5,1,1.5,2,3,5].map(function(p){var a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_dm==='pct'&&p===rp);return'<tr style="'+(hi?'background:#0d1a0d;':'')+'"><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">'+p+'%</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">$'+a.toFixed(0)+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0?l.toFixed(2):'---')+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');qb.innerHTML=rows;qs.style.display='block';}
-    if(!sl){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Enter values');deskSv('d-rrs','---');deskSv('d-rps','---');return;}
-    var rm=_dm==='amt'?ra:(b>0?b*rp/100:0);
-    if(!rm){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Set risk amount');return;}
-    var l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;
-    deskSv('d-rl',l.toFixed(2));deskSv('d-rls','Standard lots');
-    deskSv('d-rr2','$'+ar.toFixed(2));deskSv('d-rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'--');
-    deskSv('d-rp2',tp?'$'+pp.toFixed(2):'---');deskSv('d-rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'--');
-    deskSv('d-rsout',sl+' ticks');deskSv('d-rt',tp?tp+' ticks':'---');
-    deskSv('d-rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');deskSv('d-rtv','$'+tv.toFixed(2));
-}
-function deskRs(){
-    ['d-bal','d-rp','d-sl','d-tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
-    var ra=document.getElementById('d-ra');if(ra)ra.value='0';
-    var rrEl=document.getElementById('d-rr');if(rrEl)rrEl.value='1';
-    var te=document.getElementById('d-tp');if(te){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';}
-    var tg=document.getElementById('d-at');if(tg)tg.style.display='none';
-    deskSm('amt');
-    ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
-    deskSv('d-rls','Enter values');
-    var qs=document.getElementById('d-qs');if(qs)qs.style.display='none';
-}
+function deskCl(){var b=parseFloat(document.getElementById('d-bal').value)||0,rp=parseFloat(document.getElementById('d-rp').value)||0,ra=parseFloat(document.getElementById('d-ra').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,tp=parseFloat(document.getElementById('d-tp').value)||0,tv=1;var qs=document.getElementById('d-qs'),qb=document.getElementById('d-qb');if(b>0&&qs&&qb){var rows=[0.5,1,1.5,2,3,5].map(function(p){var a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_dm==='pct'&&p===rp);return'<tr style="'+(hi?'background:#0d1a0d;':'')+'"><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">'+p+'%</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">$'+a.toFixed(0)+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0?l.toFixed(2):'---')+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');qb.innerHTML=rows;qs.style.display='block';}if(!sl){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Enter values');deskSv('d-rrs','---');deskSv('d-rps','---');return;}var rm=_dm==='amt'?ra:(b>0?b*rp/100:0);if(!rm){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Set risk amount');return;}var l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;deskSv('d-rl',l.toFixed(2));deskSv('d-rls','Standard lots');deskSv('d-rr2','$'+ar.toFixed(2));deskSv('d-rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'--');deskSv('d-rp2',tp?'$'+pp.toFixed(2):'---');deskSv('d-rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'--');deskSv('d-rsout',sl+' ticks');deskSv('d-rt',tp?tp+' ticks':'---');deskSv('d-rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');deskSv('d-rtv','$'+tv.toFixed(2));}
+function deskRs(){['d-bal','d-rp','d-sl','d-tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});var ra=document.getElementById('d-ra');if(ra)ra.value='0';var rrEl=document.getElementById('d-rr');if(rrEl)rrEl.value='1';var te=document.getElementById('d-tp');if(te){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';}var tg=document.getElementById('d-at');if(tg)tg.style.display='none';deskSm('amt');['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Enter values');var qs=document.getElementById('d-qs');if(qs)qs.style.display='none';}
+</script>
 
-// ── THEME SYSTEM ──
+<script>
 var _currentTheme = localStorage.getItem('rk_theme') || 'midnight';
 var _allThemes = ['midnight','neon','easyeye','light','trader'];
-
 function setTheme(name) {
-    _currentTheme = name;
-    localStorage.setItem('rk_theme', name);
-    localStorage.removeItem('rk_custom_bg');
+    _currentTheme = name; localStorage.setItem('rk_theme', name); localStorage.removeItem('rk_custom_bg');
     document.body.classList.remove.apply(document.body.classList, _allThemes.map(function(t){return 'theme-'+t;}));
     document.body.classList.add('theme-' + name);
     document.body.style.removeProperty('--bg');
-    _allThemes.forEach(function(t) {
-        var btn = document.getElementById('th-' + t);
-        if (!btn) return;
-        btn.style.outline = t === name ? '2px solid var(--primary)' : 'none';
-        btn.style.outlineOffset = '2px';
-    });
-    setTimeout(function() {
-        var computed = getComputedStyle(document.body).getPropertyValue('--bg').trim();
-        var bgEl = document.getElementById('custom-bg');
-        var bgHexEl = document.getElementById('custom-bg-hex');
-        if (bgEl && computed) { try { bgEl.value = computed; } catch(e){} }
-        if (bgHexEl && computed) bgHexEl.value = computed;
-    }, 50);
+    _allThemes.forEach(function(t) { var btn = document.getElementById('th-' + t); if (!btn) return; btn.style.outline = t === name ? '2px solid var(--primary)' : 'none'; btn.style.outlineOffset = '2px'; });
+    setTimeout(function() { var computed = getComputedStyle(document.body).getPropertyValue('--bg').trim(); var bgEl = document.getElementById('custom-bg'); var bgHexEl = document.getElementById('custom-bg-hex'); if (bgEl && computed) { try { bgEl.value = computed; } catch(e){} } if (bgHexEl && computed) bgHexEl.value = computed; }, 50);
 }
-
-function setCustomBg(hex) {
-    document.body.style.setProperty('--bg', hex);
-    var hexEl = document.getElementById('custom-bg-hex');
-    if (hexEl) hexEl.value = hex;
-    _allThemes.forEach(function(t) {
-        var btn = document.getElementById('th-' + t);
-        if (btn) btn.style.outline = 'none';
-    });
-    localStorage.setItem('rk_custom_bg', hex);
-}
-
-function onCustomBgHex(val) {
-    val = val.trim();
-    var picker = document.getElementById('custom-bg');
-    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
-        if (picker) picker.value = val;
-        setCustomBg(val);
-    }
-}
-
-(function initTheme() {
-    var saved   = localStorage.getItem('rk_theme')     || 'midnight';
-    var savedBg = localStorage.getItem('rk_custom_bg');
-    setTheme(saved);
-    if (savedBg) setTimeout(function() { setCustomBg(savedBg); }, 80);
-})();
+function setCustomBg(hex) { document.body.style.setProperty('--bg', hex); var hexEl = document.getElementById('custom-bg-hex'); if (hexEl) hexEl.value = hex; _allThemes.forEach(function(t) { var btn = document.getElementById('th-' + t); if (btn) btn.style.outline = 'none'; }); localStorage.setItem('rk_custom_bg', hex); }
+function onCustomBgHex(val) { val = val.trim(); var picker = document.getElementById('custom-bg'); if (/^#[0-9a-fA-F]{6}$/.test(val)) { if (picker) picker.value = val; setCustomBg(val); } }
+(function initTheme() { var saved = localStorage.getItem('rk_theme') || 'midnight'; var savedBg = localStorage.getItem('rk_custom_bg'); setTheme(saved); if (savedBg) setTimeout(function() { setCustomBg(savedBg); }, 80); })();
 </script>
-
-<!-- PWA -->
-<script>
-window._installPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); window._installPrompt = e;
-    const btn = document.getElementById('install-btn'); if(btn) btn.style.display = 'block';
-});
-window.addEventListener('appinstalled', () => {
-    const btn = document.getElementById('install-btn'); if(btn) btn.style.display = 'none';
-    window._installPrompt = null;
-});
-window.installApp = async function() {
-    if(window._installPrompt) {
-        window._installPrompt.prompt();
-        const {outcome} = await window._installPrompt.userChoice;
-        if(outcome === 'accepted') window._installPrompt = null;
-    } else {
-        alert('To install:\n\niPhone/iPad → Share → "Add to Home Screen"\nAndroid → Menu (⋮) → "Add to Home screen"\nDesktop → Install icon in address bar ⊕');
-    }
-};
-if('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').then(() => console.log('SW registered')).catch(() => {}));
-}
-</script>
-
-<!-- TradingView -->
-<script src="https://s3.tradingview.com/tv.js"></script>
-
 </body>
 </html>
