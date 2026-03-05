@@ -128,72 +128,40 @@
 
         .chart-panel { display:flex; flex-direction:column; border-right:1px solid var(--border); background:#000; overflow:hidden; }
 
-        /* ══ TV-STYLE TOOLBAR ══ */
+        /* ══ MINIMAL SYMBOL STRIP ══ */
         .chart-toolbar {
-            display:flex; align-items:center; gap:0;
+            display:flex; align-items:center; gap:6px;
             padding:0 10px; background:#0d0d0d;
             border-bottom:1px solid #1a1a1a;
-            flex-wrap:nowrap; flex-shrink:0; height:42px; overflow-x:auto;
+            flex-shrink:0; height:38px; overflow-x:auto;
         }
-        .chart-toolbar::-webkit-scrollbar { height:3px; }
+        .chart-toolbar::-webkit-scrollbar { height:2px; }
         .chart-toolbar::-webkit-scrollbar-thumb { background:#333; }
 
-        /* Symbol input styled like TV */
         .chart-symbol-input {
             background:transparent; border:none; color:#fff;
             padding:4px 8px; font-size:0.92rem; font-weight:700;
-            letter-spacing:1px; text-transform:uppercase; width:110px;
-            border-right:1px solid #222; height:42px; flex-shrink:0;
+            letter-spacing:1px; text-transform:uppercase; width:100px;
+            border-right:1px solid #222; height:38px; flex-shrink:0;
         }
         .chart-symbol-input:focus { outline:none; background:#111; }
 
         .chart-go-btn {
-            background:#44ff88; color:#000; border:none; padding:5px 12px;
+            background:#44ff88; color:#000; border:none; padding:4px 12px;
             font-size:0.68rem; font-weight:700; cursor:pointer;
-            text-transform:uppercase; letter-spacing:1px; height:28px;
-            border-radius:2px; margin-right:8px; flex-shrink:0;
+            text-transform:uppercase; letter-spacing:1px; height:26px;
+            border-radius:2px; flex-shrink:0;
         }
         .chart-go-btn:hover { background:#33dd77; }
 
-        .tb-sep { width:1px; background:#222; height:24px; margin:0 6px; flex-shrink:0; }
+        .tb-sep { width:1px; background:#222; height:22px; margin:0 2px; flex-shrink:0; }
+        .cp-label { font-size:0.58rem; color:#555; text-transform:uppercase; letter-spacing:1px; flex-shrink:0; }
 
-        /* Timeframe buttons — TV style */
-        .tf-btn {
-            background:transparent; border:none; color:#aaa;
-            padding:4px 8px; font-size:0.72rem; cursor:pointer;
-            transition:all 0.12s; white-space:nowrap; flex-shrink:0;
-            border-radius:3px; font-weight:500; height:28px;
-        }
-        .tf-btn:hover { background:#1a1a1a; color:#fff; }
-        .tf-btn.active { background:#2962ff; color:#fff; font-weight:700; }
-
-        /* Candle color panel */
-        .candle-panel {
-            background:#0a0a0a; border-bottom:1px solid #1a1a1a;
-            padding:7px 12px; display:flex; align-items:center; gap:14px;
-            flex-shrink:0; flex-wrap:wrap;
-        }
-        .cp-label { font-size:0.55rem; color:#555; text-transform:uppercase; letter-spacing:1px; }
-        .cp-group { display:flex; align-items:center; gap:6px; }
-        .cp-group label { font-size:0.6rem; color:#666; white-space:nowrap; }
-        .cp-swatch { display:flex; gap:4px; align-items:center; }
-        .cp-swatch input[type=color] {
-            width:22px; height:22px; padding:1px; border:1px solid #333;
-            background:#111; cursor:pointer; border-radius:3px;
-        }
-        .cp-swatch span { font-size:0.55rem; color:#555; }
-        .cp-apply-btn {
-            background:#1a1a2e; border:1px solid #2962ff; color:#2962ff;
-            padding:4px 12px; font-size:0.62rem; cursor:pointer;
-            text-transform:uppercase; letter-spacing:1px; border-radius:3px;
-            transition:all 0.15s; margin-left:auto;
-        }
-        .cp-apply-btn:hover { background:#2962ff; color:#fff; }
         .popup-btn {
             background:transparent; border:1px solid #333; color:#aaa;
-            padding:4px 10px; font-size:0.62rem; cursor:pointer;
-            border-radius:3px; display:flex; align-items:center; gap:5px;
-            transition:all 0.15s; white-space:nowrap; flex-shrink:0;
+            padding:3px 9px; font-size:0.62rem; cursor:pointer;
+            border-radius:3px; display:flex; align-items:center; gap:4px;
+            transition:all 0.15s; white-space:nowrap; flex-shrink:0; height:26px;
         }
         .popup-btn:hover { border-color:#44ff88; color:#44ff88; }
 
@@ -367,79 +335,43 @@
 
             <!-- LEFT: TradingView Advanced Chart -->
             <div class="chart-panel">
-                <!-- ROW 1: Symbol + Timeframes (TV style) -->
+                <!-- Minimal top strip: just symbol + actions -->
                 <div class="chart-toolbar">
                     <input type="text" id="chart-symbol" class="chart-symbol-input" placeholder="EURUSD" value="EURUSD"
                         onkeydown="if(event.key==='Enter')ui.loadChart()">
                     <button class="chart-go-btn" onclick="ui.loadChart()">▶ GO</button>
-
-                    <!-- Timeframes matching TradingView exactly -->
-                    <button class="tf-btn" onclick="ui.setTF(this,'30S')">30s</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'1')">1m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'3')">3m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'5')">5m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'15')">15m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'30')">30m</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'45')">45m</button>
-                    <div class="tb-sep"></div>
-                    <button class="tf-btn" onclick="ui.setTF(this,'60')">1h</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'120')">2h</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'180')">3h</button>
-                    <button class="tf-btn active" onclick="ui.setTF(this,'240')">4h</button>
-                    <div class="tb-sep"></div>
-                    <button class="tf-btn" onclick="ui.setTF(this,'D')">D</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'W')">W</button>
-                    <button class="tf-btn" onclick="ui.setTF(this,'M')">M</button>
                     <div class="tb-sep"></div>
 
-                    <!-- Open in TradingView popup -->
-                    <button class="popup-btn" onclick="ui.openTVPopup()" title="Open full TradingView chart with all settings, indicators & drawing tools">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        Full Chart
+                    <!-- Candle colors inline -->
+                    <span class="cp-label">Body</span>
+                    <input type="color" id="cp-bull-body"   value="#26a69a" title="Bull body"   onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
+                    <input type="color" id="cp-bear-body"   value="#ef5350" title="Bear body"   onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
+                    <span class="cp-label" style="margin-left:6px;">Border</span>
+                    <input type="color" id="cp-bull-border" value="#26a69a" title="Bull border" onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
+                    <input type="color" id="cp-bear-border" value="#ef5350" title="Bear border" onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
+                    <span class="cp-label" style="margin-left:6px;">Wick</span>
+                    <input type="color" id="cp-bull-wick"   value="#26a69a" title="Bull wick"   onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
+                    <input type="color" id="cp-bear-wick"   value="#ef5350" title="Bear wick"   onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
+
+                    <div class="tb-sep"></div>
+                    <!-- Quick presets -->
+                    <button onclick="ui.applyPreset('green-red')"   title="Classic green/red"   style="background:#111;border:1px solid #333;color:#aaa;padding:3px 8px;font-size:0.65rem;cursor:pointer;border-radius:3px;">🟢/🔴</button>
+                    <button onclick="ui.applyPreset('white-black')" title="White/Black"          style="background:#111;border:1px solid #333;color:#aaa;padding:3px 8px;font-size:0.65rem;cursor:pointer;border-radius:3px;">⬜/⬛</button>
+                    <button onclick="ui.applyPreset('blue-red')"    title="Blue/Red"             style="background:#111;border:1px solid #333;color:#aaa;padding:3px 8px;font-size:0.65rem;cursor:pointer;border-radius:3px;">🔵/🔴</button>
+
+                    <div class="tb-sep"></div>
+                    <button class="popup-btn" onclick="ui.openTVPopup()" title="Open on TradingView.com — full settings, custom indicators, save favorites">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        TradingView
                     </button>
 
-                    <div style="display:flex;align-items:center;gap:5px;margin-left:8px;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:5px;margin-left:auto;flex-shrink:0;">
                         <span class="live-dot"></span>
                         <span style="font-size:0.58rem;color:#44ff88;letter-spacing:1px;font-weight:600;">LIVE</span>
                     </div>
                 </div>
 
-                <!-- ROW 2: Candle Color Customizer -->
-                <div class="candle-panel">
-                    <span class="cp-label">🕯 Candles</span>
-                    <div class="cp-group">
-                        <label>Bull Body</label>
-                        <div class="cp-swatch">
-                            <input type="color" id="cp-bull-body" value="#26a69a" onchange="ui.previewCandles()">
-                            <input type="color" id="cp-bull-border" value="#26a69a" onchange="ui.previewCandles()">
-                        </div>
-                    </div>
-                    <div class="cp-group">
-                        <label>Bull Wick</label>
-                        <input type="color" id="cp-bull-wick" value="#26a69a" onchange="ui.previewCandles()">
-                    </div>
-                    <div class="tb-sep" style="margin:0 4px;"></div>
-                    <div class="cp-group">
-                        <label>Bear Body</label>
-                        <div class="cp-swatch">
-                            <input type="color" id="cp-bear-body" value="#ef5350" onchange="ui.previewCandles()">
-                            <input type="color" id="cp-bear-border" value="#ef5350" onchange="ui.previewCandles()">
-                        </div>
-                    </div>
-                    <div class="cp-group">
-                        <label>Bear Wick</label>
-                        <input type="color" id="cp-bear-wick" value="#ef5350" onchange="ui.previewCandles()">
-                    </div>
-                    <div class="tb-sep" style="margin:0 4px;"></div>
-                    <div class="cp-group" style="gap:4px;">
-                        <button class="cp-apply-btn" onclick="ui.applyPreset('green-red')" title="Classic green/red">🟢/🔴</button>
-                        <button class="cp-apply-btn" onclick="ui.applyPreset('white-black')" title="White/Black hollow">⬜/⬛</button>
-                        <button class="cp-apply-btn" onclick="ui.applyPreset('blue-red')" title="Blue/Red">🔵/🔴</button>
-                    </div>
-                    <button class="cp-apply-btn" onclick="ui.loadChart()">✓ Apply Colors</button>
-                </div>
-
-                <!-- TradingView renders here -->
+                <!-- TradingView renders here — widget has its own toolbar with TF, chart type, indicators -->
                 <div id="tv-widget-container"></div>
             </div>
 
