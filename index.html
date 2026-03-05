@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>JOURNAL // Ultimate Pro</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:,">
     <meta name="theme-color" content="#000000">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -422,7 +423,6 @@ window.ui = {
     switchTab(id) {
         if(id === 'charts') {
             this.launchTradingDesk();
-            // Stay on current tab (don't switch away from journal)
             return;
         }
         document.querySelectorAll('.tab-content,.tab-btn').forEach(el => el.classList.remove('active'));
@@ -433,18 +433,17 @@ window.ui = {
         if(id === 'journal')   this.renderJournal();
     },
 
-    /* ══ TRADING DESK — single owned window: tv.js Advanced Chart + calculator ══ */
+    /* ══ TRADING DESK ══ */
     _tf: '240',
 
     launchTradingDesk() {
-        const sym  = 'EURUSD';
-        const sw   = window.screen.availWidth;
-        const sh   = window.screen.availHeight;
-        const calcW = 360;
-        const tvW   = sw - calcW;
+        const sym     = 'EURUSD';
+        const sw      = window.screen.availWidth;
+        const sh      = window.screen.availHeight;
+        const calcW   = 360;
+        const tvW     = sw - calcW;
         const journalURL = window.location.href;
 
-        // Open REAL tradingview.com full chart — left side
         const tvWin = window.open(
             `https://www.tradingview.com/chart/?symbol=OANDA%3A${sym}&interval=${this._tf}&theme=dark&timezone=Asia%2FKathmandu`,
             'TVWin',
@@ -452,18 +451,12 @@ window.ui = {
         );
         if (!tvWin) { alert('Please allow popups for this page, then try again.'); return; }
 
-        // Open calculator — right side
         const calc = window.open('', 'CalcWin',
             `width=${calcW},height=${sh},left=${tvW},top=0,resizable=no,scrollbars=no`);
         if (!calc) return;
 
-        // Store journal URL on calc window so it can navigate TV back to journal
-        // window.location.href assignment on a cross-origin window IS allowed by browsers
-        // (only reading cross-origin location is blocked, not writing/navigating it)
-        const tf = this._tf;
-
-        calc.document.open();
-        calc.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+        // ── FIX: build the HTML string separately to avoid backtick-inside-template-literal issues ──
+        const calcHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <title>⚖ Lot Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -509,10 +502,10 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
 .rc.fl{animation:fl .5s ease forwards;}
 </style></head><body>
 <div class="header">
-  <div class="title"><span class="ld"></span>⚖ LOT CALCULATOR</div>
+  <div class="title"><span class="ld"></span>&#9878; LOT CALCULATOR</div>
   <div style="display:flex;gap:6px;align-items:center;">
-    <button class="rb" onclick="rs()">↺ Reset</button>
-    <button class="close-btn" onclick="closeDeskAndReturn()">✕ CLOSE &amp; RETURN TO JOURNAL</button>
+    <button class="rb" onclick="rs()">&#8635; Reset</button>
+    <button class="close-btn" onclick="closeDeskAndReturn()">&#10005; CLOSE &amp; RETURN TO JOURNAL</button>
   </div>
 </div>
 <div class="body">
@@ -524,10 +517,10 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
   <hr>
   <div class="row"><label>Instrument</label>
     <select id="inst" onchange="cl()">
-      <option value="forex">Forex (EURUSD…)</option>
+      <option value="forex">Forex (EURUSD...)</option>
       <option value="gold">Gold / XAUUSD</option>
-      <option value="indices">Indices (US30…)</option>
-      <option value="crypto">Crypto (BTC…)</option>
+      <option value="indices">Indices (US30...)</option>
+      <option value="crypto">Crypto (BTC...)</option>
     </select>
   </div>
   <div class="two">
@@ -541,7 +534,7 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
       </select>
     </div>
   </div>
-  <div class="row"><label>TP (ticks) <span class="at" id="at">● AUTO</span></label>
+  <div class="row"><label>TP (ticks) <span class="at" id="at">&#9679; AUTO</span></label>
     <input type="number" id="tp" placeholder="100" min="0" step="1" oninput="mTP()" style="font-size:1.05rem;padding:10px 9px;"></div>
   <div class="rg">
     <div class="rc full" id="rcl"><div class="rlb">Lot Size</div><div class="rv lots" id="rl">---</div><div class="rs2" id="rls">Enter values</div></div>
@@ -561,22 +554,10 @@ hr{border:none;border-top:1px solid #1a1a1a;margin:10px 0;}
 <script>
 var _m='amt';
 var _journalURL='${journalURL}';
-
-/* ── CLOSE DESK:
-   Cannot close tradingview.com (cross-origin) — BUT we CAN navigate it.
-   Setting window.location.href on a cross-origin window is ALLOWED by browsers.
-   So we send the TV window back to the journal URL, then close the calculator.
-── */
 function closeDeskAndReturn(){
-  try {
-    // Navigate TV window back to journal — this always works cross-origin
-    var tvWin = window.open('', 'TVWin');
-    if (tvWin) { tvWin.location.href = _journalURL; }
-  } catch(e){}
-  // Close the calculator window (we own this one, always works)
+  try { var tvWin=window.open('','TVWin'); if(tvWin){tvWin.location.href=_journalURL;} } catch(e){}
   window.close();
 }
-
 function sM(m){_m=m;document.getElementById('pr').style.display=m==='pct'?'block':'none';document.getElementById('ar').style.display=m==='pct'?'none':'block';document.getElementById('pb').className='mb '+(m==='pct'?'on':'off');document.getElementById('ab').className='mb '+(m==='amt'?'on':'off');cl();}
 function aTP(){var rr=parseFloat(document.getElementById('rr').value)||0,sl=parseFloat(document.getElementById('sl').value)||0,te=document.getElementById('tp'),tg=document.getElementById('at');if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';tg.style.display='none';cl();return;}if(!sl){document.getElementById('rr').value='0';cl();return;}te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';tg.style.display='inline';cl();}
 function mTP(){document.getElementById('rr').value='0';var te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';cl();}
@@ -589,12 +570,15 @@ function cl(){
   var rm=_m==='amt'?ra:(b>0?b*rp/100:0);
   if(!rm){['rl','rr2','rp2','rsout','rt','rrr','rtv'].forEach(function(i){sv(i,'---');});sv('rls','Set risk amount');return;}
   var l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;
-  sv('rl',l.toFixed(2));sv('rls','Standard lots');sv('rr2','$'+ar.toFixed(2));sv('rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'—');sv('rp2',tp?'$'+pp.toFixed(2):'---');sv('rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'—');sv('rsout',sl+' ticks');sv('rt',tp?tp+' ticks':'---');sv('rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');sv('rtv','$'+tv.toFixed(2));
+  sv('rl',l.toFixed(2));sv('rls','Standard lots');sv('rr2','$'+ar.toFixed(2));sv('rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'--');sv('rp2',tp?'$'+pp.toFixed(2):'---');sv('rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'--');sv('rsout',sl+' ticks');sv('rt',tp?tp+' ticks':'---');sv('rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');sv('rtv','$'+tv.toFixed(2));
   fl('rcl');fl('rcr');fl('rcp');
 }
 function rs(){['bal','rp','sl','tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});document.getElementById('ra').value='0';document.getElementById('rr').value='1';var te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';sM('amt');['rl','rr2','rp2','rsout','rt','rrr','rtv'].forEach(function(i){sv(i,'---');});sv('rls','Enter values');document.getElementById('qs').style.display='none';}
 <\/script>
-</body></html>\`);
+</body></html>`;
+
+        calc.document.open();
+        calc.document.write(calcHTML);
         calc.document.close();
     },
 
@@ -724,7 +708,7 @@ function rs(){['bal','rp','sl','tp'].forEach(function(i){var e=document.getEleme
         const d = new Date(dateStr+'T00:00:00');
         const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
         const totalPL = dt.reduce((s,t)=>s+t.profit,0), wins = dt.filter(t=>t.profit>0).length;
-        titleEl.innerHTML = `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} &nbsp;·&nbsp; ${dt.length} Trade${dt.length>1?'s':''} &nbsp;·&nbsp; WR: ${Math.round(wins/dt.length*100)}% &nbsp;·&nbsp; <span style="color:${totalPL>=0?'var(--positive)':'var(--negative)'};">$${totalPL.toFixed(2)}</span>`;
+        titleEl.innerHTML = `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} &nbsp;&middot;&nbsp; ${dt.length} Trade${dt.length>1?'s':''} &nbsp;&middot;&nbsp; WR: ${Math.round(wins/dt.length*100)}% &nbsp;&middot;&nbsp; <span style="color:${totalPL>=0?'var(--positive)':'var(--negative)'};">$${totalPL.toFixed(2)}</span>`;
         const fmt = v => v ? parseFloat(v).toFixed(5) : '---';
         tbody.innerHTML = '';
         dt.forEach(t => {
