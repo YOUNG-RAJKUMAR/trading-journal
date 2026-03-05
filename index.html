@@ -360,6 +360,10 @@
                     <input type="color" id="cp-bear-wick"   value="#ef5350" title="Bear wick"   onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
 
                     <div class="tb-sep"></div>
+                    <span class="cp-label">BG</span>
+                    <input type="color" id="cp-bg" value="#000000" title="Chart background" onchange="ui.loadChart()" style="width:20px;height:20px;padding:1px;border:1px solid #333;background:#111;cursor:pointer;border-radius:3px;">
+
+                    <div class="tb-sep"></div>
                     <!-- Quick presets -->
                     <button onclick="ui.applyPreset('green-red')"   title="Classic green/red"   style="background:#111;border:1px solid #333;color:#aaa;padding:3px 8px;font-size:0.65rem;cursor:pointer;border-radius:3px;">🟢/🔴</button>
                     <button onclick="ui.applyPreset('white-black')" title="White/Black"          style="background:#111;border:1px solid #333;color:#aaa;padding:3px 8px;font-size:0.65rem;cursor:pointer;border-radius:3px;">⬜/⬛</button>
@@ -674,6 +678,7 @@ window.ui = {
             bearBody:   g('cp-bear-body'),
             bearBorder: g('cp-bear-border'),
             bearWick:   g('cp-bear-wick'),
+            bg:         document.getElementById('cp-bg')?.value || '#000000',
         };
     },
 
@@ -739,11 +744,14 @@ window.ui = {
             enable_publishing: false,
 
             overrides: {
-                // Background & grid
-                'paneProperties.background':               '#000000',
+                // Background — from color picker
+                'paneProperties.background':               c.bg,
                 'paneProperties.backgroundType':           'solid',
-                'paneProperties.vertGridProperties.color': '#111111',
-                'paneProperties.horzGridProperties.color': '#111111',
+                // Grid completely off
+                'paneProperties.vertGridProperties.color': c.bg,
+                'paneProperties.horzGridProperties.color': c.bg,
+                'paneProperties.vertGridProperties.style': 2,
+                'paneProperties.horzGridProperties.style': 2,
                 'scalesProperties.lineColor':              '#333333',
                 'scalesProperties.textColor':              '#888888',
                 // Candle colors — bull (up)
