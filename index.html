@@ -448,10 +448,10 @@ window.ui = {
         const desk = window.open(
             'desk.html?isPWA=' + isPWA + '&tf=' + this._tf + '&journal=' + encodeURIComponent(journalURL),
             'DeskWin',
-            'width=' + calcW + ',height=' + sh + ',left=' + tvW + ',top=0,resizable=no,scrollbars=no'
+            'width=' + sw + ',height=' + sh + ',left=0,top=0,resizable=yes,scrollbars=no'
         );
         if (!desk) { alert('Please allow popups for this page, then try again.'); return; }
-        // Listen for DESK_CLOSED signal to focus back (PWA) or just refocus (browser)
+        // Listen for DESK_CLOSED signal to focus back
         window._deskMsgHandler && window.removeEventListener('message', window._deskMsgHandler);
         window._deskMsgHandler = function(e) {
             if (e.data === 'DESK_CLOSED') window.focus();
