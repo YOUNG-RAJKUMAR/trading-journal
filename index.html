@@ -455,11 +455,16 @@ window.ui = {
         );
         if (!tvWin) { alert('Please allow popups for this page, then try again.'); return; }
 
-        // Store reference + expose a closer function — only the opener (journal) can close TV
+        // Store TV ref and listen for postMessage from calc — only this window can close TV (it opened it)
         window._tvWin = tvWin;
-        window.closeTV = function() {
-            try { if(window._tvWin && !window._tvWin.closed) window._tvWin.close(); } catch(e){}
+        window._deskMsgHandler && window.removeEventListener('message', window._deskMsgHandler);
+        window._deskMsgHandler = function(e) {
+            if (e.data === 'CLOSE_DESK') {
+                try { if(window._tvWin && !window._tvWin.closed) window._tvWin.close(); } catch(ex){}
+                if(isPWA) window.focus();
+            }
         };
+        window.addEventListener('message', window._deskMsgHandler);
 
         const calc = window.open('', 'CalcWin',
             `width=${calcW},height=${sh},left=${tvW},top=0,resizable=no,scrollbars=no`);
@@ -566,13 +571,8 @@ var _m='amt';
 var _journalURL='${journalURL}';
 var _isPWA=${isPWA ? 'true' : 'false'};
 function closeDeskAndReturn(){
-  try {
-    if(window.opener && !window.opener.closed){
-      // Journal window calls closeTV() on itself — it opened TV so it can close it
-      window.opener.closeTV();
-      if(_isPWA){ window.opener.focus(); }
-    }
-  } catch(e){}
+  // postMessage back to journal — journal receives it and closes TV (it opened TV, so it has authority)
+  try { if(window.opener && !window.opener.closed){ window.opener.postMessage('CLOSE_DESK', '*'); } } catch(e){}
   window.close();
 }
 function sM(m){_m=m;document.getElementById('pr').style.display=m==='pct'?'block':'none';document.getElementById('ar').style.display=m==='pct'?'none':'block';document.getElementById('pb').className='mb '+(m==='pct'?'on':'off');document.getElementById('ab').className='mb '+(m==='amt'?'on':'off');cl();}
