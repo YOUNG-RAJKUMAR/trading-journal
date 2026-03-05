@@ -315,23 +315,6 @@
             white-space: nowrap;
             margin-right: 2px;
         }
-        .tb-preset-btn {
-            padding: 4px 10px;
-            font-size: 0.55rem;
-            cursor: pointer;
-            font-family: inherit;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            border-radius: 3px;
-            border: 1px solid #2a2a2a;
-            background: #111;
-            color: #888;
-            white-space: nowrap;
-            transition: all 0.15s;
-            flex-shrink: 0;
-        }
-        .tb-preset-btn:hover { border-color: #555; color: #ccc; }
-        .tb-preset-btn.active-preset { border-color: #44ff88; color: #44ff88; background: #001a00; }
         .tb-cp-label {
             font-size: 0.5rem;
             color: #444;
@@ -493,23 +476,6 @@
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
         <!-- NEW TOOLBAR -->
         <div id="desk-toolbar">
-            <!-- PRESETS -->
-            <div class="tb-section">
-                <span class="tb-label">Presets</span>
-                <button class="tb-preset-btn" id="preset-charade" onclick="applyPreset('charade')" title="Charade BG + Phthalo Blue up body, black wick/border + Black down">
-                    🎨 Charade
-                </button>
-                <button class="tb-preset-btn" id="preset-default" onclick="applyPreset('default')" title="Default TradingView colors">
-                    Default
-                </button>
-                <button class="tb-preset-btn" id="preset-classic" onclick="applyPreset('classic')" title="Classic green/red">
-                    Classic
-                </button>
-                <button class="tb-preset-btn" id="preset-mono" onclick="applyPreset('mono')" title="Monochrome">
-                    Mono
-                </button>
-            </div>
-
             <!-- BG -->
             <div class="tb-section">
                 <span class="tb-cp-label">BG</span>
@@ -560,15 +526,16 @@
             <!-- ACTIONS -->
             <div class="tb-section">
                 <button class="tb-reset-btn" onclick="resetAllTVColors()">↺ Reset</button>
-                <button class="tb-remove-drawings-btn" onclick="removeAllDrawings()" title="Remove all drawings from chart">✕ Clear Drawings</button>
             </div>
         </div>
 
         <!-- Split: chart left, calculator right -->
         <div style="display:flex;height:calc(100vh - 198px);">
-            <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
-            <!-- Calculator (unchanged) -->
-            <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="flex:1;min-width:0;height:100%;overflow:hidden;position:relative;">
+                <div id="tv-container" style="position:absolute;top:0;left:0;width:149.3%;height:149.3%;transform:scale(0.67);transform-origin:top left;"></div>
+            </div>
+            <!-- Calculator -->
+            <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;font-size:85%;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
                     <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;">
                         <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;"></span>
@@ -756,13 +723,13 @@ const CP_BOTTOM = [
 
 // TV color config store
 window._tvCfg = {
-    bg:         '#000000',
+    bg:         '#444C5C',  // Charade
     up:         '#1B3A6B',  // Phthalo Blue
-    down:       '#000000',
-    upborder:   '#000000',
-    downborder: '#000000',
-    upwick:     '#000000',
-    downwick:   '#000000',
+    down:       '#000000',  // Black
+    upborder:   '#000000',  // Black
+    downborder: '#000000',  // Black
+    upwick:     '#000000',  // Black
+    downwick:   '#000000',  // Black
 };
 
 // Color picker state
@@ -929,12 +896,9 @@ document.addEventListener('click', (e) => {
 
 function setTVColor(key, hex, rebuild) {
     window._tvCfg[key] = hex;
-    // Update swatch
     const swatch = document.getElementById('swatch-' + key);
     if (swatch) swatch.style.background = hex;
-    // Mark no active preset (unless called from preset)
     if (rebuild !== false) {
-        clearPresetActive();
         scheduleTVRebuild();
     }
     saveTVColors();
@@ -947,54 +911,19 @@ function updateAllSwatches() {
     });
 }
 
-// ═══ PRESETS ═══
-const TV_PRESETS = {
-    charade: {
-        name: 'Charade',
-        // Charade = dark blue-grey #444C5C
+function resetAllTVColors() {
+    window._tvCfg = {
         bg:         '#444C5C',
-        up:         '#1B3A6B',  // Phthalo Blue body
-        upborder:   '#000000',  // black border
-        upwick:     '#000000',  // black wick
-        down:       '#000000',  // black body
-        downborder: '#000000',  // black border
-        downwick:   '#000000',  // black wick
-    },
-    default: {
-        bg: '#000000', up: '#26a69a', down: '#ef5350',
-        upborder: '#26a69a', downborder: '#ef5350',
-        upwick: '#26a69a', downwick: '#ef5350',
-    },
-    classic: {
-        bg: '#131722', up: '#22ab94', down: '#f7525f',
-        upborder: '#22ab94', downborder: '#f7525f',
-        upwick: '#22ab94', downwick: '#f7525f',
-    },
-    mono: {
-        bg: '#0a0a0a', up: '#ffffff', down: '#333333',
-        upborder: '#ffffff', downborder: '#555555',
-        upwick: '#aaaaaa', downwick: '#555555',
-    },
-};
-
-function applyPreset(name) {
-    const p = TV_PRESETS[name];
-    if (!p) return;
-    Object.assign(window._tvCfg, p);
+        up:         '#1B3A6B',
+        down:       '#000000',
+        upborder:   '#000000',
+        downborder: '#000000',
+        upwick:     '#000000',
+        downwick:   '#000000',
+    };
     updateAllSwatches();
-    clearPresetActive();
-    const btn = document.getElementById('preset-' + name);
-    if (btn) btn.classList.add('active-preset');
     scheduleTVRebuild();
     saveTVColors();
-}
-
-function clearPresetActive() {
-    document.querySelectorAll('.tb-preset-btn').forEach(b => b.classList.remove('active-preset'));
-}
-
-function resetAllTVColors() {
-    applyPreset('default');
 }
 
 // Remove all drawings from TV chart
@@ -1136,9 +1065,16 @@ window.ui = {
             try { container.innerHTML = ''; } catch(e) {}
             this._tvWidget = null;
         }
+        // TV widget fills the inflated container (149.3% of visual area)
+        // then CSS scale(0.67) shrinks it to fill the visual space at 67% zoom
+        const wrapper = container.parentElement;
+        const W = wrapper ? Math.round(wrapper.offsetWidth / 0.67) : 1200;
+        const H = wrapper ? Math.round(wrapper.offsetHeight / 0.67) : 800;
         this._tvWidget = new TradingView.widget({
             container_id: 'tv-container',
-            autosize: true,
+            autosize: false,
+            width: W,
+            height: H,
             symbol: 'OANDA:EURUSD',
             interval: '240',
             timezone: 'Asia/Kathmandu',
@@ -1152,6 +1088,16 @@ window.ui = {
             hide_side_toolbar: false,
             allow_symbol_change: true,
             save_image: false,
+            disabled_features: [
+                'volume_force_overlay',
+                'create_volume_indicator_by_default',
+            ],
+            studies_overrides: {
+                "volume.volume.color.0": "rgba(0,0,0,0)",
+                "volume.volume.color.1": "rgba(0,0,0,0)",
+                "volume.volume ma.visible": false,
+                "volume.show ma": false,
+            },
             overrides: {
                 "paneProperties.background": c.bg,
                 "paneProperties.backgroundType": "solid",
