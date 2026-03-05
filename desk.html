@@ -126,10 +126,21 @@ var _m       = 'amt';
     );
 })();
 
-// Poll: if user closes TV manually, close desk too
+// Poll: if user manually closes TV, close desk too.
+// IMPORTANT: TradingView sends Cross-Origin-Opener-Policy headers which sever
+// the _tvWin reference after navigation. Accessing .closed on a severed proxy
+// throws a SecurityError — that means TV is still open, so we do nothing.
+// We only close if .closed genuinely returns true without throwing.
 var _poll = setInterval(function(){
-    if (_tvWin && _tvWin.closed){ clearInterval(_poll); signalAndClose(); }
-}, 800);
+    try {
+        if (_tvWin && _tvWin.closed) { clearInterval(_poll); signalAndClose(); }
+        // If .closed did not throw and is false, TV is still open — do nothing
+    } catch(e) {
+        // SecurityError from COOP header — TV is open but reference is severed
+        // Stop polling since we will never get a reliable .closed = true
+        clearInterval(_poll);
+    }
+}, 1500);
 
 function signalAndClose(){
     try{
@@ -141,10 +152,13 @@ function signalAndClose(){
     window.close();
 }
 
-// CLOSE BUTTON — desk.html opened TV so _tvWin.close() is authorised here
+// CLOSE BUTTON — desk.html opened TV so _tvWin.close() is authorised here.
+// Even if COOP severs the reference (making .closed inaccessible), we still
+// attempt .close() — browsers allow closing a window you opened even after
+// COOP severs property access. If it throws for any other reason, ignore it.
 function closeDeskAndReturn(){
     clearInterval(_poll);
-    try{ if(_tvWin && !_tvWin.closed) _tvWin.close(); }catch(e){}
+    try{ _tvWin.close(); }catch(e){}
     signalAndClose();
 }
 
