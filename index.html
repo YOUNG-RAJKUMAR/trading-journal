@@ -48,7 +48,7 @@
         .section-title { font-size:0.6rem; color:#555; text-transform:uppercase; letter-spacing:2px; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid var(--border); }
         .save-btn { background:#fff; color:#000; font-weight:600; cursor:pointer; border:none; padding:14px; width:100%; margin-top:5px; text-transform:uppercase; letter-spacing:1px; font-size:0.8rem; }
 
-        /* JOURNAL FORM — now full width */
+        /* JOURNAL FORM */
         .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; }
 
         /* SCAN / MEDIA ZONES */
@@ -131,7 +131,7 @@
             height:100%;
         }
 
-        /* ══ MINIMAL SYMBOL STRIP ══ */
+        /* TOOLBAR */
         .chart-toolbar {
             display:flex; align-items:center; gap:6px;
             padding:0 10px; background:#0d0d0d;
@@ -158,7 +158,14 @@
         .chart-go-btn:hover { background:#33dd77; }
 
         .tb-sep { width:1px; background:#222; height:22px; margin:0 2px; flex-shrink:0; }
-        .cp-label { font-size:0.58rem; color:#555; text-transform:uppercase; letter-spacing:1px; flex-shrink:0; }
+
+        .tf-btn {
+            background:transparent; border:1px solid transparent; color:#666;
+            padding:2px 7px; font-size:0.62rem; cursor:pointer; border-radius:3px;
+            transition:all 0.15s; flex-shrink:0; height:24px;
+        }
+        .tf-btn:hover { color:#fff; border-color:#444; }
+        .tf-btn.active { background:#44ff88; color:#000; border-color:#44ff88; font-weight:700; }
 
         .popup-btn {
             background:transparent; border:1px solid #333; color:#aaa;
@@ -168,20 +175,22 @@
         }
         .popup-btn:hover { border-color:#44ff88; color:#44ff88; }
 
-        /* TV widget container — fills remaining space after the 38px toolbar strip */
-        #tv-widget-container {
-            flex:1;
-            min-height:400px;
-            position:relative;
-            overflow:hidden;
+        /* ── TV full-chart iframe — fills remaining panel height ── */
+        #tv-embed-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            display: block;
+            min-height: 400px;
         }
-        #tv-widget-container > div,
-        #tv-widget-container iframe {
-            width:100%!important;
-            height:100%!important;
-            border:none!important;
-            display:block;
+
+        /* TV notice banner */
+        .tv-notice {
+            background:#0d1a0d; border-bottom:1px solid #1a3a1a;
+            padding:6px 14px; font-size:0.6rem; color:#44aa66;
+            letter-spacing:1px; flex-shrink:0; display:flex; align-items:center; gap:8px;
         }
+        .tv-notice strong { color:#44ff88; }
 
         /* CALC SIDE */
         .calc-side-panel { display:flex; flex-direction:column; overflow-y:auto; background:var(--surface); }
@@ -248,7 +257,7 @@
         <button class="tab-btn"        id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
     </nav>
 
-    <!-- ══ JOURNAL TAB — no calculator, form full width ══ -->
+    <!-- ══ JOURNAL TAB ══ -->
     <div id="tab-journal" class="tab-content active">
 
         <div class="card">
@@ -337,9 +346,10 @@
     <div id="tab-charts" class="tab-content">
         <div class="chart-calc-layout">
 
-            <!-- LEFT: TradingView Embed Chart -->
+            <!-- LEFT: TradingView Full Chart -->
             <div class="chart-panel">
-                <!-- Toolbar: symbol, TF, theme toggle, open TV -->
+
+                <!-- Toolbar -->
                 <div class="chart-toolbar">
                     <input type="text" id="chart-symbol" class="chart-symbol-input" placeholder="EURUSD" value="EURUSD"
                         onkeydown="if(event.key==='Enter')ui.loadChart()">
@@ -369,7 +379,7 @@
                     <div class="tb-sep"></div>
                     <button class="popup-btn" onclick="ui.openTVPopup()" title="Open on TradingView.com">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        TradingView
+                        Open Full TV
                     </button>
 
                     <div style="display:flex;align-items:center;gap:5px;margin-left:auto;flex-shrink:0;">
@@ -378,10 +388,17 @@
                     </div>
                 </div>
 
-                <!-- Direct TradingView embed iframe — same as tradingview.com/chart -->
+                <!-- Info notice -->
+                <div class="tv-notice">
+                    <span class="live-dot" style="width:5px;height:5px;"></span>
+                    <span>Full TradingView chart — <strong>drawing tools, indicators, multi-timeframe, alerts</strong> all available. Use the toolbar above or interact directly inside the chart.</span>
+                </div>
+
+                <!-- ✅ Full TradingView chart iframe — all features unlocked -->
                 <iframe id="tv-embed-iframe"
-                    src="https://www.tradingview.com/widgetembed/?frameElementId=tv-embed-iframe&symbol=OANDA%3AEURUSD&interval=240&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0a0a&studies=[]&theme=dark&style=1&timezone=Asia%2FKathmandu&withdateranges=1&showpopupbutton=1&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en&utm_source=trades.run.place&utm_medium=widget&utm_campaign=chart"
-                    style="width:100%;height:100%;border:none;display:block;">
+                    src="https://www.tradingview.com/chart/?symbol=OANDA:EURUSD&interval=240&theme=dark&timezone=Asia%2FKathmandu&hide_side_toolbar=0&locale=en"
+                    allowfullscreen
+                    style="flex:1;width:100%;border:none;display:block;min-height:400px;">
                 </iframe>
             </div>
 
@@ -666,32 +683,22 @@ window.ui = {
         if(id === 'charts')    this.loadChart();
     },
 
-    /* ══ TRADINGVIEW EMBED CHART (iframe) ══ */
+    /* ══ TRADINGVIEW FULL CHART (all drawing tools) ══ */
     _tf:    '240',
     _theme: 'dark',
 
+    // Builds the full TradingView chart URL — same as opening tradingview.com/chart
     _buildEmbedURL(sym, tf, theme) {
-        const base   = 'https://www.tradingview.com/widgetembed/';
         const params = new URLSearchParams({
-            frameElementId: 'tv-embed-iframe',
-            symbol:         `OANDA:${sym}`,
-            interval:       tf,
-            hidesidetoolbar: '0',
-            hidetoptoolbar:  '0',
-            symboledit:      '1',
-            saveimage:       '1',
-            toolbarbg:       'f1f3f6',
-            theme:           theme,
-            style:           '1',
-            timezone:        'Asia/Kathmandu',
-            withdateranges:  '1',
-            showpopupbutton: '1',
-            locale:          'en',
-            utm_source:      location.hostname,
-            utm_medium:      'widget',
-            utm_campaign:    'chart',
+            symbol:            `OANDA:${sym}`,
+            interval:          tf,
+            theme:             theme,
+            timezone:          'Asia/Kathmandu',
+            locale:            'en',
+            style:             '1',
+            hide_side_toolbar: '0',
         });
-        return `${base}?${params.toString()}`;
+        return `https://www.tradingview.com/chart/?${params.toString()}`;
     },
 
     loadChart() {
@@ -829,7 +836,7 @@ window.ui = {
     quickHit(type) { document.getElementById('t-exit').value = type==='TP' ? document.getElementById('t-tp').value : document.getElementById('t-sl').value; },
 
     autoCalcTP() {
-        const rr = parseFloat(document.getElementById('t-tp-rr').value) || 0;
+        const rr = parseFloat(document.getElementById('t-tp-rr')?.value) || 0;
         const entry = parseFloat(document.getElementById('t-entry').value) || 0;
         const sl = parseFloat(document.getElementById('t-sl').value) || 0;
         const tpEl = document.getElementById('t-tp');
@@ -839,7 +846,6 @@ window.ui = {
         const dec = Math.max((entry.toString().split('.')[1]||'').length, (sl.toString().split('.')[1]||'').length);
         tpEl.value = tp.toFixed(dec); tpEl.readOnly = true; tpEl.style.borderColor = '#44ff88'; tpEl.style.color = '#44ff88';
     },
-    onManualTP() { document.getElementById('t-tp-rr').value = '0'; const el = document.getElementById('t-tp'); el.readOnly = false; el.style.borderColor = ''; el.style.color = '#fff'; },
 
     calcRR(t) {
         const e = parseFloat(t.entry)||0, s = parseFloat(t.sl)||0, tp = parseFloat(t.tp)||0;
@@ -1066,7 +1072,7 @@ window.ui = {
             if(p.entry_price&&p.entry_price!='null'){document.getElementById('t-entry').value=p.entry_price;filled++;}
             if(p.sl_price&&p.sl_price!='null'){document.getElementById('t-sl').value=p.sl_price;filled++;}
             if(p.side&&p.side!='null'){const s=p.side.toUpperCase();if(s==='BUY'||s==='SELL')document.getElementById('t-side').value=s;}
-            document.getElementById('t-tp-rr').value='1'; this.autoCalcTP();
+            this.autoCalcTP();
             st.style.color=filled>0?'#44ff88':'#ffcc44';
             st.textContent=filled>0?`✓ Got ${filled} value${filled>1?'s':''} — verify before logging`:'⚠ Could not read prices';
         } catch(e){st.style.color='#ff4444';st.textContent=`✗ Error: ${e.message}`;}
