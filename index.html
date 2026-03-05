@@ -460,9 +460,9 @@ window.ui = {
                 save_image: false
             });
         }
-    },    },
+    },
 
-        /* ══ JOURNAL HELPERS ══ */
+    /* ══ JOURNAL HELPERS ══ */
     classifySession(dateStr) {
         const tv = document.getElementById('t-start').value; if(!tv || !dateStr) return null;
         const [h,m] = tv.split(':').map(Number), npt = h*60+m, mo = new Date(dateStr).getMonth()+1, sum = mo>=3&&mo<=10;
