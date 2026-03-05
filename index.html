@@ -441,18 +441,20 @@ window.ui = {
                    || window.matchMedia('(display-mode: window-controls-overlay)').matches
                    || (window.navigator.standalone === true);
         const sw = window.screen.availWidth, sh = window.screen.availHeight;
+        const calcW = 360;
+        const tvW   = sw - calcW;
         const journalURL = window.location.href;
-        // Open desk.html proxy — it opens TradingView itself so it has full authority to close it
+        // Open desk.html as a 360px right-side panel — desk.html opens TV on the left
         const desk = window.open(
             'desk.html?isPWA=' + isPWA + '&tf=' + this._tf + '&journal=' + encodeURIComponent(journalURL),
             'DeskWin',
-            'width=' + sw + ',height=' + sh + ',left=0,top=0,resizable=yes,scrollbars=no'
+            'width=' + calcW + ',height=' + sh + ',left=' + tvW + ',top=0,resizable=no,scrollbars=no'
         );
         if (!desk) { alert('Please allow popups for this page, then try again.'); return; }
-        // Listen for signal to focus back (PWA mode)
+        // Listen for DESK_CLOSED signal to focus back (PWA) or just refocus (browser)
         window._deskMsgHandler && window.removeEventListener('message', window._deskMsgHandler);
         window._deskMsgHandler = function(e) {
-            if (e.data === 'DESK_CLOSED' && isPWA) window.focus();
+            if (e.data === 'DESK_CLOSED') window.focus();
         };
         window.addEventListener('message', window._deskMsgHandler);
     },
