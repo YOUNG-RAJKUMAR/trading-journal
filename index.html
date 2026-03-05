@@ -462,9 +462,6 @@ window.ui = {
         );
         if (!desk) { return; }
 
-        // Pass reference so calc can close TV window too
-        desk._tvWin = tvWin;
-
         // Write the standalone calculator popup
         desk.document.open();
         desk.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
@@ -599,6 +596,8 @@ function closeBoth(){try{if(window._tvWin&&!window._tvWin.closed)window._tvWin.c
 <\/script>
 </body></html>`);
         desk.document.close();
+        // Set AFTER document.close() — document.open() would have wiped it
+        desk._tvWin = tvWin;
     },
 
     /* ══ JOURNAL HELPERS ══ */
