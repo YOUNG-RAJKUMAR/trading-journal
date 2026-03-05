@@ -592,12 +592,20 @@ function cl(){
   fl('cl');fl('cr');fl('cp');
 }
 function rs(){['bal','rp','sl','tp'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''});document.getElementById('ra').value='0';document.getElementById('rr').value='1';const te=document.getElementById('tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';document.getElementById('at').style.display='none';sM('amt');['rl','rr2','rp2','rs','rt','rrr','rtv'].forEach(i=>sv(i,'---'));sv('rls','Enter values above');document.getElementById('qs').style.display='none';}
-function closeBoth(){try{if(window._tvWin&&!window._tvWin.closed)window._tvWin.close();}catch(e){}if(window.opener&&!window.opener.closed){window.opener.focus();}window.close();}
+function closeBoth(){
+  // Ask the journal (opener) to close TradingView — only the opener can close windows it opened
+  if(window.opener && !window.opener.closed){
+    window.opener.postMessage('CLOSE_TV_WIN','*');
+    setTimeout(function(){window.opener.focus();}, 100);
+  }
+  window.close();
+}
 <\/script>
 </body></html>`);
         desk.document.close();
-        // Set AFTER document.close() — document.open() would have wiped it
-        desk._tvWin = tvWin;
+        // Store tvWin on the JOURNAL window (the one that opened it)
+        // Only the opener can close a window it opened — browser security rule
+        window._tvWin = tvWin;
     },
 
     /* ══ JOURNAL HELPERS ══ */
@@ -967,6 +975,15 @@ function closeBoth(){try{if(window._tvWin&&!window._tvWin.closed)window._tvWin.c
 <script>
 // PWA Install
 window._installPrompt = null;
+// Listen for calculator popup requesting TV window close
+window.addEventListener('message', function(e) {
+    if(e.data === 'CLOSE_TV_WIN') {
+        if(window._tvWin && !window._tvWin.closed) {
+            window._tvWin.close();
+        }
+        window.focus();
+    }
+});
 window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault(); window._installPrompt = e;
     const btn = document.getElementById('install-btn'); if(btn) btn.style.display = 'block';
