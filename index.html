@@ -719,6 +719,27 @@ window.ui = {
 
         const c = this._getCandleColors();
 
+        // Build the overrides object once — reused both at init and after ready
+        const overrides = {
+            'paneProperties.background':               c.bg,
+            'paneProperties.backgroundType':           'solid',
+            // Hide grid by matching background color
+            'paneProperties.vertGridProperties.color': c.bg,
+            'paneProperties.horzGridProperties.color': c.bg,
+            'scalesProperties.lineColor':              '#444444',
+            'scalesProperties.textColor':              '#888888',
+            // Bull candle
+            'mainSeriesProperties.candleStyle.upColor':        c.bullBody,
+            'mainSeriesProperties.candleStyle.borderUpColor':  c.bullBorder,
+            'mainSeriesProperties.candleStyle.wickUpColor':    c.bullWick,
+            // Bear candle
+            'mainSeriesProperties.candleStyle.downColor':      c.bearBody,
+            'mainSeriesProperties.candleStyle.borderDownColor':c.bearBorder,
+            'mainSeriesProperties.candleStyle.wickDownColor':  c.bearWick,
+            'mainSeriesProperties.candleStyle.drawWick':       true,
+            'mainSeriesProperties.candleStyle.drawBorder':     true,
+        };
+
         this._tvWidget = new TradingView.widget({
             container_id:      'tv-widget-container',
             symbol:            sym,
@@ -742,29 +763,14 @@ window.ui = {
             hotlist:           true,
             calendar:          false,
             enable_publishing: false,
+            overrides,
+        });
 
-            overrides: {
-                // Background — from color picker
-                'paneProperties.background':               c.bg,
-                'paneProperties.backgroundType':           'solid',
-                // Grid completely off
-                'paneProperties.vertGridProperties.color': c.bg,
-                'paneProperties.horzGridProperties.color': c.bg,
-                'paneProperties.vertGridProperties.style': 2,
-                'paneProperties.horzGridProperties.style': 2,
-                'scalesProperties.lineColor':              '#333333',
-                'scalesProperties.textColor':              '#888888',
-                // Candle colors — bull (up)
-                'mainSeriesProperties.candleStyle.upColor':        c.bullBody,
-                'mainSeriesProperties.candleStyle.borderUpColor':  c.bullBorder,
-                'mainSeriesProperties.candleStyle.wickUpColor':    c.bullWick,
-                // Candle colors — bear (down)
-                'mainSeriesProperties.candleStyle.downColor':      c.bearBody,
-                'mainSeriesProperties.candleStyle.borderDownColor':c.bearBorder,
-                'mainSeriesProperties.candleStyle.wickDownColor':  c.bearWick,
-                'mainSeriesProperties.candleStyle.drawWick':       true,
-                'mainSeriesProperties.candleStyle.drawBorder':     true,
-            },
+        // The free widget ignores overrides at init time — must re-apply after ready
+        this._tvWidget.onChartReady(() => {
+            try {
+                this._tvWidget.activeChart().applyOverrides(overrides);
+            } catch(e) {}
         });
     },
 
