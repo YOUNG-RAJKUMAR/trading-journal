@@ -455,8 +455,11 @@ window.ui = {
         );
         if (!tvWin) { alert('Please allow popups for this page, then try again.'); return; }
 
-        // Store reference on journal window so calc can reach it via window.opener._tvWin
+        // Store reference + expose a closer function — only the opener (journal) can close TV
         window._tvWin = tvWin;
+        window.closeTV = function() {
+            try { if(window._tvWin && !window._tvWin.closed) window._tvWin.close(); } catch(e){}
+        };
 
         const calc = window.open('', 'CalcWin',
             `width=${calcW},height=${sh},left=${tvW},top=0,resizable=no,scrollbars=no`);
@@ -563,17 +566,13 @@ var _m='amt';
 var _journalURL='${journalURL}';
 var _isPWA=${isPWA ? 'true' : 'false'};
 function closeDeskAndReturn(){
-  // Close TradingView — we opened it so browser allows .close() even cross-origin
   try {
-    if(window.opener && window.opener._tvWin && !window.opener._tvWin.closed){
-      window.opener._tvWin.close();
+    if(window.opener && !window.opener.closed){
+      // Journal window calls closeTV() on itself — it opened TV so it can close it
+      window.opener.closeTV();
+      if(_isPWA){ window.opener.focus(); }
     }
   } catch(e){}
-  // PWA: bring the app window to front before closing
-  if(_isPWA){
-    try { if(window.opener && !window.opener.closed){ window.opener.focus(); } } catch(e){}
-  }
-  // Close the calculator itself
   window.close();
 }
 function sM(m){_m=m;document.getElementById('pr').style.display=m==='pct'?'block':'none';document.getElementById('ar').style.display=m==='pct'?'none':'block';document.getElementById('pb').className='mb '+(m==='pct'?'on':'off');document.getElementById('ab').className='mb '+(m==='amt'?'on':'off');cl();}
