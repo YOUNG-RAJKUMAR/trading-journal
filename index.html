@@ -1475,13 +1475,47 @@ window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
     }
 
     /* ────────────────────────────────────────────────────────────
-       TV UDF OHLCV fetch
+       TV UDF OHLCV fetch — tries multiple symbol prefix formats
+       because demo-feed-data.tradingview.com needs prefixes like
+       FX:EURUSD or FX_IDC:EURUSD rather than plain EURUSD
     ──────────────────────────────────────────────────────────── */
-    function fetchTV(tvSym, res, cacheKey, onResult, onError) {
+
+    /* Remember which prefix worked for each base symbol */
+    var _symPrefixCache = {};
+
+    /* Symbol prefix candidates — tried in order until one has data */
+    function getPrefixes(sym) {
+        var s = sym.replace(/^[^:]+:/,''); // strip any existing prefix
+        /* Gold / Silver */
+        if (/^XAU/.test(s)) return ['OANDA:XAU_USD','FX_IDC:XAUUSD','FXOPEN:XAUUSD','FOREXCOM:XAUUSD'];
+        if (/^XAG/.test(s)) return ['OANDA:XAG_USD','FX_IDC:XAGUSD'];
+        /* Indices */
+        if (/NAS100|NASDAQ|NDX/.test(s)) return ['NASDAQ:NDX','TVC:NDX','FOREXCOM:NAS100'];
+        if (/US30|DOW/.test(s))          return ['TVC:DJI','FOREXCOM:US30'];
+        if (/SP500|SPX|US500/.test(s))   return ['FOREXCOM:SPX500','TVC:SPX'];
+        if (/GER40|DAX/.test(s))         return ['XETR:DAX','TVC:DEU40'];
+        if (/UK100|FTSE/.test(s))        return ['LSE:UKX','TVC:UKX'];
+        if (/NKY|JPN225/.test(s))        return ['TVC:NI225'];
+        /* Forex pairs — FX: prefix is most reliable on TV demo */
+        return [
+            'FX:' + s,
+            'FX_IDC:' + s,
+            'OANDA:' + s.slice(0,3) + '_' + s.slice(3),
+            'FOREXCOM:' + s,
+            s   /* plain last resort */
+        ];
+    }
+
+    function fetchTVWithPrefix(prefixes, idx, res, cacheKey, onResult, onError) {
+        if (idx >= prefixes.length) {
+            /* All prefixes exhausted */
+            onResult([], { noData: true }); return;
+        }
+        var sym   = prefixes[idx];
         var now   = Math.floor(Date.now() / 1000);
         var range = TV_RANGE[res] || 60*60*24*90;
         var url   = TV_BASE + '/history' +
-            '?symbol='     + encodeURIComponent(tvSym) +
+            '?symbol='     + encodeURIComponent(sym) +
             '&resolution=' + encodeURIComponent(res) +
             '&from='       + (now - range) +
             '&to='         + now;
@@ -1490,7 +1524,9 @@ window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
             .then(function(r) { return r.json(); })
             .then(function(d) {
                 if (!d || d.s !== 'ok' || !d.t || !d.t.length) {
-                    onResult([], { noData: true }); return;
+                    /* This prefix didn't work — try the next one */
+                    fetchTVWithPrefix(prefixes, idx + 1, res, cacheKey, onResult, onError);
+                    return;
                 }
                 var bars = [];
                 for (var i = 0; i < d.t.length; i++) {
@@ -1499,15 +1535,30 @@ window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
                     bars.push({ time:d.t[i]*1000, open:o, high:h, low:l, close:c,
                                  volume: d.v ? (+d.v[i]||0) : 0 });
                 }
-                if (!bars.length) { onResult([], { noData: true }); return; }
+                if (!bars.length) {
+                    fetchTVWithPrefix(prefixes, idx + 1, res, cacheKey, onResult, onError);
+                    return;
+                }
+                /* Remember this prefix for future calls */
+                _symPrefixCache[cacheKey.split('_')[0]] = sym;
                 _cache[cacheKey] = { bars: bars, ts: Date.now() };
                 onResult(bars, { noData: false });
             })
-            .catch(function(e) {
-                console.error('[Datafeed/TV]', e.message);
-                if (typeof onError === 'function') onError('datafeed_error');
-                else onResult([], { noData: true });
+            .catch(function() {
+                fetchTVWithPrefix(prefixes, idx + 1, res, cacheKey, onResult, onError);
             });
+    }
+
+    function fetchTV(tvSym, res, cacheKey, onResult, onError) {
+        /* Use cached working prefix if available */
+        var baseKey = tvSym.replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,6);
+        if (_symPrefixCache[baseKey]) {
+            /* Go straight to known-good prefix, fall back to full list if stale */
+            var knownPrefixes = [_symPrefixCache[baseKey]].concat(getPrefixes(tvSym));
+            fetchTVWithPrefix(knownPrefixes, 0, res, cacheKey, onResult, onError);
+        } else {
+            fetchTVWithPrefix(getPrefixes(tvSym), 0, res, cacheKey, onResult, onError);
+        }
     }
 
     /* ════════════════════════════════════════════════════════════
@@ -1695,14 +1746,17 @@ window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
         }
 
         /* ── FOREX/INDICES: Poll TV demo endpoint every 5 seconds ── */
-        var pollInterval = resolution === '1' ? 5000 : 10000;  // 5s for 1m, 10s for others
+        var pollInterval = resolution === '1' ? 5000 : 10000;
         var timer = null;
+        /* Use known-good prefix for polling if already resolved */
+        var baseKey = sym.replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,6);
 
         function poll() {
+            var pollSym = _symPrefixCache[baseKey] || ('FX:' + sym);
             var now  = Math.floor(Date.now() / 1000);
-            var from = now - 120;  // last 2 minutes only
+            var from = now - 120;
             var url  = TV_BASE + '/history' +
-                '?symbol='     + encodeURIComponent(sym) +
+                '?symbol='     + encodeURIComponent(pollSym) +
                 '&resolution=' + encodeURIComponent(resolution) +
                 '&from='       + from +
                 '&to='         + now;
@@ -1711,35 +1765,26 @@ window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
                     if (!d || d.s !== 'ok' || !d.t || !d.t.length) return;
-                    var i   = d.t.length - 1;  // latest bar only
+                    var i   = d.t.length - 1;
                     var bar = {
                         time:   d.t[i] * 1000,
-                        open:   +d.o[i],
-                        high:   +d.h[i],
-                        low:    +d.l[i],
-                        close:  +d.c[i],
+                        open:   +d.o[i], high: +d.h[i],
+                        low:    +d.l[i], close: +d.c[i],
                         volume: d.v ? (+d.v[i] || 0) : 0
                     };
                     if (isNaN(bar.open) || bar.time <= 0) return;
-                    // Update cache
                     var cacheKey = sym + '_' + resolution;
                     if (_cache[cacheKey] && _cache[cacheKey].bars.length) {
                         var bars = _cache[cacheKey].bars;
                         var last = bars[bars.length - 1];
-                        if (last.time === bar.time) {
-                            bars[bars.length - 1] = bar;
-                        } else if (bar.time > last.time) {
-                            bars.push(bar);
-                        }
+                        if (last.time === bar.time) bars[bars.length - 1] = bar;
+                        else if (bar.time > last.time) bars.push(bar);
                     }
                     onRealtimeCallback(bar);
                 })
                 .catch(function() {});
-
             timer = setTimeout(poll, pollInterval);
         }
-
-        // Start polling after short delay
         timer = setTimeout(poll, pollInterval);
 
         _subs[subscriberUID] = {
