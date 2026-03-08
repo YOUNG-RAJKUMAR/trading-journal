@@ -735,9 +735,6 @@ window.ui = {
         };
     },
 
-    /* ══════════════════════════════════════════════════════
-       UPDATED: uses your local charting_library files
-       ══════════════════════════════════════════════════════ */
     launchTradingDesk() {
         const c = this._tvColors();
         const container = document.getElementById('tv-container');
@@ -745,15 +742,51 @@ window.ui = {
         container.innerHTML = '';
         this._tvWidget = null;
 
-        // Check the library loaded from your zip files
-        if (typeof TradingView === 'undefined' || typeof Datafeeds === 'undefined') {
-            container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ff4444;font-size:0.8rem;font-family:monospace;flex-direction:column;gap:12px;"><div>⚠ Chart library files not found</div><div style="color:#555;font-size:0.65rem;">Make sure charting_library/ and datafeeds/ folders are in your repo</div></div>';
+        if (typeof TradingView === 'undefined') {
+            container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ff4444;font-size:0.8rem;font-family:monospace;flex-direction:column;gap:12px;"><div>⚠ charting_library not loaded</div><div style="color:#555;font-size:0.65rem;">Check charting_library/ folder is in repo root</div></div>';
             return;
         }
 
-        const datafeed = new Datafeeds.UDFCompatibleDatafeed(
-            'https://demo_feed.tradingview.com'
-        );
+        // Inline UDF datafeed — no external JS files needed
+        const BASE = 'https://demo_feed.tradingview.com';
+        const udfGet = (path, params) => {
+            const url = new URL(BASE + path);
+            Object.entries(params || {}).forEach(([k,v]) => url.searchParams.set(k, String(v)));
+            return fetch(url.toString()).then(r => r.json());
+        };
+
+        const datafeed = {
+            _polls: {},
+            onReady(cb) {
+                udfGet('/config').then(cfg => setTimeout(() => cb(cfg || {supported_resolutions:['1','5','15','30','60','240','1D','1W'],supports_time:true}), 0)).catch(() => setTimeout(() => cb({supported_resolutions:['1','5','15','30','60','240','1D','1W'],supports_time:true}), 0));
+            },
+            searchSymbols(input, exchange, type, onResult) {
+                udfGet('/search', {query:input, type, exchange, limit:30}).then(r => onResult(Array.isArray(r)?r:[])).catch(() => onResult([]));
+            },
+            resolveSymbol(symbolName, onResolved, onError) {
+                udfGet('/symbols', {symbol: symbolName})
+                    .then(info => { if (!info || info.s === 'error') { onError('not found'); return; } onResolved(info); })
+                    .catch(() => onResolved({name:symbolName, ticker:symbolName, description:symbolName, type:'forex', session:'24x7', timezone:'Asia/Kathmandu', minmov:1, pricescale:100000, has_intraday:true, has_daily:true, supported_resolutions:['1','5','15','30','60','240','1D','1W'], volume_precision:0, data_status:'streaming'}));
+            },
+            getBars(symbolInfo, resolution, periodParams, onHistory, onError) {
+                udfGet('/history', {symbol:symbolInfo.ticker||symbolInfo.name, resolution, from:periodParams.from, to:periodParams.to, countback:periodParams.countBack||300})
+                    .then(data => {
+                        if (!data || data.s === 'no_data') { onHistory([], {noData:true}); return; }
+                        if (data.s === 'error') { onError(data.errmsg); return; }
+                        onHistory(data.t.map((t,i) => ({time:t*1000, open:data.o[i], high:data.h[i], low:data.l[i], close:data.c[i], volume:data.v?data.v[i]:0})), {noData:false});
+                    }).catch(e => onError(e.message));
+            },
+            subscribeBars(symbolInfo, resolution, onTick, uid) {
+                const ticker = symbolInfo.ticker || symbolInfo.name;
+                const poll = () => {
+                    const now = Math.floor(Date.now()/1000);
+                    udfGet('/history', {symbol:ticker, resolution, from:now-300, to:now, countback:2})
+                        .then(data => { if (!data||data.s!=='ok'||!data.t.length) return; const i=data.t.length-1; onTick({time:data.t[i]*1000,open:data.o[i],high:data.h[i],low:data.l[i],close:data.c[i],volume:data.v?data.v[i]:0}); }).catch(()=>{});
+                };
+                this._polls[uid] = setInterval(poll, 10000);
+            },
+            unsubscribeBars(uid) { if(this._polls[uid]){clearInterval(this._polls[uid]);delete this._polls[uid];} },
+        };
 
         this._tvWidget = new TradingView.widget({
             container:    'tv-container',
@@ -767,30 +800,17 @@ window.ui = {
             theme:        'dark',
             timezone:     'Asia/Kathmandu',
             toolbar_bg:   c.bg,
-
-            disabled_features: [
-                'use_localstorage_for_settings',
-                'create_volume_indicator_by_default',
-                'volume_force_overlay',
-            ],
+            disabled_features: ['use_localstorage_for_settings','create_volume_indicator_by_default','volume_force_overlay'],
             enabled_features: [],
-
             overrides: {
-                'paneProperties.background':                    c.bg,
-                'paneProperties.backgroundType':                'solid',
-                'paneProperties.backgroundGradientStartColor':  c.bg,
-                'paneProperties.backgroundGradientEndColor':    c.bg,
-                'paneProperties.vertGridProperties.color':      'rgba(0,0,0,0)',
-                'paneProperties.horzGridProperties.color':      'rgba(0,0,0,0)',
-                'paneProperties.crossHairProperties.color':     '#555555',
-                'mainSeriesProperties.candleStyle.upColor':         c.up,
-                'mainSeriesProperties.candleStyle.downColor':       c.down,
-                'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
-                'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
-                'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
-                'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
-                'mainSeriesProperties.candleStyle.drawWick':        true,
-                'mainSeriesProperties.candleStyle.drawBorder':      true,
+                'paneProperties.background': c.bg, 'paneProperties.backgroundType': 'solid',
+                'paneProperties.backgroundGradientStartColor': c.bg, 'paneProperties.backgroundGradientEndColor': c.bg,
+                'paneProperties.vertGridProperties.color': 'rgba(0,0,0,0)', 'paneProperties.horzGridProperties.color': 'rgba(0,0,0,0)',
+                'paneProperties.crossHairProperties.color': '#555555',
+                'mainSeriesProperties.candleStyle.upColor': c.up, 'mainSeriesProperties.candleStyle.downColor': c.down,
+                'mainSeriesProperties.candleStyle.borderUpColor': c.upBorder, 'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
+                'mainSeriesProperties.candleStyle.wickUpColor': c.upWick, 'mainSeriesProperties.candleStyle.wickDownColor': c.downWick,
+                'mainSeriesProperties.candleStyle.drawWick': true, 'mainSeriesProperties.candleStyle.drawBorder': true,
             }
         });
     },
@@ -1405,11 +1425,7 @@ function deskRs(){
 }
 </script>
 
-<!-- ════════════════════════════════════════════════════
-     ADVANCED CHARTS — from your zip files
-     Load datafeed FIRST, then charting_library
-     ════════════════════════════════════════════════════ -->
-<script src="./datafeeds/udf/lib/udf-compatible-datafeed.js"></script>
+<!-- TradingView Advanced Charts — local files from your zip -->
 <script src="./charting_library/charting_library.standalone.js"></script>
 
 </body>
