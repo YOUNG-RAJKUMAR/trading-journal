@@ -845,19 +845,8 @@ window.ui = {
         };
     },
 
-    launchTradingDesk() {
+   launchTradingDesk() {
         const c   = this._tvColors();
-        const container = document.getElementById('tv-container');
-        if (!container) return;
-        if (this._tvWidget) {
-            try { this._tvWidget.remove(); } catch(e) {}
-            this._tvWidget = null;
-        }
-        container.innerHTML = '';
-        this._tvWidget = new TradingView.widget({
-            container: 'tv-container',
-            datafeed: new Datafeeds.UDFCompatibleDatafeed('https://demo-feed-data.tradingview.com'),{
-        const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
         if (this._tvWidget) {
