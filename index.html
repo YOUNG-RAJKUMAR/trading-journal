@@ -209,7 +209,6 @@
         .stat-meta { font-size:0.68rem;color:#444;margin-top:4px;display:block; }
         .analytics-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:25px; }
 
-        /* CHARTS TAB */
         #tab-charts { zoom: 0.7; }
 
         /* PDF */
@@ -219,7 +218,6 @@
         .pdf-export-mode table { font-size:8px!important; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1} }
 
-        /* live pulse */
         .live-dot { width:7px;height:7px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite; }
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
 
@@ -333,28 +331,28 @@
                     </div>
                 </div>
                 <div style="grid-column:span 2;">
-                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9312; Scan Setup Screenshot — Auto-fills Entry &amp; SL</div>
+                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">① Scan Setup Screenshot — Auto-fills Entry &amp; SL</div>
                     <div class="scan-zone" id="scan-zone"
                         ondragover="event.preventDefault();this.classList.add('drag-over')"
                         ondragleave="this.classList.remove('drag-over')"
                         ondrop="event.preventDefault();this.classList.remove('drag-over');ui.handleScanDrop(event)">
                         <input type="file" id="t-scan-img" accept="image/*" onchange="ui.scanTradeImage(this.files[0])">
-                        <div class="scan-zone-label">&#128247; Drop / Paste / Click to scan screenshot<br><span>Entry + SL auto-filled by AI &bull; R:R 1:1 auto-set</span></div>
+                        <div class="scan-zone-label">📷 Drop / Paste / Click to scan screenshot<br><span>Entry + SL auto-filled by AI · R:R 1:1 auto-set</span></div>
                         <div class="scan-status" id="scan-status"></div>
                     </div>
                 </div>
                 <div style="grid-column:span 2;">
-                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9313; Trade Media — Chart Screenshot (saved to record)</div>
+                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">② Trade Media — Chart Screenshot (saved to record)</div>
                     <div class="media-zone" id="media-zone"
                         ondragover="event.preventDefault();this.classList.add('drag-over')"
                         ondragleave="this.classList.remove('drag-over')"
                         ondrop="event.preventDefault();this.classList.remove('drag-over');ui.dropMedia(event)">
                         <input type="file" id="t-img" accept="image/*" onchange="ui.previewMedia(this)">
-                        <div id="media-zone-label" style="font-size:0.65rem;color:#333;letter-spacing:1px;pointer-events:none;">&#128444; Drop / Click to attach chart screenshot</div>
+                        <div id="media-zone-label" style="font-size:0.65rem;color:#333;letter-spacing:1px;pointer-events:none;">🖼 Drop / Click to attach chart screenshot</div>
                         <img id="media-preview-img" class="media-preview">
                     </div>
                     <div style="display:flex;gap:6px;margin-top:6px;">
-                        <button onclick="ui.pasteMediaFromClipboard()" style="flex:1;background:#0a0a0a;border:1px solid #333;color:#888;padding:8px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">&#128203; Paste Screenshot</button>
+                        <button onclick="ui.pasteMediaFromClipboard()" style="flex:1;background:#0a0a0a;border:1px solid #333;color:#888;padding:8px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">📋 Paste Screenshot</button>
                         <button onclick="ui.clearMedia()" id="media-clear-btn" style="background:#0a0a0a;border:1px solid #2a0000;color:#ff4444;padding:8px 12px;font-size:0.65rem;cursor:pointer;display:none;">✕</button>
                     </div>
                 </div>
@@ -401,7 +399,6 @@
                 <button id="ctb-toggle" onclick="toggleColorPanel()" style="padding:4px 12px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#888;border-radius:3px;font-family:inherit;transition:all .15s;">🎨 Customize ▾</button>
                 <button onclick="ui.resetTVColors()" style="padding:4px 11px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#666;border-radius:3px;font-family:inherit;">↺ Reset</button>
             </div>
-
             <!-- ROW 2 -->
             <div class="ctb-row2" id="ctb-panel">
                 <div class="cg-wrap">
@@ -470,7 +467,7 @@
                             <div class="swatch-row" id="sw-downborder"></div>
                             <div class="ph-row">
                                 <input type="color" id="tv-downborder" value="#000000" oninput="syncHex('tv-downborder','tv-downborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downborder',this.value)">
-                                <input type="text"  id="tv-downborder-hex" value="#000000" oninput="syncPicker('tv-downborder-hex','tv-downborder');ui.rebuildTVWidget();updateSwatchActive('sv-downborder',this.value)" maxlength="7">
+                                <input type="text"  id="tv-downborder-hex" value="#000000" oninput="syncPicker('tv-downborder-hex','tv-downborder');ui.rebuildTVWidget();updateSwatchActive('sw-downborder',this.value)" maxlength="7">
                             </div>
                         </div>
                     </div>
@@ -481,14 +478,13 @@
         <!-- Chart + Calculator -->
         <div style="display:flex;height:calc(136vh - 80px);">
             <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
-            <!-- Calculator Panel -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
                     <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;">
                         <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;"></span>
-                        &#9878; LOT CALCULATOR
+                        ⚓ LOT CALCULATOR
                     </div>
-                    <button onclick="deskRs()" style="background:transparent;border:1px solid #222;color:#555;padding:3px 8px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;">&#8635; Reset</button>
+                    <button onclick="deskRs()" style="background:transparent;border:1px solid #222;color:#555;padding:3px 8px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;">⟳ Reset</button>
                 </div>
                 <div style="flex:1;overflow-y:auto;padding:12px;">
                     <div style="display:flex;align-items:center;gap:7px;background:#050505;border:1px solid #1a3a1a;padding:7px 10px;border-radius:3px;margin-bottom:12px;">
@@ -516,7 +512,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP (ticks) <span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">&#9679; AUTO</span></label><input type="number" id="d-tp" placeholder="100" min="0" step="1" oninput="deskMtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
+                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP (ticks) <span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">● AUTO</span></label><input type="number" id="d-tp" placeholder="100" min="0" step="1" oninput="deskMtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;">
                         <div id="d-rcl" style="grid-column:span 2;background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Lot Size</div><div id="d-rl" style="font-size:1.4rem;color:#44ff88;font-weight:700;">---</div><div id="d-rls" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">Enter values</div></div>
                         <div id="d-rcr" style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Risk ($)</div><div id="d-rr2" style="font-size:.88rem;color:#ff4444;">---</div><div id="d-rrs" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">---</div></div>
@@ -634,7 +630,7 @@
         </div>
     </div>
 
-</div><!-- /app -->
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -735,84 +731,96 @@ window.ui = {
         };
     },
 
+    /* ══════════════════════════════════════════════
+       FIX A — Destroy properly, apply overrides via onChartReady,
+               support hollow candles via _chartStyle, cover all
+               candleStyle + hollowCandleStyle overrides.
+    ══════════════════════════════════════════════ */
     launchTradingDesk() {
         const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
-        container.innerHTML = '';
-        this._tvWidget = null;
 
-        if (typeof TradingView === 'undefined') {
-            container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ff4444;font-size:0.8rem;font-family:monospace;flex-direction:column;gap:12px;"><div>⚠ charting_library not loaded</div><div style="color:#555;font-size:0.65rem;">Check charting_library/ folder is in repo root</div></div>';
-            return;
+        // Cancel any pending debounced rebuilds
+        clearTimeout(this._tvRebuildTimer);
+
+        // Properly destroy existing widget
+        if (this._tvWidget) {
+            try { if (typeof this._tvWidget.remove === 'function') this._tvWidget.remove(); } catch(e) {}
+            this._tvWidget = null;
         }
+        container.innerHTML = '';
 
-        // Inline UDF datafeed — no external JS files needed
-        const BASE = 'https://demo_feed.tradingview.com';
-        const udfGet = (path, params) => {
-            const url = new URL(BASE + path);
-            Object.entries(params || {}).forEach(([k,v]) => url.searchParams.set(k, String(v)));
-            return fetch(url.toString()).then(r => r.json());
+        // Build the full overrides object once — used both at init and in onChartReady
+        const overrides = {
+            "paneProperties.background":                   c.bg,
+            "paneProperties.backgroundType":               "solid",
+            "paneProperties.backgroundGradientStartColor": c.bg,
+            "paneProperties.backgroundGradientEndColor":   c.bg,
+            "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
+            "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
+            "paneProperties.vertGridProperties.style":     1,
+            "paneProperties.horzGridProperties.style":     1,
+            "paneProperties.crossHairProperties.color":    "#555555",
+            // Filled candle colours
+            "mainSeriesProperties.candleStyle.upColor":         c.up,
+            "mainSeriesProperties.candleStyle.downColor":       c.down,
+            "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
+            "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
+            "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
+            "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
+            "mainSeriesProperties.candleStyle.drawWick":        true,
+            "mainSeriesProperties.candleStyle.drawBorder":      true,
+            // Hollow candle colours (style 9) — must also be set
+            "mainSeriesProperties.hollowCandleStyle.upColor":         c.up,
+            "mainSeriesProperties.hollowCandleStyle.downColor":       c.down,
+            "mainSeriesProperties.hollowCandleStyle.borderUpColor":   c.upBorder,
+            "mainSeriesProperties.hollowCandleStyle.borderDownColor": c.downBorder,
+            "mainSeriesProperties.hollowCandleStyle.wickUpColor":     c.upWick,
+            "mainSeriesProperties.hollowCandleStyle.wickDownColor":   c.downWick,
+            "mainSeriesProperties.hollowCandleStyle.drawWick":        true,
+            "mainSeriesProperties.hollowCandleStyle.drawBorder":      true,
+            // Heikin Ashi colours (style 8)
+            "mainSeriesProperties.haStyle.upColor":         c.up,
+            "mainSeriesProperties.haStyle.downColor":       c.down,
+            "mainSeriesProperties.haStyle.borderUpColor":   c.upBorder,
+            "mainSeriesProperties.haStyle.borderDownColor": c.downBorder,
+            "mainSeriesProperties.haStyle.wickUpColor":     c.upWick,
+            "mainSeriesProperties.haStyle.wickDownColor":   c.downWick,
         };
 
-        const datafeed = {
-            _polls: {},
-            onReady(cb) {
-                udfGet('/config').then(cfg => setTimeout(() => cb(cfg || {supported_resolutions:['1','5','15','30','60','240','1D','1W'],supports_time:true}), 0)).catch(() => setTimeout(() => cb({supported_resolutions:['1','5','15','30','60','240','1D','1W'],supports_time:true}), 0));
-            },
-            searchSymbols(input, exchange, type, onResult) {
-                udfGet('/search', {query:input, type, exchange, limit:30}).then(r => onResult(Array.isArray(r)?r:[])).catch(() => onResult([]));
-            },
-            resolveSymbol(symbolName, onResolved, onError) {
-                udfGet('/symbols', {symbol: symbolName})
-                    .then(info => { if (!info || info.s === 'error') { onError('not found'); return; } onResolved(info); })
-                    .catch(() => onResolved({name:symbolName, ticker:symbolName, description:symbolName, type:'forex', session:'24x7', timezone:'Asia/Kathmandu', minmov:1, pricescale:100000, has_intraday:true, has_daily:true, supported_resolutions:['1','5','15','30','60','240','1D','1W'], volume_precision:0, data_status:'streaming'}));
-            },
-            getBars(symbolInfo, resolution, periodParams, onHistory, onError) {
-                udfGet('/history', {symbol:symbolInfo.ticker||symbolInfo.name, resolution, from:periodParams.from, to:periodParams.to, countback:periodParams.countBack||300})
-                    .then(data => {
-                        if (!data || data.s === 'no_data') { onHistory([], {noData:true}); return; }
-                        if (data.s === 'error') { onError(data.errmsg); return; }
-                        onHistory(data.t.map((t,i) => ({time:t*1000, open:data.o[i], high:data.h[i], low:data.l[i], close:data.c[i], volume:data.v?data.v[i]:0})), {noData:false});
-                    }).catch(e => onError(e.message));
-            },
-            subscribeBars(symbolInfo, resolution, onTick, uid) {
-                const ticker = symbolInfo.ticker || symbolInfo.name;
-                const poll = () => {
-                    const now = Math.floor(Date.now()/1000);
-                    udfGet('/history', {symbol:ticker, resolution, from:now-300, to:now, countback:2})
-                        .then(data => { if (!data||data.s!=='ok'||!data.t.length) return; const i=data.t.length-1; onTick({time:data.t[i]*1000,open:data.o[i],high:data.h[i],low:data.l[i],close:data.c[i],volume:data.v?data.v[i]:0}); }).catch(()=>{});
-                };
-                this._polls[uid] = setInterval(poll, 10000);
-            },
-            unsubscribeBars(uid) { if(this._polls[uid]){clearInterval(this._polls[uid]);delete this._polls[uid];} },
-        };
+        // _chartStyle: '1'=candles, '9'=hollow, '8'=HA, etc. (set by applyPreset)
+        const chartStyle = this._chartStyle || '1';
 
         this._tvWidget = new TradingView.widget({
-            container:    'tv-container',
-            locale:       'en',
-            library_path: './charting_library/',
-            datafeed:     datafeed,
-            symbol:       'EURUSD',
-            interval:     this._tf || '240',
-            fullscreen:   false,
-            autosize:     true,
-            theme:        'dark',
-            timezone:     'Asia/Kathmandu',
-            toolbar_bg:   c.bg,
-            disabled_features: ['use_localstorage_for_settings','create_volume_indicator_by_default','volume_force_overlay'],
-            enabled_features: [],
-            overrides: {
-                'paneProperties.background': c.bg, 'paneProperties.backgroundType': 'solid',
-                'paneProperties.backgroundGradientStartColor': c.bg, 'paneProperties.backgroundGradientEndColor': c.bg,
-                'paneProperties.vertGridProperties.color': 'rgba(0,0,0,0)', 'paneProperties.horzGridProperties.color': 'rgba(0,0,0,0)',
-                'paneProperties.crossHairProperties.color': '#555555',
-                'mainSeriesProperties.candleStyle.upColor': c.up, 'mainSeriesProperties.candleStyle.downColor': c.down,
-                'mainSeriesProperties.candleStyle.borderUpColor': c.upBorder, 'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
-                'mainSeriesProperties.candleStyle.wickUpColor': c.upWick, 'mainSeriesProperties.candleStyle.wickDownColor': c.downWick,
-                'mainSeriesProperties.candleStyle.drawWick': true, 'mainSeriesProperties.candleStyle.drawBorder': true,
-            }
+            container: 'tv-container',
+            library_path: '/charting_library/',
+            datafeed: new window.Datafeeds.UDFCompatibleDatafeed(''),
+            autosize: true,
+            symbol: 'EURUSD',
+            interval: this._tf,
+            timezone: 'Asia/Kathmandu',
+            theme: 'dark',
+            style: chartStyle,
+            locale: 'en',
+            toolbar_bg: c.bg,
+            backgroundColor: c.bg,
+            gridColor: 'rgba(0,0,0,0)',
+            enable_publishing: false,
+            hide_side_toolbar: false,
+            allow_symbol_change: true,
+            save_image: false,
+            disabled_features: ['create_volume_indicator_by_default','volume_force_overlay'],
+            supported_resolutions: ['1','3','5','15','30','60','120','240','D','W','M'],
+            overrides: overrides,
         });
+
+        // ── Re-apply overrides after chart fully initialises (guarantees colours stick) ──
+        if (this._tvWidget && typeof this._tvWidget.onChartReady === 'function') {
+            this._tvWidget.onChartReady(() => {
+                try { this._tvWidget.applyOverrides(overrides); } catch(e) {}
+            });
+        }
     },
 
     rebuildTVWidget() {
@@ -1238,11 +1246,11 @@ function updateSwatchActive(swId, color) {
 }
 
 const PRESETS = {
-    phthalo: { bg:'#292A35', up:'#000F89', upWick:'#000000', upBorder:'#000000', down:'#000000', downWick:'#000000', downBorder:'#000000' },
-    classic: { bg:'#131722', up:'#26a69a', upWick:'#26a69a', upBorder:'#26a69a', down:'#ef5350', downWick:'#ef5350', downBorder:'#ef5350' },
-    mono:    { bg:'#0d0d0d', up:'#cccccc', upWick:'#aaaaaa', upBorder:'#888888', down:'#444444', downWick:'#333333', downBorder:'#333333' },
-    hollow:  { bg:'#000000', up:'#44ff88', upWick:'#44ff88', upBorder:'#44ff88', down:'#ff4444', downWick:'#ff4444', downBorder:'#ff4444' },
-    trader:  { bg:'#080c08', up:'#00e600', upWick:'#00e600', upBorder:'#00e600', down:'#ff3344', downWick:'#ff3344', downBorder:'#ff3344' },
+    phthalo: { bg:'#292A35', up:'#000F89', upWick:'#000000', upBorder:'#000000', down:'#000000', downWick:'#000000', downBorder:'#000000', style:'1' },
+    classic: { bg:'#131722', up:'#26a69a', upWick:'#26a69a', upBorder:'#26a69a', down:'#ef5350', downWick:'#ef5350', downBorder:'#ef5350', style:'1' },
+    mono:    { bg:'#0d0d0d', up:'#cccccc', upWick:'#aaaaaa', upBorder:'#888888', down:'#444444', downWick:'#333333', downBorder:'#333333', style:'1' },
+    hollow:  { bg:'#000000', up:'#44ff88', upWick:'#44ff88', upBorder:'#44ff88', down:'#ff4444', downWick:'#ff4444', downBorder:'#ff4444', style:'9' },
+    trader:  { bg:'#080c08', up:'#00e600', upWick:'#00e600', upBorder:'#00e600', down:'#ff3344', downWick:'#ff3344', downBorder:'#ff3344', style:'1' },
 };
 
 function applyPreset(name) {
@@ -1266,6 +1274,8 @@ function applyPreset(name) {
     updateSwatchActive('sw-downborder',p.downBorder);
     document.querySelectorAll('.preset-chip').forEach(b => b.classList.remove('active-preset'));
     const chip = document.getElementById('pch-'+name); if(chip) chip.classList.add('active-preset');
+    // Pass the chart style (e.g. '9' for hollow) to the widget builder
+    ui._chartStyle = p.style || '1';
     ui.launchTradingDesk();
 }
 
@@ -1317,8 +1327,206 @@ if('serviceWorker' in navigator) {
 }
 </script>
 
-<!-- Color picker sync -->
+<!-- TradingView library -->
+<script src="charting_library/charting_library.standalone.js"></script>
+
+<!-- ══════════════════════════════════════════════════════════
+     HYBRID DATAFEED v3
+     FOREX/INDICES  →  wraps TV built-in UDF (already works)
+     CRYPTO         →  Binance REST + WebSocket (zero CORS)
+══════════════════════════════════════════════════════════ -->
 <script>
+(function () {
+    /*
+     * ROOT CAUSE OF ALL PREVIOUS FAILURES:
+     * charting_library.standalone.js sets window.Datafeeds.UDFCompatibleDatafeed
+     * BEFORE our script runs. That built-in class correctly resolves EURUSD,
+     * XAUUSD, NAS100, etc against demo-feed-data.tradingview.com.
+     * Every previous version REPLACED window.Datafeeds entirely, destroying
+     * the working TV implementation.
+     *
+     * THIS VERSION: capture original TV class first, then create a wrapper
+     * that routes crypto to Binance and everything else to the original TV feed.
+     */
+
+    var _OrigTV = window.Datafeeds && window.Datafeeds.UDFCompatibleDatafeed;
+    var TV_BASE = 'https://demo-feed-data.tradingview.com';
+    var ALL_RES = ['1','3','5','15','30','60','120','240','D','W','M'];
+
+    /* ── Crypto detection ── */
+    var CRYPTO_MAP = {
+        'BTCUSD':'BTCUSDT','BTCUSDT':'BTCUSDT','ETHUSD':'ETHUSDT','ETHUSDT':'ETHUSDT',
+        'BNBUSD':'BNBUSDT','BNBUSDT':'BNBUSDT','SOLUSD':'SOLUSDT','SOLUSDT':'SOLUSDT',
+        'XRPUSD':'XRPUSDT','XRPUSDT':'XRPUSDT','ADAUSD':'ADAUSDT','ADAUSDT':'ADAUSDT',
+        'DOTUSD':'DOTUSDT','DOTUSDT':'DOTUSDT','DOGEUSD':'DOGEUSDT','DOGEUSDT':'DOGEUSDT',
+        'LTCUSD':'LTCUSDT','LTCUSDT':'LTCUSDT','LINKUSD':'LINKUSDT','LINKUSDT':'LINKUSDT',
+        'AVAXUSD':'AVAXUSDT','AVAXUSDT':'AVAXUSDT','MATICUSD':'MATICUSDT','MATICUSDT':'MATICUSDT',
+        'ETCUSD':'ETCUSDT','ETCUSDT':'ETCUSDT','UNIUSD':'UNIUSDT','UNIUSDT':'UNIUSDT',
+        'ATOMUSD':'ATOMUSDT','ATOMUSDT':'ATOMUSDT','NEARUSD':'NEARUSDT','NEARUSDT':'NEARUSDT',
+    };
+    var BN_IMAP = {
+        '1':'1m','3':'3m','5':'5m','15':'15m','30':'30m',
+        '60':'1h','120':'2h','240':'4h','D':'1d','W':'1w','M':'1M'
+    };
+    var KNOWN_CRYPTO = ['BTC','ETH','BNB','SOL','XRP','ADA','DOT',
+        'MATIC','AVAX','LINK','DOGE','LTC','UNI','ATOM','NEAR','ETC'];
+
+    function isCrypto(raw) {
+        var s = raw.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+        if (CRYPTO_MAP[s]) return true;
+        if (/USDT$|BUSD$/.test(s)) return true;
+        for (var i=0; i<KNOWN_CRYPTO.length; i++) {
+            if (s.indexOf(KNOWN_CRYPTO[i]) === 0) return true;
+        }
+        return false;
+    }
+    function toBN(raw) {
+        var s = raw.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+        if (CRYPTO_MAP[s]) return CRYPTO_MAP[s];
+        if (/USDT$/.test(s)) return s;
+        if (/USD$/.test(s))  return s.replace(/USD$/,'')+'USDT';
+        return s+'USDT';
+    }
+
+    /* ── Binance bars ── */
+    var _cache = {};
+    function fetchBN(bnSym, res, ok, fail) {
+        var key = bnSym+'_'+res;
+        if (_cache[key] && Date.now()-_cache[key].ts < 60000) { ok(_cache[key].bars.slice()); return; }
+        fetch('https://api.binance.com/api/v3/klines?symbol='+encodeURIComponent(bnSym)+
+              '&interval='+(BN_IMAP[res]||'1h')+'&limit=500')
+            .then(function(r){return r.json();})
+            .then(function(d){
+                if (!Array.isArray(d)||!d.length){fail();return;}
+                var bars=d.map(function(k){return{time:k[0],open:+k[1],high:+k[2],low:+k[3],close:+k[4],volume:+k[5]};})
+                          .filter(function(b){return !isNaN(b.open)&&b.time>0;});
+                if (!bars.length){fail();return;}
+                _cache[key]={bars:bars,ts:Date.now()};ok(bars);
+            }).catch(fail);
+    }
+
+    /* ── Binance WebSocket live ── */
+    var _bnSubs = {};
+    function subBN(bnSym, res, uid, onRT) {
+        var dead=false, ws;
+        function connect(){
+            if(dead)return;
+            ws=new WebSocket('wss://stream.binance.com:9443/ws/'+bnSym.toLowerCase()+'@kline_'+(BN_IMAP[res]||'1m'));
+            ws.onmessage=function(e){try{var k=JSON.parse(e.data).k;if(k)onRT({time:k.t,open:+k.o,high:+k.h,low:+k.l,close:+k.c,volume:+k.v});}catch(x){}};
+            ws.onclose=function(){if(!dead)setTimeout(connect,3000);};
+        }
+        connect();
+        _bnSubs[uid]={cleanup:function(){dead=true;try{ws.close();}catch(x){}}};
+    }
+
+    /* ── Wrapper class ── */
+    window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
+
+        var tvFeed = _OrigTV ? new _OrigTV(TV_BASE) : null;
+
+        this.onReady = function(cb) {
+            var done = function(cfg){
+                cfg=cfg||{}; cfg.supported_resolutions=ALL_RES;
+                setTimeout(function(){cb(cfg);},0);
+            };
+            if (tvFeed) tvFeed.onReady(done); else done({});
+        };
+
+        this.searchSymbols = function(q,ex,type,cb) {
+            if (tvFeed) tvFeed.searchSymbols(q,ex,type,cb); else cb([]);
+        };
+
+        this.resolveSymbol = function(raw, onResolve, onError) {
+            if (isCrypto(raw)) {
+                var bn = toBN(raw);
+                setTimeout(function(){
+                    onResolve({name:bn,full_name:bn,description:bn+' · Binance',
+                        type:'crypto',session:'24x7',timezone:'Etc/UTC',
+                        minmov:1,pricescale:100,has_intraday:true,has_daily:true,
+                        has_weekly_and_monthly:true,supported_resolutions:ALL_RES,
+                        data_status:'streaming',volume_precision:2,_isCrypto:true});
+                },0);
+            } else {
+                /* Delegate to original TV UDF — it handles FX:EURUSD prefixes internally */
+                if (tvFeed) {
+                    tvFeed.resolveSymbol(raw, function(info){
+                        info.supported_resolutions=ALL_RES;
+                        info._isCrypto=false;
+                        onResolve(info);
+                    }, onError);
+                } else { onError('no_feed'); }
+            }
+        };
+
+        this.getBars = function(sym, res, period, onResult, onError) {
+            if (period && period.firstDataRequest===false) { onResult([],{noData:true}); return; }
+            if (sym._isCrypto) {
+                fetchBN(sym.name, res, function(bars){onResult(bars,{noData:false});}, function(){onResult([],{noData:true});});
+            } else {
+                if (tvFeed) tvFeed.getBars(sym,res,period,onResult,onError);
+                else onResult([],{noData:true});
+            }
+        };
+
+        this.subscribeBars = function(sym, res, onRT, uid, onReset) {
+            if (sym._isCrypto) { subBN(sym.name,res,uid,onRT); }
+            else { if (tvFeed) tvFeed.subscribeBars(sym,res,onRT,uid,onReset); }
+        };
+
+        this.unsubscribeBars = function(uid) {
+            if (_bnSubs[uid]) { _bnSubs[uid].cleanup(); delete _bnSubs[uid]; }
+            else if (tvFeed) tvFeed.unsubscribeBars(uid);
+        };
+    }};
+})();
+</script>
+
+<!-- Calculator -->
+<script>
+var _dm = 'amt';
+function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+function deskSm(m){
+    _dm=m;
+    document.getElementById('d-pr').style.display=m==='pct'?'block':'none';
+    document.getElementById('d-ar').style.display=m==='pct'?'none':'block';
+    var pb=document.getElementById('d-pb'),ab=document.getElementById('d-ab');
+    if(pb){pb.style.background=m==='pct'?'#fff':'#050505';pb.style.color=m==='pct'?'#000':'#444';pb.style.border=m==='pct'?'1px solid #fff':'1px solid #1a1a1a';pb.style.fontWeight=m==='pct'?'700':'400';}
+    if(ab){ab.style.background=m==='amt'?'#fff':'#050505';ab.style.color=m==='amt'?'#000':'#444';ab.style.border=m==='amt'?'1px solid #fff':'1px solid #1a1a1a';ab.style.fontWeight=m==='amt'?'700':'400';}
+    deskCl();
+}
+function deskAtp(){
+    var rr=parseFloat(document.getElementById('d-rr').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,te=document.getElementById('d-tp'),tg=document.getElementById('d-at');
+    if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';if(tg)tg.style.display='none';deskCl();return;}
+    if(!sl){document.getElementById('d-rr').value='0';deskCl();return;}
+    te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';if(tg)tg.style.display='inline';deskCl();
+}
+function deskMtp(){document.getElementById('d-rr').value='0';var te=document.getElementById('d-tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';var tg=document.getElementById('d-at');if(tg)tg.style.display='none';deskCl();}
+function deskCl(){
+    var b=parseFloat(document.getElementById('d-bal').value)||0,rp=parseFloat(document.getElementById('d-rp').value)||0,ra=parseFloat(document.getElementById('d-ra').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,tp=parseFloat(document.getElementById('d-tp').value)||0,tv=1;
+    var qs=document.getElementById('d-qs'),qb=document.getElementById('d-qb');
+    if(b>0&&qs&&qb){var rows=[0.5,1,1.5,2,3,5].map(function(p){var a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_dm==='pct'&&p===rp);return'<tr style="'+(hi?'background:#0d1a0d;':'')+'"><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">'+p+'%</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">$'+a.toFixed(0)+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0?l.toFixed(2):'---')+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');qb.innerHTML=rows;qs.style.display='block';}
+    if(!sl){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Enter values');deskSv('d-rrs','---');deskSv('d-rps','---');return;}
+    var rm=_dm==='amt'?ra:(b>0?b*rp/100:0);
+    if(!rm){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Set risk amount');return;}
+    var l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;
+    deskSv('d-rl',l.toFixed(2));deskSv('d-rls','Standard lots');
+    deskSv('d-rr2','$'+ar.toFixed(2));deskSv('d-rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'--');
+    deskSv('d-rp2',tp?'$'+pp.toFixed(2):'---');deskSv('d-rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'--');
+    deskSv('d-rsout',sl+' ticks');deskSv('d-rt',tp?tp+' ticks':'---');
+    deskSv('d-rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');deskSv('d-rtv','$'+tv.toFixed(2));
+}
+function deskRs(){
+    ['d-bal','d-rp','d-sl','d-tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
+    var ra=document.getElementById('d-ra');if(ra)ra.value='0';
+    var rrEl=document.getElementById('d-rr');if(rrEl)rrEl.value='1';
+    var te=document.getElementById('d-tp');if(te){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';}
+    var tg=document.getElementById('d-at');if(tg)tg.style.display='none';
+    deskSm('amt');
+    ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
+    deskSv('d-rls','Enter values');
+    var qs=document.getElementById('d-qs');if(qs)qs.style.display='none';
+}
+
 function syncHex(pickerId, hexId) {
     var p = document.getElementById(pickerId), h = document.getElementById(hexId);
     if(p && h) h.value = p.value;
@@ -1329,8 +1537,10 @@ function syncPicker(hexId, pickerId) {
     var v = h.value.trim();
     if(/^#[0-9a-fA-F]{6}$/.test(v)) p.value = v;
 }
+</script>
 
-/* Theme System */
+<!-- Theme System -->
+<script>
 var _currentTheme = localStorage.getItem('rk_theme') || 'midnight';
 var _allThemes = ['midnight','neon','easyeye','light','trader'];
 
@@ -1377,56 +1587,5 @@ function onCustomBgHex(val) {
     if(savedBg) setTimeout(function() { setCustomBg(savedBg); }, 80);
 })();
 </script>
-
-<!-- Lot Calculator -->
-<script>
-var _dm = 'amt';
-function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
-function deskSm(m){
-    _dm=m;
-    document.getElementById('d-pr').style.display=m==='pct'?'block':'none';
-    document.getElementById('d-ar').style.display=m==='pct'?'none':'block';
-    var pb=document.getElementById('d-pb'),ab=document.getElementById('d-ab');
-    if(pb){pb.style.background=m==='pct'?'#fff':'#050505';pb.style.color=m==='pct'?'#000':'#444';pb.style.border=m==='pct'?'1px solid #fff':'1px solid #1a1a1a';pb.style.fontWeight=m==='pct'?'700':'400';}
-    if(ab){ab.style.background=m==='amt'?'#fff':'#050505';ab.style.color=m==='amt'?'#000':'#444';ab.style.border=m==='amt'?'1px solid #fff':'1px solid #1a1a1a';ab.style.fontWeight=m==='amt'?'700':'400';}
-    deskCl();
-}
-function deskAtp(){
-    var rr=parseFloat(document.getElementById('d-rr').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,te=document.getElementById('d-tp'),tg=document.getElementById('d-at');
-    if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';if(tg)tg.style.display='none';deskCl();return;}
-    if(!sl){document.getElementById('d-rr').value='0';deskCl();return;}
-    te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';if(tg)tg.style.display='inline';deskCl();
-}
-function deskMtp(){document.getElementById('d-rr').value='0';var te=document.getElementById('d-tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';var tg=document.getElementById('d-at');if(tg)tg.style.display='none';deskCl();}
-function deskCl(){
-    var b=parseFloat(document.getElementById('d-bal').value)||0,rp=parseFloat(document.getElementById('d-rp').value)||0,ra=parseFloat(document.getElementById('d-ra').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,tp=parseFloat(document.getElementById('d-tp').value)||0,tv=1;
-    var qs=document.getElementById('d-qs'),qb=document.getElementById('d-qb');
-    if(b>0&&qs&&qb){var rows=[0.5,1,1.5,2,3,5].map(function(p){var a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_dm==='pct'&&p===rp);return'<tr style="'+(hi?'background:#0d1a0d;':'')+'"><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">'+p+'%</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">$'+a.toFixed(0)+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0?l.toFixed(2):'---')+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');qb.innerHTML=rows;qs.style.display='block';}
-    if(!sl){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Enter values');deskSv('d-rrs','---');deskSv('d-rps','---');return;}
-    var rm=_dm==='amt'?ra:(b>0?b*rp/100:0);
-    if(!rm){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Set risk amount');return;}
-    var l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;
-    deskSv('d-rl',l.toFixed(2));deskSv('d-rls','Standard lots');
-    deskSv('d-rr2','$'+ar.toFixed(2));deskSv('d-rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'--');
-    deskSv('d-rp2',tp?'$'+pp.toFixed(2):'---');deskSv('d-rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'--');
-    deskSv('d-rsout',sl+' ticks');deskSv('d-rt',tp?tp+' ticks':'---');
-    deskSv('d-rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');deskSv('d-rtv','$'+tv.toFixed(2));
-}
-function deskRs(){
-    ['d-bal','d-rp','d-sl','d-tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
-    var ra=document.getElementById('d-ra');if(ra)ra.value='0';
-    var rrEl=document.getElementById('d-rr');if(rrEl)rrEl.value='1';
-    var te=document.getElementById('d-tp');if(te){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';}
-    var tg=document.getElementById('d-at');if(tg)tg.style.display='none';
-    deskSm('amt');
-    ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
-    deskSv('d-rls','Enter values');
-    var qs=document.getElementById('d-qs');if(qs)qs.style.display='none';
-}
-</script>
-
-<!-- TradingView Advanced Charts — local files from your zip -->
-<script src="./charting_library/charting_library.standalone.js"></script>
-
 </body>
 </html>
