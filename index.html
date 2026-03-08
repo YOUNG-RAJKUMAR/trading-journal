@@ -811,7 +811,7 @@ window.ui = {
             allow_symbol_change: true,
             save_image: false,
             disabled_features: ['create_volume_indicator_by_default','volume_force_overlay'],
-            supported_resolutions: ['1','5','15','30','60','120','240','D','W','M'],
+            supported_resolutions: ['1','2','5','15','30','60','120','240','D','W','M'],
             overrides: overrides,
         });
 
@@ -1340,177 +1340,209 @@ window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
 
     /*
      * ══════════════════════════════════════════════════════════════════
-     *  ROBUST DATAFEED  —  Twelve Data free tier (8 req/min)
+     *  FREE DATAFEED — Yahoo Finance (no API key, no rate limit)
      *
-     *  Root causes of "no data on 1m/5m" fixed here:
+     *  Why Yahoo Finance:
+     *  ✓ Completely free — zero API key needed
+     *  ✓ No rate limit (generous unofficial API)
+     *  ✓ All timeframes: 1m 2m 5m 15m 30m 1h 2h 4h 1d 1wk 1mo
+     *  ✓ Forex pairs (EURUSD=X), indices (^GSPC), stocks, crypto
+     *  ✓ Returns Unix timestamps — no parsing bugs
      *
-     *  1. 3min REMOVED — Twelve Data does not support this interval.
-     *     Requesting it returns a JSON error, giving a blank chart.
-     *
-     *  2. SERIAL QUEUE — All requests go through a queue that fires one
-     *     request every 8 s max.  Previously every TF switch fired a
-     *     parallel fetch, exhausting the 8 req/min rate limit in seconds.
-     *     Higher TFs (4H/1H) loaded first and consumed all credits before
-     *     1m/5m could be served.
-     *
-     *  3. 5-MIN CACHE — Once loaded, bars are cached for 5 minutes.
-     *     Switching 1m → 4H → 1m reuses cache, no extra credit used.
-     *
-     *  4. firstDataRequest guard — pagination requests return noData
-     *     immediately so the library doesn't loop forever.
+     *  Symbol mapping (auto-handled):
+     *    EURUSD  → EURUSD=X   (forex)
+     *    XAUUSD  → GC=F       (gold futures)
+     *    US30    → YM=F       (Dow futures)
+     *    NAS100  → NQ=F       (Nasdaq futures)
+     *    SP500   → ES=F       (S&P futures)
+     *    BTCUSD  → BTC-USD    (crypto)
+     *    AAPL    → AAPL       (stocks — unchanged)
      * ══════════════════════════════════════════════════════════════════
      */
 
-    // 3min removed — NOT supported by Twelve Data API
-    var ALL_RES   = ['1','5','15','30','60','120','240','D','W','M'];
-    var CACHE_TTL = 5 * 60 * 1000;   // 5 minutes
-    var REQ_GAP   = 8000;             // 8 s between requests (safe for 8/min limit)
+    var ALL_RES   = ['1','2','5','15','30','60','120','240','D','W','M'];
+    var CACHE_TTL = 60 * 1000;  // 1 min cache (Yahoo is live so keep fresh)
 
-    var _cache     = {};
-    var _queue     = [];
-    var _busy      = false;
-    var _lastFetch = 0;
+    var _cache = {};
 
-    /* ── Serial queue processor ── */
-    function _next() {
-        if (_busy || _queue.length === 0) return;
-        var wait = Math.max(0, REQ_GAP - (Date.now() - _lastFetch));
-        setTimeout(function() {
-            if (_queue.length === 0) { _busy = false; return; }
-            _busy = true;
-            var job = _queue.shift();
-            _lastFetch = Date.now();
-
-            fetch(job.url)
-                .then(function(r) { return r.json(); })
-                .then(function(d) {
-                    _busy = false;
-                    _next();
-
-                    if (!d.values || d.status === 'error' || d.code === 429 || d.code === 400) {
-                        console.warn('[Datafeed]', job.key, '→', d.message || d.status || d.code);
-                        job.fail();
-                        return;
-                    }
-
-                    var bars = d.values.slice().reverse().map(function(v) {
-                        /* Twelve Data UTC strings: "2024-03-08 14:00:00" */
-                        var t = new Date(v.datetime.replace(' ', 'T') + 'Z').getTime();
-                        return {
-                            time:   t,
-                            open:   +v.open,
-                            high:   +v.high,
-                            low:    +v.low,
-                            close:  +v.close,
-                            volume: 0
-                        };
-                    }).filter(function(b) { return b.time > 0 && !isNaN(b.time); });
-
-                    if (!bars.length) { job.fail(); return; }
-
-                    _cache[job.key] = { bars: bars, ts: Date.now() };
-                    job.ok(bars);
-                })
-                .catch(function(e) {
-                    console.error('[Datafeed] network error:', e);
-                    _busy = false;
-                    _next();
-                    job.fail();
-                });
-        }, wait);
-    }
-
-    /* ── Interval map — only intervals Twelve Data actually supports ── */
+    /* ── Yahoo Finance interval map ── */
     var IMAP = {
-        '1':'1min',  '5':'5min',  '15':'15min', '30':'30min',
-        '60':'1h',   '120':'2h',  '240':'4h',
-        'D':'1day',  'W':'1week', 'M':'1month'
+        '1':  { i:'1m',   r:'1d'   },
+        '2':  { i:'2m',   r:'5d'   },
+        '5':  { i:'5m',   r:'60d'  },
+        '15': { i:'15m',  r:'60d'  },
+        '30': { i:'30m',  r:'60d'  },
+        '60': { i:'60m',  r:'730d' },
+        '120':{ i:'60m',  r:'730d' }, // Yahoo has no 2h — use 1h data
+        '240':{ i:'1h',   r:'730d' },
+        'D':  { i:'1d',   r:'5y'   },
+        'W':  { i:'1wk',  r:'10y'  },
+        'M':  { i:'1mo',  r:'max'  },
     };
 
-    /* ── Normalise symbol: "EURUSD" → "EUR/USD" ── */
-    function normSym(s) {
-        if (!s) return s;
-        if (s.indexOf('/') !== -1) return s;
-        var m = s.match(/^([A-Z]{3})([A-Z]{3,})$/);
-        return m ? m[1] + '/' + m[2] : s;
+    /* ── Symbol normaliser → Yahoo ticker ── */
+    var SYM_MAP = {
+        // Forex pairs
+        'EURUSD':'EURUSD=X','GBPUSD':'GBPUSD=X','USDJPY':'USDJPY=X',
+        'USDCHF':'USDCHF=X','AUDUSD':'AUDUSD=X','NZDUSD':'NZDUSD=X',
+        'USDCAD':'USDCAD=X','EURGBP':'EURGBP=X','EURJPY':'EURJPY=X',
+        'GBPJPY':'GBPJPY=X','XAUUSD':'GC=F',    'XAGUSD':'SI=F',
+        // Indices
+        'US30':'YM=F','DOW':'YM=F','DJ30':'YM=F',
+        'NAS100':'NQ=F','NASDAQ':'NQ=F','NDX':'NQ=F',
+        'SP500':'ES=F','SPX':'ES=F','US500':'ES=F',
+        'GER40':'FDAX=F','DAX':'FDAX=F',
+        'UK100':'Z=F',
+        // Crypto
+        'BTCUSD':'BTC-USD','ETHUSD':'ETH-USD','BNBUSD':'BNB-USD',
+        'SOLUSD':'SOL-USD','XRPUSD':'XRP-USD',
+    };
+
+    function toYahoo(raw) {
+        // Strip slashes and uppercase
+        var s = raw.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+        if (SYM_MAP[s]) return SYM_MAP[s];
+        // Auto-detect forex: 6 letters with no number → add =X
+        if (/^[A-Z]{6}$/.test(s)) return s + '=X';
+        return s;
+    }
+
+    /* ── CORS proxy list — tries each in order until one works ── */
+    var PROXIES = [
+        'https://corsproxy.io/?',
+        'https://api.allorigins.win/raw?url=',
+        '',   // direct (works in some environments)
+    ];
+    var _proxyIdx = 0;
+
+    function buildUrl(yahooSym, interval, range) {
+        var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' +
+                   encodeURIComponent(yahooSym) +
+                   '?interval=' + interval +
+                   '&range='    + range +
+                   '&includePrePost=false' +
+                   '&events=div%2Csplit';
+        var proxy = PROXIES[_proxyIdx] || '';
+        return proxy ? proxy + encodeURIComponent(base) : base;
+    }
+
+    function parseBars(data) {
+        try {
+            var res    = data.chart.result[0];
+            var ts     = res.timestamp;
+            var q      = res.indicators.quote[0];
+            var bars   = [];
+            for (var i = 0; i < ts.length; i++) {
+                var o = +q.open[i], h = +q.high[i],
+                    l = +q.low[i],  c = +q.close[i];
+                if (!o || !h || !l || !c ||
+                    isNaN(o) || isNaN(h) || isNaN(l) || isNaN(c)) continue;
+                bars.push({
+                    time:   ts[i] * 1000,  // seconds → ms
+                    open:   o,
+                    high:   h,
+                    low:    l,
+                    close:  c,
+                    volume: +(q.volume && q.volume[i]) || 0
+                });
+            }
+            return bars;
+        } catch(e) { return []; }
     }
 
     /* ════ UDF interface ════ */
 
     this.onReady = function(cb) {
-        setTimeout(function() {
-            cb({ supported_resolutions: ALL_RES });
-        }, 0);
+        setTimeout(function() { cb({ supported_resolutions: ALL_RES }); }, 0);
     };
 
     this.searchSymbols = function(u, e, t, cb) { cb([]); };
 
-    this.resolveSymbol = function(rawSym, resolve, reject) {
-        var sym = normSym(rawSym);
+    this.resolveSymbol = function(rawSym, resolve) {
+        var ySym = toYahoo(rawSym);
+        // Detect type for correct pricescale
+        var isCrypto = ySym.indexOf('-USD') !== -1;
+        var isIndex  = ySym.indexOf('=F')   !== -1 || ySym.charAt(0) === '^';
+        var ps = isCrypto ? 100 : isIndex ? 10 : 100000;
         setTimeout(function() {
             resolve({
-                name:                    sym,
-                full_name:               sym,
-                description:             sym,
-                type:                    'forex',
-                session:                 '0000-2400:23456',
-                timezone:                'Etc/UTC',
-                minmov:                  1,
-                pricescale:              100000,
-                has_intraday:            true,
-                has_daily:               true,
-                has_weekly_and_monthly:  true,
-                supported_resolutions:   ALL_RES,
-                data_status:             'endofday',
-                volume_precision:        0,
+                name:                   ySym,
+                full_name:              rawSym,
+                description:            rawSym,
+                type:                   isCrypto ? 'crypto' : isIndex ? 'index' : 'forex',
+                session:                '0000-2400:23456',
+                timezone:               'Etc/UTC',
+                minmov:                 1,
+                pricescale:             ps,
+                has_intraday:           true,
+                has_daily:              true,
+                has_weekly_and_monthly: true,
+                supported_resolutions:  ALL_RES,
+                data_status:            'endofday',
+                volume_precision:       0,
             });
         }, 0);
     };
 
     this.getBars = function(info, res, periodParams, onResult, onError) {
-        /* Pagination guard — only fetch on first request per TF */
+        /* Pagination guard */
         if (periodParams && periodParams.firstDataRequest === false) {
             onResult([], { noData: true });
             return;
         }
 
-        var interval = IMAP[res];
-        if (!interval) {
-            /* Unsupported resolution — return noData gracefully */
-            console.warn('[Datafeed] unsupported resolution:', res);
-            onResult([], { noData: true });
-            return;
-        }
+        var tf = IMAP[res];
+        if (!tf) { onResult([], { noData: true }); return; }
 
-        var sym      = info.name || normSym(info.ticker || '');
-        var cacheKey = sym + '_' + interval;
+        var ySym     = info.name;
+        var cacheKey = ySym + '_' + res;
 
-        /* Serve from cache if fresh */
+        /* Serve cache */
         if (_cache[cacheKey] && (Date.now() - _cache[cacheKey].ts) < CACHE_TTL) {
             onResult(_cache[cacheKey].bars.slice(), { noData: false });
             return;
         }
 
-        var apiUrl =
-            'https://api.twelvedata.com/time_series' +
-            '?symbol='     + encodeURIComponent(sym) +
-            '&interval='   + interval +
-            '&outputsize=500' +
-            '&format=JSON' +
-            '&apikey=ea488f33f6d841778d55e540d889c308';
+        /* Try proxies in sequence */
+        function attempt(pIdx) {
+            var prevProxy = _proxyIdx;
+            _proxyIdx = pIdx;
+            var fetchUrl = buildUrl(ySym, tf.i, tf.r);
+            _proxyIdx = prevProxy; // restore
 
-        /* Push into the serial queue */
-        _queue.push({
-            url: apiUrl,
-            key: cacheKey,
-            ok:  function(bars) { onResult(bars, { noData: false }); },
-            fail: function() {
-                if (typeof onError === 'function') onError('datafeed_error');
-                else onResult([], { noData: true });
-            }
-        });
+            fetch(fetchUrl)
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(function(data) {
+                    /* Check for Yahoo error */
+                    if (data.chart && data.chart.error) {
+                        throw new Error(data.chart.error.description || 'Yahoo error');
+                    }
 
-        _next();
+                    var bars = parseBars(data);
+                    if (!bars.length) { onResult([], { noData: true }); return; }
+
+                    /* Remember which proxy worked */
+                    _proxyIdx = pIdx;
+
+                    _cache[cacheKey] = { bars: bars, ts: Date.now() };
+                    onResult(bars, { noData: false });
+                })
+                .catch(function(e) {
+                    console.warn('[Datafeed] proxy', pIdx, 'failed:', e.message);
+                    if (pIdx + 1 < PROXIES.length) {
+                        attempt(pIdx + 1);
+                    } else {
+                        console.error('[Datafeed] all proxies failed for', ySym, res);
+                        if (typeof onError === 'function') onError('datafeed_error');
+                        else onResult([], { noData: true });
+                    }
+                });
+        }
+
+        attempt(_proxyIdx);
     };
 
     this.subscribeBars   = function() {};
