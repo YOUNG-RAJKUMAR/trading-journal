@@ -1421,7 +1421,7 @@ const sym=info.name.replace(/([A-Z]{3})([A-Z]{3})/,'$1/$2');
 fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${map[res]||'1h'}&outputsize=500&format=JSON&unix_timestamp=true&apikey=ea488f33f6d841778d55e540d889c308`)
 .then(r=>r.json()).then(d=>{
 if(!d.values){onResult([],{noData:true});return;}
-const bars=d.values.reverse().map(v=>({time:parseInt(v.datetime),open:+v.open,high:+v.high,low:+v.low,close:+v.close,volume:0}));
+const bars=d.values.reverse().map(v=>({time:Math.floor(new Date(v.datetime.replace(' ','T')+'Z').getTime()/1000),open:+v.open,high:+v.high,low:+v.low,close:+v.close,volume:0}));
 onResult(bars,{noData:bars.length===0});
 }).catch(()=>onResult([],{noData:true}))};
 this.subscribeBars=function(){};
