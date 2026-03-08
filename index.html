@@ -846,6 +846,17 @@ window.ui = {
     },
 
     launchTradingDesk() {
+        const c   = this._tvColors();
+        const container = document.getElementById('tv-container');
+        if (!container) return;
+        if (this._tvWidget) {
+            try { this._tvWidget.remove(); } catch(e) {}
+            this._tvWidget = null;
+        }
+        container.innerHTML = '';
+        this._tvWidget = new TradingView.widget({
+            container: 'tv-container',
+            datafeed: new Datafeeds.UDFCompatibleDatafeed('https://demo-feed-data.tradingview.com'),{
         const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
@@ -1407,7 +1418,8 @@ if('serviceWorker' in navigator) {
 </script>
 
 <!-- TradingView -->
-<script src="https://s3.tradingview.com/tv.js"></script>
+<script src="charting_library/charting_library.standalone.js"></script>
+<script src="datafeeds/udf/dist/bundle.js"></script>
 
 <script>
 /* ── Calculator (in-tab) ── */
