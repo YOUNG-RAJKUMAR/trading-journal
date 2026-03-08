@@ -1433,7 +1433,7 @@ this.unsubscribeBars=function(){};
 /* ── Calculator (in-tab) ── */
 var _dm = 'amt';
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
-function deskSm(m)
+function deskSm(m){
     _dm=m;
     document.getElementById('d-pr').style.display=m==='pct'?'block':'none';
     document.getElementById('d-ar').style.display=m==='pct'?'none':'block';
