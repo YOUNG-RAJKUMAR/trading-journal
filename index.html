@@ -1564,18 +1564,31 @@ window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
             return;
         }
 
-        /* ── Forex/Indices: ask TV demo endpoint ── */
-        fetch(TV_BASE + '/symbols?symbol=' + encodeURIComponent(rawSym))
-            .then(function(r) { return r.json(); })
-            .then(function(info) {
-                if (!info || info.s === 'error') {
-                    onError('symbol_error'); return;
-                }
-                info.supported_resolutions = ALL_RES;
-                info._source = 'tv';
-                onResolve(info);
-            })
-            .catch(function() { onError('symbol_error'); });
+        /* ── Forex / Gold / Indices: build locally too — TV /symbols endpoint unreliable ── */
+        // Detect pricescale: indices (NAS100, US30 etc) use 1 decimal, gold uses 2, forex uses 5
+        var isIndex = /NAS|SPX|US30|DOW|DAX|GER|UK100|NKY|FTSE|CAC|SP500|NDX|YM|NQ|ES/.test(s);
+        var isGold  = /XAU|XAG|GOLD|SILVER/.test(s);
+        var ps      = isIndex ? 10 : isGold ? 100 : 100000;
+
+        setTimeout(function() {
+            onResolve({
+                name:                    s,
+                full_name:               s,
+                description:             s,
+                type:                    isIndex ? 'index' : 'forex',
+                session:                 '0000-2400:23456',
+                timezone:                'Etc/UTC',
+                minmov:                  1,
+                pricescale:              ps,
+                has_intraday:            true,
+                has_daily:               true,
+                has_weekly_and_monthly:  true,
+                supported_resolutions:   ALL_RES,
+                data_status:             'endofday',
+                volume_precision:        0,
+                _source:                 'tv',
+            });
+        }, 0);
     };
 
     this.getBars = function(symbolInfo, resolution, periodParams, onResult, onError) {
