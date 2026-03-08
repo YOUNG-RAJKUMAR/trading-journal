@@ -1458,20 +1458,22 @@ if('serviceWorker' in navigator) {
         var cfg = YF_RES[res] || {interval:'1d', range:'1y'};
 
         /* Use Yahoo Finance v8 — CORS-open endpoint */
-        var url = 'https://query1.finance.yahoo.com/v8/finance/chart/'
-                + encodeURIComponent(sym)
-                + '?interval=' + cfg.interval
-                + '&range='    + cfg.range
-                + '&includePrePost=false';
+        var PROXY = 'https://corsproxy.io/?';
+var baseUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/'
+        + encodeURIComponent(sym)
+        + '?interval=' + cfg.interval
+        + '&range='    + cfg.range
+        + '&includePrePost=false';
+var url = PROXY + encodeURIComponent(baseUrl);
 
-        fetch(url, {headers:{'Accept':'application/json'}})
-            .then(function(r){ return r.json(); })
-            .then(function(data){
-                var result = data && data.chart && data.chart.result && data.chart.result[0];
-                if (!result || !result.timestamp) {
-                    /* Fallback: try query2 */
-                    var url2 = url.replace('query1','query2');
-                    return fetch(url2).then(function(r2){return r2.json();}).then(function(data2){
+fetch(url, {headers:{'Accept':'application/json'}})
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+        var result = data && data.chart && data.chart.result && data.chart.result[0];
+        if (!result || !result.timestamp) {
+            /* Fallback: try query2 */
+            var url2 = PROXY + encodeURIComponent(baseUrl.replace('query1','query2'));
+            return fetch(url2).then(function(r2){return r2.json();}).then(function(data2){
                         var r2 = data2 && data2.chart && data2.chart.result && data2.chart.result[0];
                         if (!r2 || !r2.timestamp) throw new Error('no_data');
                         return r2;
