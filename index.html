@@ -1600,8 +1600,147 @@ window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
         }
     };
 
-    this.subscribeBars   = function() {};
-    this.unsubscribeBars = function() {};
+    /* ════════════════════════════════════════════════════════════
+       LIVE UPDATES
+       • Crypto  → Binance WebSocket  (wss://stream.binance.com)
+         Real-time kline stream, updates every tick
+       • Forex   → HTTP polling every 5 seconds
+         Fetches latest bar from TV demo endpoint
+    ════════════════════════════════════════════════════════════ */
+
+    var _subs = {};   // subscriberUID → { type, cleanup }
+
+    /* ── Binance interval map for WebSocket stream ── */
+    var BN_WS_IMAP = {
+        '1':'1m','3':'3m','5':'5m','15':'15m','30':'30m',
+        '60':'1h','120':'2h','240':'4h',
+        'D':'1d','W':'1w','M':'1M'
+    };
+
+    this.subscribeBars = function(symbolInfo, resolution, onRealtimeCallback, subscriberUID) {
+        var sym    = symbolInfo.name || symbolInfo.ticker;
+        var source = symbolInfo._source;
+
+        if (_subs[subscriberUID]) return;  // already subscribed
+
+        /* ── CRYPTO: Binance WebSocket ── */
+        if (source === 'binance' || isCrypto(sym)) {
+            var bnSym    = sym.toLowerCase();
+            var interval = BN_WS_IMAP[resolution] || '1m';
+            var wsUrl    = 'wss://stream.binance.com:9443/ws/' + bnSym + '@kline_' + interval;
+            var ws       = null;
+            var dead     = false;
+
+            function connect() {
+                if (dead) return;
+                ws = new WebSocket(wsUrl);
+
+                ws.onmessage = function(evt) {
+                    try {
+                        var msg = JSON.parse(evt.data);
+                        var k   = msg.k;
+                        if (!k) return;
+                        var bar = {
+                            time:   k.t,                   // already ms
+                            open:   parseFloat(k.o),
+                            high:   parseFloat(k.h),
+                            low:    parseFloat(k.l),
+                            close:  parseFloat(k.c),
+                            volume: parseFloat(k.v)
+                        };
+                        // Update cache with latest bar
+                        var cacheKey = sym + '_' + resolution;
+                        if (_cache[cacheKey] && _cache[cacheKey].bars.length) {
+                            var bars = _cache[cacheKey].bars;
+                            var last = bars[bars.length - 1];
+                            if (last.time === bar.time) {
+                                bars[bars.length - 1] = bar;  // update current candle
+                            } else if (bar.time > last.time) {
+                                bars.push(bar);               // new candle
+                            }
+                        }
+                        onRealtimeCallback(bar);
+                    } catch(e) {}
+                };
+
+                ws.onerror = function() {};
+                ws.onclose = function() {
+                    if (!dead) setTimeout(connect, 3000); // auto-reconnect
+                };
+            }
+
+            connect();
+
+            _subs[subscriberUID] = {
+                type: 'ws',
+                cleanup: function() {
+                    dead = true;
+                    if (ws) { try { ws.close(); } catch(e) {} }
+                }
+            };
+            return;
+        }
+
+        /* ── FOREX/INDICES: Poll TV demo endpoint every 5 seconds ── */
+        var pollInterval = resolution === '1' ? 5000 : 10000;  // 5s for 1m, 10s for others
+        var timer = null;
+
+        function poll() {
+            var now  = Math.floor(Date.now() / 1000);
+            var from = now - 120;  // last 2 minutes only
+            var url  = TV_BASE + '/history' +
+                '?symbol='     + encodeURIComponent(sym) +
+                '&resolution=' + encodeURIComponent(resolution) +
+                '&from='       + from +
+                '&to='         + now;
+
+            fetch(url)
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (!d || d.s !== 'ok' || !d.t || !d.t.length) return;
+                    var i   = d.t.length - 1;  // latest bar only
+                    var bar = {
+                        time:   d.t[i] * 1000,
+                        open:   +d.o[i],
+                        high:   +d.h[i],
+                        low:    +d.l[i],
+                        close:  +d.c[i],
+                        volume: d.v ? (+d.v[i] || 0) : 0
+                    };
+                    if (isNaN(bar.open) || bar.time <= 0) return;
+                    // Update cache
+                    var cacheKey = sym + '_' + resolution;
+                    if (_cache[cacheKey] && _cache[cacheKey].bars.length) {
+                        var bars = _cache[cacheKey].bars;
+                        var last = bars[bars.length - 1];
+                        if (last.time === bar.time) {
+                            bars[bars.length - 1] = bar;
+                        } else if (bar.time > last.time) {
+                            bars.push(bar);
+                        }
+                    }
+                    onRealtimeCallback(bar);
+                })
+                .catch(function() {});
+
+            timer = setTimeout(poll, pollInterval);
+        }
+
+        // Start polling after short delay
+        timer = setTimeout(poll, pollInterval);
+
+        _subs[subscriberUID] = {
+            type: 'poll',
+            cleanup: function() { clearTimeout(timer); }
+        };
+    };
+
+    this.unsubscribeBars = function(subscriberUID) {
+        if (_subs[subscriberUID]) {
+            _subs[subscriberUID].cleanup();
+            delete _subs[subscriberUID];
+        }
+    };
 }};
 </script>
 
