@@ -811,7 +811,7 @@ window.ui = {
             allow_symbol_change: true,
             save_image: false,
             disabled_features: ['create_volume_indicator_by_default','volume_force_overlay'],
-            supported_resolutions: ['1','5','15','30','60','240','D','W','M'],
+            supported_resolutions: ['1','3','5','15','30','60','120','240','D','W','M'],
             overrides: overrides,
         });
 
@@ -1330,146 +1330,274 @@ if('serviceWorker' in navigator) {
 <!-- TradingView library -->
 <script src="charting_library/charting_library.standalone.js"></script>
 
-<!-- ══════════════════════════════════════════════════
-     DATAFEED — TradingView UDF Demo endpoint
-     Zero CORS issues · No API key · All timeframes
-══════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════════
+     HYBRID DATAFEED
+     • Forex / Indices  →  TradingView demo UDF (zero CORS)
+     • Crypto           →  Binance REST API  (free, CORS-safe)
+     All timeframes 1m → Monthly · No API key needed
+══════════════════════════════════════════════════════════ -->
 <script>
 window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
 
-    /*
-     * ══════════════════════════════════════════════════════════════════
-     *  DATAFEED — TradingView Demo UDF  (demo-feed-data.tradingview.com)
-     *
-     *  Why this works when Yahoo/Twelve Data failed:
-     *  ✓ TradingView's OWN endpoint — built for this exact library
-     *  ✓ Zero CORS issues — no proxy needed
-     *  ✓ No API key, no rate limits
-     *  ✓ All timeframes: 1 5 15 30 60 240 D W M
-     *  ✓ All major forex pairs, gold, indices
-     *  ✓ Standard UDF protocol:
-     *      GET /history?symbol=EURUSD&resolution=60&from=UNIX&to=UNIX
-     *      → { s:"ok", t:[...], o:[...], h:[...], l:[...], c:[...] }
-     * ══════════════════════════════════════════════════════════════════
-     */
+    /* ══════════════════════════════════════════════════════════════
+       HYBRID DATAFEED — Two back-ends, one clean interface
+       ────────────────────────────────────────────────────────────
+       FOREX / GOLD / INDICES  →  demo-feed-data.tradingview.com
+         ✓ Zero CORS, no API key, all major FX pairs + XAU/XAG
+         ✓ Type EURUSD, GBPUSD, XAUUSD, NAS100, etc.
 
-    var BASE      = 'https://demo-feed-data.tradingview.com';
-    var ALL_RES   = ['1','5','15','30','60','240','D','W','M'];
-    var CACHE_TTL = 2 * 60 * 1000;  // 2 min cache
+       CRYPTO (any symbol ending in USDT/BTC/ETH, or known coins)
+         →  api.binance.com/api/v3/klines
+         ✓ Zero CORS, no API key, all timeframes down to 1m
+         ✓ Type BTCUSDT, ETHUSDT, SOLUSDT, BNBUSDT, XRPUSDT, etc.
+         ✓ Or short form: BTCUSD, ETHUSD → auto-mapped to BTCUSDT
+       ══════════════════════════════════════════════════════════ */
+
+    var TV_BASE   = 'https://demo-feed-data.tradingview.com';
+    var BN_BASE   = 'https://api.binance.com/api/v3/klines';
+    var ALL_RES   = ['1','3','5','15','30','60','120','240','D','W','M'];
+    var CACHE_TTL = 60 * 1000;   // 1 minute
     var _cache    = {};
 
-    /* ── How many seconds of history to load per timeframe ── */
-    var RANGE = {
-        '1'  : 60*60*8,          // 8 hours of 1m bars
-        '5'  : 60*60*24*5,       // 5 days of 5m bars
-        '15' : 60*60*24*14,      // 14 days of 15m bars
-        '30' : 60*60*24*30,      // 30 days of 30m bars
-        '60' : 60*60*24*90,      // 90 days of 1h bars
-        '240': 60*60*24*180,     // 180 days of 4h bars
-        'D'  : 60*60*24*365*3,   // 3 years of daily bars
-        'W'  : 60*60*24*365*10,  // 10 years of weekly bars
-        'M'  : 60*60*24*365*20,  // 20 years of monthly bars
+    /* ── Crypto symbol map: user input → Binance ticker ── */
+    var CRYPTO_MAP = {
+        'BTCUSD':'BTCUSDT','BTCUSDT':'BTCUSDT',
+        'ETHUSD':'ETHUSDT','ETHUSDT':'ETHUSDT',
+        'BNBUSD':'BNBUSDT','BNBUSDT':'BNBUSDT',
+        'SOLUSD':'SOLUSDT','SOLUSDT':'SOLUSDT',
+        'XRPUSD':'XRPUSDT','XRPUSDT':'XRPUSDT',
+        'ADAUSD':'ADAUSDT','ADAUSDT':'ADAUSDT',
+        'DOTUSD':'DOTUSDT','DOTUSDT':'DOTUSDT',
+        'MATICUSD':'MATICUSDT','MATICUSDT':'MATICUSDT',
+        'AVAXUSD':'AVAXUSDT','AVAXUSDT':'AVAXUSDT',
+        'LINKUSD':'LINKUSDT','LINKUSDT':'LINKUSDT',
+        'DOGEUSD':'DOGEUSDT','DOGEUSDT':'DOGEUSDT',
+        'LTCUSD':'LTCUSDT','LTCUSDT':'LTCUSDT',
+        'UNIUSD':'UNIUSDT','UNIUSDT':'UNIUSDT',
+        'ATOMUSD':'ATOMUSDT','ATOMUSDT':'ATOMUSDT',
+        'NEARUSD':'NEARUSDT','NEARUSDT':'NEARUSDT',
+        'AAPEUSD':'APEUSDT','ETCUSD':'ETCUSDT',
+        'SHIBUSDT':'1000SHIBUSDT',
     };
 
-    /* ════ UDF interface ════ */
+    /* ── Binance interval map ── */
+    var BN_IMAP = {
+        '1':'1m','3':'3m','5':'5m','15':'15m','30':'30m',
+        '60':'1h','120':'2h','240':'4h',
+        'D':'1d','W':'1w','M':'1M'
+    };
+
+    /* ── TradingView UDF RANGE (seconds of history per TF) ── */
+    var TV_RANGE = {
+        '1'  : 60*60*8,
+        '3'  : 60*60*24*2,
+        '5'  : 60*60*24*5,
+        '15' : 60*60*24*14,
+        '30' : 60*60*24*30,
+        '60' : 60*60*24*90,
+        '120': 60*60*24*120,
+        '240': 60*60*24*180,
+        'D'  : 60*60*24*365*3,
+        'W'  : 60*60*24*365*10,
+        'M'  : 60*60*24*365*20,
+    };
+
+    /* ────────────────────────────────────────────────────────────
+       Helper: is this symbol crypto?
+       Rules: known in CRYPTO_MAP, ends in USDT/BTC/ETH,
+              or is exactly 6-9 uppercase letters with USD at end
+    ──────────────────────────────────────────────────────────── */
+    function isCrypto(raw) {
+        var s = raw.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+        if (CRYPTO_MAP[s]) return true;
+        if (/USDT$|BUSD$/.test(s)) return true;
+        // Common single-word crypto tickers
+        var known = ['BTC','ETH','BNB','SOL','XRP','ADA','DOT','MATIC',
+                     'AVAX','LINK','DOGE','LTC','UNI','ATOM','NEAR','ETC',
+                     'SHIB','APE','FTM','SAND','MANA','AXS','GALA','ALGO'];
+        for (var i=0; i<known.length; i++) {
+            if (s.indexOf(known[i]) === 0) return true;
+        }
+        return false;
+    }
+
+    function toBinanceSym(raw) {
+        var s = raw.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+        if (CRYPTO_MAP[s]) return CRYPTO_MAP[s];
+        // If already ends in USDT return as-is
+        if (/USDT$/.test(s)) return s;
+        // Strip trailing USD and add USDT
+        if (/USD$/.test(s)) return s.replace(/USD$/,'') + 'USDT';
+        return s + 'USDT';
+    }
+
+    /* ────────────────────────────────────────────────────────────
+       BINANCE OHLCV fetch
+    ──────────────────────────────────────────────────────────── */
+    function fetchBinance(bnSym, res, cacheKey, onResult, onError) {
+        var interval = BN_IMAP[res] || '1h';
+        // Binance limit: 500 candles per request
+        var url = BN_BASE +
+            '?symbol='   + encodeURIComponent(bnSym) +
+            '&interval=' + interval +
+            '&limit=500';
+
+        fetch(url)
+            .then(function(r) {
+                if (!r.ok) throw new Error('Binance HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function(d) {
+                if (!Array.isArray(d) || !d.length) {
+                    onResult([], { noData: true }); return;
+                }
+                var bars = d.map(function(k) {
+                    return {
+                        time:   k[0],           // already ms
+                        open:   parseFloat(k[1]),
+                        high:   parseFloat(k[2]),
+                        low:    parseFloat(k[3]),
+                        close:  parseFloat(k[4]),
+                        volume: parseFloat(k[5])
+                    };
+                }).filter(function(b) {
+                    return !isNaN(b.open) && b.time > 0;
+                });
+                if (!bars.length) { onResult([], { noData: true }); return; }
+                _cache[cacheKey] = { bars: bars, ts: Date.now() };
+                onResult(bars, { noData: false });
+            })
+            .catch(function(e) {
+                console.error('[Datafeed/Binance]', e.message);
+                if (typeof onError === 'function') onError('datafeed_error');
+                else onResult([], { noData: true });
+            });
+    }
+
+    /* ────────────────────────────────────────────────────────────
+       TV UDF OHLCV fetch
+    ──────────────────────────────────────────────────────────── */
+    function fetchTV(tvSym, res, cacheKey, onResult, onError) {
+        var now   = Math.floor(Date.now() / 1000);
+        var range = TV_RANGE[res] || 60*60*24*90;
+        var url   = TV_BASE + '/history' +
+            '?symbol='     + encodeURIComponent(tvSym) +
+            '&resolution=' + encodeURIComponent(res) +
+            '&from='       + (now - range) +
+            '&to='         + now;
+
+        fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (!d || d.s !== 'ok' || !d.t || !d.t.length) {
+                    onResult([], { noData: true }); return;
+                }
+                var bars = [];
+                for (var i = 0; i < d.t.length; i++) {
+                    var o=+d.o[i],h=+d.h[i],l=+d.l[i],c=+d.c[i];
+                    if (isNaN(o)||isNaN(h)||isNaN(l)||isNaN(c)) continue;
+                    bars.push({ time:d.t[i]*1000, open:o, high:h, low:l, close:c,
+                                 volume: d.v ? (+d.v[i]||0) : 0 });
+                }
+                if (!bars.length) { onResult([], { noData: true }); return; }
+                _cache[cacheKey] = { bars: bars, ts: Date.now() };
+                onResult(bars, { noData: false });
+            })
+            .catch(function(e) {
+                console.error('[Datafeed/TV]', e.message);
+                if (typeof onError === 'function') onError('datafeed_error');
+                else onResult([], { noData: true });
+            });
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       UDF INTERFACE
+    ════════════════════════════════════════════════════════════ */
 
     this.onReady = function(cb) {
-        /* Fetch server config from the demo endpoint */
-        fetch(BASE + '/config')
+        fetch(TV_BASE + '/config')
             .then(function(r) { return r.json(); })
             .then(function(cfg) {
-                /* Override supported_resolutions to our desired list */
                 cfg.supported_resolutions = ALL_RES;
                 setTimeout(function() { cb(cfg); }, 0);
             })
             .catch(function() {
-                /* Fallback config if /config fails */
                 setTimeout(function() {
-                    cb({ supported_resolutions: ALL_RES, exchanges: [], symbols_types: [] });
+                    cb({ supported_resolutions: ALL_RES, exchanges:[], symbols_types:[] });
                 }, 0);
             });
     };
 
     this.searchSymbols = function(userInput, exchange, type, onResult) {
-        fetch(BASE + '/search?query=' + encodeURIComponent(userInput) +
+        fetch(TV_BASE + '/search?query=' + encodeURIComponent(userInput) +
               '&type=' + type + '&exchange=' + exchange + '&limit=10')
             .then(function(r) { return r.json(); })
             .then(function(d) { onResult(Array.isArray(d) ? d : []); })
             .catch(function() { onResult([]); });
     };
 
-    this.resolveSymbol = function(symbolName, onResolve, onError) {
-        fetch(BASE + '/symbols?symbol=' + encodeURIComponent(symbolName))
+    this.resolveSymbol = function(rawSym, onResolve, onError) {
+        var s = rawSym.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+
+        if (isCrypto(rawSym)) {
+            /* ── Crypto: build symbol info locally, no network call ── */
+            var bnSym = toBinanceSym(rawSym);
+            setTimeout(function() {
+                onResolve({
+                    name:                    bnSym,
+                    full_name:               bnSym,
+                    description:             bnSym + ' (Binance)',
+                    type:                    'crypto',
+                    session:                 '24x7',
+                    timezone:                'Etc/UTC',
+                    minmov:                  1,
+                    pricescale:              100,
+                    has_intraday:            true,
+                    has_daily:               true,
+                    has_weekly_and_monthly:  true,
+                    supported_resolutions:   ALL_RES,
+                    data_status:             'streaming',
+                    volume_precision:        2,
+                    _source:                 'binance',
+                });
+            }, 0);
+            return;
+        }
+
+        /* ── Forex/Indices: ask TV demo endpoint ── */
+        fetch(TV_BASE + '/symbols?symbol=' + encodeURIComponent(rawSym))
             .then(function(r) { return r.json(); })
             .then(function(info) {
-                if (!info || info.s === 'error') { onError('symbol_error'); return; }
-                /* Ensure all our resolutions are listed */
+                if (!info || info.s === 'error') {
+                    onError('symbol_error'); return;
+                }
                 info.supported_resolutions = ALL_RES;
+                info._source = 'tv';
                 onResolve(info);
             })
             .catch(function() { onError('symbol_error'); });
     };
 
     this.getBars = function(symbolInfo, resolution, periodParams, onResult, onError) {
-        /* Pagination guard — only load most recent batch */
+        /* Pagination guard */
         if (periodParams && periodParams.firstDataRequest === false) {
-            onResult([], { noData: true });
-            return;
+            onResult([], { noData: true }); return;
         }
 
         var sym      = symbolInfo.name || symbolInfo.ticker;
         var cacheKey = sym + '_' + resolution;
+        var source   = symbolInfo._source;
 
-        /* Serve from cache if fresh */
+        /* Serve from cache */
         if (_cache[cacheKey] && (Date.now() - _cache[cacheKey].ts) < CACHE_TTL) {
-            onResult(_cache[cacheKey].bars.slice(), { noData: false });
-            return;
+            onResult(_cache[cacheKey].bars.slice(), { noData: false }); return;
         }
 
-        var now   = Math.floor(Date.now() / 1000);
-        var range = RANGE[resolution] || 60 * 60 * 24 * 90;
-        var from  = now - range;
-        var to    = now;
-
-        var reqUrl = BASE + '/history' +
-            '?symbol='     + encodeURIComponent(sym) +
-            '&resolution=' + encodeURIComponent(resolution) +
-            '&from='       + from +
-            '&to='         + to;
-
-        fetch(reqUrl)
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                if (!d || d.s !== 'ok' || !d.t || !d.t.length) {
-                    onResult([], { noData: true });
-                    return;
-                }
-
-                var bars = [];
-                for (var i = 0; i < d.t.length; i++) {
-                    var o = +d.o[i], h = +d.h[i],
-                        l = +d.l[i], c = +d.c[i];
-                    if (isNaN(o) || isNaN(h) || isNaN(l) || isNaN(c)) continue;
-                    bars.push({
-                        time:   d.t[i] * 1000,   // seconds → ms
-                        open:   o,
-                        high:   h,
-                        low:    l,
-                        close:  c,
-                        volume: d.v ? (+d.v[i] || 0) : 0
-                    });
-                }
-
-                if (!bars.length) { onResult([], { noData: true }); return; }
-
-                _cache[cacheKey] = { bars: bars, ts: Date.now() };
-                onResult(bars, { noData: false });
-            })
-            .catch(function(e) {
-                console.error('[Datafeed] fetch error:', e);
-                if (typeof onError === 'function') onError('datafeed_error');
-                else onResult([], { noData: true });
-            });
+        if (source === 'binance' || isCrypto(sym)) {
+            fetchBinance(sym, resolution, cacheKey, onResult, onError);
+        } else {
+            fetchTV(sym, resolution, cacheKey, onResult, onError);
+        }
     };
 
     this.subscribeBars   = function() {};
