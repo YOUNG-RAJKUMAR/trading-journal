@@ -855,6 +855,7 @@ window.ui = {
         }
         this._tvWidget = new TradingView.widget({
             container: 'tv-container',
+            library_path: '/charting_library/',
             datafeed: new window.Datafeeds.UDFCompatibleDatafeed('https://demo-feed-data.tradingview.com'),
             autosize: true,
             symbol: 'ICMARKETS:EURUSD',
