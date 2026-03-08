@@ -811,7 +811,7 @@ window.ui = {
             allow_symbol_change: true,
             save_image: false,
             disabled_features: ['create_volume_indicator_by_default','volume_force_overlay'],
-            supported_resolutions: ['1','2','5','15','30','60','120','240','D','W','M'],
+            supported_resolutions: ['1','5','15','30','60','240','D','W','M'],
             overrides: overrides,
         });
 
@@ -1331,218 +1331,145 @@ if('serviceWorker' in navigator) {
 <script src="charting_library/charting_library.standalone.js"></script>
 
 <!-- ══════════════════════════════════════════════════
-     BUG FIX #1 — Datafeed: removed unix_timestamp=true,
-     fixed datetime parsing, added NaN filter.
-     BUG FIX #2 — All timeframes: 1,3,5,15,30,60,120,240,D,W,M
+     DATAFEED — TradingView UDF Demo endpoint
+     Zero CORS issues · No API key · All timeframes
 ══════════════════════════════════════════════════ -->
 <script>
 window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
 
     /*
      * ══════════════════════════════════════════════════════════════════
-     *  FREE DATAFEED — Yahoo Finance (no API key, no rate limit)
+     *  DATAFEED — TradingView Demo UDF  (demo-feed-data.tradingview.com)
      *
-     *  Why Yahoo Finance:
-     *  ✓ Completely free — zero API key needed
-     *  ✓ No rate limit (generous unofficial API)
-     *  ✓ All timeframes: 1m 2m 5m 15m 30m 1h 2h 4h 1d 1wk 1mo
-     *  ✓ Forex pairs (EURUSD=X), indices (^GSPC), stocks, crypto
-     *  ✓ Returns Unix timestamps — no parsing bugs
-     *
-     *  Symbol mapping (auto-handled):
-     *    EURUSD  → EURUSD=X   (forex)
-     *    XAUUSD  → GC=F       (gold futures)
-     *    US30    → YM=F       (Dow futures)
-     *    NAS100  → NQ=F       (Nasdaq futures)
-     *    SP500   → ES=F       (S&P futures)
-     *    BTCUSD  → BTC-USD    (crypto)
-     *    AAPL    → AAPL       (stocks — unchanged)
+     *  Why this works when Yahoo/Twelve Data failed:
+     *  ✓ TradingView's OWN endpoint — built for this exact library
+     *  ✓ Zero CORS issues — no proxy needed
+     *  ✓ No API key, no rate limits
+     *  ✓ All timeframes: 1 5 15 30 60 240 D W M
+     *  ✓ All major forex pairs, gold, indices
+     *  ✓ Standard UDF protocol:
+     *      GET /history?symbol=EURUSD&resolution=60&from=UNIX&to=UNIX
+     *      → { s:"ok", t:[...], o:[...], h:[...], l:[...], c:[...] }
      * ══════════════════════════════════════════════════════════════════
      */
 
-    var ALL_RES   = ['1','2','5','15','30','60','120','240','D','W','M'];
-    var CACHE_TTL = 60 * 1000;  // 1 min cache (Yahoo is live so keep fresh)
+    var BASE      = 'https://demo-feed-data.tradingview.com';
+    var ALL_RES   = ['1','5','15','30','60','240','D','W','M'];
+    var CACHE_TTL = 2 * 60 * 1000;  // 2 min cache
+    var _cache    = {};
 
-    var _cache = {};
-
-    /* ── Yahoo Finance interval map ── */
-    var IMAP = {
-        '1':  { i:'1m',   r:'1d'   },
-        '2':  { i:'2m',   r:'5d'   },
-        '5':  { i:'5m',   r:'60d'  },
-        '15': { i:'15m',  r:'60d'  },
-        '30': { i:'30m',  r:'60d'  },
-        '60': { i:'60m',  r:'730d' },
-        '120':{ i:'60m',  r:'730d' }, // Yahoo has no 2h — use 1h data
-        '240':{ i:'1h',   r:'730d' },
-        'D':  { i:'1d',   r:'5y'   },
-        'W':  { i:'1wk',  r:'10y'  },
-        'M':  { i:'1mo',  r:'max'  },
+    /* ── How many seconds of history to load per timeframe ── */
+    var RANGE = {
+        '1'  : 60*60*8,          // 8 hours of 1m bars
+        '5'  : 60*60*24*5,       // 5 days of 5m bars
+        '15' : 60*60*24*14,      // 14 days of 15m bars
+        '30' : 60*60*24*30,      // 30 days of 30m bars
+        '60' : 60*60*24*90,      // 90 days of 1h bars
+        '240': 60*60*24*180,     // 180 days of 4h bars
+        'D'  : 60*60*24*365*3,   // 3 years of daily bars
+        'W'  : 60*60*24*365*10,  // 10 years of weekly bars
+        'M'  : 60*60*24*365*20,  // 20 years of monthly bars
     };
-
-    /* ── Symbol normaliser → Yahoo ticker ── */
-    var SYM_MAP = {
-        // Forex pairs
-        'EURUSD':'EURUSD=X','GBPUSD':'GBPUSD=X','USDJPY':'USDJPY=X',
-        'USDCHF':'USDCHF=X','AUDUSD':'AUDUSD=X','NZDUSD':'NZDUSD=X',
-        'USDCAD':'USDCAD=X','EURGBP':'EURGBP=X','EURJPY':'EURJPY=X',
-        'GBPJPY':'GBPJPY=X','XAUUSD':'GC=F',    'XAGUSD':'SI=F',
-        // Indices
-        'US30':'YM=F','DOW':'YM=F','DJ30':'YM=F',
-        'NAS100':'NQ=F','NASDAQ':'NQ=F','NDX':'NQ=F',
-        'SP500':'ES=F','SPX':'ES=F','US500':'ES=F',
-        'GER40':'FDAX=F','DAX':'FDAX=F',
-        'UK100':'Z=F',
-        // Crypto
-        'BTCUSD':'BTC-USD','ETHUSD':'ETH-USD','BNBUSD':'BNB-USD',
-        'SOLUSD':'SOL-USD','XRPUSD':'XRP-USD',
-    };
-
-    function toYahoo(raw) {
-        // Strip slashes and uppercase
-        var s = raw.replace(/[^A-Z0-9]/gi,'').toUpperCase();
-        if (SYM_MAP[s]) return SYM_MAP[s];
-        // Auto-detect forex: 6 letters with no number → add =X
-        if (/^[A-Z]{6}$/.test(s)) return s + '=X';
-        return s;
-    }
-
-    /* ── CORS proxy list — tries each in order until one works ── */
-    var PROXIES = [
-        'https://corsproxy.io/?',
-        'https://api.allorigins.win/raw?url=',
-        '',   // direct (works in some environments)
-    ];
-    var _proxyIdx = 0;
-
-    function buildUrl(yahooSym, interval, range) {
-        var base = 'https://query1.finance.yahoo.com/v8/finance/chart/' +
-                   encodeURIComponent(yahooSym) +
-                   '?interval=' + interval +
-                   '&range='    + range +
-                   '&includePrePost=false' +
-                   '&events=div%2Csplit';
-        var proxy = PROXIES[_proxyIdx] || '';
-        return proxy ? proxy + encodeURIComponent(base) : base;
-    }
-
-    function parseBars(data) {
-        try {
-            var res    = data.chart.result[0];
-            var ts     = res.timestamp;
-            var q      = res.indicators.quote[0];
-            var bars   = [];
-            for (var i = 0; i < ts.length; i++) {
-                var o = +q.open[i], h = +q.high[i],
-                    l = +q.low[i],  c = +q.close[i];
-                if (!o || !h || !l || !c ||
-                    isNaN(o) || isNaN(h) || isNaN(l) || isNaN(c)) continue;
-                bars.push({
-                    time:   ts[i] * 1000,  // seconds → ms
-                    open:   o,
-                    high:   h,
-                    low:    l,
-                    close:  c,
-                    volume: +(q.volume && q.volume[i]) || 0
-                });
-            }
-            return bars;
-        } catch(e) { return []; }
-    }
 
     /* ════ UDF interface ════ */
 
     this.onReady = function(cb) {
-        setTimeout(function() { cb({ supported_resolutions: ALL_RES }); }, 0);
-    };
-
-    this.searchSymbols = function(u, e, t, cb) { cb([]); };
-
-    this.resolveSymbol = function(rawSym, resolve) {
-        var ySym = toYahoo(rawSym);
-        // Detect type for correct pricescale
-        var isCrypto = ySym.indexOf('-USD') !== -1;
-        var isIndex  = ySym.indexOf('=F')   !== -1 || ySym.charAt(0) === '^';
-        var ps = isCrypto ? 100 : isIndex ? 10 : 100000;
-        setTimeout(function() {
-            resolve({
-                name:                   ySym,
-                full_name:              rawSym,
-                description:            rawSym,
-                type:                   isCrypto ? 'crypto' : isIndex ? 'index' : 'forex',
-                session:                '0000-2400:23456',
-                timezone:               'Etc/UTC',
-                minmov:                 1,
-                pricescale:             ps,
-                has_intraday:           true,
-                has_daily:              true,
-                has_weekly_and_monthly: true,
-                supported_resolutions:  ALL_RES,
-                data_status:            'endofday',
-                volume_precision:       0,
+        /* Fetch server config from the demo endpoint */
+        fetch(BASE + '/config')
+            .then(function(r) { return r.json(); })
+            .then(function(cfg) {
+                /* Override supported_resolutions to our desired list */
+                cfg.supported_resolutions = ALL_RES;
+                setTimeout(function() { cb(cfg); }, 0);
+            })
+            .catch(function() {
+                /* Fallback config if /config fails */
+                setTimeout(function() {
+                    cb({ supported_resolutions: ALL_RES, exchanges: [], symbols_types: [] });
+                }, 0);
             });
-        }, 0);
     };
 
-    this.getBars = function(info, res, periodParams, onResult, onError) {
-        /* Pagination guard */
+    this.searchSymbols = function(userInput, exchange, type, onResult) {
+        fetch(BASE + '/search?query=' + encodeURIComponent(userInput) +
+              '&type=' + type + '&exchange=' + exchange + '&limit=10')
+            .then(function(r) { return r.json(); })
+            .then(function(d) { onResult(Array.isArray(d) ? d : []); })
+            .catch(function() { onResult([]); });
+    };
+
+    this.resolveSymbol = function(symbolName, onResolve, onError) {
+        fetch(BASE + '/symbols?symbol=' + encodeURIComponent(symbolName))
+            .then(function(r) { return r.json(); })
+            .then(function(info) {
+                if (!info || info.s === 'error') { onError('symbol_error'); return; }
+                /* Ensure all our resolutions are listed */
+                info.supported_resolutions = ALL_RES;
+                onResolve(info);
+            })
+            .catch(function() { onError('symbol_error'); });
+    };
+
+    this.getBars = function(symbolInfo, resolution, periodParams, onResult, onError) {
+        /* Pagination guard — only load most recent batch */
         if (periodParams && periodParams.firstDataRequest === false) {
             onResult([], { noData: true });
             return;
         }
 
-        var tf = IMAP[res];
-        if (!tf) { onResult([], { noData: true }); return; }
+        var sym      = symbolInfo.name || symbolInfo.ticker;
+        var cacheKey = sym + '_' + resolution;
 
-        var ySym     = info.name;
-        var cacheKey = ySym + '_' + res;
-
-        /* Serve cache */
+        /* Serve from cache if fresh */
         if (_cache[cacheKey] && (Date.now() - _cache[cacheKey].ts) < CACHE_TTL) {
             onResult(_cache[cacheKey].bars.slice(), { noData: false });
             return;
         }
 
-        /* Try proxies in sequence */
-        function attempt(pIdx) {
-            var prevProxy = _proxyIdx;
-            _proxyIdx = pIdx;
-            var fetchUrl = buildUrl(ySym, tf.i, tf.r);
-            _proxyIdx = prevProxy; // restore
+        var now   = Math.floor(Date.now() / 1000);
+        var range = RANGE[resolution] || 60 * 60 * 24 * 90;
+        var from  = now - range;
+        var to    = now;
 
-            fetch(fetchUrl)
-                .then(function(r) {
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return r.json();
-                })
-                .then(function(data) {
-                    /* Check for Yahoo error */
-                    if (data.chart && data.chart.error) {
-                        throw new Error(data.chart.error.description || 'Yahoo error');
-                    }
+        var reqUrl = BASE + '/history' +
+            '?symbol='     + encodeURIComponent(sym) +
+            '&resolution=' + encodeURIComponent(resolution) +
+            '&from='       + from +
+            '&to='         + to;
 
-                    var bars = parseBars(data);
-                    if (!bars.length) { onResult([], { noData: true }); return; }
+        fetch(reqUrl)
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (!d || d.s !== 'ok' || !d.t || !d.t.length) {
+                    onResult([], { noData: true });
+                    return;
+                }
 
-                    /* Remember which proxy worked */
-                    _proxyIdx = pIdx;
+                var bars = [];
+                for (var i = 0; i < d.t.length; i++) {
+                    var o = +d.o[i], h = +d.h[i],
+                        l = +d.l[i], c = +d.c[i];
+                    if (isNaN(o) || isNaN(h) || isNaN(l) || isNaN(c)) continue;
+                    bars.push({
+                        time:   d.t[i] * 1000,   // seconds → ms
+                        open:   o,
+                        high:   h,
+                        low:    l,
+                        close:  c,
+                        volume: d.v ? (+d.v[i] || 0) : 0
+                    });
+                }
 
-                    _cache[cacheKey] = { bars: bars, ts: Date.now() };
-                    onResult(bars, { noData: false });
-                })
-                .catch(function(e) {
-                    console.warn('[Datafeed] proxy', pIdx, 'failed:', e.message);
-                    if (pIdx + 1 < PROXIES.length) {
-                        attempt(pIdx + 1);
-                    } else {
-                        console.error('[Datafeed] all proxies failed for', ySym, res);
-                        if (typeof onError === 'function') onError('datafeed_error');
-                        else onResult([], { noData: true });
-                    }
-                });
-        }
+                if (!bars.length) { onResult([], { noData: true }); return; }
 
-        attempt(_proxyIdx);
+                _cache[cacheKey] = { bars: bars, ts: Date.now() };
+                onResult(bars, { noData: false });
+            })
+            .catch(function(e) {
+                console.error('[Datafeed] fetch error:', e);
+                if (typeof onError === 'function') onError('datafeed_error');
+                else onResult([], { noData: true });
+            });
     };
 
     this.subscribeBars   = function() {};
