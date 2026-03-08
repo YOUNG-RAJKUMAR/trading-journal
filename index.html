@@ -854,7 +854,8 @@ window.ui = {
             this._tvWidget = null;
         }
         this._tvWidget = new TradingView.widget({
-            container_id: 'tv-container',
+            container: 'tv-container',
+            datafeed: new window.Datafeeds.UDFCompatibleDatafeed('https://demo-feed-data.tradingview.com'),
             autosize: true,
             symbol: 'ICMARKETS:EURUSD',
             interval: this._tf,
