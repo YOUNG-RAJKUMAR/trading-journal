@@ -1418,7 +1418,9 @@ this.resolveSymbol=function(sym,resolve){setTimeout(()=>resolve({name:sym,full_n
 this.getBars=function(info,res,period,onResult){
 const map={'5':'5min','15':'15min','30':'30min','60':'1h','240':'4h','D':'1day','W':'1week'};
 const sym=info.name.replace(/([A-Z]{3})([A-Z]{3})/,'$1/$2');
-fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${map[res]||'1h'}&outputsize=500&apikey=ea488f33f6d841778d55e540d889c308`)
+const startDate=new Date(period.from*1000).toISOString().slice(0,10);
+const endDate=new Date(period.to*1000).toISOString().slice(0,10);
+fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${map[res]||'1h'}&start_date=${startDate}&end_date=${endDate}&outputsize=500&apikey=ea488f33f6d841778d55e540d889c308`)
 .then(r=>r.json()).then(d=>{
 if(!d.values){onResult([],{noData:true});return;}
 const bars=d.values.reverse().map(v=>({time:parseInt(new Date(v.datetime.replace(' ','T')+'+00:00').getTime()/1000),open:+v.open,high:+v.high,low:+v.low,close:+v.close,volume:0}));
