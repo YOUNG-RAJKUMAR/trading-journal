@@ -731,27 +731,16 @@ window.ui = {
         };
     },
 
-    /* ══════════════════════════════════════════════
-       FIX A — Destroy properly, apply overrides via onChartReady,
-               support hollow candles via _chartStyle, cover all
-               candleStyle + hollowCandleStyle overrides.
-    ══════════════════════════════════════════════ */
     launchTradingDesk() {
         const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
-
-        // Cancel any pending debounced rebuilds
         clearTimeout(this._tvRebuildTimer);
-
-        // Properly destroy existing widget
         if (this._tvWidget) {
             try { if (typeof this._tvWidget.remove === 'function') this._tvWidget.remove(); } catch(e) {}
             this._tvWidget = null;
         }
         container.innerHTML = '';
-
-        // Build the full overrides object once — used both at init and in onChartReady
         const overrides = {
             "paneProperties.background":                   c.bg,
             "paneProperties.backgroundType":               "solid",
@@ -762,7 +751,6 @@ window.ui = {
             "paneProperties.vertGridProperties.style":     1,
             "paneProperties.horzGridProperties.style":     1,
             "paneProperties.crossHairProperties.color":    "#555555",
-            // Filled candle colours
             "mainSeriesProperties.candleStyle.upColor":         c.up,
             "mainSeriesProperties.candleStyle.downColor":       c.down,
             "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
@@ -771,7 +759,6 @@ window.ui = {
             "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
             "mainSeriesProperties.candleStyle.drawWick":        true,
             "mainSeriesProperties.candleStyle.drawBorder":      true,
-            // Hollow candle colours (style 9) — must also be set
             "mainSeriesProperties.hollowCandleStyle.upColor":         c.up,
             "mainSeriesProperties.hollowCandleStyle.downColor":       c.down,
             "mainSeriesProperties.hollowCandleStyle.borderUpColor":   c.upBorder,
@@ -780,7 +767,6 @@ window.ui = {
             "mainSeriesProperties.hollowCandleStyle.wickDownColor":   c.downWick,
             "mainSeriesProperties.hollowCandleStyle.drawWick":        true,
             "mainSeriesProperties.hollowCandleStyle.drawBorder":      true,
-            // Heikin Ashi colours (style 8)
             "mainSeriesProperties.haStyle.upColor":         c.up,
             "mainSeriesProperties.haStyle.downColor":       c.down,
             "mainSeriesProperties.haStyle.borderUpColor":   c.upBorder,
@@ -788,10 +774,7 @@ window.ui = {
             "mainSeriesProperties.haStyle.wickUpColor":     c.upWick,
             "mainSeriesProperties.haStyle.wickDownColor":   c.downWick,
         };
-
-        // _chartStyle: '1'=candles, '9'=hollow, '8'=HA, etc. (set by applyPreset)
         const chartStyle = this._chartStyle || '1';
-
         this._tvWidget = new TradingView.widget({
             container: 'tv-container',
             library_path: '/charting_library/',
@@ -814,8 +797,6 @@ window.ui = {
             supported_resolutions: ['1','3','5','15','30','60','120','240','D','W','M'],
             overrides: overrides,
         });
-
-        // ── Re-apply overrides after chart fully initialises (guarantees colours stick) ──
         if (this._tvWidget && typeof this._tvWidget.onChartReady === 'function') {
             this._tvWidget.onChartReady(() => {
                 try { this._tvWidget.applyOverrides(overrides); } catch(e) {}
@@ -828,9 +809,7 @@ window.ui = {
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
 
-    resetTVColors() {
-        applyPreset('phthalo');
-    },
+    resetTVColors() { applyPreset('phthalo'); },
 
     classifySession(dateStr) {
         const tv = document.getElementById('t-start').value; if(!tv || !dateStr) return null;
@@ -1274,7 +1253,6 @@ function applyPreset(name) {
     updateSwatchActive('sw-downborder',p.downBorder);
     document.querySelectorAll('.preset-chip').forEach(b => b.classList.remove('active-preset'));
     const chip = document.getElementById('pch-'+name); if(chip) chip.classList.add('active-preset');
-    // Pass the chart style (e.g. '9' for hollow) to the widget builder
     ui._chartStyle = p.style || '1';
     ui.launchTradingDesk();
 }
@@ -1331,29 +1309,19 @@ if('serviceWorker' in navigator) {
 <script src="charting_library/charting_library.standalone.js"></script>
 
 <!-- ══════════════════════════════════════════════════════════
-     HYBRID DATAFEED v3
-     FOREX/INDICES  →  wraps TV built-in UDF (already works)
+     HYBRID DATAFEED v4 — Yahoo Finance (Forex/Indices) + Binance (Crypto)
+     FOREX/INDICES  →  Yahoo Finance REST (free, no key, CORS-friendly)
      CRYPTO         →  Binance REST + WebSocket (zero CORS)
+     FIX: Replaces broken demo-feed-data.tradingview.com (CORS-blocked externally)
 ══════════════════════════════════════════════════════════ -->
 <script>
 (function () {
-    /*
-     * ROOT CAUSE OF ALL PREVIOUS FAILURES:
-     * charting_library.standalone.js sets window.Datafeeds.UDFCompatibleDatafeed
-     * BEFORE our script runs. That built-in class correctly resolves EURUSD,
-     * XAUUSD, NAS100, etc against demo-feed-data.tradingview.com.
-     * Every previous version REPLACED window.Datafeeds entirely, destroying
-     * the working TV implementation.
-     *
-     * THIS VERSION: capture original TV class first, then create a wrapper
-     * that routes crypto to Binance and everything else to the original TV feed.
-     */
 
-    var _OrigTV = window.Datafeeds && window.Datafeeds.UDFCompatibleDatafeed;
-    var TV_BASE = 'https://demo-feed-data.tradingview.com';
     var ALL_RES = ['1','3','5','15','30','60','120','240','D','W','M'];
 
-    /* ── Crypto detection ── */
+    /* ════════════════════════════════════════
+       CRYPTO DETECTION + BINANCE
+    ════════════════════════════════════════ */
     var CRYPTO_MAP = {
         'BTCUSD':'BTCUSDT','BTCUSDT':'BTCUSDT','ETHUSD':'ETHUSDT','ETHUSDT':'ETHUSDT',
         'BNBUSD':'BNBUSDT','BNBUSDT':'BNBUSDT','SOLUSD':'SOLUSDT','SOLUSDT':'SOLUSDT',
@@ -1388,7 +1356,7 @@ if('serviceWorker' in navigator) {
         return s+'USDT';
     }
 
-    /* ── Binance bars ── */
+    /* Binance bars */
     var _cache = {};
     function fetchBN(bnSym, res, ok, fail) {
         var key = bnSym+'_'+res;
@@ -1405,7 +1373,7 @@ if('serviceWorker' in navigator) {
             }).catch(fail);
     }
 
-    /* ── Binance WebSocket live ── */
+    /* Binance WebSocket live */
     var _bnSubs = {};
     function subBN(bnSym, res, uid, onRT) {
         var dead=false, ws;
@@ -1419,65 +1387,247 @@ if('serviceWorker' in navigator) {
         _bnSubs[uid]={cleanup:function(){dead=true;try{ws.close();}catch(x){}}};
     }
 
-    /* ── Wrapper class ── */
+    /* ════════════════════════════════════════
+       YAHOO FINANCE — FOREX / INDICES / STOCKS
+    ════════════════════════════════════════ */
+    var YF_MAP = {
+        /* Forex majors */
+        'EURUSD':'EURUSD=X','GBPUSD':'GBPUSD=X','USDJPY':'USDJPY=X',
+        'USDCHF':'USDCHF=X','AUDUSD':'AUDUSD=X','NZDUSD':'NZDUSD=X',
+        'USDCAD':'USDCAD=X','USDSGD':'USDSGD=X','USDHKD':'USDHKD=X',
+        /* Forex crosses */
+        'EURJPY':'EURJPY=X','EURGBP':'EURGBP=X','EURAUD':'EURAUD=X',
+        'EURCAD':'EURCAD=X','EURCHF':'EURCHF=X','GBPJPY':'GBPJPY=X',
+        'GBPAUD':'GBPAUD=X','GBPCAD':'GBPCAD=X','GBPCHF':'GBPCHF=X',
+        'AUDJPY':'AUDJPY=X','CADJPY':'CADJPY=X','CHFJPY':'CHFJPY=X',
+        'AUDCAD':'AUDCAD=X','AUDCHF':'AUDCHF=X','AUDNZD':'AUDNZD=X',
+        'NZDJPY':'NZDJPY=X','CADCHF':'CADCHF=X','NZDCAD':'NZDCAD=X',
+        'NZDCHF':'NZDCHF=X','EURNZD':'EURNZD=X','GBPNZD':'GBPNZD=X',
+        /* Precious metals */
+        'XAUUSD':'GC=F','GOLD':'GC=F','XAGUSD':'SI=F','SILVER':'SI=F',
+        /* US Indices */
+        'NAS100':'NQ=F','NASDAQ':'NQ=F','US100':'NQ=F','NDX':'NQ=F','NQ':'NQ=F',
+        'SPX500':'ES=F','SP500':'ES=F','US500':'ES=F','SPX':'ES=F','ES':'ES=F',
+        'US30':'YM=F','DOW':'YM=F','DJ30':'YM=F','YM':'YM=F',
+        'US2000':'RTY=F','RUSSELL':'RTY=F',
+        /* European Indices */
+        'GER40':'FDAX=F','DAX':'FDAX=F','GER30':'FDAX=F',
+        'FRA40':'FCE=F','CAC40':'FCE=F',
+        'UK100':'Z=F','FTSE':'Z=F',
+        /* Asian Indices */
+        'JPN225':'NKD=F','NIK225':'NKD=F',
+        'AUS200':'AP=F',
+        /* Energy */
+        'USOIL':'CL=F','OIL':'CL=F','WTI':'CL=F','CRUDE':'CL=F','CRUDEOIL':'CL=F',
+        'UKOIL':'BZ=F','BRENT':'BZ=F',
+        'NATGAS':'NG=F',
+        /* Bonds */
+        'US10Y':'^TNX','US2Y':'^IRX','US30Y':'^TYX',
+    };
+
+    function toYahoo(raw) {
+        var s = raw.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+        if (YF_MAP[s]) return YF_MAP[s];
+        /* Auto-detect forex pair: 6 alpha chars → append =X */
+        if (/^[A-Z]{6}$/.test(s)) return s + '=X';
+        return s;
+    }
+
+    /* TV resolution → Yahoo interval + range */
+    var YF_RES = {
+        '1':  {interval:'1m',  range:'7d'},
+        '3':  {interval:'5m',  range:'60d'},
+        '5':  {interval:'5m',  range:'60d'},
+        '15': {interval:'15m', range:'60d'},
+        '30': {interval:'30m', range:'60d'},
+        '60': {interval:'1h',  range:'2y'},
+        '120':{interval:'1h',  range:'2y'},
+        '240':{interval:'1h',  range:'2y'},
+        'D':  {interval:'1d',  range:'10y'},
+        'W':  {interval:'1wk', range:'10y'},
+        'M':  {interval:'1mo', range:'10y'},
+    };
+
+    var _yfCache = {};
+
+    function fetchYF(sym, res, onOk, onFail) {
+        var key = sym+'_'+res;
+        if (_yfCache[key] && Date.now()-_yfCache[key].ts < 120000) {
+            onOk(_yfCache[key].bars.slice()); return;
+        }
+        var cfg = YF_RES[res] || {interval:'1d', range:'1y'};
+
+        /* Use Yahoo Finance v8 — CORS-open endpoint */
+        var url = 'https://query1.finance.yahoo.com/v8/finance/chart/'
+                + encodeURIComponent(sym)
+                + '?interval=' + cfg.interval
+                + '&range='    + cfg.range
+                + '&includePrePost=false';
+
+        fetch(url, {headers:{'Accept':'application/json'}})
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                var result = data && data.chart && data.chart.result && data.chart.result[0];
+                if (!result || !result.timestamp) {
+                    /* Fallback: try query2 */
+                    var url2 = url.replace('query1','query2');
+                    return fetch(url2).then(function(r2){return r2.json();}).then(function(data2){
+                        var r2 = data2 && data2.chart && data2.chart.result && data2.chart.result[0];
+                        if (!r2 || !r2.timestamp) throw new Error('no_data');
+                        return r2;
+                    });
+                }
+                return result;
+            })
+            .then(function(result){
+                var ts    = result.timestamp;
+                var quote = result.indicators.quote[0];
+                var bars  = ts.map(function(t,i){
+                    return {
+                        time:   t * 1000,
+                        open:   quote.open[i],
+                        high:   quote.high[i],
+                        low:    quote.low[i],
+                        close:  quote.close[i],
+                        volume: (quote.volume && quote.volume[i]) || 0
+                    };
+                }).filter(function(b){
+                    return b.open!=null && b.high!=null && b.low!=null && b.close!=null &&
+                           !isNaN(b.open) && b.open > 0;
+                });
+                /* Aggregate 1h → 4h for resolution 240 */
+                if (res === '240') bars = aggregateNh(bars, 4);
+                /* Aggregate 1h → 2h for resolution 120 */
+                if (res === '120') bars = aggregateNh(bars, 2);
+                if (!bars.length) throw new Error('empty');
+                _yfCache[key] = {bars: bars, ts: Date.now()};
+                onOk(bars);
+            })
+            .catch(function(e){ console.warn('[YF datafeed] failed', sym, res, e); onFail(e); });
+    }
+
+    function aggregateNh(bars, n) {
+        var ms = n * 3600 * 1000, out = [], cur = null;
+        bars.forEach(function(b){
+            var bucket = Math.floor(b.time / ms) * ms;
+            if (!cur || cur.time !== bucket) {
+                if (cur) out.push(cur);
+                cur = {time:bucket, open:b.open, high:b.high, low:b.low, close:b.close, volume:b.volume||0};
+            } else {
+                if (b.high > cur.high) cur.high = b.high;
+                if (b.low  < cur.low)  cur.low  = b.low;
+                cur.close   = b.close;
+                cur.volume += b.volume||0;
+            }
+        });
+        if (cur) out.push(cur);
+        return out;
+    }
+
+    /* ════════════════════════════════════════
+       UNIFIED DATAFEED WRAPPER
+    ════════════════════════════════════════ */
     window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
 
-        var tvFeed = _OrigTV ? new _OrigTV(TV_BASE) : null;
-
         this.onReady = function(cb) {
-            var done = function(cfg){
-                cfg=cfg||{}; cfg.supported_resolutions=ALL_RES;
-                setTimeout(function(){cb(cfg);},0);
-            };
-            if (tvFeed) tvFeed.onReady(done); else done({});
+            setTimeout(function(){
+                cb({
+                    supported_resolutions: ALL_RES,
+                    supports_search: true,
+                    supports_group_request: false,
+                    supports_marks: false,
+                    supports_timescale_marks: false,
+                });
+            }, 0);
         };
 
-        this.searchSymbols = function(q,ex,type,cb) {
-            if (tvFeed) tvFeed.searchSymbols(q,ex,type,cb); else cb([]);
+        this.searchSymbols = function(userInput, exchange, symbolType, onResult) {
+            onResult([]);
         };
 
-        this.resolveSymbol = function(raw, onResolve, onError) {
-            if (isCrypto(raw)) {
-                var bn = toBN(raw);
+        this.resolveSymbol = function(rawSym, onResolve, onError) {
+            var s = rawSym.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+
+            if (isCrypto(rawSym)) {
+                var bn = toBN(rawSym);
                 setTimeout(function(){
-                    onResolve({name:bn,full_name:bn,description:bn+' · Binance',
-                        type:'crypto',session:'24x7',timezone:'Etc/UTC',
-                        minmov:1,pricescale:100,has_intraday:true,has_daily:true,
-                        has_weekly_and_monthly:true,supported_resolutions:ALL_RES,
-                        data_status:'streaming',volume_precision:2,_isCrypto:true});
-                },0);
+                    onResolve({
+                        name: bn, full_name: bn,
+                        description: bn + ' · Binance', type: 'crypto',
+                        session: '24x7', timezone: 'Etc/UTC',
+                        minmov: 1, pricescale: 100,
+                        has_intraday: true, has_daily: true,
+                        has_weekly_and_monthly: true,
+                        supported_resolutions: ALL_RES,
+                        data_status: 'streaming', volume_precision: 2,
+                        _feed: 'binance'
+                    });
+                }, 0);
             } else {
-                /* Delegate to original TV UDF — it handles FX:EURUSD prefixes internally */
-                if (tvFeed) {
-                    tvFeed.resolveSymbol(raw, function(info){
-                        info.supported_resolutions=ALL_RES;
-                        info._isCrypto=false;
-                        onResolve(info);
-                    }, onError);
-                } else { onError('no_feed'); }
+                var yfSym = toYahoo(rawSym);
+                var ps = 100000;
+                if (/=X$/.test(yfSym)) {
+                    ps = /JPY/.test(s) ? 1000 : 100000;
+                } else if (/GC=F|SI=F/.test(yfSym)) {
+                    ps = 100;
+                } else if (/=F$/.test(yfSym) || /\^/.test(yfSym)) {
+                    ps = 100;
+                }
+                setTimeout(function(){
+                    onResolve({
+                        name: s,
+                        full_name: s,
+                        description: s + ' · Yahoo Finance',
+                        type: /=X$/.test(yfSym) ? 'forex' : 'index',
+                        session: '0000-2359:1234567',
+                        timezone: 'Etc/UTC',
+                        minmov: 1, pricescale: ps,
+                        has_intraday: true, has_daily: true,
+                        has_weekly_and_monthly: true,
+                        supported_resolutions: ALL_RES,
+                        data_status: 'endofday',
+                        volume_precision: 0,
+                        _feed: 'yahoo',
+                        _yfSym: yfSym
+                    });
+                }, 0);
             }
         };
 
         this.getBars = function(sym, res, period, onResult, onError) {
-            if (period && period.firstDataRequest===false) { onResult([],{noData:true}); return; }
-            if (sym._isCrypto) {
-                fetchBN(sym.name, res, function(bars){onResult(bars,{noData:false});}, function(){onResult([],{noData:true});});
+            if (period && period.firstDataRequest === false) {
+                onResult([], {noData: true}); return;
+            }
+            if (sym._feed === 'binance') {
+                fetchBN(sym.name, res,
+                    function(bars){ onResult(bars, {noData: false}); },
+                    function(){ onResult([], {noData: true}); }
+                );
             } else {
-                if (tvFeed) tvFeed.getBars(sym,res,period,onResult,onError);
-                else onResult([],{noData:true});
+                var yfSym = sym._yfSym || toYahoo(sym.name || sym.full_name || '');
+                fetchYF(yfSym, res,
+                    function(bars){ onResult(bars, {noData: false}); },
+                    function(){ onResult([], {noData: true}); }
+                );
             }
         };
 
         this.subscribeBars = function(sym, res, onRT, uid, onReset) {
-            if (sym._isCrypto) { subBN(sym.name,res,uid,onRT); }
-            else { if (tvFeed) tvFeed.subscribeBars(sym,res,onRT,uid,onReset); }
+            if (sym._feed === 'binance') {
+                subBN(sym.name, res, uid, onRT);
+            }
+            /* Yahoo has no streaming — chart shows latest snapshot */
         };
 
         this.unsubscribeBars = function(uid) {
             if (_bnSubs[uid]) { _bnSubs[uid].cleanup(); delete _bnSubs[uid]; }
-            else if (tvFeed) tvFeed.unsubscribeBars(uid);
+        };
+
+        this.calculateHistoryDepth = function(res, resBack, daysBack) {
+            return undefined;
         };
     }};
+
 })();
 </script>
 
