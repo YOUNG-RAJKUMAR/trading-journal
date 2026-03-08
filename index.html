@@ -1423,7 +1423,7 @@ const endDate=new Date(period.to*1000).toISOString().slice(0,10);
 fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${map[res]||'1h'}&start_date=${startDate}&end_date=${endDate}&outputsize=500&apikey=ea488f33f6d841778d55e540d889c308`)
 .then(r=>r.json()).then(d=>{
 if(!d.values){onResult([],{noData:true});return;}
-const bars=d.values.reverse().map(v=>({time:parseInt(new Date(v.datetime.replace(' ','T')+'+00:00').getTime()/1000),open:+v.open,high:+v.high,low:+v.low,close:+v.close,volume:0}));
+const bars=d.values.reverse().map(v=>({time:Math.floor(Date.parse(v.datetime.replace(' ','T')+'+00:00')/1000),open:+v.open,high:+v.high,low:+v.low,close:+v.close,volume:0}));
 onResult(bars,{noData:bars.length===0});
 }).catch(()=>onResult([],{noData:true}))};
 this.subscribeBars=function(){};
