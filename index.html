@@ -1414,7 +1414,7 @@ if('serviceWorker' in navigator) {
 window.Datafeeds={UDFCompatibleDatafeed:function(url){
 this.onReady=function(cb){setTimeout(()=>cb({supported_resolutions:['1','5','15','30','60','240','D','W']}),0)};
 this.searchSymbols=function(u,e,t,cb){cb([])};
-this.resolveSymbol=function(sym,resolve){setTimeout(()=>resolve({name:sym,full_name:sym,description:sym,type:'forex',session:'24x5',timezone:'Etc/UTC',exchange:'',minmov:1,pricescale:100000,has_intraday:true,supported_resolutions:['1','5','15','30','60','240','D','W'],data_status:'streaming'}),0)};
+this.resolveSymbol=function(sym,resolve){setTimeout(()=>resolve({name:sym,full_name:sym,description:sym,type:'forex',session:'0000-2400:23456',timezone:'Etc/UTC',exchange:'',minmov:1,pricescale:100000,has_intraday:true,supported_resolutions:['1','5','15','30','60','240','D','W'],data_status:'streaming'}),0)};
 this.getBars=function(info,res,period,onResult){
 const map={'1':'1min','5':'5min','15':'15min','30':'30min','60':'1h','240':'4h','D':'1day','W':'1week'};
 fetch(`https://api.twelvedata.com/time_series?symbol=${info.name}&interval=${map[res]||'1h'}&outputsize=300&apikey=demo`)
