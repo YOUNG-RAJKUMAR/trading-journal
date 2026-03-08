@@ -209,10 +209,7 @@
         .stat-meta { font-size:0.68rem;color:#444;margin-top:4px;display:block; }
         .analytics-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:25px; }
 
-        /* ══ CHARTS TAB 70% ZOOM — zoom property reflowing correctly ══ */
-        #tab-charts {
-            zoom: 0.7;
-        }
+        #tab-charts { zoom: 0.7; }
 
         /* PDF */
         .pdf-export-mode #main-content { padding:0;max-width:100%; }
@@ -221,86 +218,37 @@
         .pdf-export-mode table { font-size:8px!important; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1} }
 
-        /* live pulse */
         .live-dot { width:7px;height:7px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite; }
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
 
-        /* ══ COLOR PICKER TOOLBAR ══ */
-        #desk-toolbar {
-            background:#090909;
-            border-bottom:1px solid #1a1a1a;
-            user-select:none;
-        }
-        .ctb-row1 {
-            display:flex;align-items:center;gap:8px;padding:7px 14px;
-            background:#0a0a0a;border-bottom:1px solid #141414;flex-wrap:wrap;
-        }
-        .ctb-row2 {
-            display:none;
-            padding:10px 14px;gap:6px;
-            background:#060606;border-bottom:1px solid #141414;
-            flex-wrap:wrap;align-items:flex-start;
-        }
+        /* COLOR PICKER TOOLBAR */
+        #desk-toolbar { background:#090909;border-bottom:1px solid #1a1a1a;user-select:none; }
+        .ctb-row1 { display:flex;align-items:center;gap:8px;padding:7px 14px;background:#0a0a0a;border-bottom:1px solid #141414;flex-wrap:wrap; }
+        .ctb-row2 { display:none;padding:10px 14px;gap:6px;background:#060606;border-bottom:1px solid #141414;flex-wrap:wrap;align-items:flex-start; }
         .ctb-row2.open { display:flex; }
-        .ctb-label {
-            font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1.5px;
-            display:block;margin-bottom:4px;white-space:nowrap;
-        }
-        /* Preset chip */
-        .preset-chip {
-            display:inline-flex;align-items:center;gap:5px;
-            padding:4px 10px;border-radius:3px;cursor:pointer;
-            font-size:.55rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;
-            border:1px solid #2a2a2a;background:#111;color:#888;
-            transition:all .15s;white-space:nowrap;
-        }
+        .ctb-label { font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:4px;white-space:nowrap; }
+        .preset-chip { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:.55rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;border:1px solid #2a2a2a;background:#111;color:#888;transition:all .15s;white-space:nowrap; }
         .preset-chip:hover { border-color:#555;color:#ddd; }
         .preset-chip.active-preset { border-color:#fff;color:#fff;background:#1a1a1a; }
         .preset-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
-        /* Color group */
-        .cg-wrap {
-            display:flex;flex-direction:column;
-            background:#0d0d0d;border:1px solid #1a1a1a;
-            padding:8px 10px;border-radius:3px;min-width:0;
-        }
-        .cg-title {
-            font-size:.44rem;color:#555;text-transform:uppercase;
-            letter-spacing:1.5px;margin-bottom:7px;border-bottom:1px solid #1a1a1a;
-            padding-bottom:5px;
-        }
+        .cg-wrap { display:flex;flex-direction:column;background:#0d0d0d;border:1px solid #1a1a1a;padding:8px 10px;border-radius:3px;min-width:0; }
+        .cg-title { font-size:.44rem;color:#555;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;border-bottom:1px solid #1a1a1a;padding-bottom:5px; }
         .cg-fields { display:flex;gap:12px;flex-wrap:wrap; }
         .cf-item { display:flex;flex-direction:column;align-items:flex-start;gap:3px; }
-        /* Swatch grid */
         .swatch-row { display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px; }
-        .sw {
-            width:14px;height:14px;border-radius:2px;cursor:pointer;
-            border:1px solid transparent;flex-shrink:0;
-            transition:transform .1s,border-color .1s;
-        }
+        .sw { width:14px;height:14px;border-radius:2px;cursor:pointer;border:1px solid transparent;flex-shrink:0;transition:transform .1s,border-color .1s; }
         .sw:hover { transform:scale(1.3);border-color:#fff!important; }
         .sw.active-sw { border-color:#fff!important;transform:scale(1.2); }
-        /* Picker + hex row */
         .ph-row { display:flex;align-items:center;gap:4px; }
-        .ph-row input[type=color] {
-            width:22px;height:22px;padding:1px;border:1px solid #2a2a2a;
-            background:transparent;cursor:pointer;border-radius:2px;
-        }
-        .ph-row input[type=text] {
-            width:58px;background:#0a0a0a;border:1px solid #1e1e1e;color:#aaa;
-            padding:3px 5px;font-size:.62rem;font-family:monospace;
-            outline:none;border-radius:2px;
-        }
+        .ph-row input[type=color] { width:22px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px; }
+        .ph-row input[type=text] { width:58px;background:#0a0a0a;border:1px solid #1e1e1e;color:#aaa;padding:3px 5px;font-size:.62rem;font-family:monospace;outline:none;border-radius:2px; }
         .ph-row input[type=text]:focus { border-color:#444; }
-
-        /* Divider in row2 */
-        .ctb-divider {
-            width:1px;height:auto;align-self:stretch;background:#1a1a1a;margin:0 4px;
-        }
+        .ctb-divider { width:1px;height:auto;align-self:stretch;background:#1a1a1a;margin:0 4px; }
     </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
+<!-- LOGIN -->
 <div id="login-overlay">
     <div class="login-card">
         <h2 style="font-weight:300;letter-spacing:3px;margin-bottom:25px;">IDENTITY CHECK</h2>
@@ -311,32 +259,23 @@
     </div>
 </div>
 
-<!-- ══ APP ══ -->
+<!-- APP -->
 <div class="app-container" id="main-content">
 
     <header class="header-top">
         <h1 class="header-title">JOURNAL // <span id="display-user"></span></h1>
         <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">
-            <!-- Theme strip -->
             <div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;">
                 <span style="font-size:.44rem;color:var(--text);opacity:.4;text-transform:uppercase;letter-spacing:1px;margin-right:1px;">Style</span>
-                <button onclick="setTheme('midnight')" id="th-midnight" title="Midnight"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #444;background:#000;color:#fff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">⬛ Mid</button>
-                <button onclick="setTheme('neon')" id="th-neon" title="Neon"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #00f5ff55;background:#050510;color:#00f5ff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 6px #00f5ff;">⚡ Neon</button>
-                <button onclick="setTheme('easyeye')" id="th-easyeye" title="Easy Eye"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #303660;background:#1c2033;color:#a8b8e8;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">🌙 Eye</button>
-                <button onclick="setTheme('light')" id="th-light" title="Light"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">☀ Light</button>
-                <button onclick="setTheme('trader')" id="th-trader" title="Trader"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #1c2e1c;background:#080c08;color:#00e600;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 5px #00e600;">📊 Pro</button>
+                <button onclick="setTheme('midnight')" id="th-midnight" title="Midnight" style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #444;background:#000;color:#fff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">⬛ Mid</button>
+                <button onclick="setTheme('neon')" id="th-neon" title="Neon" style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #00f5ff55;background:#050510;color:#00f5ff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 6px #00f5ff;">⚡ Neon</button>
+                <button onclick="setTheme('easyeye')" id="th-easyeye" title="Easy Eye" style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #303660;background:#1c2033;color:#a8b8e8;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">🌙 Eye</button>
+                <button onclick="setTheme('light')" id="th-light" title="Light" style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">☀ Light</button>
+                <button onclick="setTheme('trader')" id="th-trader" title="Trader" style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #1c2e1c;background:#080c08;color:#00e600;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 5px #00e600;">📊 Pro</button>
                 <span style="font-size:.44rem;color:var(--text);opacity:.35;margin-left:3px;">BG</span>
-                <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)" title="Custom BG"
-                    style="width:18px;height:18px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
-                <input type="text" id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)"
-                    style="width:54px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:2px 4px;font-size:.54rem;font-family:monospace;outline:none;border-radius:2px;">
+                <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)" title="Custom BG" style="width:18px;height:18px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
+                <input type="text" id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)" style="width:54px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:2px 4px;font-size:.54rem;font-family:monospace;outline:none;border-radius:2px;">
             </div>
-            <!-- PDF strip -->
             <div style="background:var(--surface);padding:2px 6px;border:1px solid var(--border);display:flex;gap:4px;align-items:center;">
                 <span style="font-size:.48rem;color:#666;">PDF:</span>
                 <select id="export-month" onchange="ui.renderJournal()" style="padding:1px 2px;font-size:.54rem;background:var(--surface);border:none;color:var(--text-light);"></select>
@@ -357,7 +296,7 @@
         <button class="tab-btn"        id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
     </nav>
 
-    <!-- ══ JOURNAL TAB ══ -->
+    <!-- JOURNAL TAB -->
     <div id="tab-journal" class="tab-content active">
         <div class="card">
             <div class="section-title">Log Execution</div>
@@ -392,28 +331,28 @@
                     </div>
                 </div>
                 <div style="grid-column:span 2;">
-                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9312; Scan Setup Screenshot — Auto-fills Entry &amp; SL</div>
+                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">① Scan Setup Screenshot — Auto-fills Entry &amp; SL</div>
                     <div class="scan-zone" id="scan-zone"
                         ondragover="event.preventDefault();this.classList.add('drag-over')"
                         ondragleave="this.classList.remove('drag-over')"
                         ondrop="event.preventDefault();this.classList.remove('drag-over');ui.handleScanDrop(event)">
                         <input type="file" id="t-scan-img" accept="image/*" onchange="ui.scanTradeImage(this.files[0])">
-                        <div class="scan-zone-label">&#128247; Drop / Paste / Click to scan screenshot<br><span>Entry + SL auto-filled by AI &bull; R:R 1:1 auto-set</span></div>
+                        <div class="scan-zone-label">📷 Drop / Paste / Click to scan screenshot<br><span>Entry + SL auto-filled by AI · R:R 1:1 auto-set</span></div>
                         <div class="scan-status" id="scan-status"></div>
                     </div>
                 </div>
                 <div style="grid-column:span 2;">
-                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9313; Trade Media — Chart Screenshot (saved to record)</div>
+                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">② Trade Media — Chart Screenshot (saved to record)</div>
                     <div class="media-zone" id="media-zone"
                         ondragover="event.preventDefault();this.classList.add('drag-over')"
                         ondragleave="this.classList.remove('drag-over')"
                         ondrop="event.preventDefault();this.classList.remove('drag-over');ui.dropMedia(event)">
                         <input type="file" id="t-img" accept="image/*" onchange="ui.previewMedia(this)">
-                        <div id="media-zone-label" style="font-size:0.65rem;color:#333;letter-spacing:1px;pointer-events:none;">&#128444; Drop / Click to attach chart screenshot</div>
+                        <div id="media-zone-label" style="font-size:0.65rem;color:#333;letter-spacing:1px;pointer-events:none;">🖼 Drop / Click to attach chart screenshot</div>
                         <img id="media-preview-img" class="media-preview">
                     </div>
                     <div style="display:flex;gap:6px;margin-top:6px;">
-                        <button onclick="ui.pasteMediaFromClipboard()" style="flex:1;background:#0a0a0a;border:1px solid #333;color:#888;padding:8px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">&#128203; Paste Screenshot</button>
+                        <button onclick="ui.pasteMediaFromClipboard()" style="flex:1;background:#0a0a0a;border:1px solid #333;color:#888;padding:8px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">📋 Paste Screenshot</button>
                         <button onclick="ui.clearMedia()" id="media-clear-btn" style="background:#0a0a0a;border:1px solid #2a0000;color:#ff4444;padding:8px 12px;font-size:0.65rem;cursor:pointer;display:none;">✕</button>
                     </div>
                 </div>
@@ -434,171 +373,118 @@
         </div>
     </div>
 
-    <!-- ══ CHARTS TAB ══ -->
+    <!-- CHARTS TAB -->
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
 
-        <!-- ─── REDESIGNED COLOR TOOLBAR ─── -->
         <div id="desk-toolbar">
-
-            <!-- ROW 1 — Presets + toggle -->
+            <!-- ROW 1 -->
             <div class="ctb-row1">
                 <span style="font-size:.48rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-right:2px;">CHART STYLE</span>
-
-                <!-- Preset chips -->
                 <button class="preset-chip active-preset" id="pch-phthalo" onclick="applyPreset('phthalo')">
-                    <span class="preset-dot" style="background:#000F89;border:1px solid #3355cc;"></span>
-                    Phthalo + Black
+                    <span class="preset-dot" style="background:#000F89;border:1px solid #3355cc;"></span>Phthalo + Black
                 </button>
                 <button class="preset-chip" id="pch-classic" onclick="applyPreset('classic')">
-                    <span class="preset-dot" style="background:#26a69a;border:1px solid #26a69a;"></span>
-                    Classic
+                    <span class="preset-dot" style="background:#26a69a;border:1px solid #26a69a;"></span>Classic
                 </button>
                 <button class="preset-chip" id="pch-mono" onclick="applyPreset('mono')">
-                    <span class="preset-dot" style="background:#cccccc;border:1px solid #888;"></span>
-                    Monochrome
+                    <span class="preset-dot" style="background:#cccccc;border:1px solid #888;"></span>Monochrome
                 </button>
                 <button class="preset-chip" id="pch-hollow" onclick="applyPreset('hollow')">
-                    <span class="preset-dot" style="background:transparent;border:1px solid #44ff88;"></span>
-                    Hollow Candles
+                    <span class="preset-dot" style="background:transparent;border:1px solid #44ff88;"></span>Hollow Candles
                 </button>
                 <button class="preset-chip" id="pch-trader" onclick="applyPreset('trader')">
-                    <span class="preset-dot" style="background:#00e600;border:1px solid #00e600;"></span>
-                    Terminal Green
+                    <span class="preset-dot" style="background:#00e600;border:1px solid #00e600;"></span>Terminal Green
                 </button>
-
                 <div style="flex:1;"></div>
-
-                <!-- Customize toggle -->
-                <button id="ctb-toggle" onclick="toggleColorPanel()" style="
-                    padding:4px 12px;font-size:.55rem;cursor:pointer;text-transform:uppercase;
-                    letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#888;
-                    border-radius:3px;font-family:inherit;transition:all .15s;
-                ">🎨 Customize ▾</button>
-
-                <!-- Reset -->
-                <button onclick="ui.resetTVColors()" style="
-                    padding:4px 11px;font-size:.55rem;cursor:pointer;text-transform:uppercase;
-                    letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#666;
-                    border-radius:3px;font-family:inherit;
-                ">↺ Reset</button>
+                <button id="ctb-toggle" onclick="toggleColorPanel()" style="padding:4px 12px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#888;border-radius:3px;font-family:inherit;transition:all .15s;">🎨 Customize ▾</button>
+                <button onclick="ui.resetTVColors()" style="padding:4px 11px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#666;border-radius:3px;font-family:inherit;">↺ Reset</button>
             </div>
-
-            <!-- ROW 2 — Detailed color controls (collapsible) -->
+            <!-- ROW 2 -->
             <div class="ctb-row2" id="ctb-panel">
-
-                <!-- BG -->
                 <div class="cg-wrap">
                     <div class="cg-title">Background</div>
                     <div class="cf-item">
                         <span class="ctb-label">BG Color</span>
                         <div class="swatch-row" id="sw-bg"></div>
                         <div class="ph-row">
-                            <input type="color" id="tv-bg" value="#292A35"
-                                oninput="syncHex('tv-bg','tv-bg-hex');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)">
-                            <input type="text"  id="tv-bg-hex" value="#292A35"
-                                oninput="syncPicker('tv-bg-hex','tv-bg');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)" maxlength="7">
+                            <input type="color" id="tv-bg" value="#292A35" oninput="syncHex('tv-bg','tv-bg-hex');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)">
+                            <input type="text"  id="tv-bg-hex" value="#292A35" oninput="syncPicker('tv-bg-hex','tv-bg');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)" maxlength="7">
                         </div>
                     </div>
                 </div>
-
                 <div class="ctb-divider"></div>
-
-                <!-- UP candle -->
                 <div class="cg-wrap">
                     <div class="cg-title" style="color:#5577ff88;">▲ UP CANDLE</div>
                     <div class="cg-fields">
-                        <!-- Body -->
                         <div class="cf-item">
                             <span class="ctb-label">Body</span>
                             <div class="swatch-row" id="sw-up"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-up" value="#000F89"
-                                    oninput="syncHex('tv-up','tv-up-hex');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)">
-                                <input type="text"  id="tv-up-hex" value="#000F89"
-                                    oninput="syncPicker('tv-up-hex','tv-up');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)" maxlength="7">
+                                <input type="color" id="tv-up" value="#000F89" oninput="syncHex('tv-up','tv-up-hex');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)">
+                                <input type="text"  id="tv-up-hex" value="#000F89" oninput="syncPicker('tv-up-hex','tv-up');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)" maxlength="7">
                             </div>
                         </div>
-                        <!-- Wick -->
                         <div class="cf-item">
                             <span class="ctb-label">Wick</span>
                             <div class="swatch-row" id="sw-upwick"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-upwick" value="#000000"
-                                    oninput="syncHex('tv-upwick','tv-upwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)">
-                                <input type="text"  id="tv-upwick-hex" value="#000000"
-                                    oninput="syncPicker('tv-upwick-hex','tv-upwick');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)" maxlength="7">
+                                <input type="color" id="tv-upwick" value="#000000" oninput="syncHex('tv-upwick','tv-upwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)">
+                                <input type="text"  id="tv-upwick-hex" value="#000000" oninput="syncPicker('tv-upwick-hex','tv-upwick');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)" maxlength="7">
                             </div>
                         </div>
-                        <!-- Border -->
                         <div class="cf-item">
                             <span class="ctb-label">Border</span>
                             <div class="swatch-row" id="sw-upborder"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-upborder" value="#000000"
-                                    oninput="syncHex('tv-upborder','tv-upborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)">
-                                <input type="text"  id="tv-upborder-hex" value="#000000"
-                                    oninput="syncPicker('tv-upborder-hex','tv-upborder');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)" maxlength="7">
+                                <input type="color" id="tv-upborder" value="#000000" oninput="syncHex('tv-upborder','tv-upborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)">
+                                <input type="text"  id="tv-upborder-hex" value="#000000" oninput="syncPicker('tv-upborder-hex','tv-upborder');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)" maxlength="7">
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <div class="ctb-divider"></div>
-
-                <!-- DOWN candle -->
                 <div class="cg-wrap">
                     <div class="cg-title" style="color:#ff444488;">▼ DOWN CANDLE</div>
                     <div class="cg-fields">
-                        <!-- Body -->
                         <div class="cf-item">
                             <span class="ctb-label">Body</span>
                             <div class="swatch-row" id="sw-down"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-down" value="#000000"
-                                    oninput="syncHex('tv-down','tv-down-hex');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)">
-                                <input type="text"  id="tv-down-hex" value="#000000"
-                                    oninput="syncPicker('tv-down-hex','tv-down');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)" maxlength="7">
+                                <input type="color" id="tv-down" value="#000000" oninput="syncHex('tv-down','tv-down-hex');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)">
+                                <input type="text"  id="tv-down-hex" value="#000000" oninput="syncPicker('tv-down-hex','tv-down');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)" maxlength="7">
                             </div>
                         </div>
-                        <!-- Wick -->
                         <div class="cf-item">
                             <span class="ctb-label">Wick</span>
                             <div class="swatch-row" id="sw-downwick"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-downwick" value="#000000"
-                                    oninput="syncHex('tv-downwick','tv-downwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)">
-                                <input type="text"  id="tv-downwick-hex" value="#000000"
-                                    oninput="syncPicker('tv-downwick-hex','tv-downwick');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)" maxlength="7">
+                                <input type="color" id="tv-downwick" value="#000000" oninput="syncHex('tv-downwick','tv-downwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)">
+                                <input type="text"  id="tv-downwick-hex" value="#000000" oninput="syncPicker('tv-downwick-hex','tv-downwick');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)" maxlength="7">
                             </div>
                         </div>
-                        <!-- Border -->
                         <div class="cf-item">
                             <span class="ctb-label">Border</span>
                             <div class="swatch-row" id="sw-downborder"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-downborder" value="#000000"
-                                    oninput="syncHex('tv-downborder','tv-downborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downborder',this.value)">
-                                <input type="text"  id="tv-downborder-hex" value="#000000"
-                                    oninput="syncPicker('tv-downborder-hex','tv-downborder');ui.rebuildTVWidget();updateSwatchActive('sv-downborder',this.value)" maxlength="7">
+                                <input type="color" id="tv-downborder" value="#000000" oninput="syncHex('tv-downborder','tv-downborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downborder',this.value)">
+                                <input type="text"  id="tv-downborder-hex" value="#000000" oninput="syncPicker('tv-downborder-hex','tv-downborder');ui.rebuildTVWidget();updateSwatchActive('sw-downborder',this.value)" maxlength="7">
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-            </div><!-- /ctb-row2 -->
-        </div><!-- /desk-toolbar -->
-
-        <!-- Chart + Calculator split -->
+        <!-- Chart + Calculator -->
         <div style="display:flex;height:calc(136vh - 80px);">
             <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
-            <!-- Calculator Panel -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
                     <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;">
                         <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;"></span>
-                        &#9878; LOT CALCULATOR
+                        ⚓ LOT CALCULATOR
                     </div>
-                    <button onclick="deskRs()" style="background:transparent;border:1px solid #222;color:#555;padding:3px 8px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;">&#8635; Reset</button>
+                    <button onclick="deskRs()" style="background:transparent;border:1px solid #222;color:#555;padding:3px 8px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;">⟳ Reset</button>
                 </div>
                 <div style="flex:1;overflow-y:auto;padding:12px;">
                     <div style="display:flex;align-items:center;gap:7px;background:#050505;border:1px solid #1a3a1a;padding:7px 10px;border-radius:3px;margin-bottom:12px;">
@@ -626,7 +512,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP (ticks) <span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">&#9679; AUTO</span></label><input type="number" id="d-tp" placeholder="100" min="0" step="1" oninput="deskMtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
+                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP (ticks) <span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">● AUTO</span></label><input type="number" id="d-tp" placeholder="100" min="0" step="1" oninput="deskMtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;">
                         <div id="d-rcl" style="grid-column:span 2;background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Lot Size</div><div id="d-rl" style="font-size:1.4rem;color:#44ff88;font-weight:700;">---</div><div id="d-rls" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">Enter values</div></div>
                         <div id="d-rcr" style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Risk ($)</div><div id="d-rr2" style="font-size:.88rem;color:#ff4444;">---</div><div id="d-rrs" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">---</div></div>
@@ -648,9 +534,9 @@
                 </div>
             </div>
         </div>
-    </div><!-- /tab-charts -->
+    </div>
 
-    <!-- ══ CALENDAR TAB ══ -->
+    <!-- CALENDAR TAB -->
     <div id="tab-calendar" class="tab-content">
         <div class="calendar-layout">
             <div>
@@ -692,7 +578,7 @@
         </div>
     </div>
 
-    <!-- ══ ANALYTICS TAB ══ -->
+    <!-- ANALYTICS TAB -->
     <div id="tab-analytics" class="tab-content">
         <div style="display:flex;gap:10px;margin-bottom:20px;">
             <select id="ana-month" onchange="ui.renderAnalytics()"></select>
@@ -744,7 +630,7 @@
         </div>
     </div>
 
-</div><!-- /app -->
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -845,18 +731,22 @@ window.ui = {
         };
     },
 
-   launchTradingDesk() {
-    const c = this._tvColors();
-    const container = document.getElementById('tv-container');
-    if (!container) return;
-    if (this._tvWidget) {
-        try { 
-            if (typeof this._tvWidget.remove === 'function') this._tvWidget.remove();
-        } catch(e) {}
-        this._tvWidget = null;
-        container.innerHTML = '';  // ← clean AFTER remove()
-    }
-    this._tvWidget = new TradingView.widget({
+    /* ══════════════════════════════════════════════
+       BUG FIX #3 — Properly destroy widget before rebuild
+    ══════════════════════════════════════════════ */
+    launchTradingDesk() {
+        const c = this._tvColors();
+        const container = document.getElementById('tv-container');
+        if (!container) return;
+        if (this._tvWidget) {
+            try {
+                if (typeof this._tvWidget.remove === 'function') this._tvWidget.remove();
+            } catch(e) {}
+            this._tvWidget = null;
+        }
+        container.innerHTML = '';  // always clean DOM
+
+        this._tvWidget = new TradingView.widget({
             container: 'tv-container',
             library_path: '/charting_library/',
             datafeed: new window.Datafeeds.UDFCompatibleDatafeed('https://demo-feed-data.tradingview.com'),
@@ -874,11 +764,12 @@ window.ui = {
             hide_side_toolbar: false,
             allow_symbol_change: true,
             save_image: false,
-            /* ── Hide volume by default ── */
             disabled_features: [
                 "create_volume_indicator_by_default",
                 "volume_force_overlay"
             ],
+            /* ══ BUG FIX #2 — All timeframes including 1m, 3m, 2h, 1M ══ */
+            supported_resolutions: ['1','3','5','15','30','60','120','240','D','W','M'],
             overrides: {
                 "paneProperties.background":                   c.bg,
                 "paneProperties.backgroundType":               "solid",
@@ -1273,9 +1164,8 @@ window.ui = {
 };
 </script>
 
-<!-- ══ SWATCH SYSTEM + PRESETS ══ -->
+<!-- SWATCH SYSTEM + PRESETS -->
 <script>
-/* ── Swatch palettes ── */
 const SWATCHES = {
     bg:   ['#000000','#0a0a0a','#0d0d0d','#111111','#1a1a1a','#222222','#292A35','#1c2033','#1a1a2e','#050510','#0e130e','#080c08','#0d1117','#f2ede6'],
     body: ['#000F89','#0000cc','#0033ff','#1a3aff','#26a69a','#00e600','#44ff88','#ffffff','#cccccc','#888888','#ff4444','#cc2222','#ef5350','#000000'],
@@ -1283,7 +1173,6 @@ const SWATCHES = {
 };
 SWATCHES.border = SWATCHES.wick;
 
-/* Map of swatch container ID → input IDs */
 const SW_MAP = {
     'sw-bg':        { picker:'tv-bg',        hex:'tv-bg-hex',        palette:'bg'   },
     'sw-up':        { picker:'tv-up',        hex:'tv-up-hex',        palette:'body' },
@@ -1325,7 +1214,6 @@ function updateSwatchActive(swId, color) {
     });
 }
 
-/* ── Preset definitions ── */
 const PRESETS = {
     phthalo: { bg:'#292A35', up:'#000F89', upWick:'#000000', upBorder:'#000000', down:'#000000', downWick:'#000000', downBorder:'#000000' },
     classic: { bg:'#131722', up:'#26a69a', upWick:'#26a69a', upBorder:'#26a69a', down:'#ef5350', downWick:'#ef5350', downBorder:'#ef5350' },
@@ -1346,7 +1234,6 @@ function applyPreset(name) {
         'tv-downborder':p.downBorder,'tv-downborder-hex':p.downBorder,
     };
     Object.entries(map).forEach(([id,v])=>{ const el=document.getElementById(id); if(el) el.value=v; });
-    /* Refresh swatch highlights */
     updateSwatchActive('sw-bg',        p.bg);
     updateSwatchActive('sw-up',        p.up);
     updateSwatchActive('sw-upwick',    p.upWick);
@@ -1354,13 +1241,12 @@ function applyPreset(name) {
     updateSwatchActive('sw-down',      p.down);
     updateSwatchActive('sw-downwick',  p.downWick);
     updateSwatchActive('sw-downborder',p.downBorder);
-    /* Highlight active preset chip */
     document.querySelectorAll('.preset-chip').forEach(b => b.classList.remove('active-preset'));
     const chip = document.getElementById('pch-'+name); if(chip) chip.classList.add('active-preset');
+    /* BUG FIX #3 — directly call launchTradingDesk (not rebuildTVWidget) for instant preset apply */
     ui.launchTradingDesk();
 }
 
-/* ── Toggle colour panel ── */
 var _ctbOpen = false;
 function toggleColorPanel() {
     _ctbOpen = !_ctbOpen;
@@ -1371,10 +1257,8 @@ function toggleColorPanel() {
     if(_ctbOpen) toggle.style.color = '#ddd'; else toggle.style.color = '#888';
 }
 
-/* Build swatches once DOM is ready */
 document.addEventListener('DOMContentLoaded', () => {
     buildSwatches();
-    /* Set initial swatch active states for default preset */
     const p = PRESETS['phthalo'];
     updateSwatchActive('sw-bg',         p.bg);
     updateSwatchActive('sw-up',         p.up);
@@ -1411,31 +1295,100 @@ if('serviceWorker' in navigator) {
 }
 </script>
 
-<!-- TradingView -->
+<!-- TradingView library -->
 <script src="charting_library/charting_library.standalone.js"></script>
+
+<!-- ══════════════════════════════════════════════════
+     BUG FIX #1 — Datafeed: removed unix_timestamp=true,
+     fixed datetime parsing, added NaN filter.
+     BUG FIX #2 — All timeframes: 1,3,5,15,30,60,120,240,D,W,M
+══════════════════════════════════════════════════ -->
 <script>
-window.Datafeeds={UDFCompatibleDatafeed:function(url){
-// Change onReady:
-// Change onReady:
-this.onReady=function(cb){setTimeout(()=>cb({supported_resolutions:['1','3','5','15','30','60','120','240','D','W','M']}),0)};
-// Change resolveSymbol (update supported_resolutions inside it too):
-supported_resolutions:['1','3','5','15','30','60','120','240','D','W','M']
-// Change the map in getBars:
-const map={'1':'1min','3':'3min','5':'5min','15':'15min','30':'30min','60':'1h','120':'2h','240':'4h','D':'1day','W':'1week','M':'1month'};
-const sym=info.name.replace(/([A-Z]{3})([A-Z]{3})/,'$1/$2');
-fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${map[res]||'1h'}&outputsize=500&format=JSON&apikey=ea488f33f6d841778d55e540d889c308`)
-.then(r=>r.json()).then(d=>{
-if(!d.values||d.status==='error'){onResult([],{noData:true});return;}
-const bars=d.values.reverse().map(v=>({time:new Date(v.datetime.replace(' ','T')+'Z').getTime(),open:+v.open,high:+v.high,low:+v.low,close:+v.close,volume:0})).filter(b=>!isNaN(b.time));
-onResult(bars,{noData:bars.length===0});
-}).catch(()=>onResult([],{noData:true}))};
-this.subscribeBars=function(){};
-this.unsubscribeBars=function(){};
+window.Datafeeds = { UDFCompatibleDatafeed: function(url) {
+
+    /* ── All supported resolutions including 1m, 3m, 2h, Monthly ── */
+    var ALL_RES = ['1','3','5','15','30','60','120','240','D','W','M'];
+
+    this.onReady = function(cb) {
+        setTimeout(() => cb({ supported_resolutions: ALL_RES }), 0);
+    };
+
+    this.searchSymbols = function(u, e, t, cb) { cb([]); };
+
+    this.resolveSymbol = function(sym, resolve) {
+        setTimeout(() => resolve({
+            name: sym,
+            full_name: sym,
+            description: sym,
+            type: 'forex',
+            session: '0000-2400:23456',
+            timezone: 'Asia/Kathmandu',
+            minmov: 1,
+            pricescale: 100000,
+            has_intraday: true,
+            has_daily: true,
+            has_weekly_and_monthly: true,
+            /* ── BUG FIX #2 — expose all timeframes to the widget ── */
+            supported_resolutions: ALL_RES,
+            data_status: 'streaming'
+        }), 0);
+    };
+
+    this.getBars = function(info, res, period, onResult) {
+        /* ── BUG FIX #2 — map includes 1m, 3m, 2h, monthly ── */
+        var map = {
+            '1':'1min', '3':'3min', '5':'5min',
+            '15':'15min', '30':'30min',
+            '60':'1h', '120':'2h', '240':'4h',
+            'D':'1day', 'W':'1week', 'M':'1month'
+        };
+
+        var interval = map[res] || '1h';
+        var sym = info.name.replace(/([A-Z]{3})([A-Z]{3})/, '$1/$2');
+
+        /* ── BUG FIX #1 — NO unix_timestamp param; use standard datetime strings ── */
+        fetch(
+            'https://api.twelvedata.com/time_series' +
+            '?symbol=' + encodeURIComponent(sym) +
+            '&interval=' + interval +
+            '&outputsize=500' +
+            '&format=JSON' +
+            '&apikey=ea488f33f6d841778d55e540d889c308'
+        )
+        .then(r => r.json())
+        .then(d => {
+            if (!d.values || d.status === 'error') {
+                onResult([], { noData: true });
+                return;
+            }
+            var bars = d.values.reverse().map(function(v) {
+                /* datetime format from Twelve Data: "2024-03-08 14:00:00" */
+                var t = new Date(v.datetime.replace(' ', 'T') + 'Z').getTime();
+                return {
+                    time:   t,
+                    open:   parseFloat(v.open),
+                    high:   parseFloat(v.high),
+                    low:    parseFloat(v.low),
+                    close:  parseFloat(v.close),
+                    volume: 0
+                };
+            /* ── BUG FIX #1 — filter out any NaN timestamps ── */
+            }).filter(function(b) { return !isNaN(b.time) && b.time > 0; });
+
+            onResult(bars, { noData: bars.length === 0 });
+        })
+        .catch(function() {
+            onResult([], { noData: true });
+        });
+    };
+
+    this.subscribeBars   = function() {};
+    this.unsubscribeBars = function() {};
 }};
 </script>
 
+<!-- Calculator -->
 <script>
-/* ── Calculator (in-tab) ── */
 var _dm = 'amt';
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 function deskSm(m){
@@ -1480,7 +1433,6 @@ function deskRs(){
     var qs=document.getElementById('d-qs');if(qs)qs.style.display='none';
 }
 
-/* ── Color picker ↔ hex sync ── */
 function syncHex(pickerId, hexId) {
     var p = document.getElementById(pickerId), h = document.getElementById(hexId);
     if(p && h) h.value = p.value;
@@ -1493,8 +1445,8 @@ function syncPicker(hexId, pickerId) {
 }
 </script>
 
+<!-- Theme System -->
 <script>
-/* ── Theme System ── */
 var _currentTheme = localStorage.getItem('rk_theme') || 'midnight';
 var _allThemes = ['midnight','neon','easyeye','light','trader'];
 
