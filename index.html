@@ -1408,7 +1408,23 @@ if('serviceWorker' in navigator) {
 
 <!-- TradingView -->
 <script src="charting_library/charting_library.standalone.js"></script>
-<script src="https://demo-feed-data.tradingview.com/static/bundle.js"></script>
+<script>
+window.Datafeeds={UDFCompatibleDatafeed:function(url){
+this.onReady=function(cb){setTimeout(()=>cb({supported_resolutions:['1','5','15','30','60','240','D','W']}),0)};
+this.searchSymbols=function(u,e,t,cb){cb([])};
+this.resolveSymbol=function(sym,resolve){setTimeout(()=>resolve({name:sym,full_name:sym,description:sym,type:'forex',session:'24x5',timezone:'Etc/UTC',exchange:'',minmov:1,pricescale:100000,has_intraday:true,supported_resolutions:['1','5','15','30','60','240','D','W'],data_status:'streaming'}),0)};
+this.getBars=function(info,res,period,onResult){
+const map={'1':'1min','5':'5min','15':'15min','30':'30min','60':'1h','240':'4h','D':'1day','W':'1week'};
+fetch(`https://api.twelvedata.com/time_series?symbol=${info.name}&interval=${map[res]||'1h'}&outputsize=300&apikey=demo`)
+.then(r=>r.json()).then(d=>{
+if(!d.values){onResult([],{noData:true});return;}
+const bars=d.values.reverse().map(v=>({time:new Date(v.datetime).getTime()/1000,open:+v.open,high:+v.high,low:+v.low,close:+v.close,volume:+v.volume||0}));
+onResult(bars,{noData:bars.length===0});
+}).catch(()=>onResult([],{noData:true}))};
+this.subscribeBars=function(){};
+this.unsubscribeBars=function(){};
+}};
+</script>
 
 <script>
 /* ── Calculator (in-tab) ── */
