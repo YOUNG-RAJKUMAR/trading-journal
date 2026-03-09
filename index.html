@@ -829,12 +829,10 @@ window.ui = {
         if(id === 'charts')    this.launchTradingDesk();
     },
 
-   // ── Timeframe state ───────────────────────────────────────
-    _tf: '60',
+       _tf: '60',
     _tvWidget: null,
     _tvRebuildTimer: null,
 
-    // ── Read current color picker values ─────────────────────
     _tvColors() {
         const g = id => document.getElementById(id)?.value || null;
         return {
@@ -848,31 +846,27 @@ window.ui = {
         };
     },
 
-    // ── Main chart launcher ───────────────────────────────────
     launchTradingDesk() {
         const c         = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
 
-        // ── Destroy previous widget cleanly ──────────────────
         if (this._tvWidget) {
             try { this._tvWidget.remove(); } catch(e) {}
             this._tvWidget = null;
         }
         container.innerHTML = '';
 
-        // ── Finnhub API key ───────────────────────────────────
-        // Get free key at: https://finnhub.io/register
-        const FINNHUB_API_KEY = 'd6n5iihr01qir35j8pi0d6n5iihr01qir35j8pig'; // ← paste here
+        // ── API Keys ──────────────────────────────────────────
+        const TWELVE_KEY  = 'ea488f33f6d841778d55e540d889c308';
+        const FINNHUB_KEY = 'd6n5iihr01qir35j8pi0d6n5iihr01qir35j8pig';
 
-        // ── Launch TradingView Advanced Chart ─────────────────
         this._tvWidget = new TradingView.widget({
 
-            // ── Core settings ─────────────────────────────────
             container:    'tv-container',
             library_path: 'charting_library/',
-            datafeed:     TwelveDataFeed(FINNHUB_API_KEY),
-            symbol:       'OANDA:EUR_USD',
+            datafeed:     TwelveDataFeed(TWELVE_KEY, FINNHUB_KEY),
+            symbol:       'EUR/USD',
             interval:     this._tf || '60',
             locale:       'en',
             autosize:     true,
@@ -880,51 +874,27 @@ window.ui = {
             timezone:     'Asia/Kathmandu',
             toolbar_bg:   c.bg,
 
-            // ── Toolbar visibility ────────────────────────────
-            hide_side_toolbar: false,   // left drawing toolbar
-            withdateranges:    true,    // bottom date range bar
-            hide_top_toolbar:  false,   // top bar
+            hide_side_toolbar: false,
+            withdateranges:    true,
+            hide_top_toolbar:  false,
 
-            // ── Disabled features ─────────────────────────────
             disabled_features: [
-                // Remove default volume indicator
                 'create_volume_indicator_by_default',
                 'volume_force_overlay',
-
-                // Remove save/load (needs backend — causes 404)
                 'saveload_separate_drawings_storage',
                 'study_templates',
-
-                // Uncomment to hide specific toolbar elements:
-                // 'header_widget',              // entire top bar
-                // 'header_symbol_search',       // symbol search box
-                // 'header_resolutions',         // timeframe buttons
-                // 'header_chart_type',          // chart type selector
-                // 'header_settings',            // settings gear ⚙
-                // 'header_indicators',          // indicators button
-                // 'header_compare',             // compare button
-                // 'header_undo_redo',           // undo/redo
-                // 'header_screenshot',          // screenshot
-                // 'header_fullscreen_button',   // fullscreen
-                // 'left_toolbar',               // drawing toolbar
-                // 'timeframes_toolbar',         // bottom timeframes
-                // 'legend_widget',              // OHLC legend
-                // 'context_menus',              // right-click menus
-                // 'control_bar',                // bottom control bar
             ],
 
-            // ── Enabled features ──────────────────────────────
             enabled_features: [
-                'use_localstorage_for_settings',           // remember settings
-                'save_chart_properties_to_local_storage',  // remember chart style
-                'side_toolbar_in_fullscreen_mode',         // toolbar in fullscreen
-                'header_in_fullscreen_mode',               // header in fullscreen
+                'use_localstorage_for_settings',
+                'save_chart_properties_to_local_storage',
+                'side_toolbar_in_fullscreen_mode',
+                'header_in_fullscreen_mode',
             ],
 
-            // ── Favorite tools pinned to left toolbar ─────────
             favorites: {
-                intervals: ['1', '5', '15', '30', '60', '240', 'D', 'W'],
-                chartTypes: ['Candles', 'Bars', 'Line'],
+                intervals: ['1','5','15','30','60','240','D','W'],
+                chartTypes: ['Candles','Bars','Line'],
                 drawingTools: [
                     'LineToolTrendLine',
                     'LineToolHorzLine',
@@ -943,80 +913,55 @@ window.ui = {
                 ],
             },
 
-            // ── Remember last chart ───────────────────────────
             load_last_chart: true,
 
-            // ── Candle + chart color overrides ────────────────
             overrides: {
-                // Background
                 'paneProperties.background':                   c.bg,
                 'paneProperties.backgroundType':               'solid',
                 'paneProperties.backgroundGradientStartColor': c.bg,
                 'paneProperties.backgroundGradientEndColor':   c.bg,
-
-                // Grid — fully transparent
                 'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
                 'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
                 'paneProperties.vertGridProperties.style':     1,
                 'paneProperties.horzGridProperties.style':     1,
-
-                // Crosshair
                 'paneProperties.crossHairProperties.color':    '#555555',
                 'paneProperties.crossHairProperties.style':    2,
                 'paneProperties.crossHairProperties.width':    1,
-
-                // Up candles
                 'mainSeriesProperties.candleStyle.upColor':         c.up,
                 'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
                 'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
-
-                // Down candles
                 'mainSeriesProperties.candleStyle.downColor':       c.down,
                 'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
                 'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
-
-                // Draw wicks and borders
                 'mainSeriesProperties.candleStyle.drawWick':        true,
                 'mainSeriesProperties.candleStyle.drawBorder':      true,
-
-                // Bar chart colors
                 'mainSeriesProperties.barStyle.upColor':            c.up,
                 'mainSeriesProperties.barStyle.downColor':          c.down,
-
-                // Line chart color
                 'mainSeriesProperties.lineStyle.color':             c.up,
                 'mainSeriesProperties.lineStyle.linewidth':         2,
-
-                // Area chart colors
                 'mainSeriesProperties.areaStyle.color1':            c.up + '88',
                 'mainSeriesProperties.areaStyle.color2':            c.bg,
                 'mainSeriesProperties.areaStyle.linecolor':         c.up,
-
-                // Price scale
                 'scalesProperties.textColor':                       '#555555',
                 'scalesProperties.lineColor':                       '#1a1a1a',
                 'scalesProperties.fontSize':                        11,
             },
         });
 
-        // ── After chart is ready ──────────────────────────────
         this._tvWidget.onChartReady(() => {
-            // Force candle chart type on load
             this._tvWidget.chart().setChartType(1);
             console.log('[TradingDesk] ✓ Chart ready');
         });
     },
 
-    // ── Rebuild chart when color picker changes ───────────────
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
 
-    // ── Reset colors to default preset ───────────────────────
     resetTVColors() {
         applyPreset('phthalo');
-    },
+    }
 
     classifySession(dateStr) {
         const tv = document.getElementById('t-start').value; if(!tv || !dateStr) return null;
