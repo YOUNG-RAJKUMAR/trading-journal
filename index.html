@@ -858,7 +858,7 @@ window.ui = {
     container.innerHTML = '';
 
     // ── Your Twelve Data API key ──────────────────────────────
-    const TWELVE_API_KEY = 'YOUR_API_KEY_HERE'; // ← paste key here
+    const TWELVE_API_KEY = 'ea488f33f6d841778d55e540d889c308'; // ← paste key here
 
     // ── Launch widget ─────────────────────────────────────────
     this._tvWidget = new TradingView.widget({
@@ -885,6 +885,7 @@ window.ui = {
             // Volume
             'create_volume_indicator_by_default',
             'volume_force_overlay',
+            'saveload_separate_drawings_storage', // ← ADD this to stop 404s
 
             // Uncomment any below to HIDE that element:
             // 'header_widget',              // entire top bar
@@ -906,7 +907,7 @@ window.ui = {
 
         // ── Enabled features ──────────────────────────────────
         enabled_features: [
-            'study_templates',                        // save indicator templates
+            
             'use_localstorage_for_settings',          // remember user settings
             'save_chart_properties_to_local_storage', // remember chart style
             'side_toolbar_in_fullscreen_mode',        // keep toolbar in fullscreen
