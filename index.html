@@ -590,31 +590,6 @@
 
         <!-- Chart + Calculator split -->
         <div style="display:flex;height:calc(136vh - 80px);">
-            <!-- ── TV Cloud Save Notice ── -->
-<div style="
-    display:flex;align-items:center;gap:8px;
-    padding:6px 14px;
-    background:#0a0a00;
-    border-bottom:1px solid #2a2600;
-    font-size:.58rem;color:#aa9900;
-    letter-spacing:.8px;
-">
-    <span style="font-size:.85rem;">💾</span>
-    <span>
-        <b style="color:#ffdd00;">DRAWINGS NOT SAVED LOCALLY</b>
-        &nbsp;·&nbsp;
-        To keep your drawings across sessions, 
-        <b style="color:#fff;">log into your TradingView account</b> 
-        inside the chart 
-        <span style="color:#666;">(bottom toolbar → person icon)</span>
-        — TV will sync your drawings to the cloud automatically.
-    </span>
-    <button onclick="this.parentElement.style.display='none'" style="
-        margin-left:auto;background:transparent;border:none;
-        color:#555;font-size:.9rem;cursor:pointer;padding:0 4px;
-        flex-shrink:0;
-    ">✕</button>
-</div>
             <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
             <!-- Calculator Panel -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
@@ -896,12 +871,9 @@ window.ui = {
             save_image: false,
             /* ── Hide volume by default ── */
             disabled_features: [
-    "create_volume_indicator_by_default",
-    "volume_force_overlay"
-],
-enabled_features: [
-    "countdown_to_bar_close"
-],
+                "create_volume_indicator_by_default",
+                "volume_force_overlay"
+            ],
             overrides: {
                 "paneProperties.background":                   c.bg,
                 "paneProperties.backgroundType":               "solid",
