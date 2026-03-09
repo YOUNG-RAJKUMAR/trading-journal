@@ -845,11 +845,10 @@ window.ui = {
         };
     },
 
-  launchTradingDesk() {
+    launchTradingDesk() {
     const c = this._tvColors();
     const container = document.getElementById('tv-container');
     if (!container) return;
-
     if (this._tvWidget) {
         try { this._tvWidget.remove(); } catch(e) {}
         this._tvWidget = null;
@@ -857,32 +856,20 @@ window.ui = {
     container.innerHTML = '';
 
     this._tvWidget = new TradingView.widget({
-        // ── Core ──
         container:    'tv-container',
         library_path: 'charting_library/',
-        datafeed:     new Datafeeds.UDFCompatibleDatafeed(
-                          'https://demo_feed.tradingview.com'
-                      ),
+        datafeed:     new Datafeeds.UDFCompatibleDatafeed('https://demo_feed.tradingview.com'),
         symbol:       'EURUSD',
         interval:     this._tf,
         locale:       'en',
-        fullscreen:   false,
         autosize:     true,
-
-        // ── Look ──
-        theme:          'dark',
-        timezone:       'Asia/Kathmandu',
-        toolbar_bg:     c.bg,
-
-        // ── Hide volume by default ──
+        theme:        'dark',
+        timezone:     'Asia/Kathmandu',
+        toolbar_bg:   c.bg,
         disabled_features: [
             'create_volume_indicator_by_default',
             'volume_force_overlay'
         ],
-        enabled_features: [
-            'hide_left_toolbar_by_default'
-        ],
-
         overrides: {
             'paneProperties.background':                   c.bg,
             'paneProperties.backgroundType':               'solid',
@@ -900,6 +887,7 @@ window.ui = {
         }
     });
 },
+
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
@@ -1411,7 +1399,7 @@ if('serviceWorker' in navigator) {
 </script>
 
 <!-- TradingView -->
- <script src="charting_library/charting_library.js"></script>
+<script src="charting_library/charting_library.js"></script>
 <script src="datafeeds/udf/dist/bundle.js"></script>
 
 <script>
