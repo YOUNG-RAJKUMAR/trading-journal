@@ -845,57 +845,61 @@ window.ui = {
         };
     },
 
-    launchTradingDesk() {
-        const c = this._tvColors();
-        const container = document.getElementById('tv-container');
-        if (!container) return;
-        if (this._tvWidget) {
-            try { container.innerHTML = ''; } catch(e) {}
-            this._tvWidget = null;
-        }
-        this._tvWidget = new TradingView.widget({
-            container_id: 'tv-container',
-            autosize: true,
-            symbol: 'ICMARKETS:EURUSD',
-            interval: this._tf,
-            timezone: 'Asia/Kathmandu',
-            theme: 'dark',
-            style: '1',
-            locale: 'en',
-            toolbar_bg: c.bg,
-            backgroundColor: c.bg,
-            gridColor: 'rgba(0,0,0,0)',
-            enable_publishing: false,
-            hide_side_toolbar: false,
-            allow_symbol_change: true,
-            save_image: false,
-            /* ── Hide volume by default ── */
-            disabled_features: [
-                "create_volume_indicator_by_default",
-                "volume_force_overlay"
-            ],
-            overrides: {
-                "paneProperties.background":                   c.bg,
-                "paneProperties.backgroundType":               "solid",
-                "paneProperties.backgroundGradientStartColor": c.bg,
-                "paneProperties.backgroundGradientEndColor":   c.bg,
-                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.vertGridProperties.style":     1,
-                "paneProperties.horzGridProperties.style":     1,
-                "paneProperties.crossHairProperties.color":    "#555555",
-                "mainSeriesProperties.candleStyle.upColor":         c.up,
-                "mainSeriesProperties.candleStyle.downColor":       c.down,
-                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
-                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
-                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
-                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
-                "mainSeriesProperties.candleStyle.drawWick":        true,
-                "mainSeriesProperties.candleStyle.drawBorder":      true,
-            }
-        });
-    },
+  launchTradingDesk() {
+    const c = this._tvColors();
+    const container = document.getElementById('tv-container');
+    if (!container) return;
 
+    if (this._tvWidget) {
+        try { this._tvWidget.remove(); } catch(e) {}
+        this._tvWidget = null;
+    }
+    container.innerHTML = '';
+
+    this._tvWidget = new TradingView.widget({
+        // ── Core ──
+        container:    'tv-container',
+        library_path: 'charting_library/',
+        datafeed:     new Datafeeds.UDFCompatibleDatafeed(
+                          'https://demo_feed.tradingview.com'
+                      ),
+        symbol:       'EURUSD',
+        interval:     this._tf,
+        locale:       'en',
+        fullscreen:   false,
+        autosize:     true,
+
+        // ── Look ──
+        theme:          'dark',
+        timezone:       'Asia/Kathmandu',
+        toolbar_bg:     c.bg,
+
+        // ── Hide volume by default ──
+        disabled_features: [
+            'create_volume_indicator_by_default',
+            'volume_force_overlay'
+        ],
+        enabled_features: [
+            'hide_left_toolbar_by_default'
+        ],
+
+        overrides: {
+            'paneProperties.background':                   c.bg,
+            'paneProperties.backgroundType':               'solid',
+            'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
+            'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
+            'paneProperties.crossHairProperties.color':    '#555555',
+            'mainSeriesProperties.candleStyle.upColor':         c.up,
+            'mainSeriesProperties.candleStyle.downColor':       c.down,
+            'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
+            'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
+            'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
+            'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
+            'mainSeriesProperties.candleStyle.drawWick':        true,
+            'mainSeriesProperties.candleStyle.drawBorder':      true,
+        }
+    });
+},
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
