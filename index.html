@@ -845,46 +845,172 @@ window.ui = {
         };
     },
 
-    launchTradingDesk() {
+ launchTradingDesk() {
     const c = this._tvColors();
     const container = document.getElementById('tv-container');
     if (!container) return;
+
+    // ── Destroy previous widget cleanly ──────────────────────
     if (this._tvWidget) {
         try { this._tvWidget.remove(); } catch(e) {}
         this._tvWidget = null;
     }
     container.innerHTML = '';
 
+    // ── Your Twelve Data API key ──────────────────────────────
+    const TWELVE_API_KEY = 'YOUR_API_KEY_HERE'; // ← paste key here
+
+    // ── Launch widget ─────────────────────────────────────────
     this._tvWidget = new TradingView.widget({
+
+        // ── Core ──────────────────────────────────────────────
         container:    'tv-container',
         library_path: 'charting_library/',
-        datafeed:     new Datafeeds.UDFCompatibleDatafeed('https://demo_feed.tradingview.com'),
-        symbol:       'EURUSD',
-        interval:     this._tf,
+        datafeed:     TwelveDataFeed(TWELVE_API_KEY),
+        symbol:       'EUR/USD',
+        interval:     this._tf || '240',
         locale:       'en',
         autosize:     true,
         theme:        'dark',
         timezone:     'Asia/Kathmandu',
         toolbar_bg:   c.bg,
+
+        // ── Chart appearance ──────────────────────────────────
+        hide_side_toolbar:   false,   // show left drawing toolbar
+        withdateranges:      true,    // show bottom date range bar
+        hide_top_toolbar:    false,   // show top toolbar
+
+        // ── Disabled features ─────────────────────────────────
         disabled_features: [
+            // Volume
             'create_volume_indicator_by_default',
-            'volume_force_overlay'
+            'volume_force_overlay',
+
+            // Uncomment any below to HIDE that element:
+            // 'header_widget',              // entire top bar
+            // 'header_symbol_search',       // symbol search box
+            // 'header_resolutions',         // timeframe buttons
+            // 'header_chart_type',          // candle/bar/line selector
+            // 'header_settings',            // ⚙ settings gear
+            // 'header_indicators',          // indicators button
+            // 'header_compare',             // compare button
+            // 'header_undo_redo',           // undo/redo arrows
+            // 'header_screenshot',          // screenshot button
+            // 'header_fullscreen_button',   // fullscreen button
+            // 'left_toolbar',               // entire left drawing toolbar
+            // 'timeframes_toolbar',         // bottom timeframe strip
+            // 'legend_widget',              // OHLC legend on chart
+            // 'context_menus',              // right-click menus
+            // 'control_bar',                // bottom control bar
         ],
+
+        // ── Enabled features ──────────────────────────────────
+        enabled_features: [
+            'study_templates',                        // save indicator templates
+            'use_localstorage_for_settings',          // remember user settings
+            'save_chart_properties_to_local_storage', // remember chart style
+            'side_toolbar_in_fullscreen_mode',        // keep toolbar in fullscreen
+            'header_in_fullscreen_mode',              // keep header in fullscreen
+            'iframe_loading_compatibility_mode',      // better iframe stability
+        ],
+
+        // ── Favorite tools pinned to left toolbar ─────────────
+        favorites: {
+            intervals: ['1', '5', '15', '30', '60', '240', 'D', 'W'],
+            chartTypes: ['Candles', 'Bars', 'Line'],
+            drawingTools: [
+                'LineToolTrendLine',        // trend line
+                'LineToolHorzLine',         // horizontal line
+                'LineToolVertLine',         // vertical line
+                'LineToolFibRetracement',   // fibonacci retracement
+                'LineToolFibExtension',     // fibonacci extension
+                'LineToolRectangle',        // rectangle box
+                'LineToolTriangle',         // triangle
+                'LineToolText',             // text label
+                'LineToolNote',             // sticky note
+                'LineToolArrow',            // arrow
+                'LineToolRay',              // ray
+                'LineToolExtended',         // extended line
+                'LineToolParallelChannel',  // parallel channel
+                'LineToolPitchfork',        // pitchfork
+            ],
+        },
+
+        // ── Load last saved chart layout ──────────────────────
+        load_last_chart: true,
+
+        // ── Studies (indicators) preloaded on chart ───────────
+        studies_overrides: {
+            'volume.volume.color.0': '#ff4444',
+            'volume.volume.color.1': '#44ff88',
+        },
+
+        // ── Candle color overrides ────────────────────────────
         overrides: {
-            'paneProperties.background':                   c.bg,
-            'paneProperties.backgroundType':               'solid',
-            'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
-            'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
-            'paneProperties.crossHairProperties.color':    '#555555',
+            // Background
+            'paneProperties.background':                    c.bg,
+            'paneProperties.backgroundType':                'solid',
+            'paneProperties.backgroundGradientStartColor':  c.bg,
+            'paneProperties.backgroundGradientEndColor':    c.bg,
+
+            // Grid — fully transparent
+            'paneProperties.vertGridProperties.color':      'rgba(0,0,0,0)',
+            'paneProperties.horzGridProperties.color':      'rgba(0,0,0,0)',
+            'paneProperties.vertGridProperties.style':      1,
+            'paneProperties.horzGridProperties.style':      1,
+
+            // Crosshair
+            'paneProperties.crossHairProperties.color':     '#555555',
+            'paneProperties.crossHairProperties.style':     2,
+            'paneProperties.crossHairProperties.width':     1,
+
+            // Candles — up
             'mainSeriesProperties.candleStyle.upColor':         c.up,
-            'mainSeriesProperties.candleStyle.downColor':       c.down,
             'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
-            'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
             'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
+
+            // Candles — down
+            'mainSeriesProperties.candleStyle.downColor':       c.down,
+            'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
             'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
+
+            // Draw wicks + borders
             'mainSeriesProperties.candleStyle.drawWick':        true,
             'mainSeriesProperties.candleStyle.drawBorder':      true,
-        }
+
+            // Bars (if user switches to bar chart)
+            'mainSeriesProperties.barStyle.upColor':            c.up,
+            'mainSeriesProperties.barStyle.downColor':          c.down,
+
+            // Line (if user switches to line chart)
+            'mainSeriesProperties.lineStyle.color':             c.up,
+            'mainSeriesProperties.lineStyle.linewidth':         2,
+
+            // Area (if user switches to area chart)
+            'mainSeriesProperties.areaStyle.color1':            c.up + '88',
+            'mainSeriesProperties.areaStyle.color2':            c.bg,
+            'mainSeriesProperties.areaStyle.linecolor':         c.up,
+
+            // Scale
+            'scalesProperties.textColor':                   '#555555',
+            'scalesProperties.lineColor':                   '#1a1a1a',
+            'scalesProperties.fontSize':                    11,
+
+            // Watermark — hide
+            'paneProperties.legendProperties.showSeriesTitle': false,
+        },
+    });
+
+    // ── After widget is ready — programmatic extras ───────────
+    this._tvWidget.onChartReady(() => {
+
+        // Set chart style to Candles (1)
+        this._tvWidget.chart().setChartType(1);
+
+        // Set chart timezone
+        this._tvWidget.chart().setTimezone('Asia/Kathmandu');
+
+        console.log('[TradingDesk] Chart ready ✓');
     });
 },
 
@@ -1400,7 +1526,7 @@ if('serviceWorker' in navigator) {
 
 <!-- TradingView -->
 <script src="charting_library/charting_library.js"></script>
-<script src="datafeeds/udf/dist/bundle.js"></script>
+<script src="datafeed.js"></script>
 
 <script>
 /* ── Calculator (in-tab) ── */
