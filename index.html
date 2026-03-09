@@ -209,10 +209,8 @@
         .stat-meta { font-size:0.68rem;color:#444;margin-top:4px;display:block; }
         .analytics-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:25px; }
 
-        /* ══ CHARTS TAB 70% ZOOM — zoom property reflowing correctly ══ */
-        #tab-charts {
-            zoom: 0.7;
-        }
+        /* ══ CHARTS TAB 70% ZOOM ══ */
+        #tab-charts { zoom: 0.7; }
 
         /* PDF */
         .pdf-export-mode #main-content { padding:0;max-width:100%; }
@@ -226,76 +224,40 @@
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
 
         /* ══ COLOR PICKER TOOLBAR ══ */
-        #desk-toolbar {
-            background:#090909;
-            border-bottom:1px solid #1a1a1a;
-            user-select:none;
-        }
-        .ctb-row1 {
-            display:flex;align-items:center;gap:8px;padding:7px 14px;
-            background:#0a0a0a;border-bottom:1px solid #141414;flex-wrap:wrap;
-        }
-        .ctb-row2 {
-            display:none;
-            padding:10px 14px;gap:6px;
-            background:#060606;border-bottom:1px solid #141414;
-            flex-wrap:wrap;align-items:flex-start;
-        }
+        #desk-toolbar { background:#090909;border-bottom:1px solid #1a1a1a;user-select:none; }
+        .ctb-row1 { display:flex;align-items:center;gap:8px;padding:7px 14px;background:#0a0a0a;border-bottom:1px solid #141414;flex-wrap:wrap; }
+        .ctb-row2 { display:none;padding:10px 14px;gap:6px;background:#060606;border-bottom:1px solid #141414;flex-wrap:wrap;align-items:flex-start; }
         .ctb-row2.open { display:flex; }
-        .ctb-label {
-            font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1.5px;
-            display:block;margin-bottom:4px;white-space:nowrap;
-        }
-        /* Preset chip */
-        .preset-chip {
-            display:inline-flex;align-items:center;gap:5px;
-            padding:4px 10px;border-radius:3px;cursor:pointer;
-            font-size:.55rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;
-            border:1px solid #2a2a2a;background:#111;color:#888;
-            transition:all .15s;white-space:nowrap;
-        }
+        .ctb-label { font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:4px;white-space:nowrap; }
+        .preset-chip { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:.55rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;border:1px solid #2a2a2a;background:#111;color:#888;transition:all .15s;white-space:nowrap; }
         .preset-chip:hover { border-color:#555;color:#ddd; }
         .preset-chip.active-preset { border-color:#fff;color:#fff;background:#1a1a1a; }
         .preset-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
-        /* Color group */
-        .cg-wrap {
-            display:flex;flex-direction:column;
-            background:#0d0d0d;border:1px solid #1a1a1a;
-            padding:8px 10px;border-radius:3px;min-width:0;
-        }
-        .cg-title {
-            font-size:.44rem;color:#555;text-transform:uppercase;
-            letter-spacing:1.5px;margin-bottom:7px;border-bottom:1px solid #1a1a1a;
-            padding-bottom:5px;
-        }
+        .cg-wrap { display:flex;flex-direction:column;background:#0d0d0d;border:1px solid #1a1a1a;padding:8px 10px;border-radius:3px;min-width:0; }
+        .cg-title { font-size:.44rem;color:#555;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;border-bottom:1px solid #1a1a1a;padding-bottom:5px; }
         .cg-fields { display:flex;gap:12px;flex-wrap:wrap; }
         .cf-item { display:flex;flex-direction:column;align-items:flex-start;gap:3px; }
-        /* Swatch grid */
         .swatch-row { display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px; }
-        .sw {
-            width:14px;height:14px;border-radius:2px;cursor:pointer;
-            border:1px solid transparent;flex-shrink:0;
-            transition:transform .1s,border-color .1s;
-        }
+        .sw { width:14px;height:14px;border-radius:2px;cursor:pointer;border:1px solid transparent;flex-shrink:0;transition:transform .1s,border-color .1s; }
         .sw:hover { transform:scale(1.3);border-color:#fff!important; }
         .sw.active-sw { border-color:#fff!important;transform:scale(1.2); }
-        /* Picker + hex row */
         .ph-row { display:flex;align-items:center;gap:4px; }
-        .ph-row input[type=color] {
-            width:22px;height:22px;padding:1px;border:1px solid #2a2a2a;
-            background:transparent;cursor:pointer;border-radius:2px;
-        }
-        .ph-row input[type=text] {
-            width:58px;background:#0a0a0a;border:1px solid #1e1e1e;color:#aaa;
-            padding:3px 5px;font-size:.62rem;font-family:monospace;
-            outline:none;border-radius:2px;
-        }
+        .ph-row input[type=color] { width:22px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px; }
+        .ph-row input[type=text] { width:58px;background:#0a0a0a;border:1px solid #1e1e1e;color:#aaa;padding:3px 5px;font-size:.62rem;font-family:monospace;outline:none;border-radius:2px; }
         .ph-row input[type=text]:focus { border-color:#444; }
+        .ctb-divider { width:1px;height:auto;align-self:stretch;background:#1a1a1a;margin:0 4px; }
 
-        /* Divider in row2 */
-        .ctb-divider {
-            width:1px;height:auto;align-self:stretch;background:#1a1a1a;margin:0 4px;
+        /* ══ CHART LOADING OVERLAY ══ */
+        #chart-loading {
+            position:absolute;inset:0;background:#050505;display:flex;flex-direction:column;
+            align-items:center;justify-content:center;gap:12px;z-index:10;
         }
+        #chart-loading.hidden { display:none; }
+        .chart-load-spinner {
+            width:32px;height:32px;border:2px solid #1a1a1a;border-top-color:#44ff88;
+            border-radius:50%;animation:spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform:rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -437,160 +399,115 @@
     <!-- ══ CHARTS TAB ══ -->
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
 
-        <!-- ─── REDESIGNED COLOR TOOLBAR ─── -->
+        <!-- ─── COLOR TOOLBAR ─── -->
         <div id="desk-toolbar">
-
-            <!-- ROW 1 — Presets + toggle -->
             <div class="ctb-row1">
                 <span style="font-size:.48rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-right:2px;">CHART STYLE</span>
-
-                <!-- Preset chips -->
                 <button class="preset-chip active-preset" id="pch-phthalo" onclick="applyPreset('phthalo')">
-                    <span class="preset-dot" style="background:#000F89;border:1px solid #3355cc;"></span>
-                    Phthalo + Black
+                    <span class="preset-dot" style="background:#000F89;border:1px solid #3355cc;"></span>Phthalo + Black
                 </button>
                 <button class="preset-chip" id="pch-classic" onclick="applyPreset('classic')">
-                    <span class="preset-dot" style="background:#26a69a;border:1px solid #26a69a;"></span>
-                    Classic
+                    <span class="preset-dot" style="background:#26a69a;border:1px solid #26a69a;"></span>Classic
                 </button>
                 <button class="preset-chip" id="pch-mono" onclick="applyPreset('mono')">
-                    <span class="preset-dot" style="background:#cccccc;border:1px solid #888;"></span>
-                    Monochrome
+                    <span class="preset-dot" style="background:#cccccc;border:1px solid #888;"></span>Monochrome
                 </button>
                 <button class="preset-chip" id="pch-hollow" onclick="applyPreset('hollow')">
-                    <span class="preset-dot" style="background:transparent;border:1px solid #44ff88;"></span>
-                    Hollow Candles
+                    <span class="preset-dot" style="background:transparent;border:1px solid #44ff88;"></span>Hollow Candles
                 </button>
                 <button class="preset-chip" id="pch-trader" onclick="applyPreset('trader')">
-                    <span class="preset-dot" style="background:#00e600;border:1px solid #00e600;"></span>
-                    Terminal Green
+                    <span class="preset-dot" style="background:#00e600;border:1px solid #00e600;"></span>Terminal Green
                 </button>
-
                 <div style="flex:1;"></div>
-
-                <!-- Customize toggle -->
-                <button id="ctb-toggle" onclick="toggleColorPanel()" style="
-                    padding:4px 12px;font-size:.55rem;cursor:pointer;text-transform:uppercase;
-                    letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#888;
-                    border-radius:3px;font-family:inherit;transition:all .15s;
-                ">🎨 Customize ▾</button>
-
-                <!-- Reset -->
-                <button onclick="ui.resetTVColors()" style="
-                    padding:4px 11px;font-size:.55rem;cursor:pointer;text-transform:uppercase;
-                    letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#666;
-                    border-radius:3px;font-family:inherit;
-                ">↺ Reset</button>
+                <button id="ctb-toggle" onclick="toggleColorPanel()" style="padding:4px 12px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#888;border-radius:3px;font-family:inherit;transition:all .15s;">🎨 Customize ▾</button>
+                <button onclick="ui.resetTVColors()" style="padding:4px 11px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#666;border-radius:3px;font-family:inherit;">↺ Reset</button>
             </div>
-
-            <!-- ROW 2 — Detailed color controls (collapsible) -->
             <div class="ctb-row2" id="ctb-panel">
-
-                <!-- BG -->
                 <div class="cg-wrap">
                     <div class="cg-title">Background</div>
                     <div class="cf-item">
                         <span class="ctb-label">BG Color</span>
                         <div class="swatch-row" id="sw-bg"></div>
                         <div class="ph-row">
-                            <input type="color" id="tv-bg" value="#292A35"
-                                oninput="syncHex('tv-bg','tv-bg-hex');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)">
-                            <input type="text"  id="tv-bg-hex" value="#292A35"
-                                oninput="syncPicker('tv-bg-hex','tv-bg');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)" maxlength="7">
+                            <input type="color" id="tv-bg" value="#292A35" oninput="syncHex('tv-bg','tv-bg-hex');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)">
+                            <input type="text"  id="tv-bg-hex" value="#292A35" oninput="syncPicker('tv-bg-hex','tv-bg');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)" maxlength="7">
                         </div>
                     </div>
                 </div>
-
                 <div class="ctb-divider"></div>
-
-                <!-- UP candle -->
                 <div class="cg-wrap">
                     <div class="cg-title" style="color:#5577ff88;">▲ UP CANDLE</div>
                     <div class="cg-fields">
-                        <!-- Body -->
                         <div class="cf-item">
                             <span class="ctb-label">Body</span>
                             <div class="swatch-row" id="sw-up"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-up" value="#000F89"
-                                    oninput="syncHex('tv-up','tv-up-hex');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)">
-                                <input type="text"  id="tv-up-hex" value="#000F89"
-                                    oninput="syncPicker('tv-up-hex','tv-up');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)" maxlength="7">
+                                <input type="color" id="tv-up" value="#000F89" oninput="syncHex('tv-up','tv-up-hex');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)">
+                                <input type="text"  id="tv-up-hex" value="#000F89" oninput="syncPicker('tv-up-hex','tv-up');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)" maxlength="7">
                             </div>
                         </div>
-                        <!-- Wick -->
                         <div class="cf-item">
                             <span class="ctb-label">Wick</span>
                             <div class="swatch-row" id="sw-upwick"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-upwick" value="#000000"
-                                    oninput="syncHex('tv-upwick','tv-upwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)">
-                                <input type="text"  id="tv-upwick-hex" value="#000000"
-                                    oninput="syncPicker('tv-upwick-hex','tv-upwick');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)" maxlength="7">
+                                <input type="color" id="tv-upwick" value="#000000" oninput="syncHex('tv-upwick','tv-upwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)">
+                                <input type="text"  id="tv-upwick-hex" value="#000000" oninput="syncPicker('tv-upwick-hex','tv-upwick');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)" maxlength="7">
                             </div>
                         </div>
-                        <!-- Border -->
                         <div class="cf-item">
                             <span class="ctb-label">Border</span>
                             <div class="swatch-row" id="sw-upborder"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-upborder" value="#000000"
-                                    oninput="syncHex('tv-upborder','tv-upborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)">
-                                <input type="text"  id="tv-upborder-hex" value="#000000"
-                                    oninput="syncPicker('tv-upborder-hex','tv-upborder');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)" maxlength="7">
+                                <input type="color" id="tv-upborder" value="#000000" oninput="syncHex('tv-upborder','tv-upborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)">
+                                <input type="text"  id="tv-upborder-hex" value="#000000" oninput="syncPicker('tv-upborder-hex','tv-upborder');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)" maxlength="7">
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <div class="ctb-divider"></div>
-
-                <!-- DOWN candle -->
                 <div class="cg-wrap">
                     <div class="cg-title" style="color:#ff444488;">▼ DOWN CANDLE</div>
                     <div class="cg-fields">
-                        <!-- Body -->
                         <div class="cf-item">
                             <span class="ctb-label">Body</span>
                             <div class="swatch-row" id="sw-down"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-down" value="#000000"
-                                    oninput="syncHex('tv-down','tv-down-hex');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)">
-                                <input type="text"  id="tv-down-hex" value="#000000"
-                                    oninput="syncPicker('tv-down-hex','tv-down');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)" maxlength="7">
+                                <input type="color" id="tv-down" value="#000000" oninput="syncHex('tv-down','tv-down-hex');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)">
+                                <input type="text"  id="tv-down-hex" value="#000000" oninput="syncPicker('tv-down-hex','tv-down');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)" maxlength="7">
                             </div>
                         </div>
-                        <!-- Wick -->
                         <div class="cf-item">
                             <span class="ctb-label">Wick</span>
                             <div class="swatch-row" id="sw-downwick"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-downwick" value="#000000"
-                                    oninput="syncHex('tv-downwick','tv-downwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)">
-                                <input type="text"  id="tv-downwick-hex" value="#000000"
-                                    oninput="syncPicker('tv-downwick-hex','tv-downwick');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)" maxlength="7">
+                                <input type="color" id="tv-downwick" value="#000000" oninput="syncHex('tv-downwick','tv-downwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)">
+                                <input type="text"  id="tv-downwick-hex" value="#000000" oninput="syncPicker('tv-downwick-hex','tv-downwick');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)" maxlength="7">
                             </div>
                         </div>
-                        <!-- Border -->
                         <div class="cf-item">
                             <span class="ctb-label">Border</span>
                             <div class="swatch-row" id="sw-downborder"></div>
                             <div class="ph-row">
-                                <input type="color" id="tv-downborder" value="#000000"
-                                    oninput="syncHex('tv-downborder','tv-downborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downborder',this.value)">
-                                <input type="text"  id="tv-downborder-hex" value="#000000"
-                                    oninput="syncPicker('tv-downborder-hex','tv-downborder');ui.rebuildTVWidget();updateSwatchActive('sv-downborder',this.value)" maxlength="7">
+                                <input type="color" id="tv-downborder" value="#000000" oninput="syncHex('tv-downborder','tv-downborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downborder',this.value)">
+                                <input type="text"  id="tv-downborder-hex" value="#000000" oninput="syncPicker('tv-downborder-hex','tv-downborder');ui.rebuildTVWidget();updateSwatchActive('sv-downborder',this.value)" maxlength="7">
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-            </div><!-- /ctb-row2 -->
-        </div><!-- /desk-toolbar -->
-
-        <!-- Chart + Calculator split -->
+        <!-- Chart + Calculator -->
         <div style="display:flex;height:calc(136vh - 80px);">
-            <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
+            <!-- ══ CHART CONTAINER with loading overlay ══ -->
+            <div style="flex:1;min-width:0;height:100%;position:relative;">
+                <div id="chart-loading">
+                    <div class="chart-load-spinner"></div>
+                    <span style="font-size:.6rem;color:#444;letter-spacing:2px;text-transform:uppercase;">Loading Chart</span>
+                </div>
+                <div id="tv-container" style="width:100%;height:100%;"></div>
+            </div>
+
             <!-- Calculator Panel -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
@@ -845,55 +762,114 @@ window.ui = {
         };
     },
 
+    /* ══════════════════════════════════════════════════════
+       ADVANCED CHARTING LIBRARY — replaces cdn tv.js widget
+       Requires: charting_library/ and datafeeds/ in repo root
+       ══════════════════════════════════════════════════════ */
     launchTradingDesk() {
         const c = this._tvColors();
         const container = document.getElementById('tv-container');
+        const loader    = document.getElementById('chart-loading');
         if (!container) return;
+
+        // Destroy existing widget
         if (this._tvWidget) {
-            try { container.innerHTML = ''; } catch(e) {}
+            try { this._tvWidget.remove(); } catch(e) {}
             this._tvWidget = null;
+            container.innerHTML = '';
         }
+
+        // Show loading spinner
+        if (loader) loader.classList.remove('hidden');
+
+        // Guard: charting_library must be present
+        if (typeof TradingView === 'undefined' || typeof TradingView.widget === 'undefined') {
+            container.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                    height:100%;gap:14px;background:#050505;">
+                    <div style="font-size:.65rem;color:#ff4444;letter-spacing:2px;text-transform:uppercase;">
+                        ⚠ charting_library not found
+                    </div>
+                    <div style="font-size:.55rem;color:#444;text-align:center;max-width:320px;line-height:1.7;">
+                        Upload the <b style="color:#888;">charting_library/</b> and <b style="color:#888;">datafeeds/</b>
+                        folders to your repo root, then push to GitHub.
+                    </div>
+                </div>`;
+            if (loader) loader.classList.add('hidden');
+            return;
+        }
+
         this._tvWidget = new TradingView.widget({
-            container_id: 'tv-container',
-            autosize: true,
-            symbol: 'ICMARKETS:EURUSD',
-            interval: this._tf,
+            // ── Container & Library Path ──
+            container:    'tv-container',
+            library_path: 'charting_library/',
+
+            // ── Data Feed (UDF-compatible demo) ──
+            datafeed: new Datafeeds.UDFCompatibleDatafeed(
+                'https://demo_feed.tradingview.com',
+                undefined,
+                { maxResponseLength: 1000, expectedOrder: 'latestFirst' }
+            ),
+
+            // ── Symbol & Interval ──
+            symbol:   'AAPL',
+            interval: this._tf || '240',
+
+            // ── Locale & Timezone ──
+            locale:   'en',
             timezone: 'Asia/Kathmandu',
-            theme: 'dark',
-            style: '1',
-            locale: 'en',
+
+            // ── Appearance ──
+            theme:     'dark',
+            autosize:  true,
+            fullscreen: false,
+
+            // ── Toolbar BG ──
             toolbar_bg: c.bg,
-            backgroundColor: c.bg,
-            gridColor: 'rgba(0,0,0,0)',
-            enable_publishing: false,
-            hide_side_toolbar: false,
-            allow_symbol_change: true,
-            save_image: false,
-            /* ── Hide volume by default ── */
+
+            // ── Disabled Features ──
             disabled_features: [
-                "create_volume_indicator_by_default",
-                "volume_force_overlay"
+                'use_localstorage_for_settings',
+                'volume_force_overlay',
+                'create_volume_indicator_by_default',
+                'header_compare',
+                'header_undo_redo',
             ],
+
+            // ── Enabled Features ──
+            enabled_features: [
+                'study_templates',
+                'side_toolbar_in_fullscreen_mode',
+            ],
+
+            // ── Candle Color Overrides ──
             overrides: {
-                "paneProperties.background":                   c.bg,
-                "paneProperties.backgroundType":               "solid",
-                "paneProperties.backgroundGradientStartColor": c.bg,
-                "paneProperties.backgroundGradientEndColor":   c.bg,
-                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.vertGridProperties.style":     1,
-                "paneProperties.horzGridProperties.style":     1,
-                "paneProperties.crossHairProperties.color":    "#555555",
-                "mainSeriesProperties.candleStyle.upColor":         c.up,
-                "mainSeriesProperties.candleStyle.downColor":       c.down,
-                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
-                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
-                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
-                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
-                "mainSeriesProperties.candleStyle.drawWick":        true,
-                "mainSeriesProperties.candleStyle.drawBorder":      true,
-            }
+                'paneProperties.background':                   c.bg,
+                'paneProperties.backgroundType':               'solid',
+                'paneProperties.backgroundGradientStartColor': c.bg,
+                'paneProperties.backgroundGradientEndColor':   c.bg,
+                'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
+                'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
+                'paneProperties.crossHairProperties.color':    '#555555',
+                'mainSeriesProperties.candleStyle.upColor':         c.up,
+                'mainSeriesProperties.candleStyle.downColor':       c.down,
+                'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
+                'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
+                'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
+                'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
+                'mainSeriesProperties.candleStyle.drawWick':        true,
+                'mainSeriesProperties.candleStyle.drawBorder':      true,
+            },
         });
+
+        // Hide spinner once chart fires ready
+        if (this._tvWidget.onChartReady) {
+            this._tvWidget.onChartReady(() => {
+                if (loader) loader.classList.add('hidden');
+            });
+        } else {
+            setTimeout(() => { if (loader) loader.classList.add('hidden'); }, 2000);
+        }
     },
 
     rebuildTVWidget() {
@@ -901,9 +877,7 @@ window.ui = {
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
 
-    resetTVColors() {
-        applyPreset('phthalo');
-    },
+    resetTVColors() { applyPreset('phthalo'); },
 
     classifySession(dateStr) {
         const tv = document.getElementById('t-start').value; if(!tv || !dateStr) return null;
@@ -1270,7 +1244,6 @@ window.ui = {
 
 <!-- ══ SWATCH SYSTEM + PRESETS ══ -->
 <script>
-/* ── Swatch palettes ── */
 const SWATCHES = {
     bg:   ['#000000','#0a0a0a','#0d0d0d','#111111','#1a1a1a','#222222','#292A35','#1c2033','#1a1a2e','#050510','#0e130e','#080c08','#0d1117','#f2ede6'],
     body: ['#000F89','#0000cc','#0033ff','#1a3aff','#26a69a','#00e600','#44ff88','#ffffff','#cccccc','#888888','#ff4444','#cc2222','#ef5350','#000000'],
@@ -1278,7 +1251,6 @@ const SWATCHES = {
 };
 SWATCHES.border = SWATCHES.wick;
 
-/* Map of swatch container ID → input IDs */
 const SW_MAP = {
     'sw-bg':        { picker:'tv-bg',        hex:'tv-bg-hex',        palette:'bg'   },
     'sw-up':        { picker:'tv-up',        hex:'tv-up-hex',        palette:'body' },
@@ -1320,7 +1292,6 @@ function updateSwatchActive(swId, color) {
     });
 }
 
-/* ── Preset definitions ── */
 const PRESETS = {
     phthalo: { bg:'#292A35', up:'#000F89', upWick:'#000000', upBorder:'#000000', down:'#000000', downWick:'#000000', downBorder:'#000000' },
     classic: { bg:'#131722', up:'#26a69a', upWick:'#26a69a', upBorder:'#26a69a', down:'#ef5350', downWick:'#ef5350', downBorder:'#ef5350' },
@@ -1341,7 +1312,6 @@ function applyPreset(name) {
         'tv-downborder':p.downBorder,'tv-downborder-hex':p.downBorder,
     };
     Object.entries(map).forEach(([id,v])=>{ const el=document.getElementById(id); if(el) el.value=v; });
-    /* Refresh swatch highlights */
     updateSwatchActive('sw-bg',        p.bg);
     updateSwatchActive('sw-up',        p.up);
     updateSwatchActive('sw-upwick',    p.upWick);
@@ -1349,13 +1319,11 @@ function applyPreset(name) {
     updateSwatchActive('sw-down',      p.down);
     updateSwatchActive('sw-downwick',  p.downWick);
     updateSwatchActive('sw-downborder',p.downBorder);
-    /* Highlight active preset chip */
     document.querySelectorAll('.preset-chip').forEach(b => b.classList.remove('active-preset'));
     const chip = document.getElementById('pch-'+name); if(chip) chip.classList.add('active-preset');
     ui.launchTradingDesk();
 }
 
-/* ── Toggle colour panel ── */
 var _ctbOpen = false;
 function toggleColorPanel() {
     _ctbOpen = !_ctbOpen;
@@ -1366,10 +1334,8 @@ function toggleColorPanel() {
     if(_ctbOpen) toggle.style.color = '#ddd'; else toggle.style.color = '#888';
 }
 
-/* Build swatches once DOM is ready */
 document.addEventListener('DOMContentLoaded', () => {
     buildSwatches();
-    /* Set initial swatch active states for default preset */
     const p = PRESETS['phthalo'];
     updateSwatchActive('sw-bg',         p.bg);
     updateSwatchActive('sw-up',         p.up);
@@ -1406,11 +1372,12 @@ if('serviceWorker' in navigator) {
 }
 </script>
 
-<!-- TradingView -->
-<script src="https://s3.tradingview.com/tv.js"></script>
+<!-- ══ ADVANCED CHARTING LIBRARY (local — requires charting_library/ and datafeeds/ in repo) ══ -->
+<script src="charting_library/charting_library.standalone.js"></script>
+<script src="datafeeds/udf/dist/bundle.js"></script>
 
 <script>
-/* ── Calculator (in-tab) ── */
+/* ── Calculator ── */
 var _dm = 'amt';
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 function deskSm(m){
@@ -1455,7 +1422,6 @@ function deskRs(){
     var qs=document.getElementById('d-qs');if(qs)qs.style.display='none';
 }
 
-/* ── Color picker ↔ hex sync ── */
 function syncHex(pickerId, hexId) {
     var p = document.getElementById(pickerId), h = document.getElementById(hexId);
     if(p && h) h.value = p.value;
