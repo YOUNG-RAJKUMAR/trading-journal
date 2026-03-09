@@ -857,16 +857,14 @@ window.ui = {
         }
         container.innerHTML = '';
 
-        // ── API Keys ──────────────────────────────────────────
-        const TWELVE_KEY  = 'ea488f33f6d841778d55e540d889c308';        // history (all)
-        const FINNHUB_KEY = 'd6n5iihr01qir35j8pi0d6n5iihr01qir35j8pig'; // live crypto/stocks
-        const FMP_KEY     = '06DIZiqxjdVXk5CUip9mzrxOOKbNbrXX';         // live forex
+        // ── Twelve Data key — handles everything ──────────────
+        const TWELVE_KEY = 'ea488f33f6d841778d55e540d889c308';
 
         this._tvWidget = new TradingView.widget({
 
             container:    'tv-container',
             library_path: 'charting_library/',
-            datafeed:     TwelveDataFeed(TWELVE_KEY, FINNHUB_KEY, FMP_KEY),
+            datafeed:     TwelveDataFeed(TWELVE_KEY),
             symbol:       'EUR/USD',
             interval:     this._tf || '60',
             locale:       'en',
@@ -951,7 +949,7 @@ window.ui = {
 
         this._tvWidget.onChartReady(() => {
             this._tvWidget.chart().setChartType(1);
-            console.log('[TradingDesk] ✓ Chart ready — FMP forex WS + Finnhub crypto WS');
+            console.log('[TradingDesk] ✓ Chart ready — polling every 10s');
         });
     },
 
@@ -963,7 +961,6 @@ window.ui = {
     resetTVColors() {
         applyPreset('phthalo');
     },
-      
 
     classifySession(dateStr) {
         const tv = document.getElementById('t-start').value; if(!tv || !dateStr) return null;
