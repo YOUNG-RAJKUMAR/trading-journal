@@ -460,6 +460,24 @@
 })();
 </script>
 
+<script>
+function setTF(tf) {
+    window.ui._tf = tf;
+    document.querySelectorAll('[id^="tf-"]').forEach(b => {
+        b.style.background = '#111';
+        b.style.border = '1px solid #222';
+        b.style.color = '#666';
+        b.style.fontWeight = '400';
+    });
+    const active = document.getElementById('tf-' + tf);
+    if(active) {
+        active.style.background = '#fff';
+        active.style.border = '1px solid #fff';
+        active.style.color = '#000';
+        active.style.fontWeight = '700';
+    }
+}
+</script>
 
     <!-- ══ CHARTS TAB ══ -->
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
@@ -617,8 +635,19 @@
 
         <!-- Chart + Calculator split -->
         <div style="display:flex;height:calc(136vh - 80px);">
-            <div style="flex:1;min-width:0;height:100%;position:relative;">
-    <div id="tv-container" style="width:100%;height:100%;"></div>
+            <div style="flex:1;min-width:0;height:100%;position:relative;display:flex;flex-direction:column;">
+    <div id="tf-bar" style="display:flex;gap:3px;padding:4px 8px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
+        <span style="font-size:.48rem;color:#444;text-transform:uppercase;letter-spacing:1px;align-self:center;margin-right:4px;">COUNTDOWN TF:</span>
+        <button onclick="setTF('1')"   id="tf-1"   style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">1m</button>
+        <button onclick="setTF('5')"   id="tf-5"   style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">5m</button>
+        <button onclick="setTF('15')"  id="tf-15"  style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">15m</button>
+        <button onclick="setTF('30')"  id="tf-30"  style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">30m</button>
+        <button onclick="setTF('60')"  id="tf-60"  style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">1H</button>
+        <button onclick="setTF('240')" id="tf-240" style="padding:3px 7px;font-size:.55rem;background:#fff;border:1px solid #fff;color:#000;cursor:pointer;border-radius:2px;font-family:inherit;font-weight:700;">4H</button>
+        <button onclick="setTF('D')"   id="tf-D"   style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">1D</button>
+        <button onclick="setTF('W')"   id="tf-W"   style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">1W</button>
+    </div>
+    <div id="tv-container" style="width:100%;flex:1;"></div>
     <div id="bar-countdown" style="
     position:fixed;bottom:60px;left:20px;z-index:99999;
         background:rgba(0,0,0,0.75);border:1px solid #333;
