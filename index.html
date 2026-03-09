@@ -829,127 +829,70 @@ window.ui = {
         if(id === 'charts')    this.launchTradingDesk();
     },
 
-        _tf: '60',
+    _tf: '240',
     _tvWidget: null,
-    _tvRebuildTimer: null,
 
     _tvColors() {
         const g = id => document.getElementById(id)?.value || null;
         return {
-            bg:         g('tv-bg')         || '#292A35',
-            up:         g('tv-up')         || '#000F89',
-            down:       g('tv-down')       || '#000000',
-            upBorder:   g('tv-upborder')   || '#000000',
-            downBorder: g('tv-downborder') || '#000000',
-            upWick:     g('tv-upwick')     || '#000000',
-            downWick:   g('tv-downwick')   || '#000000',
+            bg:          g('tv-bg')         || '#292A35',
+            up:          g('tv-up')         || '#000F89',
+            down:        g('tv-down')       || '#000000',
+            upBorder:    g('tv-upborder')   || '#000000',
+            downBorder:  g('tv-downborder') || '#000000',
+            upWick:      g('tv-upwick')     || '#000000',
+            downWick:    g('tv-downwick')   || '#000000',
         };
     },
 
     launchTradingDesk() {
-        const c         = this._tvColors();
+        const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
-
         if (this._tvWidget) {
-            try { this._tvWidget.remove(); } catch(e) {}
+            try { container.innerHTML = ''; } catch(e) {}
             this._tvWidget = null;
         }
-        container.innerHTML = '';
-
-        // ── Twelve Data key — handles everything ──────────────
-        const TWELVE_KEY = 'ea488f33f6d841778d55e540d889c308';
-
         this._tvWidget = new TradingView.widget({
-
-            container:    'tv-container',
-            library_path: 'charting_library/',
-            datafeed:     TwelveDataFeed(TWELVE_KEY),
-            symbol:       'EUR/USD',
-            interval:     this._tf || '60',
-            locale:       'en',
-            autosize:     true,
-            theme:        'dark',
-            timezone:     'Asia/Kathmandu',
-            toolbar_bg:   c.bg,
-
+            container_id: 'tv-container',
+            autosize: true,
+            symbol: 'ICMARKETS:EURUSD',
+            interval: this._tf,
+            timezone: 'Asia/Kathmandu',
+            theme: 'dark',
+            style: '1',
+            locale: 'en',
+            toolbar_bg: c.bg,
+            backgroundColor: c.bg,
+            gridColor: 'rgba(0,0,0,0)',
+            enable_publishing: false,
             hide_side_toolbar: false,
-            withdateranges:    true,
-            hide_top_toolbar:  false,
-
+            allow_symbol_change: true,
+            save_image: false,
+            /* ── Hide volume by default ── */
             disabled_features: [
-                'create_volume_indicator_by_default',
-                'volume_force_overlay',
-                'saveload_separate_drawings_storage',
-                'study_templates',
+                "create_volume_indicator_by_default",
+                "volume_force_overlay"
             ],
-
-            enabled_features: [
-                'use_localstorage_for_settings',
-                'save_chart_properties_to_local_storage',
-                'side_toolbar_in_fullscreen_mode',
-                'header_in_fullscreen_mode',
-            ],
-
-            favorites: {
-                intervals: ['1','5','15','30','60','240','D','W'],
-                chartTypes: ['Candles','Bars','Line'],
-                drawingTools: [
-                    'LineToolTrendLine',
-                    'LineToolHorzLine',
-                    'LineToolVertLine',
-                    'LineToolFibRetracement',
-                    'LineToolFibExtension',
-                    'LineToolRectangle',
-                    'LineToolTriangle',
-                    'LineToolText',
-                    'LineToolNote',
-                    'LineToolArrow',
-                    'LineToolRay',
-                    'LineToolExtended',
-                    'LineToolParallelChannel',
-                    'LineToolPitchfork',
-                ],
-            },
-
-            load_last_chart: true,
-
             overrides: {
-                'paneProperties.background':                   c.bg,
-                'paneProperties.backgroundType':               'solid',
-                'paneProperties.backgroundGradientStartColor': c.bg,
-                'paneProperties.backgroundGradientEndColor':   c.bg,
-                'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
-                'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
-                'paneProperties.vertGridProperties.style':     1,
-                'paneProperties.horzGridProperties.style':     1,
-                'paneProperties.crossHairProperties.color':    '#555555',
-                'paneProperties.crossHairProperties.style':    2,
-                'paneProperties.crossHairProperties.width':    1,
-                'mainSeriesProperties.candleStyle.upColor':         c.up,
-                'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
-                'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
-                'mainSeriesProperties.candleStyle.downColor':       c.down,
-                'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
-                'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
-                'mainSeriesProperties.candleStyle.drawWick':        true,
-                'mainSeriesProperties.candleStyle.drawBorder':      true,
-                'mainSeriesProperties.barStyle.upColor':            c.up,
-                'mainSeriesProperties.barStyle.downColor':          c.down,
-                'mainSeriesProperties.lineStyle.color':             c.up,
-                'mainSeriesProperties.lineStyle.linewidth':         2,
-                'mainSeriesProperties.areaStyle.color1':            c.up + '88',
-                'mainSeriesProperties.areaStyle.color2':            c.bg,
-                'mainSeriesProperties.areaStyle.linecolor':         c.up,
-                'scalesProperties.textColor':                       '#555555',
-                'scalesProperties.lineColor':                       '#1a1a1a',
-                'scalesProperties.fontSize':                        11,
-            },
-        });
-
-        this._tvWidget.onChartReady(() => {
-            this._tvWidget.chart().setChartType(1);
-            console.log('[TradingDesk] ✓ Chart ready — polling every 10s');
+                "paneProperties.background":                   c.bg,
+                "paneProperties.backgroundType":               "solid",
+                "paneProperties.backgroundGradientStartColor": c.bg,
+                "paneProperties.backgroundGradientEndColor":   c.bg,
+                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.vertGridProperties.style":     1,
+                "paneProperties.horzGridProperties.style":     1,
+                "paneProperties.crossHairProperties.color":    "#555555",
+                "mainSeriesProperties.candleStyle.upColor":         c.up,
+                "mainSeriesProperties.candleStyle.downColor":       c.down,
+                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
+                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
+                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
+                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
+                "mainSeriesProperties.candleStyle.drawWick":        true,
+                "mainSeriesProperties.candleStyle.drawBorder":      true,
+            }
         });
     },
 
@@ -1464,8 +1407,7 @@ if('serviceWorker' in navigator) {
 </script>
 
 <!-- TradingView -->
-<script src="charting_library/charting_library.js"></script>
-<script src="datafeed.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
 /* ── Calculator (in-tab) ── */
