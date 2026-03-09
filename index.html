@@ -732,7 +732,6 @@ window.ui = {
         };
     },
 
-    // ══ DERIV WEBSOCKET DATAFEED ══
     _derivSym(sym) {
         const map = {
             'EURUSD':'frxEURUSD','GBPUSD':'frxGBPUSD','USDJPY':'frxUSDJPY',
@@ -764,144 +763,66 @@ window.ui = {
                     supports_timescale_marks: false,
                 }), 0);
             },
-
-            searchSymbols(userInput, exchange, symbolType, onResult) {
-                onResult([]);
-            },
-
+            searchSymbols(userInput, exchange, symbolType, onResult) { onResult([]); },
             resolveSymbol(symbolName, onResolve, onError) {
                 setTimeout(() => onResolve({
-                    name:        symbolName,
-                    description: symbolName,
-                    type:        'forex',
-                    session:     '24x7',
-                    timezone:    'Asia/Kathmandu',
-                    ticker:      symbolName,
-                    minmov:      1,
-                    pricescale:  100000,
-                    has_intraday: true,
-                    has_daily:    true,
+                    name: symbolName, description: symbolName, type: 'forex',
+                    session: '24x7', timezone: 'Asia/Kathmandu', ticker: symbolName,
+                    minmov: 1, pricescale: 100000, has_intraday: true, has_daily: true,
                     has_weekly_and_monthly: true,
                     supported_resolutions: ['1','5','15','30','60','240','D','W'],
-                    volume_precision: 2,
-                    data_status: 'streaming',
+                    volume_precision: 2, data_status: 'streaming',
                 }), 0);
             },
-
             getBars(symbolInfo, resolution, periodParams, onResult, onError) {
                 const { from, to, firstDataRequest } = periodParams;
                 const sym  = self._derivSym(symbolInfo.name.replace('/','').toUpperCase());
                 const gran = self._granularity(resolution);
                 const count = firstDataRequest ? 1000 : Math.min(Math.ceil((to - from) / gran), 1000);
-
                 return new Promise((resolve) => {
                     const ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
                     let done = false;
-
                     const finish = () => {
                         if(!done) { done = true; resolve(); }
                         if(ws.readyState !== WebSocket.CLOSED) ws.close();
                     };
-
-                    ws.onopen = () => {
-                        ws.send(JSON.stringify({
-                            ticks_history: sym,
-                            adjust_start_time: 1,
-                            count: count,
-                            end: 'latest',
-                            start: 1,
-                            style: 'candles',
-                            granularity: gran
-                        }));
-                    };
-
+                    ws.onopen = () => ws.send(JSON.stringify({
+                        ticks_history: sym, adjust_start_time: 1,
+                        count, end: 'latest', start: 1, style: 'candles', granularity: gran,
+                    }));
                     ws.onmessage = (e) => {
                         const msg = JSON.parse(e.data);
-
-                        if(msg.error) {
-                            console.warn('Deriv error for', sym, ':', msg.error.message);
-                            onResult([], { noData: true });
-                            finish();
-                            return;
-                        }
-
-                        const candles = msg.candles || [];
-                        if(!candles.length) {
-                            onResult([], { noData: true });
-                            finish();
-                            return;
-                        }
-
-                        const bars = candles.map(c => ({
-                            time:   c.epoch,
-                            open:   parseFloat(c.open),
-                            high:   parseFloat(c.high),
-                            low:    parseFloat(c.low),
-                            close:  parseFloat(c.close),
-                            volume: 0
-                        })).sort((a, b) => a.time - b.time);
-
-                        const filtered = firstDataRequest
-                            ? bars
-                            : bars.filter(b => b.time >= from && b.time <= to);
-
+                        if(msg.error || !msg.candles?.length) { onResult([], { noData: true }); finish(); return; }
+                        const bars = msg.candles.map(c => ({
+                            time: c.epoch, open: parseFloat(c.open), high: parseFloat(c.high),
+                            low: parseFloat(c.low), close: parseFloat(c.close), volume: 0
+                        })).sort((a,b) => a.time - b.time);
+                        const filtered = firstDataRequest ? bars : bars.filter(b => b.time >= from && b.time <= to);
                         onResult(filtered, { noData: filtered.length === 0 });
                         finish();
                     };
-
-                    ws.onerror = () => {
-                        onResult([], { noData: true });
-                        finish();
-                    };
-
-                    setTimeout(() => {
-                        if(!done) {
-                            onResult([], { noData: true });
-                            finish();
-                        }
-                    }, 10000);
+                    ws.onerror = () => { onResult([], { noData: true }); finish(); };
+                    setTimeout(() => { if(!done) { onResult([], { noData: true }); finish(); } }, 10000);
                 });
             },
-
-            // ── REAL-TIME LIVE TICK UPDATES ──
             subscribeBars(symbolInfo, resolution, onTick, listenerGuid) {
                 const sym  = self._derivSym(symbolInfo.name.replace('/','').toUpperCase());
                 const gran = self._granularity(resolution);
-
                 const ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
-
-                ws.onopen = () => {
-                    ws.send(JSON.stringify({
-                        ticks_history: sym,
-                        adjust_start_time: 1,
-                        count: 1,
-                        end: 'latest',
-                        start: 1,
-                        style: 'candles',
-                        granularity: gran,
-                        subscribe: 1
-                    }));
-                };
-
+                ws.onopen = () => ws.send(JSON.stringify({
+                    ticks_history: sym, adjust_start_time: 1, count: 1,
+                    end: 'latest', start: 1, style: 'candles', granularity: gran, subscribe: 1,
+                }));
                 ws.onmessage = (e) => {
                     const msg = JSON.parse(e.data);
                     if(msg.msg_type === 'ohlc' && msg.ohlc) {
                         const o = msg.ohlc;
-                        onTick({
-                            time:   parseInt(o.epoch),
-                            open:   parseFloat(o.open),
-                            high:   parseFloat(o.high),
-                            low:    parseFloat(o.low),
-                            close:  parseFloat(o.close),
-                            volume: 0
-                        });
+                        onTick({ time: parseInt(o.epoch), open: parseFloat(o.open), high: parseFloat(o.high), low: parseFloat(o.low), close: parseFloat(o.close), volume: 0 });
                     }
                 };
-
                 ws.onerror = e => console.warn('Deriv live WS error:', e);
                 window[`_dws_${listenerGuid}`] = ws;
             },
-
             unsubscribeBars(listenerGuid) {
                 const ws = window[`_dws_${listenerGuid}`];
                 if(ws) { ws.close(); delete window[`_dws_${listenerGuid}`]; }
@@ -914,10 +835,9 @@ window.ui = {
         const container = document.getElementById('tv-container');
         if(!container) return;
 
-        // Close any existing live WebSocket subscriptions
+        // Clean up old live sockets
         Object.keys(window).filter(k => k.startsWith('_dws_')).forEach(k => {
-            try { window[k].close(); } catch(e) {}
-            delete window[k];
+            try { window[k].close(); } catch(e) {} delete window[k];
         });
 
         container.innerHTML = '';
@@ -935,9 +855,11 @@ window.ui = {
             locale: 'en',
             disabled_features: [
                 'create_volume_indicator_by_default',
-                'volume_force_overlay'
+                'volume_force_overlay',
+                'study_templates',
+                'header_saveload',
+                'use_localstorage_for_settings',
             ],
-            enabled_features: ['study_templates'],
             overrides: {
                 "paneProperties.background":                   c.bg,
                 "paneProperties.backgroundType":               "solid",
@@ -945,8 +867,6 @@ window.ui = {
                 "paneProperties.backgroundGradientEndColor":   c.bg,
                 "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
                 "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.vertGridProperties.style":     1,
-                "paneProperties.horzGridProperties.style":     1,
                 "paneProperties.crossHairProperties.color":    "#555555",
                 "mainSeriesProperties.candleStyle.upColor":         c.up,
                 "mainSeriesProperties.candleStyle.downColor":       c.down,
