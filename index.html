@@ -870,10 +870,13 @@ window.ui = {
             allow_symbol_change: true,
             save_image: false,
             /* ── Hide volume by default ── */
-            disabled_features: [
-                "create_volume_indicator_by_default",
-                "volume_force_overlay"
-            ],
+         disabled_features: [
+    "create_volume_indicator_by_default",
+    "volume_force_overlay"
+],
+enabled_features: [
+    "countdown_to_bar_close_button"
+],
             overrides: {
                 "paneProperties.background":                   c.bg,
                 "paneProperties.backgroundType":               "solid",
