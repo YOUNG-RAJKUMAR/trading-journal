@@ -829,7 +829,7 @@ window.ui = {
         if(id === 'charts')    this.launchTradingDesk();
     },
 
-       _tf: '60',
+          _tf: '60',
     _tvWidget: null,
     _tvRebuildTimer: null,
 
@@ -858,8 +858,8 @@ window.ui = {
         container.innerHTML = '';
 
         // ── API Keys ──────────────────────────────────────────
-        const TWELVE_KEY  = 'ea488f33f6d841778d55e540d889c308';
-        const FINNHUB_KEY = 'd6n5iihr01qir35j8pi0d6n5iihr01qir35j8pig';
+        const TWELVE_KEY  = 'ea488f33f6d841778d55e540d889c308';   // forex + history
+        const FINNHUB_KEY = 'd6n5iihr01qir35j8pi0d6n5iihr01qir35j8pig'; // crypto + stocks
 
         this._tvWidget = new TradingView.widget({
 
@@ -959,7 +959,7 @@ window.ui = {
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
 
-      resetTVColors() {
+    resetTVColors() {
         applyPreset('phthalo');
     },
 
