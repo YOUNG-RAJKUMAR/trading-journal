@@ -590,25 +590,7 @@
 
         <!-- Chart + Calculator split -->
         <div style="display:flex;height:calc(136vh - 80px);">
-            <div style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;position:relative;">
-                <div id="tf-bar" style="display:flex;gap:3px;padding:4px 8px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-shrink:0;align-items:center;">
-                    <span style="font-size:.44rem;color:#ffcc44;text-transform:uppercase;letter-spacing:1px;margin-right:4px;">⚠ SYNC COUNTDOWN:</span>
-                    <button onclick="setTF('1')"   id="tf-1"   style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">1m</button>
-                    <button onclick="setTF('5')"   id="tf-5"   style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">5m</button>
-                    <button onclick="setTF('15')"  id="tf-15"  style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">15m</button>
-                    <button onclick="setTF('30')"  id="tf-30"  style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">30m</button>
-                    <button onclick="setTF('60')"  id="tf-60"  style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">1H</button>
-                    <button onclick="setTF('240')" id="tf-240" style="padding:3px 7px;font-size:.55rem;background:#fff;border:1px solid #fff;color:#000;cursor:pointer;border-radius:2px;font-family:inherit;font-weight:700;">4H</button>
-                    <button onclick="setTF('D')"   id="tf-D"   style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">1D</button>
-                    <button onclick="setTF('W')"   id="tf-W"   style="padding:3px 7px;font-size:.55rem;background:#111;border:1px solid #222;color:#666;cursor:pointer;border-radius:2px;font-family:inherit;">1W</button>
-                    <div id="bar-countdown" style="
-                        margin-left:auto;background:rgba(0,0,0,0.85);border:1px solid #333;
-                        padding:3px 10px;border-radius:3px;font-size:.72rem;
-                        font-family:'Courier New',monospace;color:#fff;letter-spacing:2px;
-                    ">⏱ --:--</div>
-                </div>
-                <div id="tv-container" style="width:100%;flex:1;"></div>
-            </div>
+            <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
             <!-- Calculator Panel -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
@@ -1532,66 +1514,6 @@ function onCustomBgHex(val) {
     var savedBg = localStorage.getItem('rk_custom_bg');
     setTheme(saved);
     if(savedBg) setTimeout(function() { setCustomBg(savedBg); }, 80);
-})();
-</script>
-<script>
-/* ── Countdown TF Switcher ── */
-function setTF(tf) {
-    window.ui._tf = tf;
-    document.querySelectorAll('[id^="tf-"]').forEach(b => {
-        if(b.id === 'bar-countdown') return;
-        b.style.background = '#111';
-        b.style.border = '1px solid #222';
-        b.style.color = '#666';
-        b.style.fontWeight = '400';
-    });
-    const active = document.getElementById('tf-' + tf);
-    if(active) {
-        active.style.background = '#fff';
-        active.style.border = '1px solid #fff';
-        active.style.color = '#000';
-        active.style.fontWeight = '700';
-    }
-    const el = document.getElementById('bar-countdown');
-    if(el) {
-        el.style.borderColor = '#44ff88';
-        setTimeout(() => { el.style.borderColor = '#333'; }, 800);
-    }
-}
-
-/* ── Bar Countdown Timer ── */
-(function(){
-    const TF_SECONDS = {
-        '1':60,'3':180,'5':300,'10':600,'15':900,
-        '30':1800,'45':2700,'60':3600,'120':7200,
-        '180':10800,'240':14400,'360':21600,'720':43200,
-        'D':86400,'1D':86400,'W':604800,'1W':604800
-    };
-    const TF_LABEL = {
-        '1':'1m','3':'3m','5':'5m','10':'10m','15':'15m',
-        '30':'30m','45':'45m','60':'1H','120':'2H',
-        '180':'3H','240':'4H','360':'6H','720':'12H',
-        'D':'1D','1D':'1D','W':'1W','1W':'1W'
-    };
-    function updateCountdown() {
-        const tf = window.ui?._tf || '240';
-        const secs = TF_SECONDS[tf] || 14400;
-        const label = TF_LABEL[tf] || tf;
-        const now = Math.floor(Date.now() / 1000);
-        const rem = secs - (now % secs);
-        const h = Math.floor(rem / 3600);
-        const m = Math.floor((rem % 3600) / 60);
-        const s = rem % 60;
-        const el = document.getElementById('bar-countdown');
-        if(!el) return;
-        const time = h > 0
-            ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-            : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        el.textContent = `⏱ [${label}] ${time}`;
-        el.style.color = rem <= 10 ? '#ff4444' : rem <= 60 ? '#ffcc44' : '#ffffff';
-    }
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
 })();
 </script>
 </body>
