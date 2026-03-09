@@ -1,16 +1,24 @@
 // ============================================================
 //  datafeed.js — Twelve Data  ·  REST history + WS live prices
-//  Fixed: forex symbol format, pricescale, sessions, JPY pairs
+//  v3 — Fixed lag, bad candles, correct UTC timestamps
 // ============================================================
 
 const TwelveDataFeed = (apiKey) => {
 
-    // ── Resolution map TradingView → Twelve Data ──────────────
+    // ── Resolution → Twelve Data interval ────────────────────
     const RES = {
         '1':'1min','3':'3min','5':'5min','15':'15min','30':'30min',
         '60':'1h','120':'2h','240':'4h','480':'8h','720':'12h',
         'D':'1day','1D':'1day','W':'1week','1W':'1week',
         'M':'1month','1M':'1month'
+    };
+
+    // ── How many bars to fetch per resolution ─────────────────
+    // Less bars = faster load, no lag
+    const BAR_LIMIT = {
+        '1':300,'3':300,'5':300,'15':300,'30':300,
+        '60':500,'120':500,'240':500,'480':500,'720':500,
+        'D':500,'1D':500,'W':300,'1W':300,'M':200,'1M':200
     };
 
     // ── WebSocket state ───────────────────────────────────────
@@ -20,10 +28,7 @@ const TwelveDataFeed = (apiKey) => {
     const _subs     = {};
     const _barCache = {};
 
-    // ── Symbol helpers ────────────────────────────────────────
-
-    // Convert any symbol format to Twelve Data slash format
-    // EURUSD → EUR/USD  |  ICMARKETS:EURUSD → EUR/USD  |  EUR/USD → EUR/USD
+    // ── Symbol conversion ─────────────────────────────────────
     function toTwelveSymbol(raw) {
         let sym = raw.includes(':') ? raw.split(':')[1] : raw;
         sym = sym.trim().toUpperCase();
@@ -37,7 +42,6 @@ const TwelveDataFeed = (apiKey) => {
             'XAU','XAG','XPT','XPD'
         ];
 
-        // 6-char forex pair
         if (sym.length === 6) {
             const base  = sym.slice(0, 3);
             const quote = sym.slice(3, 6);
@@ -46,7 +50,6 @@ const TwelveDataFeed = (apiKey) => {
             }
         }
 
-        // Crypto e.g. BTCUSD ETHUSD
         const CRYPTO = ['BTC','ETH','LTC','XRP','ADA','SOL','DOT','LINK','BNB','DOGE','AVAX','MATIC'];
         for (const c of CRYPTO) {
             if (sym.startsWith(c)) return `${c}/USD`;
@@ -55,7 +58,6 @@ const TwelveDataFeed = (apiKey) => {
         return sym;
     }
 
-    // Correct pricescale per instrument
     function getPriceScale(sym) {
         const s = sym.toUpperCase();
         if (s.includes('JPY') || s.includes('HUF') || s.includes('KRW') || s.includes('IDR')) return 1000;
@@ -64,20 +66,17 @@ const TwelveDataFeed = (apiKey) => {
         if (s.includes('BTC'))  return 100;
         if (s.includes('ETH'))  return 100;
         if (s.includes('SPX')  || s.includes('NAS') || s.includes('US500') ||
-            s.includes('US100')|| s.includes('DAX') || s.includes('FTSE')  ||
-            s.includes('GER')  || s.includes('UK1')) return 100;
-        return 100000; // standard forex 5-decimal
+            s.includes('US100')|| s.includes('DAX') || s.includes('FTSE')) return 100;
+        return 100000;
     }
 
-    // Instrument type detection
     function getType(sym) {
         const s = sym.toUpperCase().replace('/','');
         const CRYPTO = ['BTC','ETH','LTC','XRP','ADA','SOL','DOT','BNB','DOGE','AVAX'];
         if (CRYPTO.some(c => s.includes(c))) return 'crypto';
         if (s.includes('XAU') || s.includes('XAG') || s.includes('GOLD') || s.includes('SILVER')) return 'commodity';
         if (s.includes('SPX') || s.includes('NAS') || s.includes('DAX')  ||
-            s.includes('FTSE')|| s.includes('US5') || s.includes('US1')  ||
-            s.includes('GER') || s.includes('UK1')) return 'index';
+            s.includes('FTSE')|| s.includes('US5') || s.includes('US1')) return 'index';
         if (s.length === 6) return 'forex';
         return 'stock';
     }
@@ -87,7 +86,32 @@ const TwelveDataFeed = (apiKey) => {
         return '0930-1600';
     }
 
-    // ── WebSocket helpers ─────────────────────────────────────
+    // ── Spike/bad candle filter ───────────────────────────────
+    // Removes candles where high-low is impossibly large (data errors)
+    function filterBadBars(bars, sym) {
+        if (bars.length < 3) return bars;
+        const type = getType(sym);
+
+        // Max allowed wick size — forex ~500 pips, crypto ~20%, indices ~5%
+        const maxWickPct = type === 'forex' ? 0.05 : type === 'crypto' ? 0.25 : 0.08;
+
+        return bars.filter((bar, i) => {
+            if (bar.open <= 0 || bar.close <= 0 || bar.high <= 0 || bar.low <= 0) return false;
+            if (bar.high < bar.low) return false;
+            if (bar.high < bar.open || bar.high < bar.close) return false;
+            if (bar.low  > bar.open || bar.low  > bar.close) return false;
+
+            const range = bar.high - bar.low;
+            const pct   = range / bar.close;
+            if (pct > maxWickPct) {
+                console.warn(`[TwelveDF] Filtered bad bar at ${new Date(bar.time).toISOString()} — range ${(pct*100).toFixed(2)}%`);
+                return false;
+            }
+            return true;
+        });
+    }
+
+    // ── WebSocket ─────────────────────────────────────────────
     function wsConnect() {
         if (_ws && (_ws.readyState === WebSocket.OPEN ||
                     _ws.readyState === WebSocket.CONNECTING)) return;
@@ -111,7 +135,9 @@ const TwelveDataFeed = (apiKey) => {
 
                 const sym   = msg.symbol;
                 const price = parseFloat(msg.price);
-                const ts    = (msg.timestamp || Date.now() / 1000) * 1000;
+                const ts    = (msg.timestamp || Math.floor(Date.now() / 1000)) * 1000;
+
+                if (!price || isNaN(price)) return;
 
                 Object.values(_subs).forEach(sub => {
                     if (sub.symbol !== sym) return;
@@ -122,18 +148,14 @@ const TwelveDataFeed = (apiKey) => {
 
                     if (!bar) return;
 
+                    // Spike protection — ignore ticks more than 2% away from last close (forex)
+                    const type       = getType(sym);
+                    const maxDiffPct = type === 'forex' ? 0.02 : type === 'crypto' ? 0.10 : 0.05;
+                    if (Math.abs(price - bar.close) / bar.close > maxDiffPct) return;
+
                     if (barStart > bar.time) {
-                        // New candle started
-                        bar = {
-                            time:   barStart,
-                            open:   price,
-                            high:   price,
-                            low:    price,
-                            close:  price,
-                            volume: 0
-                        };
+                        bar = { time: barStart, open: price, high: price, low: price, close: price, volume: 0 };
                     } else {
-                        // Update current candle
                         bar = {
                             ...bar,
                             high:  Math.max(bar.high, price),
@@ -149,7 +171,7 @@ const TwelveDataFeed = (apiKey) => {
             } catch(e) {}
         };
 
-        _ws.onerror = () => console.warn('[TwelveWS] ✗ Error — check API key');
+        _ws.onerror = () => console.warn('[TwelveWS] ✗ Connection error — check API key');
         _ws.onclose = () => {
             _wsReady = false;
             console.warn('[TwelveWS] Closed — reconnecting in 5s...');
@@ -174,6 +196,15 @@ const TwelveDataFeed = (apiKey) => {
             'M':2592000000,'1M':2592000000
         };
         return map[res] || 3600000;
+    }
+
+    // ── Parse Twelve Data datetime correctly ──────────────────
+    // Twelve Data returns UTC datetimes without timezone info
+    // We must parse them as UTC — NOT local time
+    function parseUTCDatetime(str) {
+        // "2026-03-09 13:30:00" → treat as UTC
+        // Replace space with T and add Z for explicit UTC
+        return new Date(str.replace(' ', 'T') + 'Z').getTime();
     }
 
     // ═════════════════════════════════════════════════════════
@@ -219,14 +250,14 @@ const TwelveDataFeed = (apiKey) => {
             const pricescale = getPriceScale(twelveSym);
             const session    = getSession(type);
 
-            console.log(`[TwelveDF] resolveSymbol: "${symbolName}" → "${twelveSym}" | pricescale=${pricescale} | type=${type}`);
+            console.log(`[TwelveDF] resolve: "${symbolName}" → "${twelveSym}" scale=${pricescale} type=${type}`);
 
             onResolved({
                 name:            twelveSym,
                 description:     twelveSym,
                 type:            type,
                 session:         session,
-                timezone:        'Asia/Kathmandu',
+                timezone:        'Etc/UTC',       // ← always UTC internally
                 ticker:          twelveSym,
                 minmov:          1,
                 pricescale:      pricescale,
@@ -246,23 +277,29 @@ const TwelveDataFeed = (apiKey) => {
         },
 
         getBars(symbolInfo, resolution, periodParams, onHistory, onError) {
-            const { from, to } = periodParams;
+            const { from, to, firstDataRequest } = periodParams;
             const sym      = symbolInfo.ticker || toTwelveSymbol(symbolInfo.name);
             const interval = RES[resolution] || '1h';
 
-            const startISO = new Date(from * 1000).toISOString().slice(0, 19);
-            const endISO   = new Date(to   * 1000).toISOString().slice(0, 19);
+            // ── Use outputsize instead of date range for speed ──
+            // Only use date range on historical (non-first) requests
+            const limit  = BAR_LIMIT[resolution] || 300;
 
-            const url = `https://api.twelvedata.com/time_series`
+            let url = `https://api.twelvedata.com/time_series`
                 + `?symbol=${encodeURIComponent(sym)}`
                 + `&interval=${interval}`
-                + `&start_date=${startISO}`
-                + `&end_date=${endISO}`
-                + `&outputsize=5000`
+                + `&outputsize=${limit}`
                 + `&order=ASC`
                 + `&apikey=${apiKey}`;
 
-            console.log(`[TwelveDF] getBars: ${sym} ${interval} | ${startISO} → ${endISO}`);
+            // For paginated history requests, add date range
+            if (!firstDataRequest) {
+                const startISO = new Date(from * 1000).toISOString().slice(0, 19);
+                const endISO   = new Date(to   * 1000).toISOString().slice(0, 19);
+                url += `&start_date=${startISO}&end_date=${endISO}`;
+            }
+
+            console.log(`[TwelveDF] getBars: ${sym} ${interval} limit=${limit} first=${firstDataRequest}`);
 
             fetch(url)
                 .then(r => r.json())
@@ -278,24 +315,24 @@ const TwelveDataFeed = (apiKey) => {
                         return;
                     }
 
-                    const bars = data.values
-                        .map(v => ({
-                            // Twelve Data returns UTC — append Z to parse correctly
-                            time:   new Date(v.datetime.replace(' ', 'T') + 'Z').getTime(),
-                            open:   parseFloat(v.open),
-                            high:   parseFloat(v.high),
-                            low:    parseFloat(v.low),
-                            close:  parseFloat(v.close),
-                            volume: parseFloat(v.volume || 0),
-                        }))
-                        .filter(b => !isNaN(b.open) && b.time > 0);
+                    const rawBars = data.values.map(v => ({
+                        time:   parseUTCDatetime(v.datetime),
+                        open:   parseFloat(v.open),
+                        high:   parseFloat(v.high),
+                        low:    parseFloat(v.low),
+                        close:  parseFloat(v.close),
+                        volume: parseFloat(v.volume || 0),
+                    }));
 
-                    // Cache latest bar so WebSocket can extend it
+                    // Remove bad/spike candles
+                    const bars = filterBadBars(rawBars, sym);
+
+                    // Cache latest bar for WebSocket
                     if (bars.length > 0) {
                         _barCache[`${sym}|${resolution}`] = bars[bars.length - 1];
                     }
 
-                    console.log(`[TwelveDF] getBars: received ${bars.length} bars for ${sym}`);
+                    console.log(`[TwelveDF] getBars: ${bars.length} bars (${rawBars.length - bars.length} filtered) for ${sym}`);
                     onHistory(bars, { noData: bars.length === 0 });
                 })
                 .catch(e => {
@@ -308,7 +345,7 @@ const TwelveDataFeed = (apiKey) => {
             const sym = symbolInfo.ticker || toTwelveSymbol(symbolInfo.name);
             _subs[uid] = { symbol: sym, resolution, onTick };
             wsSend('subscribe', sym);
-            console.log(`[TwelveWS] subscribeBars → uid=${uid}  sym=${sym}  res=${resolution}`);
+            console.log(`[TwelveWS] subscribe → uid=${uid} sym=${sym} res=${resolution}`);
         },
 
         unsubscribeBars(uid) {
@@ -318,7 +355,7 @@ const TwelveDataFeed = (apiKey) => {
             delete _subs[uid];
             const stillNeeded = Object.values(_subs).some(s => s.symbol === sym);
             if (!stillNeeded) wsSend('unsubscribe', sym);
-            console.log(`[TwelveWS] unsubscribeBars uid=${uid}`);
+            console.log(`[TwelveWS] unsubscribe uid=${uid}`);
         },
     };
 };
