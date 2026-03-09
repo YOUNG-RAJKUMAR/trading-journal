@@ -1,16 +1,14 @@
 // ============================================================
-//  datafeed.js — POLLING BASED (100% RELIABLE)
+//  datafeed.js
+//  History:    Twelve Data /time_series  (REST)
+//  Live price: Twelve Data /price        ← real-time even on free tier
+//              Polled every 5 seconds
 //
-//  History:    Twelve Data REST
-//  Live price: Twelve Data /price endpoint polled every 10s
-//              No WebSocket = no connection issues = always works
-//
-//  Twelve Data : ea488f33f6d841778d55e540d889c308
+//  Key: ea488f33f6d841778d55e540d889c308
 // ============================================================
 
 const TwelveDataFeed = (TWELVE_KEY) => {
 
-    // ── Resolution map ────────────────────────────────────────
     const TD_RES = {
         '1':'1min','3':'3min','5':'5min','15':'15min','30':'30min',
         '60':'1h','120':'2h','240':'4h','480':'8h','720':'12h',
@@ -24,12 +22,12 @@ const TwelveDataFeed = (TWELVE_KEY) => {
         'D':500,'1D':500,'W':300,'1W':300,'M':200,'1M':200
     };
 
-    // ── Poll interval (ms) — 10 seconds ──────────────────────
-    const POLL_MS = 10000;
+    // Poll every 5 seconds using /price endpoint
+    const POLL_MS = 5000;
 
-    // ── Active poll timers ────────────────────────────────────
-    const _polls    = {};    // uid → intervalId
-    const _barCache = {};    // "tdSym|RES" → last bar
+    const _polls    = {};   // uid → intervalId
+    const _barCache = {};   // "tdSym|RES" → last bar
+    const _subs     = {};   // uid → { tdSym, resolution, onTick }
 
     // ─────────────────────────────────────────────────────────
     //  SYMBOL HELPERS
@@ -104,7 +102,6 @@ const TwelveDataFeed = (TWELVE_KEY) => {
         return map[res] || 3600000;
     }
 
-    // ── Spike filter ──────────────────────────────────────────
     function filterBadBars(bars, sym) {
         if (bars.length < 2) return bars;
         const type     = getType(sym);
@@ -116,7 +113,7 @@ const TwelveDataFeed = (TWELVE_KEY) => {
             if (b.low  > b.open || b.low  > b.close) return false;
             const range = (b.high - b.low) / b.close;
             if (range > maxRange) {
-                console.warn(`[DF] Spike filtered ${new Date(b.time).toISOString()} range=${(range*100).toFixed(2)}%`);
+                console.warn(`[DF] Spike filtered ${new Date(b.time).toISOString()}`);
                 return false;
             }
             return true;
@@ -124,56 +121,78 @@ const TwelveDataFeed = (TWELVE_KEY) => {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  LIVE PRICE POLL  — fetch latest 1 bar every 10 seconds
+    //  REAL-TIME PRICE POLL using /price endpoint
+    //  This endpoint returns CURRENT live price — no delay
     // ─────────────────────────────────────────────────────────
-    async function pollPrice(tdSym, resolution, onTick) {
-        const interval = TD_RES[resolution] || '1h';
-        const url = `https://api.twelvedata.com/time_series`
-            + `?symbol=${encodeURIComponent(tdSym)}`
-            + `&interval=${interval}`
-            + `&outputsize=2`      // get 2 bars — latest + previous
-            + `&order=DESC`        // newest first
-            + `&apikey=${TWELVE_KEY}`;
+    async function pollLivePrice(uid) {
+        const sub = _subs[uid];
+        if (!sub) return;
+
+        const { tdSym, resolution, onTick } = sub;
+        const cacheKey = `${tdSym}|${resolution}`;
+        let bar        = _barCache[cacheKey];
+
+        // Don't poll until getBars has populated the cache
+        if (!bar) return;
 
         try {
+            // /price gives the ACTUAL current market price in real-time
+            const url  = `https://api.twelvedata.com/price`
+                       + `?symbol=${encodeURIComponent(tdSym)}`
+                       + `&apikey=${TWELVE_KEY}`;
+
             const data = await fetch(url).then(r => r.json());
 
-            if (data.status === 'error' || !data.values || data.values.length === 0) return;
+            if (!data.price) {
+                console.warn(`[POLL] No price returned for ${tdSym}`, data);
+                return;
+            }
 
-            const v   = data.values[0]; // latest bar (newest first)
-            const bar = {
-                time:   new Date(v.datetime.replace(' ','T') + 'Z').getTime(),
-                open:   parseFloat(v.open),
-                high:   parseFloat(v.high),
-                low:    parseFloat(v.low),
-                close:  parseFloat(v.close),
-                volume: parseFloat(v.volume || 0),
-            };
+            const price = parseFloat(data.price);
+            if (isNaN(price) || price <= 0) return;
 
-            if (isNaN(bar.open) || bar.time <= 0) return;
+            // Skip if price unchanged
+            if (price === bar.close) return;
 
-            const cacheKey = `${tdSym}|${resolution}`;
-            const lastBar  = _barCache[cacheKey];
+            // Spike guard
+            const type    = getType(tdSym);
+            const maxDiff = type === 'forex'  ? 0.01
+                          : type === 'crypto' ? 0.15
+                          : 0.05;
+            if (Math.abs(price - bar.close) / bar.close > maxDiff) {
+                console.warn(`[POLL] Spike ignored: new=${price} last=${bar.close}`);
+                return;
+            }
 
-            // Only fire if price actually changed
-            if (lastBar && bar.close === lastBar.close && bar.time === lastBar.time) return;
+            const now      = Date.now();
+            const resMs    = resolutionToMs(resolution);
+            const barStart = Math.floor(now / resMs) * resMs;
 
-            // Spike guard — ignore if price jumped >2% (forex) from last close
-            if (lastBar) {
-                const type    = getType(tdSym);
-                const maxDiff = type === 'forex'  ? 0.02
-                              : type === 'crypto' ? 0.15
-                              : 0.05;
-                if (Math.abs(bar.close - lastBar.close) / lastBar.close > maxDiff) {
-                    console.warn(`[POLL] Spike ignored: ${bar.close} vs ${lastBar.close}`);
-                    return;
-                }
+            if (barStart > bar.time) {
+                // New candle started
+                bar = {
+                    time:   barStart,
+                    open:   price,
+                    high:   price,
+                    low:    price,
+                    close:  price,
+                    volume: 0
+                };
+                console.log(`[POLL] ${tdSym} NEW candle @ ${new Date(barStart).toISOString()}`);
+            } else {
+                // Update current candle
+                bar = {
+                    ...bar,
+                    high:  Math.max(bar.high, price),
+                    low:   Math.min(bar.low,  price),
+                    close: price,
+                };
             }
 
             _barCache[cacheKey] = bar;
-            onTick(bar);
+            onTick({ ...bar });
 
-            console.log(`[POLL] ${tdSym} ${resolution} → ${bar.close} @ ${new Date(bar.time).toISOString()}`);
+            console.log(`[POLL] ✓ ${tdSym} → ${price}`);
 
         } catch(e) {
             console.warn(`[POLL] Error for ${tdSym}:`, e.message);
@@ -223,7 +242,7 @@ const TwelveDataFeed = (TWELVE_KEY) => {
             const pricescale = getPriceScale(tdSym);
             const session    = getSession(type);
 
-            console.log(`[DF] resolve: "${symbolName}" → "${tdSym}" scale=${pricescale} type=${type}`);
+            console.log(`[DF] resolve: "${symbolName}" → "${tdSym}" scale=${pricescale}`);
 
             setTimeout(() => onResolved({
                 name:            tdSym,
@@ -264,9 +283,9 @@ const TwelveDataFeed = (TWELVE_KEY) => {
             if (firstDataRequest) {
                 url += `&outputsize=${limit}`;
             } else {
-                const startISO = new Date(from * 1000).toISOString().slice(0,19);
-                const endISO   = new Date(to   * 1000).toISOString().slice(0,19);
-                url += `&start_date=${startISO}&end_date=${endISO}&outputsize=${limit}`;
+                const s = new Date(from * 1000).toISOString().slice(0,19);
+                const e = new Date(to   * 1000).toISOString().slice(0,19);
+                url += `&start_date=${s}&end_date=${e}&outputsize=${limit}`;
             }
 
             console.log(`[DF] getBars: ${tdSym} ${interval} first=${firstDataRequest}`);
@@ -275,7 +294,7 @@ const TwelveDataFeed = (TWELVE_KEY) => {
                 .then(r => r.json())
                 .then(data => {
                     if (data.status === 'error') {
-                        console.warn(`[DF] TD error for ${tdSym}:`, data.message);
+                        console.warn(`[DF] TD error:`, data.message);
                         onHistory([], { noData: true });
                         return;
                     }
@@ -295,12 +314,12 @@ const TwelveDataFeed = (TWELVE_KEY) => {
 
                     const bars = filterBadBars(rawBars, tdSym);
 
-                    // Cache latest bar for polling to compare against
                     if (bars.length > 0) {
-                        _barCache[`${tdSym}|${resolution}`] = bars[bars.length - 1];
+                        // Cache last bar — polling will extend it
+                        _barCache[`${tdSym}|${resolution}`] = { ...bars[bars.length - 1] };
                     }
 
-                    console.log(`[DF] ${bars.length} bars for ${tdSym} (${rawBars.length - bars.length} filtered)`);
+                    console.log(`[DF] ${bars.length} bars for ${tdSym}`);
                     onHistory(bars, { noData: bars.length === 0 });
                 })
                 .catch(e => {
@@ -309,18 +328,23 @@ const TwelveDataFeed = (TWELVE_KEY) => {
                 });
         },
 
-        // ── Subscribe = start polling every 10s ───────────────
+        // ── Subscribe = start /price polling every 5s ─────────
         subscribeBars(symbolInfo, resolution, onTick, uid) {
             const tdSym = symbolInfo.ticker || toTDSymbol(symbolInfo.name);
 
-            // Clear any existing poll for this uid
+            // Store sub info
+            _subs[uid] = { tdSym, resolution, onTick };
+
+            // Clear any old poll
             if (_polls[uid]) clearInterval(_polls[uid]);
 
-            console.log(`[POLL] Starting poll → uid=${uid} sym=${tdSym} res=${resolution} every ${POLL_MS/1000}s`);
+            console.log(`[POLL] ▶ Started uid=${uid} sym=${tdSym} res=${resolution} interval=${POLL_MS/1000}s`);
 
-            // Poll immediately on subscribe then every POLL_MS
-            pollPrice(tdSym, resolution, onTick);
-            _polls[uid] = setInterval(() => pollPrice(tdSym, resolution, onTick), POLL_MS);
+            // First poll after 2s (give getBars time to populate cache)
+            setTimeout(() => pollLivePrice(uid), 2000);
+
+            // Then poll every 5 seconds
+            _polls[uid] = setInterval(() => pollLivePrice(uid), POLL_MS);
         },
 
         // ── Unsubscribe = stop polling ────────────────────────
@@ -328,8 +352,9 @@ const TwelveDataFeed = (TWELVE_KEY) => {
             if (_polls[uid]) {
                 clearInterval(_polls[uid]);
                 delete _polls[uid];
-                console.log(`[POLL] Stopped poll uid=${uid}`);
             }
+            delete _subs[uid];
+            console.log(`[POLL] ■ Stopped uid=${uid}`);
         },
     };
 };
