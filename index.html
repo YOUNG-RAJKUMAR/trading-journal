@@ -436,7 +436,12 @@
 
     <script>
 (function(){
-    const TF_SECONDS = { '1':60,'3':180,'5':300,'15':900,'30':1800,'60':3600,'120':7200,'240':14400,'D':86400 };
+    const TF_SECONDS = {
+    '1':60,'3':180,'5':300,'10':600,'15':900,
+    '30':1800,'45':2700,'60':3600,'120':7200,
+    '180':10800,'240':14400,'360':21600,'720':43200,
+    'D':86400,'1D':86400,'W':604800,'1W':604800
+};
     function updateCountdown(){
         const tf = window.ui?._tf || '240';
         const secs = TF_SECONDS[tf] || 14400;
@@ -876,7 +881,7 @@ window.ui = {
         };
     },
 
-    launchTradingDesk() {
+  launchTradingDesk() {
         const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
@@ -900,14 +905,13 @@ window.ui = {
             hide_side_toolbar: false,
             allow_symbol_change: true,
             save_image: false,
-            /* ── Hide volume by default ── */
-         disabled_features: [
-    "create_volume_indicator_by_default",
-    "volume_force_overlay"
-],
-enabled_features: [
-    "countdown_to_bar_close_button"
-],
+            disabled_features: [
+                "create_volume_indicator_by_default",
+                "volume_force_overlay"
+            ],
+            enabled_features: [
+                "countdown_to_bar_close_button"
+            ],
             overrides: {
                 "mainSeriesProperties.showCountdown": true,
                 "paneProperties.background":                   c.bg,
@@ -928,6 +932,11 @@ enabled_features: [
                 "mainSeriesProperties.candleStyle.drawWick":        true,
                 "mainSeriesProperties.candleStyle.drawBorder":      true,
             }
+        });
+        this._tvWidget.onChartReady(() => {
+            this._tvWidget.activeChart().onIntervalChanged().subscribe(null, (interval) => {
+                window.ui._tf = interval;
+            });
         });
     },
 
