@@ -1,6 +1,6 @@
 // ============================================================
 //  datafeed.js — Twelve Data  ·  REST history + WS live prices
-//  Free tier: 800 credits/day REST  |  8 symbols via WebSocket
+//  Fixed: forex symbol format, pricescale, sessions, JPY pairs
 // ============================================================
 
 const TwelveDataFeed = (apiKey) => {
@@ -14,57 +14,126 @@ const TwelveDataFeed = (apiKey) => {
     };
 
     // ── WebSocket state ───────────────────────────────────────
-    let _ws            = null;
-    let _wsReady       = false;
-    let _wsQueue       = [];          // messages queued before WS opens
-    const _subs        = {};          // uid → { symbol, resolution, onTick, lastBar }
+    let _ws         = null;
+    let _wsReady    = false;
+    let _wsQueue    = [];
+    const _subs     = {};
+    const _barCache = {};
 
-    // ── Last known bar cache per symbol+res ──────────────────
-    const _barCache    = {};          // "SYMBOL|RES" → lastBar
+    // ── Symbol helpers ────────────────────────────────────────
 
-    // ── Open / maintain WebSocket ─────────────────────────────
+    // Convert any symbol format to Twelve Data slash format
+    // EURUSD → EUR/USD  |  ICMARKETS:EURUSD → EUR/USD  |  EUR/USD → EUR/USD
+    function toTwelveSymbol(raw) {
+        let sym = raw.includes(':') ? raw.split(':')[1] : raw;
+        sym = sym.trim().toUpperCase();
+        if (sym.includes('/')) return sym;
+
+        const CURRENCIES = [
+            'USD','EUR','GBP','JPY','CHF','CAD','AUD','NZD',
+            'SGD','HKD','NOK','SEK','DKK','MXN','ZAR','TRY',
+            'CNY','CNH','INR','BRL','RUB','PLN','HUF','CZK',
+            'THB','IDR','MYR','PHP','KRW','ILS','SAR','AED',
+            'XAU','XAG','XPT','XPD'
+        ];
+
+        // 6-char forex pair
+        if (sym.length === 6) {
+            const base  = sym.slice(0, 3);
+            const quote = sym.slice(3, 6);
+            if (CURRENCIES.includes(base) && CURRENCIES.includes(quote)) {
+                return `${base}/${quote}`;
+            }
+        }
+
+        // Crypto e.g. BTCUSD ETHUSD
+        const CRYPTO = ['BTC','ETH','LTC','XRP','ADA','SOL','DOT','LINK','BNB','DOGE','AVAX','MATIC'];
+        for (const c of CRYPTO) {
+            if (sym.startsWith(c)) return `${c}/USD`;
+        }
+
+        return sym;
+    }
+
+    // Correct pricescale per instrument
+    function getPriceScale(sym) {
+        const s = sym.toUpperCase();
+        if (s.includes('JPY') || s.includes('HUF') || s.includes('KRW') || s.includes('IDR')) return 1000;
+        if (s.includes('XAU') || s.includes('GOLD'))   return 100;
+        if (s.includes('XAG') || s.includes('SILVER')) return 1000;
+        if (s.includes('BTC'))  return 100;
+        if (s.includes('ETH'))  return 100;
+        if (s.includes('SPX')  || s.includes('NAS') || s.includes('US500') ||
+            s.includes('US100')|| s.includes('DAX') || s.includes('FTSE')  ||
+            s.includes('GER')  || s.includes('UK1')) return 100;
+        return 100000; // standard forex 5-decimal
+    }
+
+    // Instrument type detection
+    function getType(sym) {
+        const s = sym.toUpperCase().replace('/','');
+        const CRYPTO = ['BTC','ETH','LTC','XRP','ADA','SOL','DOT','BNB','DOGE','AVAX'];
+        if (CRYPTO.some(c => s.includes(c))) return 'crypto';
+        if (s.includes('XAU') || s.includes('XAG') || s.includes('GOLD') || s.includes('SILVER')) return 'commodity';
+        if (s.includes('SPX') || s.includes('NAS') || s.includes('DAX')  ||
+            s.includes('FTSE')|| s.includes('US5') || s.includes('US1')  ||
+            s.includes('GER') || s.includes('UK1')) return 'index';
+        if (s.length === 6) return 'forex';
+        return 'stock';
+    }
+
+    function getSession(type) {
+        if (type === 'forex' || type === 'crypto' || type === 'commodity') return '24x7';
+        return '0930-1600';
+    }
+
+    // ── WebSocket helpers ─────────────────────────────────────
     function wsConnect() {
-        if (_ws && (_ws.readyState === WebSocket.OPEN || _ws.readyState === WebSocket.CONNECTING)) return;
+        if (_ws && (_ws.readyState === WebSocket.OPEN ||
+                    _ws.readyState === WebSocket.CONNECTING)) return;
 
-        _ws = new WebSocket(`wss://ws.twelvedata.com/v1/quotes/price?apikey=${apiKey}`);
+        _ws      = new WebSocket(`wss://ws.twelvedata.com/v1/quotes/price?apikey=${apiKey}`);
         _wsReady = false;
 
         _ws.onopen = () => {
             _wsReady = true;
-            console.log('[TwelveWS] connected');
-            // Flush queued subscribe messages
+            console.log('[TwelveWS] ✓ Connected');
             _wsQueue.forEach(m => _ws.send(JSON.stringify(m)));
             _wsQueue = [];
-            // Re-subscribe any existing subs (reconnect scenario)
-            Object.values(_subs).forEach(sub => wsSubscribe(sub.symbol));
+            const unique = [...new Set(Object.values(_subs).map(s => s.symbol))];
+            unique.forEach(sym => wsSend('subscribe', sym));
         };
 
         _ws.onmessage = (evt) => {
             try {
                 const msg = JSON.parse(evt.data);
-                // Twelve Data sends {event:"price", symbol, price, timestamp, ...}
                 if (msg.event !== 'price') return;
 
                 const sym   = msg.symbol;
                 const price = parseFloat(msg.price);
-                const ts    = msg.timestamp * 1000; // → ms
+                const ts    = (msg.timestamp || Date.now() / 1000) * 1000;
 
-                // Update every subscription that listens to this symbol
                 Object.values(_subs).forEach(sub => {
                     if (sub.symbol !== sym) return;
 
-                    const resMs = resolutionToMs(sub.resolution);
-                    let bar     = _barCache[`${sym}|${sub.resolution}`];
-
-                    if (!bar) return; // wait until getBars has run first
-
+                    const resMs    = resolutionToMs(sub.resolution);
                     const barStart = Math.floor(ts / resMs) * resMs;
+                    let bar        = _barCache[`${sym}|${sub.resolution}`];
+
+                    if (!bar) return;
 
                     if (barStart > bar.time) {
-                        // New bar started — close old, open new
-                        bar = { time: barStart, open: price, high: price, low: price, close: price, volume: 0 };
+                        // New candle started
+                        bar = {
+                            time:   barStart,
+                            open:   price,
+                            high:   price,
+                            low:    price,
+                            close:  price,
+                            volume: 0
+                        };
                     } else {
-                        // Same bar — update OHLC
+                        // Update current candle
                         bar = {
                             ...bar,
                             high:  Math.max(bar.high, price),
@@ -77,31 +146,26 @@ const TwelveDataFeed = (apiKey) => {
                     sub.onTick({ ...bar });
                 });
 
-            } catch(e) { /* ignore malformed */ }
+            } catch(e) {}
         };
 
-        _ws.onerror = (e) => console.warn('[TwelveWS] error', e);
+        _ws.onerror = () => console.warn('[TwelveWS] ✗ Error — check API key');
         _ws.onclose = () => {
             _wsReady = false;
-            console.warn('[TwelveWS] closed — reconnecting in 5s');
+            console.warn('[TwelveWS] Closed — reconnecting in 5s...');
             setTimeout(wsConnect, 5000);
         };
     }
 
-    function wsSubscribe(symbol) {
-        const msg = { action: 'subscribe', params: { symbols: symbol } };
-        if (_wsReady) _ws.send(JSON.stringify(msg));
-        else _wsQueue.push(msg);
+    function wsSend(action, symbol) {
+        const msg = { action, params: { symbols: symbol } };
+        if (_wsReady && _ws && _ws.readyState === WebSocket.OPEN) {
+            _ws.send(JSON.stringify(msg));
+        } else {
+            _wsQueue.push(msg);
+        }
     }
 
-    function wsUnsubscribe(symbol) {
-        const stillNeeded = Object.values(_subs).some(s => s.symbol === symbol);
-        if (stillNeeded) return; // other subs still need it
-        const msg = { action: 'unsubscribe', params: { symbols: symbol } };
-        if (_wsReady) _ws.send(JSON.stringify(msg));
-    }
-
-    // ── Convert resolution to milliseconds ───────────────────
     function resolutionToMs(res) {
         const map = {
             '1':60000,'3':180000,'5':300000,'15':900000,'30':1800000,
@@ -112,89 +176,78 @@ const TwelveDataFeed = (apiKey) => {
         return map[res] || 3600000;
     }
 
-    // ── Clean symbol (strip "ICMARKETS:" prefix etc.) ────────
-    function clean(sym) {
-        return sym.includes(':') ? sym.split(':')[1] : sym;
-    }
-
     // ═════════════════════════════════════════════════════════
     //  PUBLIC DATAFEED API
     // ═════════════════════════════════════════════════════════
     return {
 
         onReady(callback) {
-            // Start WS connection immediately
             wsConnect();
             setTimeout(() => callback({
-                supported_resolutions: ['1','3','5','15','30','60','120','240','480','720','D','W','M'],
-                exchanges:             [],
-                symbols_types:         [],
-                supports_marks:        false,
+                supported_resolutions: [
+                    '1','3','5','15','30','60','120','240','480','720',
+                    'D','1D','W','1W','M','1M'
+                ],
+                exchanges:                [],
+                symbols_types:            [],
+                supports_marks:           false,
                 supports_timescale_marks: false,
-                supports_time:         true,
+                supports_time:            true,
             }), 0);
         },
 
         searchSymbols(userInput, exchange, symbolType, onResult) {
-            fetch(`https://api.twelvedata.com/symbol_search?symbol=${encodeURIComponent(userInput)}&apikey=${apiKey}`)
+            const query = userInput.replace('/', '').trim();
+            fetch(`https://api.twelvedata.com/symbol_search?symbol=${encodeURIComponent(query)}&apikey=${apiKey}`)
                 .then(r => r.json())
                 .then(data => {
                     if (!data.data) { onResult([]); return; }
-                    onResult(data.data.slice(0, 20).map(s => ({
+                    onResult(data.data.slice(0, 30).map(s => ({
                         symbol:      s.symbol,
                         full_name:   s.symbol,
                         description: s.instrument_name || s.symbol,
                         exchange:    s.exchange || '',
-                        type:        (s.instrument_type || 'forex').toLowerCase(),
+                        type:        getType(s.symbol),
                     })));
                 })
                 .catch(() => onResult([]));
         },
 
         resolveSymbol(symbolName, onResolved, onError) {
-            const sym = clean(symbolName);
+            const twelveSym  = toTwelveSymbol(symbolName);
+            const type       = getType(twelveSym);
+            const pricescale = getPriceScale(twelveSym);
+            const session    = getSession(type);
 
-            // Detect type from symbol length / known patterns
-            const isForex  = /^[A-Z]{6}$/.test(sym) || sym.includes('/');
-            const isCrypto = sym.includes('BTC') || sym.includes('ETH') || sym.includes('USD') && sym.length > 6;
+            console.log(`[TwelveDF] resolveSymbol: "${symbolName}" → "${twelveSym}" | pricescale=${pricescale} | type=${type}`);
 
-            const info = {
-                name:            sym,
-                description:     sym,
-                type:            isForex ? 'forex' : isCrypto ? 'crypto' : 'stock',
-                session:         '24x7',
+            onResolved({
+                name:            twelveSym,
+                description:     twelveSym,
+                type:            type,
+                session:         session,
                 timezone:        'Asia/Kathmandu',
-                ticker:          sym,
+                ticker:          twelveSym,
                 minmov:          1,
-                pricescale:      isForex ? 100000 : 100,
+                pricescale:      pricescale,
                 has_intraday:    true,
                 has_daily:       true,
                 has_weekly_and_monthly: true,
-                supported_resolutions: ['1','3','5','15','30','60','120','240','480','720','D','W','M'],
-                volume_precision: 2,
+                supported_resolutions: [
+                    '1','3','5','15','30','60','120','240','480','720',
+                    'D','1D','W','1W','M','1M'
+                ],
+                volume_precision: 0,
                 data_status:     'streaming',
                 exchange:        '',
                 listed_exchange: '',
                 format:          'price',
-            };
-
-            // Try to enrich from API, fall back to detected info
-            fetch(`https://api.twelvedata.com/symbol_search?symbol=${encodeURIComponent(sym)}&apikey=${apiKey}`)
-                .then(r => r.json())
-                .then(data => {
-                    const s = data.data?.[0];
-                    if (s) {
-                        info.description = s.instrument_name || sym;
-                        info.exchange     = s.exchange || '';
-                    }
-                    onResolved(info);
-                })
-                .catch(() => onResolved(info));
+            });
         },
 
         getBars(symbolInfo, resolution, periodParams, onHistory, onError) {
-            const { from, to, firstDataRequest, countBack } = periodParams;
-            const sym      = symbolInfo.ticker || clean(symbolInfo.name);
+            const { from, to } = periodParams;
+            const sym      = symbolInfo.ticker || toTwelveSymbol(symbolInfo.name);
             const interval = RES[resolution] || '1h';
 
             const startISO = new Date(from * 1000).toISOString().slice(0, 19);
@@ -209,50 +262,62 @@ const TwelveDataFeed = (apiKey) => {
                 + `&order=ASC`
                 + `&apikey=${apiKey}`;
 
+            console.log(`[TwelveDF] getBars: ${sym} ${interval} | ${startISO} → ${endISO}`);
+
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
-                    if (data.status === 'error' || !data.values || data.values.length === 0) {
+                    if (data.status === 'error') {
+                        console.warn(`[TwelveDF] API error for ${sym}:`, data.message);
                         onHistory([], { noData: true });
                         return;
                     }
 
-                    const bars = data.values.map(v => ({
-                        time:   new Date(v.datetime.replace(' ', 'T')).getTime(),
-                        open:   parseFloat(v.open),
-                        high:   parseFloat(v.high),
-                        low:    parseFloat(v.low),
-                        close:  parseFloat(v.close),
-                        volume: parseFloat(v.volume || 0),
-                    }));
+                    if (!data.values || data.values.length === 0) {
+                        onHistory([], { noData: true });
+                        return;
+                    }
 
-                    // Cache the last bar so WebSocket can update it
+                    const bars = data.values
+                        .map(v => ({
+                            // Twelve Data returns UTC — append Z to parse correctly
+                            time:   new Date(v.datetime.replace(' ', 'T') + 'Z').getTime(),
+                            open:   parseFloat(v.open),
+                            high:   parseFloat(v.high),
+                            low:    parseFloat(v.low),
+                            close:  parseFloat(v.close),
+                            volume: parseFloat(v.volume || 0),
+                        }))
+                        .filter(b => !isNaN(b.open) && b.time > 0);
+
+                    // Cache latest bar so WebSocket can extend it
                     if (bars.length > 0) {
                         _barCache[`${sym}|${resolution}`] = bars[bars.length - 1];
                     }
 
-                    onHistory(bars, { noData: false });
+                    console.log(`[TwelveDF] getBars: received ${bars.length} bars for ${sym}`);
+                    onHistory(bars, { noData: bars.length === 0 });
                 })
-                .catch(e => onError(e.message));
+                .catch(e => {
+                    console.error(`[TwelveDF] Fetch error:`, e);
+                    onError(e.message);
+                });
         },
 
         subscribeBars(symbolInfo, resolution, onTick, uid) {
-            const sym = symbolInfo.ticker || clean(symbolInfo.name);
-
-            _subs[uid] = { symbol: sym, resolution, onTick,
-                           lastBar: _barCache[`${sym}|${resolution}`] || null };
-
-            // Subscribe via WebSocket for live tick
-            wsSubscribe(sym);
-
-            console.log(`[TwelveWS] subscribeBars  uid=${uid}  sym=${sym}  res=${resolution}`);
+            const sym = symbolInfo.ticker || toTwelveSymbol(symbolInfo.name);
+            _subs[uid] = { symbol: sym, resolution, onTick };
+            wsSend('subscribe', sym);
+            console.log(`[TwelveWS] subscribeBars → uid=${uid}  sym=${sym}  res=${resolution}`);
         },
 
         unsubscribeBars(uid) {
             const sub = _subs[uid];
             if (!sub) return;
+            const sym = sub.symbol;
             delete _subs[uid];
-            wsUnsubscribe(sub.symbol);
+            const stillNeeded = Object.values(_subs).some(s => s.symbol === sym);
+            if (!stillNeeded) wsSend('unsubscribe', sym);
             console.log(`[TwelveWS] unsubscribeBars uid=${uid}`);
         },
     };
