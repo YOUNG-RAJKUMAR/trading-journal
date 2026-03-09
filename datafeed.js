@@ -1,15 +1,16 @@
 // ============================================================
-//  datafeed.js — SMART HYBRID
+//  datafeed.js — TRIPLE HYBRID
 //
-//  History (ALL):        Twelve Data REST
-//  Live Forex:           Twelve Data WebSocket   ← only one that works free
-//  Live Crypto/Stocks:   Finnhub WebSocket       ← works free for these
+//  History  (ALL):       Twelve Data REST
+//  Live Forex:           FMP WebSocket        ← forex specialist
+//  Live Crypto/Stocks:   Finnhub WebSocket    ← crypto/stock specialist
 //
-//  Twelve Data key : ea488f33f6d841778d55e540d889c308
-//  Finnhub key     : d6n5iihr01qir35j8pi0d6n5iihr01qir35j8pig
+//  Twelve Data : ea488f33f6d841778d55e540d889c308
+//  Finnhub     : d6n5iihr01qir35j8pi0d6n5iihr01qir35j8pig
+//  FMP         : 06DIZiqxjdVXk5CUip9mzrxOOKbNbrXX
 // ============================================================
 
-const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
+const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY, FMP_KEY) => {
 
     // ── Resolution map → Twelve Data intervals ────────────────
     const TD_RES = {
@@ -19,25 +20,25 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
         'M':'1month','1M':'1month'
     };
 
-    // Max bars per resolution — keeps load fast
     const BAR_LIMIT = {
         '1':200,'3':200,'5':200,'15':300,'30':300,
         '60':400,'120':400,'240':500,
         'D':500,'1D':500,'W':300,'1W':300,'M':200,'1M':200
     };
 
-    // ── Twelve Data WebSocket state (forex) ───────────────────
-    let _tdWs       = null;
-    let _tdReady    = false;
-    let _tdQueue    = [];
+    // ── FMP WebSocket state (live forex) ──────────────────────
+    let _fmpWs      = null;
+    let _fmpReady   = false;
+    let _fmpLoggedIn = false;
+    let _fmpQueue   = [];
 
     // ── Finnhub WebSocket state (crypto + stocks) ─────────────
     let _fhWs       = null;
     let _fhReady    = false;
     let _fhQueue    = [];
 
-    // ── Shared subscription + bar cache ───────────────────────
-    const _subs     = {};    // uid → { tdSym, fhSym, type, resolution, onTick }
+    // ── Shared state ──────────────────────────────────────────
+    const _subs     = {};    // uid → { tdSym, fmpTicker, fhSym, type, resolution, onTick }
     const _barCache = {};    // "tdSym|RES" → last bar
 
     // ─────────────────────────────────────────────────────────
@@ -60,7 +61,7 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
         return s.trim().toUpperCase().replace('/','').replace('_','');
     }
 
-    // Twelve Data format: EUR/USD, XAU/USD, BTC/USD, AAPL
+    // Twelve Data format: "EUR/USD"
     function toTDSymbol(raw) {
         const s = cleanRaw(raw);
         if (s.length === 6) {
@@ -72,22 +73,28 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
         for (const c of CRYPTO_LIST) {
             if (s.startsWith(c)) return `${c}/USD`;
         }
-        return s; // stocks/indices as-is
+        return s;
     }
 
-    // Finnhub format: OANDA:EUR_USD, BINANCE:BTCUSDT, AAPL
+    // FMP WebSocket ticker format: "eurusd" (lowercase, no slash)
+    function toFMPTicker(raw) {
+        const s = cleanRaw(raw).toLowerCase();
+        return s; // e.g. "eurusd", "gbpusd", "xauusd"
+    }
+
+    // Finnhub format: "BINANCE:BTCUSDT", "AAPL"
     function toFinnhubSym(raw) {
         const s = cleanRaw(raw);
         if (s.length === 6) {
             const base  = s.slice(0,3);
             const quote = s.slice(3,6);
             if (CURRENCIES.includes(base) && CURRENCIES.includes(quote))
-                return `OANDA:${base}_${quote}`;
+                return `OANDA:${base}_${quote}`; // not used for live but kept for completeness
         }
         for (const c of CRYPTO_LIST) {
             if (s.startsWith(c)) return `BINANCE:${c}USDT`;
         }
-        return s; // stocks as-is e.g. AAPL
+        return s;
     }
 
     function getType(sym) {
@@ -98,16 +105,13 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
         if (s.includes('SPX') || s.includes('NAS') ||
             s.includes('DAX') || s.includes('FTSE') ||
             s.includes('US5') || s.includes('US1'))    return 'index';
-        if (s.replace('OANDA:','').replace('_','').length === 6
-            || s.length === 6)                         return 'forex';
+        if (s.length === 6)                             return 'forex';
         return 'stock';
     }
 
-    // Decide which WS handles this type
-    // forex + commodity → Twelve Data WS
-    // crypto + stock + index → Finnhub WS
+    // Route live price: forex+commodity → FMP WS, crypto+stock → Finnhub WS
     function wsTypeFor(type) {
-        return (type === 'forex' || type === 'commodity') ? 'twelvedata' : 'finnhub';
+        return (type === 'forex' || type === 'commodity') ? 'fmp' : 'finnhub';
     }
 
     function getSession(type) {
@@ -118,17 +122,17 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
     function getPriceScale(sym) {
         const s = sym.toUpperCase();
         if (s.includes('JPY') || s.includes('HUF') ||
-            s.includes('KRW') || s.includes('IDR'))   return 1000;
-        if (s.includes('XAU') || s.includes('GOLD'))  return 100;
-        if (s.includes('XAG') || s.includes('SILVER'))return 1000;
-        if (s.includes('BTC') || s.includes('ETH'))   return 100;
+            s.includes('KRW') || s.includes('IDR'))    return 1000;
+        if (s.includes('XAU') || s.includes('GOLD'))   return 100;
+        if (s.includes('XAG') || s.includes('SILVER')) return 1000;
+        if (s.includes('BTC') || s.includes('ETH'))    return 100;
         if (s.includes('SPX') || s.includes('NAS') ||
             s.includes('US500')|| s.includes('US100')||
-            s.includes('DAX')  || s.includes('FTSE')) return 100;
+            s.includes('DAX')  || s.includes('FTSE'))  return 100;
         return 100000;
     }
 
-    // ── Bad candle / spike filter ─────────────────────────────
+    // ── Spike filter ──────────────────────────────────────────
     function filterBadBars(bars, sym) {
         if (bars.length < 2) return bars;
         const type     = getType(sym);
@@ -147,107 +151,149 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
         });
     }
 
-    // ── Apply incoming tick to cached bar ─────────────────────
-    function applyTick(tdSym, resolution, price, ts) {
+    // ── Apply tick to bar cache + fire onTick ─────────────────
+    function applyTick(tdSym, price, ts) {
         if (!price || isNaN(price)) return;
 
-        const cacheKey = `${tdSym}|${resolution}`;
-        let bar        = _barCache[cacheKey];
-        if (!bar) return;
-
-        // Spike guard
-        const type    = getType(tdSym);
-        const maxDiff = type === 'forex'  ? 0.005
-                      : type === 'crypto' ? 0.12
-                      : 0.05;
-        if (Math.abs(price - bar.close) / bar.close > maxDiff) {
-            console.warn(`[DF] Tick spike ignored price=${price} last=${bar.close}`);
-            return;
-        }
-
-        const resMs    = resolutionToMs(resolution);
-        const barStart = Math.floor(ts / resMs) * resMs;
-
-        if (barStart > bar.time) {
-            bar = { time:barStart, open:price, high:price, low:price, close:price, volume:0 };
-        } else {
-            bar = { ...bar,
-                high:  Math.max(bar.high, price),
-                low:   Math.min(bar.low,  price),
-                close: price
-            };
-        }
-
-        _barCache[cacheKey] = bar;
-
-        // Fire onTick for all matching subscriptions
         Object.values(_subs).forEach(sub => {
-            if (sub.tdSym === tdSym && sub.resolution === resolution) {
-                sub.onTick({ ...bar });
+            if (sub.tdSym !== tdSym) return;
+
+            const cacheKey = `${tdSym}|${sub.resolution}`;
+            let bar        = _barCache[cacheKey];
+            if (!bar) return;
+
+            // Spike guard
+            const type    = getType(tdSym);
+            const maxDiff = type === 'forex'  ? 0.005
+                          : type === 'crypto' ? 0.12
+                          : 0.05;
+            if (Math.abs(price - bar.close) / bar.close > maxDiff) return;
+
+            const resMs    = resolutionToMs(sub.resolution);
+            const barStart = Math.floor(ts / resMs) * resMs;
+
+            if (barStart > bar.time) {
+                bar = { time:barStart, open:price, high:price, low:price, close:price, volume:0 };
+            } else {
+                bar = { ...bar,
+                    high:  Math.max(bar.high, price),
+                    low:   Math.min(bar.low,  price),
+                    close: price
+                };
             }
+
+            _barCache[cacheKey] = bar;
+            sub.onTick({ ...bar });
         });
     }
 
     // ─────────────────────────────────────────────────────────
-    //  TWELVE DATA WEBSOCKET  — forex & commodities
+    //  FMP WEBSOCKET  — live forex (e.g. eurusd, gbpusd, xauusd)
+    //  Protocol: connect → login → subscribe → receive quotes
     // ─────────────────────────────────────────────────────────
-    function tdWsConnect() {
-        if (_tdWs && (_tdWs.readyState === WebSocket.OPEN ||
-                      _tdWs.readyState === WebSocket.CONNECTING)) return;
+    function fmpWsConnect() {
+        if (_fmpWs && (_fmpWs.readyState === WebSocket.OPEN ||
+                       _fmpWs.readyState === WebSocket.CONNECTING)) return;
 
-        _tdWs   = new WebSocket(`wss://ws.twelvedata.com/v1/quotes/price?apikey=${TWELVE_KEY}`);
-        _tdReady = false;
+        _fmpWs      = new WebSocket('wss://forex.financialmodelingprep.com');
+        _fmpReady   = false;
+        _fmpLoggedIn = false;
 
-        _tdWs.onopen = () => {
-            _tdReady = true;
-            console.log('[TD-WS] ✓ Connected (forex/commodity)');
-            _tdQueue.forEach(m => _tdWs.send(JSON.stringify(m)));
-            _tdQueue = [];
-            // Re-subscribe on reconnect
-            const unique = [...new Set(
-                Object.values(_subs)
-                    .filter(s => wsTypeFor(s.type) === 'twelvedata')
-                    .map(s => s.tdSym)
-            )];
-            unique.forEach(sym => tdWsSend('subscribe', sym));
+        _fmpWs.onopen = () => {
+            _fmpReady = true;
+            console.log('[FMP-WS] ✓ Connected — logging in...');
+
+            // Step 1: Login with API key
+            _fmpWs.send(JSON.stringify({
+                event: 'login',
+                data:  { apiKey: FMP_KEY }
+            }));
         };
 
-        _tdWs.onmessage = evt => {
+        _fmpWs.onmessage = evt => {
             try {
                 const msg = JSON.parse(evt.data);
-                // { event:"price", symbol:"EUR/USD", price:1.12345, timestamp:1234567890 }
-                if (msg.event !== 'price') return;
-                const price = parseFloat(msg.price);
-                const ts    = (msg.timestamp || Math.floor(Date.now()/1000)) * 1000;
-                const sym   = msg.symbol; // TD format e.g. "EUR/USD"
 
-                Object.values(_subs).forEach(sub => {
-                    if (sub.tdSym === sym && wsTypeFor(sub.type) === 'twelvedata') {
-                        applyTick(sym, sub.resolution, price, ts);
+                // Step 2: Login confirmed → subscribe all active forex symbols
+                if (msg.event === 'login') {
+                    if (msg.status === 200) {
+                        _fmpLoggedIn = true;
+                        console.log('[FMP-WS] ✓ Logged in');
+
+                        // Flush queued subscribes
+                        _fmpQueue.forEach(m => _fmpWs.send(JSON.stringify(m)));
+                        _fmpQueue = [];
+
+                        // Re-subscribe on reconnect
+                        const tickers = [...new Set(
+                            Object.values(_subs)
+                                .filter(s => wsTypeFor(s.type) === 'fmp')
+                                .map(s => s.fmpTicker)
+                        )];
+                        if (tickers.length > 0) {
+                            _fmpWs.send(JSON.stringify({
+                                event: 'subscribe',
+                                data:  { ticker: tickers }
+                            }));
+                            console.log('[FMP-WS] Re-subscribed:', tickers);
+                        }
+                    } else {
+                        console.warn('[FMP-WS] Login failed:', msg);
                     }
-                });
+                    return;
+                }
+
+                // Step 3: Receive price updates
+                // FMP sends: { s:"eurusd", bid:1.12345, ask:1.12347, t:1234567890000 }
+                // OR:        { s:"eurusd", c:1.12345, t:1234567890000 }
+                if (msg.s) {
+                    const ticker = msg.s.toLowerCase();
+                    // Use mid price: average of bid/ask, or close price
+                    const price  = msg.c ? parseFloat(msg.c)
+                                 : msg.bid && msg.ask ? (parseFloat(msg.bid) + parseFloat(msg.ask)) / 2
+                                 : msg.bid ? parseFloat(msg.bid)
+                                 : null;
+                    const ts     = msg.t || Date.now();
+
+                    if (!price || isNaN(price)) return;
+
+                    // Match to subscriptions by FMP ticker
+                    Object.values(_subs).forEach(sub => {
+                        if (sub.fmpTicker === ticker && wsTypeFor(sub.type) === 'fmp') {
+                            applyTick(sub.tdSym, price, ts);
+                        }
+                    });
+                }
+
             } catch(e) {}
         };
 
-        _tdWs.onerror = () => console.warn('[TD-WS] ✗ Error');
-        _tdWs.onclose = () => {
-            _tdReady = false;
-            console.warn('[TD-WS] Closed — reconnecting in 5s...');
-            setTimeout(tdWsConnect, 5000);
+        _fmpWs.onerror = () => console.warn('[FMP-WS] ✗ Error');
+        _fmpWs.onclose = () => {
+            _fmpReady    = false;
+            _fmpLoggedIn = false;
+            console.warn('[FMP-WS] Closed — reconnecting in 5s...');
+            setTimeout(fmpWsConnect, 5000);
         };
     }
 
-    function tdWsSend(action, symbol) {
-        const msg = { action, params: { symbols: symbol } };
-        if (_tdReady && _tdWs && _tdWs.readyState === WebSocket.OPEN) {
-            _tdWs.send(JSON.stringify(msg));
+    function fmpSubscribe(ticker) {
+        const msg = { event:'subscribe', data:{ ticker:[ticker] } };
+        if (_fmpLoggedIn && _fmpWs && _fmpWs.readyState === WebSocket.OPEN) {
+            _fmpWs.send(JSON.stringify(msg));
         } else {
-            _tdQueue.push(msg);
+            _fmpQueue.push(msg);
+        }
+    }
+
+    function fmpUnsubscribe(ticker) {
+        if (_fmpLoggedIn && _fmpWs && _fmpWs.readyState === WebSocket.OPEN) {
+            _fmpWs.send(JSON.stringify({ event:'unsubscribe', data:{ ticker:[ticker] } }));
         }
     }
 
     // ─────────────────────────────────────────────────────────
-    //  FINNHUB WEBSOCKET  — crypto & stocks
+    //  FINNHUB WEBSOCKET  — live crypto + stocks
     // ─────────────────────────────────────────────────────────
     function fhWsConnect() {
         if (_fhWs && (_fhWs.readyState === WebSocket.OPEN ||
@@ -261,7 +307,6 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
             console.log('[FH-WS] ✓ Connected (crypto/stocks)');
             _fhQueue.forEach(m => _fhWs.send(JSON.stringify(m)));
             _fhQueue = [];
-            // Re-subscribe on reconnect
             const unique = [...new Set(
                 Object.values(_subs)
                     .filter(s => wsTypeFor(s.type) === 'finnhub')
@@ -273,18 +318,15 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
         _fhWs.onmessage = evt => {
             try {
                 const msg = JSON.parse(evt.data);
-                // { type:"trade", data:[{ s:"BINANCE:BTCUSDT", p:65000, t:1234567890000 }] }
                 if (msg.type !== 'trade' || !msg.data) return;
-
                 msg.data.forEach(trade => {
                     const fhSym = trade.s;
                     const price = parseFloat(trade.p);
-                    const ts    = trade.t; // already ms
-
-                    // Find matching subscription by finnhub symbol
+                    const ts    = trade.t;
+                    if (!price || isNaN(price)) return;
                     Object.values(_subs).forEach(sub => {
                         if (sub.fhSym === fhSym && wsTypeFor(sub.type) === 'finnhub') {
-                            applyTick(sub.tdSym, sub.resolution, price, ts);
+                            applyTick(sub.tdSym, price, ts);
                         }
                     });
                 });
@@ -300,7 +342,7 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
     }
 
     function fhWsSend(action, symbol) {
-        const msg = { type: action, symbol };
+        const msg = { type:action, symbol };
         if (_fhReady && _fhWs && _fhWs.readyState === WebSocket.OPEN) {
             _fhWs.send(JSON.stringify(msg));
         } else {
@@ -324,8 +366,8 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
     return {
 
         onReady(callback) {
-            // Connect both WebSockets immediately on page load
-            tdWsConnect();
+            // Boot all WebSockets immediately
+            fmpWsConnect();
             fhWsConnect();
             setTimeout(() => callback({
                 supported_resolutions: [
@@ -363,8 +405,9 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
             const type       = getType(tdSym);
             const pricescale = getPriceScale(tdSym);
             const session    = getSession(type);
+            const ws         = wsTypeFor(type);
 
-            console.log(`[DF] resolve: "${symbolName}" → td="${tdSym}" type=${type} ws=${wsTypeFor(type)} scale=${pricescale}`);
+            console.log(`[DF] resolve: "${symbolName}" → td="${tdSym}" type=${type} live-ws=${ws} scale=${pricescale}`);
 
             setTimeout(() => onResolved({
                 name:            tdSym,
@@ -450,34 +493,35 @@ const TwelveDataFeed = (TWELVE_KEY, FINNHUB_KEY) => {
         },
 
         subscribeBars(symbolInfo, resolution, onTick, uid) {
-            const tdSym = symbolInfo.ticker || toTDSymbol(symbolInfo.name);
-            const fhSym = toFinnhubSym(symbolInfo.name || tdSym);
-            const type  = getType(tdSym);
-            const ws    = wsTypeFor(type);
+            const tdSym    = symbolInfo.ticker || toTDSymbol(symbolInfo.name);
+            const type     = getType(tdSym);
+            const ws       = wsTypeFor(type);
+            const fmpTicker = toFMPTicker(tdSym);
+            const fhSym    = toFinnhubSym(tdSym);
 
-            _subs[uid] = { tdSym, fhSym, type, resolution, onTick };
+            _subs[uid] = { tdSym, fmpTicker, fhSym, type, resolution, onTick };
 
-            if (ws === 'twelvedata') {
-                tdWsSend('subscribe', tdSym);
-                console.log(`[TD-WS] subscribe → ${tdSym} (${type}) res=${resolution}`);
+            if (ws === 'fmp') {
+                fmpSubscribe(fmpTicker);
+                console.log(`[FMP-WS] subscribe → "${fmpTicker}" (${type}) res=${resolution}`);
             } else {
                 fhWsSend('subscribe', fhSym);
-                console.log(`[FH-WS] subscribe → ${fhSym} (${type}) res=${resolution}`);
+                console.log(`[FH-WS] subscribe → "${fhSym}" (${type}) res=${resolution}`);
             }
         },
 
         unsubscribeBars(uid) {
             const sub = _subs[uid];
             if (!sub) return;
-            const { tdSym, fhSym, type } = sub;
+            const { tdSym, fmpTicker, fhSym, type } = sub;
             delete _subs[uid];
 
-            if (wsTypeFor(type) === 'twelvedata') {
-                const stillNeeded = Object.values(_subs).some(s => s.tdSym === tdSym && wsTypeFor(s.type) === 'twelvedata');
-                if (!stillNeeded) tdWsSend('unsubscribe', tdSym);
+            if (wsTypeFor(type) === 'fmp') {
+                const still = Object.values(_subs).some(s => s.fmpTicker === fmpTicker && wsTypeFor(s.type) === 'fmp');
+                if (!still) fmpUnsubscribe(fmpTicker);
             } else {
-                const stillNeeded = Object.values(_subs).some(s => s.fhSym === fhSym && wsTypeFor(s.type) === 'finnhub');
-                if (!stillNeeded) fhWsSend('unsubscribe', fhSym);
+                const still = Object.values(_subs).some(s => s.fhSym === fhSym && wsTypeFor(s.type) === 'finnhub');
+                if (!still) fhWsSend('unsubscribe', fhSym);
             }
             console.log(`[DF] unsubscribe uid=${uid}`);
         },
