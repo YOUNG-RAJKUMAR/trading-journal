@@ -933,14 +933,7 @@ window.ui = {
                 "mainSeriesProperties.candleStyle.drawBorder":      true,
             }
         });
-        this._tvWidget.onChartReady(() => {
-           this._tvWidget.activeChart().onIntervalChanged().subscribe(null, (interval) => {
-    window.ui._tf = interval;
-    console.log('TF CHANGED:', interval);
-       });
-        });
     },
-
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
