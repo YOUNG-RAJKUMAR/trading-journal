@@ -846,135 +846,55 @@ window.ui = {
     },
 
     launchTradingDesk() {
-    const c = this._tvColors();
-    const container = document.getElementById('tv-container');
-    if (!container) return;
-    container.innerHTML = '';
-
-    // Option 1 — store in localStorage (user sets it once)
-     const AV_KEY = localStorage.getItem('av_key') || 'JTSXUBK3WYOPR3TY';
-
-    const datafeed = {
-        onReady(cb) {
-            setTimeout(() => cb({
-                supported_resolutions: ['1','5','15','30','60','240','D','W'],
-                supports_marks: false,
-                supports_timescale_marks: false,
-            }), 0);
-        },
-        searchSymbols(userInput, exchange, symbolType, onResult) {
-            onResult([]);
-        },
-        resolveSymbol(symbolName, onResolve, onError) {
-            setTimeout(() => onResolve({
-                name: symbolName,
-                description: symbolName,
-                type: 'forex',
-                session: '24x7',
-                timezone: 'Asia/Kathmandu',
-                ticker: symbolName,
-                minmov: 1,
-                pricescale: 100000,
-                has_intraday: true,
-                has_daily: true,
-                has_weekly_and_monthly: true,
-                supported_resolutions: ['1','5','15','30','60','240','D','W'],
-                volume_precision: 2,
-                data_status: 'streaming',
-            }), 0);
-        },
-        async getBars(symbolInfo, resolution, periodParams, onResult, onError) {
-    const { from, to, firstDataRequest } = periodParams;
-    const AV_KEY = localStorage.getItem('av_key') || 'JTSXUBK3WYOPR3TY';
-
-    const intervalMap = {
-        '1':'1min','5':'5min','15':'15min',
-        '30':'30min','60':'60min','240':'60min',
-        'D':'daily','W':'weekly'
-    };
-    const interval = intervalMap[resolution] || '60min';
-    const isIntraday = ['1','5','15','30','60','240'].includes(resolution);
-    const sym = symbolInfo.name.replace('/','').toUpperCase();
-    const fromCur = sym.slice(0,3), toCur = sym.slice(3,6);
-
-    let url;
-    if(isIntraday) {
-        url = `https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=${fromCur}&to_symbol=${toCur}&interval=${interval}&outputsize=full&apikey=${AV_KEY}`;
-    } else {
-        const fn = resolution==='W' ? 'FX_WEEKLY' : 'FX_DAILY';
-        url = `https://www.alphavantage.co/query?function=${fn}&from_symbol=${fromCur}&to_symbol=${toCur}&outputsize=full&apikey=${AV_KEY}`;
-    }
-
-    try {
-        const resp = await fetch(url);
-        const json = await resp.json();
-
-        if(json['Note'] || json['Information']) {
-            console.warn('AV API limit:', json['Note'] || json['Information']);
-            onResult([], { noData: true });
-            return;
+        const c = this._tvColors();
+        const container = document.getElementById('tv-container');
+        if (!container) return;
+        if (this._tvWidget) {
+            try { container.innerHTML = ''; } catch(e) {}
+            this._tvWidget = null;
         }
-
-        const tsKey = Object.keys(json).find(k => k.includes('Time Series'));
-        if(!tsKey) {
-            console.error('No time series key found:', json);
-            onResult([], { noData: true });
-            return;
-        }
-
-        const series = json[tsKey];
-        const bars = Object.entries(series)
-            .map(([time, val]) => ({
-                time:   Math.floor(new Date(time).getTime() / 1000),
-                open:   parseFloat(val['1. open']),
-                high:   parseFloat(val['2. high']),
-                low:    parseFloat(val['3. low']),
-                close:  parseFloat(val['4. close']),
-                volume: 0
-            }))
-            .sort((a, b) => a.time - b.time);
-
-        // ← KEY FIX: only filter on non-first requests
-        const filtered = firstDataRequest 
-            ? bars 
-            : bars.filter(b => b.time >= from && b.time <= to);
-
-        onResult(filtered, { noData: filtered.length === 0 });
-
-    } catch(e) {
-        console.error('Datafeed fetch error:', e);
-        onError(e.message);
-    }
-},
-        subscribeBars() {},
-        unsubscribeBars() {},
-    };
-
-    this._tvWidget = new TradingView.widget({
-        container: 'tv-container',
-        library_path: '/charting_library/',
-        datafeed: datafeed,
-        autosize: true,
-        symbol: 'EURUSD',
-        interval: this._tf,
-        timezone: 'Asia/Kathmandu',
-        theme: 'dark',
-        locale: 'en',
-        disabled_features: ['create_volume_indicator_by_default'],
-        overrides: {
-            "paneProperties.background": c.bg,
-            "paneProperties.backgroundType": "solid",
-            "paneProperties.vertGridProperties.color": "rgba(0,0,0,0)",
-            "paneProperties.horzGridProperties.color": "rgba(0,0,0,0)",
-            "mainSeriesProperties.candleStyle.upColor": c.up,
-            "mainSeriesProperties.candleStyle.downColor": c.down,
-            "mainSeriesProperties.candleStyle.borderUpColor": c.upBorder,
-            "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
-            "mainSeriesProperties.candleStyle.wickUpColor": c.upWick,
-            "mainSeriesProperties.candleStyle.wickDownColor": c.downWick,
-        }
-    });
-},
+        this._tvWidget = new TradingView.widget({
+            container_id: 'tv-container',
+            autosize: true,
+            symbol: 'ICMARKETS:EURUSD',
+            interval: this._tf,
+            timezone: 'Asia/Kathmandu',
+            theme: 'dark',
+            style: '1',
+            locale: 'en',
+            toolbar_bg: c.bg,
+            backgroundColor: c.bg,
+            gridColor: 'rgba(0,0,0,0)',
+            enable_publishing: false,
+            hide_side_toolbar: false,
+            allow_symbol_change: true,
+            save_image: false,
+            /* ── Hide volume by default ── */
+            disabled_features: [
+                "create_volume_indicator_by_default",
+                "volume_force_overlay"
+            ],
+            overrides: {
+                "paneProperties.background":                   c.bg,
+                "paneProperties.backgroundType":               "solid",
+                "paneProperties.backgroundGradientStartColor": c.bg,
+                "paneProperties.backgroundGradientEndColor":   c.bg,
+                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.vertGridProperties.style":     1,
+                "paneProperties.horzGridProperties.style":     1,
+                "paneProperties.crossHairProperties.color":    "#555555",
+                "mainSeriesProperties.candleStyle.upColor":         c.up,
+                "mainSeriesProperties.candleStyle.downColor":       c.down,
+                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
+                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
+                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
+                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
+                "mainSeriesProperties.candleStyle.drawWick":        true,
+                "mainSeriesProperties.candleStyle.drawBorder":      true,
+            }
+        });
+    },
 
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
@@ -1487,8 +1407,7 @@ if('serviceWorker' in navigator) {
 </script>
 
 <!-- TradingView -->
-<script src="/charting_library/charting_library.standalone.js"></script>
-<script src="/datafeeds/udf/dist/bundle.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
 /* ── Calculator (in-tab) ── */
