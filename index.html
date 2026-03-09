@@ -934,9 +934,10 @@ window.ui = {
             }
         });
         this._tvWidget.onChartReady(() => {
-            this._tvWidget.activeChart().onIntervalChanged().subscribe(null, (interval) => {
-                window.ui._tf = interval;
-            });
+           this._tvWidget.activeChart().onIntervalChanged().subscribe(null, (interval) => {
+    window.ui._tf = interval;
+    console.log('TF CHANGED:', interval);
+       });
         });
     },
 
