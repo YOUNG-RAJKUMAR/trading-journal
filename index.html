@@ -884,55 +884,68 @@ window.ui = {
             }), 0);
         },
         async getBars(symbolInfo, resolution, periodParams, onResult, onError) {
-            const { from, to, firstDataRequest } = periodParams;
+    const { from, to, firstDataRequest } = periodParams;
+    const AV_KEY = localStorage.getItem('av_key') || 'JTSXUBK3WYOPR3TY';
 
-            // Map TV resolution → AV interval
-            const intervalMap = {
-                '1':'1min','5':'5min','15':'15min',
-                '30':'30min','60':'60min','240':'60min',
-                'D':'daily','W':'weekly'
-            };
-            const interval = intervalMap[resolution] || '60min';
-            const isIntraday = ['1','5','15','30','60','240'].includes(resolution);
+    const intervalMap = {
+        '1':'1min','5':'5min','15':'15min',
+        '30':'30min','60':'60min','240':'60min',
+        'D':'daily','W':'weekly'
+    };
+    const interval = intervalMap[resolution] || '60min';
+    const isIntraday = ['1','5','15','30','60','240'].includes(resolution);
+    const sym = symbolInfo.name.replace('/','').toUpperCase();
+    const fromCur = sym.slice(0,3), toCur = sym.slice(3,6);
 
-            // Build symbol for AV (e.g. EURUSD → from=EUR, to=USD)
-            const sym = symbolInfo.name.replace('/','').toUpperCase();
-            const fromCur = sym.slice(0,3), toCur = sym.slice(3,6);
+    let url;
+    if(isIntraday) {
+        url = `https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=${fromCur}&to_symbol=${toCur}&interval=${interval}&outputsize=full&apikey=${AV_KEY}`;
+    } else {
+        const fn = resolution==='W' ? 'FX_WEEKLY' : 'FX_DAILY';
+        url = `https://www.alphavantage.co/query?function=${fn}&from_symbol=${fromCur}&to_symbol=${toCur}&outputsize=full&apikey=${AV_KEY}`;
+    }
 
-            let url;
-            if(isIntraday) {
-                url = `https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=${fromCur}&to_symbol=${toCur}&interval=${interval}&outputsize=full&apikey=${AV_KEY}`;
-            } else {
-                const fn = resolution==='W' ? 'FX_WEEKLY' : 'FX_DAILY';
-                url = `https://www.alphavantage.co/query?function=${fn}&from_symbol=${fromCur}&to_symbol=${toCur}&outputsize=full&apikey=${AV_KEY}`;
-            }
+    try {
+        const resp = await fetch(url);
+        const json = await resp.json();
 
-            try {
-                const resp = await fetch(url);
-                const json = await resp.json();
+        if(json['Note'] || json['Information']) {
+            console.warn('AV API limit:', json['Note'] || json['Information']);
+            onResult([], { noData: true });
+            return;
+        }
 
-                // Find the time series key
-                const tsKey = Object.keys(json).find(k => k.includes('Time Series'));
-                if(!tsKey) { onResult([], { noData: true }); return; }
+        const tsKey = Object.keys(json).find(k => k.includes('Time Series'));
+        if(!tsKey) {
+            console.error('No time series key found:', json);
+            onResult([], { noData: true });
+            return;
+        }
 
-                const series = json[tsKey];
-                const bars = Object.entries(series)
-                    .map(([time, val]) => ({
-                        time: Math.floor(new Date(time).getTime() / 1000),
-                        open:  parseFloat(val['1. open']),
-                        high:  parseFloat(val['2. high']),
-                        low:   parseFloat(val['3. low']),
-                        close: parseFloat(val['4. close']),
-                        volume: 0
-                    }))
-                    .filter(b => b.time >= from && b.time <= to)
-                    .sort((a, b) => a.time - b.time);
+        const series = json[tsKey];
+        const bars = Object.entries(series)
+            .map(([time, val]) => ({
+                time:   Math.floor(new Date(time).getTime() / 1000),
+                open:   parseFloat(val['1. open']),
+                high:   parseFloat(val['2. high']),
+                low:    parseFloat(val['3. low']),
+                close:  parseFloat(val['4. close']),
+                volume: 0
+            }))
+            .sort((a, b) => a.time - b.time);
 
-                onResult(bars, { noData: bars.length === 0 });
-            } catch(e) {
-                onError(e.message);
-            }
-        },
+        // ← KEY FIX: only filter on non-first requests
+        const filtered = firstDataRequest 
+            ? bars 
+            : bars.filter(b => b.time >= from && b.time <= to);
+
+        onResult(filtered, { noData: filtered.length === 0 });
+
+    } catch(e) {
+        console.error('Datafeed fetch error:', e);
+        onError(e.message);
+    }
+},
         subscribeBars() {},
         unsubscribeBars() {},
     };
