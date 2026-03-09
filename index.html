@@ -434,6 +434,28 @@
         </div>
     </div>
 
+    <script>
+(function(){
+    const TF_SECONDS = { '1':60,'3':180,'5':300,'15':900,'30':1800,'60':3600,'120':7200,'240':14400,'D':86400 };
+    function updateCountdown(){
+        const tf = window.ui?._tf || '240';
+        const secs = TF_SECONDS[tf] || 14400;
+        const now = Math.floor(Date.now()/1000);
+        const rem = secs - (now % secs);
+        const h = Math.floor(rem/3600), m = Math.floor((rem%3600)/60), s = rem%60;
+        const el = document.getElementById('bar-countdown');
+        if(!el) return;
+        el.textContent = h>0
+            ? `⏱ ${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+            : `⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        el.style.color = rem<=10?'#ff4444':rem<=60?'#ffcc44':'#ffffff';
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+})();
+</script>
+
+
     <!-- ══ CHARTS TAB ══ -->
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
 
@@ -590,7 +612,16 @@
 
         <!-- Chart + Calculator split -->
         <div style="display:flex;height:calc(136vh - 80px);">
-            <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
+            <div style="flex:1;min-width:0;height:100%;position:relative;">
+    <div id="tv-container" style="width:100%;height:100%;"></div>
+    <div id="bar-countdown" style="
+        position:absolute;bottom:40px;left:12px;z-index:999;
+        background:rgba(0,0,0,0.75);border:1px solid #333;
+        padding:5px 12px;border-radius:3px;font-size:.75rem;
+        font-family:'Courier New',monospace;color:#fff;
+        pointer-events:none;letter-spacing:2px;
+    ">⏱ --:--</div>
+</div>
             <!-- Calculator Panel -->
             <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
