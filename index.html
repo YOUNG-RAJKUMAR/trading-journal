@@ -320,7 +320,7 @@
             left:8px;
             top:50%;
             transform:translateY(-50%);
-            z-index:400;
+            z-index:500;
             display:flex;
             flex-direction:column;
             align-items:center;
@@ -745,6 +745,7 @@
             <!-- Chart wrapper with floating toolbar -->
             <div style="flex:1;min-width:0;height:100%;position:relative;">
                 <div id="tv-container" style="width:100%;height:100%;"></div>
+                <canvas id="draw-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:300;display:block;"></canvas>
 
                 <!-- ─── FLOATING CHART TOOLBAR ─── -->
                 <div id="chart-float-toolbar">
@@ -1000,10 +1001,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.ui = {
     charts: {},
-    _drawings: [],
-    _lastPrice: 1.0850,
-    _lastTime: 0,
-    _activeTool: null,
 
     init() {
         document.getElementById('t-date').valueAsDate = new Date();
