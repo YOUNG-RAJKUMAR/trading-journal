@@ -2088,7 +2088,7 @@ function onCustomBgHex(val) {
 
         /* Only fire when Charts tab is active */
         var chartsTab = document.getElementById('tab-charts');
-        if (!chartsTab || chartsTab.style.display === 'none' || chartsTab.classList.contains('hidden')) return;
+        if (!chartsTab || !chartsTab.classList.contains('active')) return;
 
         e.preventDefault();
         if (window.ui) {
