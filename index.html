@@ -723,36 +723,65 @@ var MT5Feed = (function() {
             }
         };
 
-        ws.onmessage = function(event) {
-            try {
-                var msg = JSON.parse(event.data);
-                if(msg.type !== 'price_update') return;
-                lastData = msg.data;
+      ws.onmessage = function(event) {
+    try {
+        var msg = JSON.parse(event.data);
 
-                // Update live price in calculator
-                var sym = document.getElementById('calc-symbol');
-                if(sym && lastData[sym.textContent]) {
-                    var d = lastData[sym.textContent];
-                    var priceEl  = document.getElementById('calc-live-price');
-                    var spreadEl = document.getElementById('calc-spread');
-                    if(priceEl)  priceEl.textContent  = d.bid.toFixed(5) + ' / ' + d.ask.toFixed(5);
-                    if(spreadEl) spreadEl.textContent  = 'spread: ' + d.spread;
-                }
+        if(msg.type === 'price_update') {
+            // Full history — store everything
+            lastData = msg.data;
+        }
 
-                // Notify all chart subscribers
-                Object.keys(subscribers).forEach(function(guid) {
-                    var sub = subscribers[guid];
-                    var symData = lastData[sub.symbol];
-                    if(!symData || !symData.candles) return;
-                    var tf = sub.resolution;
-                    if(!symData.candles[tf]) return;
-                    var candles = symData.candles[tf];
-                    var last = candles[candles.length - 1];
-                    if(last) sub.callback(last);
+        if(msg.type === 'tick_update') {
+            // Live tick — merge latest candle only
+            Object.keys(msg.data).forEach(function(sym) {
+                if(!lastData[sym]) return;
+                lastData[sym].bid    = msg.data[sym].bid;
+                lastData[sym].ask    = msg.data[sym].ask;
+                lastData[sym].spread = msg.data[sym].spread;
+                lastData[sym].time   = msg.data[sym].time;
+
+                // Merge latest candle into history
+                Object.keys(msg.data[sym].candles).forEach(function(tf) {
+                    var incoming = msg.data[sym].candles[tf];
+                    if(!incoming.length) return;
+                    var hist = lastData[sym].candles[tf];
+                    if(!hist || !hist.length) return;
+                    var latest = incoming[incoming.length - 1];
+                    var last   = hist[hist.length - 1];
+                    if(latest.time === last.time) {
+                        // Update current candle
+                        hist[hist.length - 1] = latest;
+                    } else if(latest.time > last.time) {
+                        // New candle formed
+                        hist.push(latest);
+                    }
                 });
-            } catch(e) {}
-        };
+            });
+        }
 
+        // Update live price in calculator
+        var sym = document.getElementById('calc-symbol');
+        if(sym && lastData[sym.textContent]) {
+            var d = lastData[sym.textContent];
+            var priceEl  = document.getElementById('calc-live-price');
+            var spreadEl = document.getElementById('calc-spread');
+            if(priceEl)  priceEl.textContent = d.bid.toFixed(5) + ' / ' + d.ask.toFixed(5);
+            if(spreadEl) spreadEl.textContent = 'spread: ' + d.spread;
+        }
+
+        // Notify chart subscribers
+        Object.keys(subscribers).forEach(function(guid) {
+            var sub = subscribers[guid];
+            var symData = lastData[sub.symbol];
+            if(!symData || !symData.candles) return;
+            var candles = symData.candles[sub.resolution];
+            if(!candles || !candles.length) return;
+            sub.callback(candles[candles.length - 1]);
+        });
+
+    } catch(e) {}
+};
         ws.onerror = function() {};
 
         ws.onclose = function() {
@@ -811,30 +840,47 @@ var MT5Feed = (function() {
     }, 0);  // ← add this closing
 },
 
-        getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
-            var resMap = {'1':'M1','5':'M5','15':'M15','30':'M30','60':'H1','240':'H4','D':'D1','W':'W1'};
-            var tf     = resMap[resolution] || 'H1';
-            var symbol = symbolInfo.name;
-            var from   = periodParams.from * 1000;
-            var to     = periodParams.to   * 1000;
-            var tries  = 0;
+      getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
+    var resMap = {
+        '1':'M1','5':'M5','15':'M15','30':'M30',
+        '60':'H1','240':'H4','D':'D1','W':'W1'
+    };
+    var tf     = resMap[resolution] || 'H1';
+    var symbol = symbolInfo.name;
 
-            function tryGet() {
-                var d = lastData[symbol];
-                if(d && d.candles && d.candles[tf]) {
-                    var bars = d.candles[tf].filter(function(b) {
-                        return b.time >= from && b.time <= to;
-                    });
-                    onResult(bars, { noData: bars.length === 0 });
-                } else if(tries < 20) {
-                    tries++;
-                    setTimeout(tryGet, 400);
-                } else {
-                    onResult([], { noData: true });
-                }
+    // ── TradingView sends from/to in SECONDS ──
+    // ── Our candles are in MILLISECONDS ──
+    var fromMs = periodParams.from * 1000;
+    var toMs   = periodParams.to   * 1000;
+    var tries  = 0;
+
+    function tryGet() {
+        var d = MT5Feed.lastData[symbol];
+        if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
+            var allBars = d.candles[tf];
+
+            // First request → return ALL available history
+            if(periodParams.firstDataRequest) {
+                onResult(allBars, { noData: false });
+                return;
             }
-            tryGet();
-        },
+
+            // Subsequent requests → filter by time range
+            var bars = allBars.filter(function(b) {
+                return b.time >= fromMs && b.time <= toMs;
+            });
+            onResult(bars, { noData: bars.length === 0 });
+
+        } else if(tries < 30) {
+            // Wait for bridge to send data (max 15 seconds)
+            tries++;
+            setTimeout(tryGet, 500);
+        } else {
+            onResult([], { noData: true });
+        }
+    }
+    tryGet();
+},
 
         subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
             var resMap = {'1':'M1','5':'M5','15':'M15','30':'M30','60':'H1','240':'H4','D':'D1','W':'W1'};
@@ -857,7 +903,7 @@ var MT5Feed = (function() {
     // Start connecting
     connect();
 
-    return { datafeed: datafeed, isConnected: function() { return _connected; }, lastData: lastData };
+    return {     datafeed:    datafeed,     isConnected: function() { return _connected; },     get lastData() { return lastData; } };
 })();
 
 /* ── Feed mode switcher ── */
