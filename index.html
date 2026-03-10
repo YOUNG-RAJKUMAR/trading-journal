@@ -15,15 +15,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!--
-        ✅ FIX 1 (tv.js parentNode null):
-        tv.js is loaded here in <head> so TradingView global is ready.
-        The widget is never instantiated until the Charts tab is clicked AND
-        the container is visible — enforced by the requestAnimationFrame +
-        setTimeout guard in switchTab() and the classList.contains('active')
-        guard inside launchTradingDesk().
-    -->
-    <script src="https://s3.tradingview.com/tv.js"></script>
     <style>
         :root {
             --bg:#000000; --surface:#0a0a0a; --border:#222222;
@@ -202,7 +193,7 @@
         .rr-badge { display:inline-block;padding:3px 9px;border-radius:4px;font-size:0.75rem;font-weight:600; }
         .rr-badge.good { background:#0a1a0f;border:1px solid #1a4a2a;color:#44ff88; }
         .rr-badge.bad  { background:#1a0a0a;border:1px solid #4a1a1a;color:#ff5555; }
-        .rr-badge.na   { background:#111;border:1px solid #222;color:#444; }
+        .rr-badge.na   { background:#111;   border:1px solid #222;   color:#444; }
         .img-preview { width:40px;height:28px;object-fit:cover;border:1px solid var(--border);cursor:pointer; }
         .img-preview:hover { transform:scale(6);position:relative;z-index:1000;border-color:#fff; }
 
@@ -218,8 +209,10 @@
         .stat-meta { font-size:0.68rem;color:#444;margin-top:4px;display:block; }
         .analytics-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:25px; }
 
-        /* ── CHARTS TAB 70% ZOOM ── */
-        #tab-charts { zoom:0.7; }
+        /* ══ CHARTS TAB 70% ZOOM — zoom property reflowing correctly ══ */
+        #tab-charts {
+            zoom: 0.7;
+        }
 
         /* PDF */
         .pdf-export-mode #main-content { padding:0;max-width:100%; }
@@ -227,32 +220,82 @@
         .pdf-export-mode .tab-content { display:block!important;page-break-after:always;padding:20px; }
         .pdf-export-mode table { font-size:8px!important; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1} }
-        @keyframes pulse  { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
-        .live-dot { width:7px;height:7px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite; }
 
-        /* ── COLOR PICKER TOOLBAR ── */
-        #desk-toolbar { background:#090909;border-bottom:1px solid #1a1a1a;user-select:none; }
-        .ctb-row1 { display:flex;align-items:center;gap:8px;padding:7px 14px;background:#0a0a0a;border-bottom:1px solid #141414;flex-wrap:wrap; }
-        .ctb-row2 { display:none;padding:10px 14px;gap:6px;background:#060606;border-bottom:1px solid #141414;flex-wrap:wrap;align-items:flex-start; }
+        /* live pulse */
+        .live-dot { width:7px;height:7px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+        /* ══ COLOR PICKER TOOLBAR ══ */
+        #desk-toolbar {
+            background:#090909;
+            border-bottom:1px solid #1a1a1a;
+            user-select:none;
+        }
+        .ctb-row1 {
+            display:flex;align-items:center;gap:8px;padding:7px 14px;
+            background:#0a0a0a;border-bottom:1px solid #141414;flex-wrap:wrap;
+        }
+        .ctb-row2 {
+            display:none;
+            padding:10px 14px;gap:6px;
+            background:#060606;border-bottom:1px solid #141414;
+            flex-wrap:wrap;align-items:flex-start;
+        }
         .ctb-row2.open { display:flex; }
-        .ctb-label { font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:4px;white-space:nowrap; }
-        .preset-chip { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:.55rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;border:1px solid #2a2a2a;background:#111;color:#888;transition:all .15s;white-space:nowrap; }
+        .ctb-label {
+            font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1.5px;
+            display:block;margin-bottom:4px;white-space:nowrap;
+        }
+        /* Preset chip */
+        .preset-chip {
+            display:inline-flex;align-items:center;gap:5px;
+            padding:4px 10px;border-radius:3px;cursor:pointer;
+            font-size:.55rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;
+            border:1px solid #2a2a2a;background:#111;color:#888;
+            transition:all .15s;white-space:nowrap;
+        }
         .preset-chip:hover { border-color:#555;color:#ddd; }
         .preset-chip.active-preset { border-color:#fff;color:#fff;background:#1a1a1a; }
         .preset-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
-        .cg-wrap { display:flex;flex-direction:column;background:#0d0d0d;border:1px solid #1a1a1a;padding:8px 10px;border-radius:3px;min-width:0; }
-        .cg-title { font-size:.44rem;color:#555;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;border-bottom:1px solid #1a1a1a;padding-bottom:5px; }
+        /* Color group */
+        .cg-wrap {
+            display:flex;flex-direction:column;
+            background:#0d0d0d;border:1px solid #1a1a1a;
+            padding:8px 10px;border-radius:3px;min-width:0;
+        }
+        .cg-title {
+            font-size:.44rem;color:#555;text-transform:uppercase;
+            letter-spacing:1.5px;margin-bottom:7px;border-bottom:1px solid #1a1a1a;
+            padding-bottom:5px;
+        }
         .cg-fields { display:flex;gap:12px;flex-wrap:wrap; }
         .cf-item { display:flex;flex-direction:column;align-items:flex-start;gap:3px; }
+        /* Swatch grid */
         .swatch-row { display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px; }
-        .sw { width:14px;height:14px;border-radius:2px;cursor:pointer;border:1px solid transparent;flex-shrink:0;transition:transform .1s,border-color .1s; }
+        .sw {
+            width:14px;height:14px;border-radius:2px;cursor:pointer;
+            border:1px solid transparent;flex-shrink:0;
+            transition:transform .1s,border-color .1s;
+        }
         .sw:hover { transform:scale(1.3);border-color:#fff!important; }
         .sw.active-sw { border-color:#fff!important;transform:scale(1.2); }
+        /* Picker + hex row */
         .ph-row { display:flex;align-items:center;gap:4px; }
-        .ph-row input[type=color] { width:22px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px; }
-        .ph-row input[type=text] { width:58px;background:#0a0a0a;border:1px solid #1e1e1e;color:#aaa;padding:3px 5px;font-size:.62rem;font-family:monospace;outline:none;border-radius:2px; }
+        .ph-row input[type=color] {
+            width:22px;height:22px;padding:1px;border:1px solid #2a2a2a;
+            background:transparent;cursor:pointer;border-radius:2px;
+        }
+        .ph-row input[type=text] {
+            width:58px;background:#0a0a0a;border:1px solid #1e1e1e;color:#aaa;
+            padding:3px 5px;font-size:.62rem;font-family:monospace;
+            outline:none;border-radius:2px;
+        }
         .ph-row input[type=text]:focus { border-color:#444; }
-        .ctb-divider { width:1px;height:auto;align-self:stretch;background:#1a1a1a;margin:0 4px; }
+
+        /* Divider in row2 */
+        .ctb-divider {
+            width:1px;height:auto;align-self:stretch;background:#1a1a1a;margin:0 4px;
+        }
     </style>
 </head>
 <body>
@@ -278,15 +321,15 @@
             <div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;">
                 <span style="font-size:.44rem;color:var(--text);opacity:.4;text-transform:uppercase;letter-spacing:1px;margin-right:1px;">Style</span>
                 <button onclick="setTheme('midnight')" id="th-midnight" title="Midnight"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #444;background:#000;color:#fff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">&#9632; Mid</button>
+                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #444;background:#000;color:#fff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">⬛ Mid</button>
                 <button onclick="setTheme('neon')" id="th-neon" title="Neon"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #00f5ff55;background:#050510;color:#00f5ff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 6px #00f5ff;">&#9889; Neon</button>
+                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #00f5ff55;background:#050510;color:#00f5ff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 6px #00f5ff;">⚡ Neon</button>
                 <button onclick="setTheme('easyeye')" id="th-easyeye" title="Easy Eye"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #303660;background:#1c2033;color:#a8b8e8;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">&#127769; Eye</button>
+                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #303660;background:#1c2033;color:#a8b8e8;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">🌙 Eye</button>
                 <button onclick="setTheme('light')" id="th-light" title="Light"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">&#9728; Light</button>
+                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">☀ Light</button>
                 <button onclick="setTheme('trader')" id="th-trader" title="Trader"
-                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #1c2e1c;background:#080c08;color:#00e600;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 5px #00e600;">&#128202; Pro</button>
+                    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #1c2e1c;background:#080c08;color:#00e600;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 5px #00e600;">📊 Pro</button>
                 <span style="font-size:.44rem;color:var(--text);opacity:.35;margin-left:3px;">BG</span>
                 <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)" title="Custom BG"
                     style="width:18px;height:18px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
@@ -298,20 +341,20 @@
                 <span style="font-size:.48rem;color:#666;">PDF:</span>
                 <select id="export-month" onchange="ui.renderJournal()" style="padding:1px 2px;font-size:.54rem;background:var(--surface);border:none;color:var(--text-light);"></select>
                 <select id="export-year"  onchange="ui.renderJournal()" style="padding:1px 2px;font-size:.54rem;background:var(--surface);border:none;color:var(--text-light);"></select>
-                <button class="btn-action" style="background:#fff;color:#000;padding:2px 6px;font-size:.52rem;" onclick="ui.exportPDF()">&#8595; PDF</button>
+                <button class="btn-action" style="background:#fff;color:#000;padding:2px 6px;font-size:.52rem;" onclick="ui.exportPDF()">↓ PDF</button>
             </div>
             <button class="btn-action" onclick="ui.undoLast()">Undo</button>
             <button class="btn-action" onclick="ui.resetAll()">Reset</button>
-            <button id="install-btn" class="btn-action" onclick="installApp()" style="display:none;background:#44ff88;color:#000;font-weight:600;border-color:#44ff88;">&#11015; Install</button>
+            <button id="install-btn" class="btn-action" onclick="installApp()" style="display:none;background:#44ff88;color:#000;font-weight:600;border-color:#44ff88;">&#11015;</button>
             <button class="btn-action" onclick="location.reload()">Logout</button>
         </div>
     </header>
 
     <nav class="tab-nav">
         <button class="tab-btn active" id="btn-journal"   onclick="ui.switchTab('journal')">Journal</button>
-        <button class="tab-btn"        id="btn-charts"    onclick="ui.switchTab('charts')" style="color:#44ff88;opacity:0.7;">&#128200; Charts &amp; Calculator</button>
+        <button class="tab-btn"        id="btn-charts"    onclick="ui.switchTab('charts')" style="color:#44ff88;opacity:0.7;">📈 Charts & Calculator ↗</button>
         <button class="tab-btn"        id="btn-calendar"  onclick="ui.switchTab('calendar')">Performance Calendar</button>
-        <button class="tab-btn"        id="btn-analytics" onclick="ui.switchTab('analytics')">Data &amp; Charts</button>
+        <button class="tab-btn"        id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
     </nav>
 
     <!-- ══ JOURNAL TAB ══ -->
@@ -349,7 +392,7 @@
                     </div>
                 </div>
                 <div style="grid-column:span 2;">
-                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9312; Scan Setup Screenshot &mdash; Auto-fills Entry &amp; SL</div>
+                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9312; Scan Setup Screenshot — Auto-fills Entry &amp; SL</div>
                     <div class="scan-zone" id="scan-zone"
                         ondragover="event.preventDefault();this.classList.add('drag-over')"
                         ondragleave="this.classList.remove('drag-over')"
@@ -360,7 +403,7 @@
                     </div>
                 </div>
                 <div style="grid-column:span 2;">
-                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9313; Trade Media &mdash; Chart Screenshot (saved to record)</div>
+                    <div style="font-size:0.55rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">&#9313; Trade Media — Chart Screenshot (saved to record)</div>
                     <div class="media-zone" id="media-zone"
                         ondragover="event.preventDefault();this.classList.add('drag-over')"
                         ondragleave="this.classList.remove('drag-over')"
@@ -371,7 +414,7 @@
                     </div>
                     <div style="display:flex;gap:6px;margin-top:6px;">
                         <button onclick="ui.pasteMediaFromClipboard()" style="flex:1;background:#0a0a0a;border:1px solid #333;color:#888;padding:8px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">&#128203; Paste Screenshot</button>
-                        <button onclick="ui.clearMedia()" id="media-clear-btn" style="background:#0a0a0a;border:1px solid #2a0000;color:#ff4444;padding:8px 12px;font-size:0.65rem;cursor:pointer;display:none;">&#10005;</button>
+                        <button onclick="ui.clearMedia()" id="media-clear-btn" style="background:#0a0a0a;border:1px solid #2a0000;color:#ff4444;padding:8px 12px;font-size:0.65rem;cursor:pointer;display:none;">✕</button>
                     </div>
                 </div>
                 <textarea id="t-notes" placeholder="Notes..." style="grid-column:span 2;"></textarea>
@@ -394,31 +437,56 @@
     <!-- ══ CHARTS TAB ══ -->
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
 
+        <!-- ─── REDESIGNED COLOR TOOLBAR ─── -->
         <div id="desk-toolbar">
-            <!-- ROW 1 -->
+
+            <!-- ROW 1 — Presets + toggle -->
             <div class="ctb-row1">
                 <span style="font-size:.48rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-right:2px;">CHART STYLE</span>
+
+                <!-- Preset chips -->
                 <button class="preset-chip active-preset" id="pch-phthalo" onclick="applyPreset('phthalo')">
-                    <span class="preset-dot" style="background:#000F89;border:1px solid #3355cc;"></span>Phthalo + Black
+                    <span class="preset-dot" style="background:#000F89;border:1px solid #3355cc;"></span>
+                    Phthalo + Black
                 </button>
                 <button class="preset-chip" id="pch-classic" onclick="applyPreset('classic')">
-                    <span class="preset-dot" style="background:#26a69a;border:1px solid #26a69a;"></span>Classic
+                    <span class="preset-dot" style="background:#26a69a;border:1px solid #26a69a;"></span>
+                    Classic
                 </button>
                 <button class="preset-chip" id="pch-mono" onclick="applyPreset('mono')">
-                    <span class="preset-dot" style="background:#cccccc;border:1px solid #888;"></span>Monochrome
+                    <span class="preset-dot" style="background:#cccccc;border:1px solid #888;"></span>
+                    Monochrome
                 </button>
                 <button class="preset-chip" id="pch-hollow" onclick="applyPreset('hollow')">
-                    <span class="preset-dot" style="background:transparent;border:1px solid #44ff88;"></span>Hollow Candles
+                    <span class="preset-dot" style="background:transparent;border:1px solid #44ff88;"></span>
+                    Hollow Candles
                 </button>
                 <button class="preset-chip" id="pch-trader" onclick="applyPreset('trader')">
-                    <span class="preset-dot" style="background:#00e600;border:1px solid #00e600;"></span>Terminal Green
+                    <span class="preset-dot" style="background:#00e600;border:1px solid #00e600;"></span>
+                    Terminal Green
                 </button>
+
                 <div style="flex:1;"></div>
-                <button id="ctb-toggle" onclick="toggleColorPanel()" style="padding:4px 12px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#888;border-radius:3px;font-family:inherit;transition:all .15s;">&#127912; Customize &#9660;</button>
-                <button onclick="ui.resetTVColors()" style="padding:4px 11px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#666;border-radius:3px;font-family:inherit;">&#8635; Reset</button>
+
+                <!-- Customize toggle -->
+                <button id="ctb-toggle" onclick="toggleColorPanel()" style="
+                    padding:4px 12px;font-size:.55rem;cursor:pointer;text-transform:uppercase;
+                    letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#888;
+                    border-radius:3px;font-family:inherit;transition:all .15s;
+                ">🎨 Customize ▾</button>
+
+                <!-- Reset -->
+                <button onclick="ui.resetTVColors()" style="
+                    padding:4px 11px;font-size:.55rem;cursor:pointer;text-transform:uppercase;
+                    letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#666;
+                    border-radius:3px;font-family:inherit;
+                ">↺ Reset</button>
             </div>
-            <!-- ROW 2 -->
+
+            <!-- ROW 2 — Detailed color controls (collapsible) -->
             <div class="ctb-row2" id="ctb-panel">
+
+                <!-- BG -->
                 <div class="cg-wrap">
                     <div class="cg-title">Background</div>
                     <div class="cf-item">
@@ -432,10 +500,14 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="ctb-divider"></div>
+
+                <!-- UP candle -->
                 <div class="cg-wrap">
-                    <div class="cg-title" style="color:#5577ff88;">&#9650; UP CANDLE</div>
+                    <div class="cg-title" style="color:#5577ff88;">▲ UP CANDLE</div>
                     <div class="cg-fields">
+                        <!-- Body -->
                         <div class="cf-item">
                             <span class="ctb-label">Body</span>
                             <div class="swatch-row" id="sw-up"></div>
@@ -446,6 +518,7 @@
                                     oninput="syncPicker('tv-up-hex','tv-up');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)" maxlength="7">
                             </div>
                         </div>
+                        <!-- Wick -->
                         <div class="cf-item">
                             <span class="ctb-label">Wick</span>
                             <div class="swatch-row" id="sw-upwick"></div>
@@ -456,6 +529,7 @@
                                     oninput="syncPicker('tv-upwick-hex','tv-upwick');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)" maxlength="7">
                             </div>
                         </div>
+                        <!-- Border -->
                         <div class="cf-item">
                             <span class="ctb-label">Border</span>
                             <div class="swatch-row" id="sw-upborder"></div>
@@ -468,10 +542,14 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="ctb-divider"></div>
+
+                <!-- DOWN candle -->
                 <div class="cg-wrap">
-                    <div class="cg-title" style="color:#ff444488;">&#9660; DOWN CANDLE</div>
+                    <div class="cg-title" style="color:#ff444488;">▼ DOWN CANDLE</div>
                     <div class="cg-fields">
+                        <!-- Body -->
                         <div class="cf-item">
                             <span class="ctb-label">Body</span>
                             <div class="swatch-row" id="sw-down"></div>
@@ -482,6 +560,7 @@
                                     oninput="syncPicker('tv-down-hex','tv-down');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)" maxlength="7">
                             </div>
                         </div>
+                        <!-- Wick -->
                         <div class="cf-item">
                             <span class="ctb-label">Wick</span>
                             <div class="swatch-row" id="sw-downwick"></div>
@@ -492,6 +571,7 @@
                                     oninput="syncPicker('tv-downwick-hex','tv-downwick');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)" maxlength="7">
                             </div>
                         </div>
+                        <!-- Border -->
                         <div class="cf-item">
                             <span class="ctb-label">Border</span>
                             <div class="swatch-row" id="sw-downborder"></div>
@@ -504,9 +584,11 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
+            </div><!-- /ctb-row2 -->
+        </div><!-- /desk-toolbar -->
+
+        <!-- Chart + Calculator split -->
         <div style="display:flex;height:calc(136vh - 80px);">
             <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
             <!-- Calculator Panel -->
@@ -579,8 +661,8 @@
                 <div class="calendar-grid" id="calendarGrid"></div>
                 <div id="cal-day-detail" style="display:none;margin-top:20px;background:var(--surface);border:1px solid var(--border);">
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);">
-                        <span id="cal-day-detail-title" style="font-size:0.75rem;color:#fff;letter-spacing:2px;text-transform:uppercase;font-weight:600;">&mdash;</span>
-                        <button onclick="document.getElementById('cal-day-detail').style.display='none'" style="background:transparent;border:none;color:#555;font-size:1rem;cursor:pointer;">&#10005;</button>
+                        <span id="cal-day-detail-title" style="font-size:0.75rem;color:#fff;letter-spacing:2px;text-transform:uppercase;font-weight:600;">—</span>
+                        <button onclick="document.getElementById('cal-day-detail').style.display='none'" style="background:transparent;border:none;color:#555;font-size:1rem;cursor:pointer;">✕</button>
                     </div>
                     <div style="overflow-x:auto;">
                         <table style="width:100%;border-collapse:collapse;min-width:900px;">
@@ -628,7 +710,7 @@
             <div class="stat-card"><span class="stat-label">Highest Loss</span><span id="s-hl" class="stat-val" style="color:var(--negative)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Average Profit</span><span id="s-ap" class="stat-val" style="color:var(--positive)">$0</span></div>
             <div class="stat-card"><span class="stat-label">Average Loss</span><span id="s-al" class="stat-val" style="color:var(--negative)">$0</span></div>
-            <div class="stat-card"><span class="stat-label">Average R:R</span><span id="s-rr" class="stat-val">---</span><span class="stat-meta">Avg Win &divide; Avg Loss</span></div>
+            <div class="stat-card"><span class="stat-label">Average R:R</span><span id="s-rr" class="stat-val">---</span><span class="stat-meta">Avg Win ÷ Avg Loss</span></div>
             <div class="stat-card"><span class="stat-label">Planned R:R</span><span id="s-planned-rr" class="stat-val">---</span><span class="stat-meta" id="s-planned-rr-meta">Avg of Entry/SL/TP</span></div>
             <div class="stat-card"><span class="stat-label">Asian WR</span><span id="wr-asian" class="stat-val">0%</span></div>
             <div class="stat-card"><span class="stat-label">London WR</span><span id="wr-london" class="stat-val">0%</span></div>
@@ -707,16 +789,11 @@ document.addEventListener('paste', e => {
 
 window.addEventListener('DOMContentLoaded', () => {
     const saved = sessionStorage.getItem('rk_user');
-    if(saved) getDoc(doc(db,'users',saved))
-        .then(snap => { if(snap.exists()) doLogin(saved); else sessionStorage.removeItem('rk_user'); })
-        .catch(() => {});
+    if(saved) getDoc(doc(db,'users',saved)).then(snap => { if(snap.exists()) doLogin(saved); else sessionStorage.removeItem('rk_user'); }).catch(() => {});
 });
 
 window.ui = {
     charts: {},
-    _tvWidget: null,
-    _tf: '240',
-    _tvRebuildTimer: null,
 
     init() {
         document.getElementById('t-date').valueAsDate = new Date();
@@ -724,9 +801,7 @@ window.ui = {
         const now = new Date();
         const mOpts = months.map((m,i) => `<option value="${i}" ${i===now.getMonth()?'selected':''}>${m}</option>`).join('');
         const yOpts = [2024,2025,2026].map(y => `<option value="${y}" ${y===now.getFullYear()?'selected':''}>${y}</option>`).join('');
-        ['cal-month','ana-month','export-month'].forEach(id => {
-            document.getElementById(id).innerHTML = `<option value="ALL">All Time</option>` + mOpts;
-        });
+        ['cal-month','ana-month','export-month'].forEach(id => { document.getElementById(id).innerHTML = `<option value="ALL">All Time</option>` + mOpts; });
         document.getElementById('cal-month').value = now.getMonth();
         ['cal-year','ana-year','export-year'].forEach(id => { document.getElementById(id).innerHTML = yOpts; });
         this.syncData();
@@ -751,98 +826,74 @@ window.ui = {
         if(id === 'analytics') this.renderAnalytics();
         if(id === 'calendar')  { this.renderCalendar(); this.updateSideStats(); }
         if(id === 'journal')   this.renderJournal();
-        if(id === 'charts') {
-            /*
-             * ✅ FIX: tv.js parentNode null error.
-             * The Charts tab uses display:none → display:block animation.
-             * TradingView.widget() internally calls element.parentNode which
-             * is null when the container has zero layout dimensions.
-             * We defer with requestAnimationFrame + 120 ms so the browser
-             * has completed one full layout pass with the tab visible.
-             */
-            requestAnimationFrame(() => {
-                setTimeout(() => this.launchTradingDesk(), 120);
-            });
-        }
+        if(id === 'charts')    this.launchTradingDesk();
     },
+
+    _tf: '240',
+    _tvWidget: null,
 
     _tvColors() {
         const g = id => document.getElementById(id)?.value || null;
         return {
-            bg:         g('tv-bg')         || '#292A35',
-            up:         g('tv-up')         || '#000F89',
-            down:       g('tv-down')       || '#000000',
-            upBorder:   g('tv-upborder')   || '#000000',
-            downBorder: g('tv-downborder') || '#000000',
-            upWick:     g('tv-upwick')     || '#000000',
-            downWick:   g('tv-downwick')   || '#000000',
+            bg:          g('tv-bg')         || '#292A35',
+            up:          g('tv-up')         || '#000F89',
+            down:        g('tv-down')       || '#000000',
+            upBorder:    g('tv-upborder')   || '#000000',
+            downBorder:  g('tv-downborder') || '#000000',
+            upWick:      g('tv-upwick')     || '#000000',
+            downWick:    g('tv-downwick')   || '#000000',
         };
     },
 
     launchTradingDesk() {
+        const c = this._tvColors();
         const container = document.getElementById('tv-container');
-        if(!container) return;
-
-        /*
-         * ✅ GUARD: only mount when the Charts tab is actually active/visible.
-         * If this is called while the tab is hidden (e.g. from rebuildTVWidget
-         * timer after switching away) bail out silently.
-         */
-        const tab = document.getElementById('tab-charts');
-        if(!tab || !tab.classList.contains('active')) return;
-
-        // Tear down previous instance cleanly
-        if(this._tvWidget) {
-            try { this._tvWidget.remove(); } catch(_) {}
+        if (!container) return;
+        if (this._tvWidget) {
+            try { container.innerHTML = ''; } catch(e) {}
             this._tvWidget = null;
         }
-        container.innerHTML = '';
-
-        const c = this._tvColors();
-        try {
-            this._tvWidget = new TradingView.widget({
-                container_id: 'tv-container',
-                autosize: true,
-                symbol: 'ICMARKETS:EURUSD',
-                interval: this._tf,
-                timezone: 'Asia/Kathmandu',
-                theme: 'dark',
-                style: '1',
-                locale: 'en',
-                toolbar_bg: c.bg,
-                backgroundColor: c.bg,
-                gridColor: 'rgba(0,0,0,0)',
-                enable_publishing: false,
-                hide_side_toolbar: false,
-                allow_symbol_change: true,
-                save_image: false,
-                disabled_features: [
-                    "create_volume_indicator_by_default",
-                    "volume_force_overlay"
-                ],
-                overrides: {
-                    "paneProperties.background":                   c.bg,
-                    "paneProperties.backgroundType":               "solid",
-                    "paneProperties.backgroundGradientStartColor": c.bg,
-                    "paneProperties.backgroundGradientEndColor":   c.bg,
-                    "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
-                    "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
-                    "paneProperties.vertGridProperties.style":     1,
-                    "paneProperties.horzGridProperties.style":     1,
-                    "paneProperties.crossHairProperties.color":    "#555555",
-                    "mainSeriesProperties.candleStyle.upColor":         c.up,
-                    "mainSeriesProperties.candleStyle.downColor":       c.down,
-                    "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
-                    "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
-                    "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
-                    "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
-                    "mainSeriesProperties.candleStyle.drawWick":        true,
-                    "mainSeriesProperties.candleStyle.drawBorder":      true,
-                }
-            });
-        } catch(e) {
-            console.warn('TradingView init error:', e.message);
-        }
+        this._tvWidget = new TradingView.widget({
+            container_id: 'tv-container',
+            autosize: true,
+            symbol: 'ICMARKETS:EURUSD',
+            interval: this._tf,
+            timezone: 'Asia/Kathmandu',
+            theme: 'dark',
+            style: '1',
+            locale: 'en',
+            toolbar_bg: c.bg,
+            backgroundColor: c.bg,
+            gridColor: 'rgba(0,0,0,0)',
+            enable_publishing: false,
+            hide_side_toolbar: false,
+            allow_symbol_change: true,
+            save_image: false,
+            /* ── Hide volume by default ── */
+            disabled_features: [
+                "create_volume_indicator_by_default",
+                "volume_force_overlay"
+            ],
+            overrides: {
+                "paneProperties.background":                   c.bg,
+                "paneProperties.backgroundType":               "solid",
+                "paneProperties.backgroundGradientStartColor": c.bg,
+                "paneProperties.backgroundGradientEndColor":   c.bg,
+                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.vertGridProperties.style":     1,
+                "paneProperties.horzGridProperties.style":     1,
+                "paneProperties.crossHairProperties.color":    "#555555",
+                "mainSeriesProperties.candleStyle.upColor":         c.up,
+                "mainSeriesProperties.candleStyle.downColor":       c.down,
+                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
+                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
+                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
+                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
+                "mainSeriesProperties.candleStyle.drawWick":        true,
+                "mainSeriesProperties.candleStyle.drawBorder":      true,
+            }
+        });
     },
 
     rebuildTVWidget() {
@@ -850,7 +901,9 @@ window.ui = {
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
 
-    resetTVColors() { applyPreset('phthalo'); },
+    resetTVColors() {
+        applyPreset('phthalo');
+    },
 
     classifySession(dateStr) {
         const tv = document.getElementById('t-start').value; if(!tv || !dateStr) return null;
@@ -924,7 +977,7 @@ window.ui = {
                 <td style="color:${t.profit>=0?'var(--positive)':'var(--negative)'};font-weight:600;">$${t.profit.toFixed(2)}</td>
                 <td>${t.img?`<img src="${t.img}" class="img-preview">`:''}
                     <div style="font-size:0.6rem;color:#555;">${t.notes||''}</div></td>
-                <td><button onclick="ui.deleteTrade('${t.id}')" style="background:transparent;border:1px solid #2a0000;color:#ff4444;padding:5px 9px;font-size:0.7rem;cursor:pointer;">&#10005;</button></td>
+                <td><button onclick="ui.deleteTrade('${t.id}')" style="background:transparent;border:1px solid #2a0000;color:#ff4444;padding:5px 9px;font-size:0.7rem;cursor:pointer;">✕</button></td>
             </tr>`);
         });
     },
@@ -1217,6 +1270,7 @@ window.ui = {
 
 <!-- ══ SWATCH SYSTEM + PRESETS ══ -->
 <script>
+/* ── Swatch palettes ── */
 const SWATCHES = {
     bg:   ['#000000','#0a0a0a','#0d0d0d','#111111','#1a1a1a','#222222','#292A35','#1c2033','#1a1a2e','#050510','#0e130e','#080c08','#0d1117','#f2ede6'],
     body: ['#000F89','#0000cc','#0033ff','#1a3aff','#26a69a','#00e600','#44ff88','#ffffff','#cccccc','#888888','#ff4444','#cc2222','#ef5350','#000000'],
@@ -1224,13 +1278,14 @@ const SWATCHES = {
 };
 SWATCHES.border = SWATCHES.wick;
 
+/* Map of swatch container ID → input IDs */
 const SW_MAP = {
-    'sw-bg':        { picker:'tv-bg',        hex:'tv-bg-hex',        palette:'bg'    },
-    'sw-up':        { picker:'tv-up',        hex:'tv-up-hex',        palette:'body'  },
-    'sw-upwick':    { picker:'tv-upwick',    hex:'tv-upwick-hex',    palette:'wick'  },
+    'sw-bg':        { picker:'tv-bg',        hex:'tv-bg-hex',        palette:'bg'   },
+    'sw-up':        { picker:'tv-up',        hex:'tv-up-hex',        palette:'body' },
+    'sw-upwick':    { picker:'tv-upwick',    hex:'tv-upwick-hex',    palette:'wick' },
     'sw-upborder':  { picker:'tv-upborder',  hex:'tv-upborder-hex',  palette:'border'},
-    'sw-down':      { picker:'tv-down',      hex:'tv-down-hex',      palette:'body'  },
-    'sw-downwick':  { picker:'tv-downwick',  hex:'tv-downwick-hex',  palette:'wick'  },
+    'sw-down':      { picker:'tv-down',      hex:'tv-down-hex',      palette:'body' },
+    'sw-downwick':  { picker:'tv-downwick',  hex:'tv-downwick-hex',  palette:'wick' },
     'sw-downborder':{ picker:'tv-downborder',hex:'tv-downborder-hex',palette:'border'},
 };
 
@@ -1265,6 +1320,7 @@ function updateSwatchActive(swId, color) {
     });
 }
 
+/* ── Preset definitions ── */
 const PRESETS = {
     phthalo: { bg:'#292A35', up:'#000F89', upWick:'#000000', upBorder:'#000000', down:'#000000', downWick:'#000000', downBorder:'#000000' },
     classic: { bg:'#131722', up:'#26a69a', upWick:'#26a69a', upBorder:'#26a69a', down:'#ef5350', downWick:'#ef5350', downBorder:'#ef5350' },
@@ -1285,88 +1341,76 @@ function applyPreset(name) {
         'tv-downborder':p.downBorder,'tv-downborder-hex':p.downBorder,
     };
     Object.entries(map).forEach(([id,v])=>{ const el=document.getElementById(id); if(el) el.value=v; });
-    updateSwatchActive('sw-bg',p.bg); updateSwatchActive('sw-up',p.up); updateSwatchActive('sw-upwick',p.upWick);
-    updateSwatchActive('sw-upborder',p.upBorder); updateSwatchActive('sw-down',p.down);
-    updateSwatchActive('sw-downwick',p.downWick); updateSwatchActive('sw-downborder',p.downBorder);
+    /* Refresh swatch highlights */
+    updateSwatchActive('sw-bg',        p.bg);
+    updateSwatchActive('sw-up',        p.up);
+    updateSwatchActive('sw-upwick',    p.upWick);
+    updateSwatchActive('sw-upborder',  p.upBorder);
+    updateSwatchActive('sw-down',      p.down);
+    updateSwatchActive('sw-downwick',  p.downWick);
+    updateSwatchActive('sw-downborder',p.downBorder);
+    /* Highlight active preset chip */
     document.querySelectorAll('.preset-chip').forEach(b => b.classList.remove('active-preset'));
     const chip = document.getElementById('pch-'+name); if(chip) chip.classList.add('active-preset');
     ui.launchTradingDesk();
 }
 
+/* ── Toggle colour panel ── */
 var _ctbOpen = false;
 function toggleColorPanel() {
     _ctbOpen = !_ctbOpen;
     const panel  = document.getElementById('ctb-panel');
     const toggle = document.getElementById('ctb-toggle');
     if(panel)  panel.classList.toggle('open', _ctbOpen);
-    if(toggle) { toggle.textContent = _ctbOpen ? '🎨 Customize ▴' : '🎨 Customize ▾'; toggle.style.color = _ctbOpen ? '#ddd' : '#888'; }
+    if(toggle) toggle.textContent = _ctbOpen ? '🎨 Customize ▴' : '🎨 Customize ▾';
+    if(_ctbOpen) toggle.style.color = '#ddd'; else toggle.style.color = '#888';
 }
 
+/* Build swatches once DOM is ready */
 document.addEventListener('DOMContentLoaded', () => {
     buildSwatches();
+    /* Set initial swatch active states for default preset */
     const p = PRESETS['phthalo'];
-    updateSwatchActive('sw-bg',p.bg); updateSwatchActive('sw-up',p.up); updateSwatchActive('sw-upwick',p.upWick);
-    updateSwatchActive('sw-upborder',p.upBorder); updateSwatchActive('sw-down',p.down);
-    updateSwatchActive('sw-downwick',p.downWick); updateSwatchActive('sw-downborder',p.downBorder);
+    updateSwatchActive('sw-bg',         p.bg);
+    updateSwatchActive('sw-up',         p.up);
+    updateSwatchActive('sw-upwick',     p.upWick);
+    updateSwatchActive('sw-upborder',   p.upBorder);
+    updateSwatchActive('sw-down',       p.down);
+    updateSwatchActive('sw-downwick',   p.downWick);
+    updateSwatchActive('sw-downborder', p.downBorder);
 });
 </script>
 
-<!-- ══ PWA Install ══ -->
+<!-- PWA Install -->
 <script>
-/*
- * ✅ FIX 2 (PWA banner warning):
- * "Banner not shown: beforeinstallpromptevent.preventDefault() called"
- * is a Chrome INFO message, not a real error — it just means we're
- * controlling the prompt ourselves via our Install button.
- * The fix ensures installApp() safely awaits prompt() and handles
- * the case where the prompt is unavailable (already installed / iOS).
- */
 window._installPrompt = null;
-
 window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();               // suppress auto-banner
-    window._installPrompt = e;        // stash for our button
-    const btn = document.getElementById('install-btn');
-    if(btn) btn.style.display = 'block';
+    e.preventDefault(); window._installPrompt = e;
+    const btn = document.getElementById('install-btn'); if(btn) btn.style.display = 'block';
 });
-
 window.addEventListener('appinstalled', () => {
+    const btn = document.getElementById('install-btn'); if(btn) btn.style.display = 'none';
     window._installPrompt = null;
-    const btn = document.getElementById('install-btn');
-    if(btn) btn.style.display = 'none';
 });
-
 window.installApp = async function() {
     if(window._installPrompt) {
-        try {
-            await window._installPrompt.prompt();
-            const { outcome } = await window._installPrompt.userChoice;
-            if(outcome === 'accepted') {
-                window._installPrompt = null;
-                const btn = document.getElementById('install-btn');
-                if(btn) btn.style.display = 'none';
-            }
-        } catch(err) {
-            console.warn('Install prompt failed:', err);
-        }
+        window._installPrompt.prompt();
+        const {outcome} = await window._installPrompt.userChoice;
+        if(outcome === 'accepted') window._installPrompt = null;
     } else {
-        // Browser doesn't support prompt, or app already installed — show manual guide
-        alert(
-            'To install this app:\n\n' +
-            '📱 iPhone / iPad\n   Safari → Share (⬜↑) → "Add to Home Screen"\n\n' +
-            '🤖 Android Chrome\n   Menu (⋮) → "Add to Home Screen"\n\n' +
-            '💻 Desktop Chrome / Edge\n   Click ⊕ icon in the address bar'
-        );
+        alert('To install:\n\niPhone/iPad → Share → "Add to Home Screen"\nAndroid → Menu (⋮) → "Add to Home screen"\nDesktop → Install icon in address bar ⊕');
     }
 };
-
 if('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').then(() => {}).catch(() => {}));
 }
 </script>
 
-<!-- ══ CALCULATOR ══ -->
+<!-- TradingView -->
+<script src="https://s3.tradingview.com/tv.js"></script>
+
 <script>
+/* ── Calculator (in-tab) ── */
 var _dm = 'amt';
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 function deskSm(m){
@@ -1410,12 +1454,22 @@ function deskRs(){
     deskSv('d-rls','Enter values');
     var qs=document.getElementById('d-qs');if(qs)qs.style.display='none';
 }
-function syncHex(pickerId,hexId){var p=document.getElementById(pickerId),h=document.getElementById(hexId);if(p&&h)h.value=p.value;}
-function syncPicker(hexId,pickerId){var h=document.getElementById(hexId),p=document.getElementById(pickerId);if(!h||!p)return;var v=h.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))p.value=v;}
+
+/* ── Color picker ↔ hex sync ── */
+function syncHex(pickerId, hexId) {
+    var p = document.getElementById(pickerId), h = document.getElementById(hexId);
+    if(p && h) h.value = p.value;
+}
+function syncPicker(hexId, pickerId) {
+    var h = document.getElementById(hexId), p = document.getElementById(pickerId);
+    if(!h || !p) return;
+    var v = h.value.trim();
+    if(/^#[0-9a-fA-F]{6}$/.test(v)) p.value = v;
+}
 </script>
 
-<!-- ══ THEME SYSTEM ══ -->
 <script>
+/* ── Theme System ── */
 var _currentTheme = localStorage.getItem('rk_theme') || 'midnight';
 var _allThemes = ['midnight','neon','easyeye','light','trader'];
 
@@ -1443,7 +1497,9 @@ function setCustomBg(hex) {
     document.body.style.setProperty('--bg', hex);
     var hexEl = document.getElementById('custom-bg-hex');
     if(hexEl) hexEl.value = hex;
-    _allThemes.forEach(function(t) { var btn=document.getElementById('th-'+t);if(btn)btn.style.outline='none'; });
+    _allThemes.forEach(function(t) {
+        var btn = document.getElementById('th-' + t); if(btn) btn.style.outline = 'none';
+    });
     localStorage.setItem('rk_custom_bg', hex);
 }
 
