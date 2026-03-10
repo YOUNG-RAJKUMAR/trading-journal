@@ -890,7 +890,7 @@ window.ui = {
           if (d.s === 'ok')
             onTick({ time:d.t*1000, open:d.o, high:d.h, low:d.l, close:d.c, volume:d.v });
         } catch(e) {}
-      }, 1000);
+      }, 5000);
     },
     unsubscribeBars(guid) {
       if (this._subs?.[guid]) {
