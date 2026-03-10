@@ -12,6 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="RK Journal">
     <link rel="apple-touch-icon" href="icon-192.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -747,6 +748,7 @@
 </div><!-- /app -->
 
 <script type="module">
+import TwelveDataFeed from './datafeed.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, orderBy,
          limit, deleteDoc, doc, where, writeBatch, getDoc }
@@ -845,149 +847,41 @@ window.ui = {
         };
     },
 
- launchTradingDesk() {
-  const c = this._tvColors();
-  const container = document.getElementById('tv-container');
-  if (!container) return;
-  if (this._tvWidget) {
-    try { this._tvWidget.remove(); } catch(e) {}
-    this._tvWidget = null;
-    container.innerHTML = '';
-  }
+   launchTradingDesk() {
+    const c = this._tvColors();
+    const container = document.getElementById('tv-container');
+    if (!container) return;
+    if (this._tvWidget) {
+        try { this._tvWidget.remove(); } catch(e) {}
+        container.innerHTML = '';
+        this._tvWidget = null;
+    }
 
-  const SERVER = 'https://datafeed-server.onrender.com';
-
-  const datafeed = {
-    _subs: {},
-    onReady(cb) {
-      fetch(`${SERVER}/config`)
-        .then(r => r.json())
-        .then(cfg => setTimeout(() => cb(cfg), 0))
-        .catch(() => setTimeout(() => cb({
-          supported_resolutions: ['1','5','15','30','60','240','D','W','M']
-        }), 0));
-    },
-    searchSymbols(input, exchange, type, cb) {
-      fetch(`${SERVER}/search?query=${encodeURIComponent(input)}`)
-        .then(r => r.json())
-        .then(cb)
-        .catch(() => cb([]));
-    },
-    resolveSymbol(name, onOk, onErr) {
-      fetch(`${SERVER}/symbols?symbol=${encodeURIComponent(name)}`)
-        .then(r => r.json())
-        .then(info => {
-          if (info && info.name) onOk(info);
-          else onErr('Symbol not found');
-        })
-        .catch(() => onErr('Network error'));
-    },
-    getBars(info, resolution, periodParams, onOk, onErr) {
-      const { from, to } = periodParams;
-      const url = `${SERVER}/history?symbol=${info.name}&resolution=${resolution}&from=${from}&to=${to}`;
-      fetch(url)
-        .then(r => r.json())
-        .then(data => {
-          if (!data || data.s === 'error') { onErr(data?.errmsg || 'Error'); return; }
-          if (data.s === 'no_data') { onOk([], { noData: true }); return; }
-          const bars = data.t.map((t, i) => ({
-            time:  t * 1000,
-            open:  data.o[i],
-            high:  data.h[i],
-            low:   data.l[i],
-            close: data.c[i],
-            volume: data.v[i] || 0
-          }));
-          onOk(bars, { noData: bars.length === 0 });
-        })
-        .catch(err => onErr(err.message));
-    },
-    
-    subscribeBars(info, resolution, onTick, guid) {
-  this._subs[guid] = setInterval(() => {
-    fetch(`${SERVER}/realtime?symbol=${info.name}&resolution=${resolution}`)
-      .then(r => r.json())
-      .then(d => {
-        if (d && d.s === 'ok') {
-          // Snap timestamp to current bar open time
-          const resSeconds = {
-            '1':60,'3':180,'5':300,'15':900,'30':1800,
-            '60':3600,'240':14400,'D':86400,'W':604800,'M':2592000
-          };
-          const res = resSeconds[resolution] || 60;
-          const now = Math.floor(Date.now() / 1000);
-          const barTime = Math.floor(now / res) * res;
-
-          onTick({
-            time:   barTime * 1000,
-            open:   d.o,
-            high:   d.h,
-            low:    d.l,
-            close:  d.c,
-            volume: d.v || 0
-          });
+    this._tvWidget = new TradingView.widget({
+        container:    'tv-container',
+        library_path: '/charting_library/',   // ← your charting_library folder
+        datafeed:     TwelveDataFeed,         // ← Twelve Data feed
+        symbol:       'EURUSD',
+        interval:     '60',                   // Default: 1H
+        timezone:     'Asia/Kathmandu',
+        theme:        'dark',
+        locale:       'en',
+        autosize:     true,
+        disabled_features: ['use_localstorage_for_settings'],
+        enabled_features:  ['study_templates'],
+        overrides: {
+            "paneProperties.background":                   c.bg,
+            "paneProperties.backgroundType":               "solid",
+            "mainSeriesProperties.candleStyle.upColor":         c.up,
+            "mainSeriesProperties.candleStyle.downColor":       c.down,
+            "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
+            "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
+            "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
+            "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
         }
-      })
-      .catch(() => {});
-  }, 5000);
-},
-    unsubscribeBars(guid) {
-      if (this._subs[guid]) {
-        clearInterval(this._subs[guid]);
-        delete this._subs[guid];
-      }
-    }
-  };
-
-  this._tvWidget = new TradingView.widget({
-    container: 'tv-container',
-    library_path: 'charting_library/',
-    datafeed: datafeed,
-    symbol: 'EURUSD',
-    interval: this._tf || '240',
-    timezone: 'Asia/Kathmandu',
-    theme: 'dark',
-    locale: 'en',
-    autosize: true,
-    disabled_features: [
-      'volume_force_overlay'
-    ],
-    enabled_features: [
-      'items_favoriting',
-      'save_chart_properties_to_local_storage',
-      'use_localstorage_for_settings',
-      'countdown_to_bar_close_button',
-      'show_bar_close_time',
-      'header_indicators',
-      'header_chart_type',
-      'header_resolutions',
-      'header_settings',
-      'left_toolbar',
-      'control_bar',
-      'timeframes_toolbar',
-      'display_market_status'
-    ],
-    overrides: {
-      'paneProperties.background':                        c.bg,
-      'paneProperties.backgroundType':                    'solid',
-      'paneProperties.vertGridProperties.color':          'rgba(0,0,0,0)',
-      'paneProperties.horzGridProperties.color':          'rgba(0,0,0,0)',
-      'mainSeriesProperties.candleStyle.upColor':         c.up,
-      'mainSeriesProperties.candleStyle.downColor':       c.down,
-      'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
-      'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
-      'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
-      'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
-      'mainSeriesProperties.showCountdown':               true,
-    }
-  });
-
-  this._tvWidget.onChartReady(() => {
-    this._tvWidget.activeChart().applyOverrides({
-      'mainSeriesProperties.showCountdown': true
     });
-  });
 },
+
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
@@ -1499,7 +1393,7 @@ if('serviceWorker' in navigator) {
 </script>
 
 <!-- TradingView -->
-<script src="charting_library/charting_library.standalone.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
 /* ── Calculator (in-tab) ── */
