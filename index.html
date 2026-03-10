@@ -846,55 +846,88 @@ window.ui = {
     },
 
     launchTradingDesk() {
-        const c = this._tvColors();
-        const container = document.getElementById('tv-container');
-        if (!container) return;
-        if (this._tvWidget) {
-            try { container.innerHTML = ''; } catch(e) {}
-            this._tvWidget = null;
-        }
-        this._tvWidget = new TradingView.widget({
-            container_id: 'tv-container',
-            autosize: true,
-            symbol: 'ICMARKETS:EURUSD',
-            interval: this._tf,
-            timezone: 'Asia/Kathmandu',
-            theme: 'dark',
-            style: '1',
-            locale: 'en',
-            toolbar_bg: c.bg,
-            backgroundColor: c.bg,
-            gridColor: 'rgba(0,0,0,0)',
-            enable_publishing: false,
-            hide_side_toolbar: false,
-            allow_symbol_change: true,
-            save_image: false,
-            /* ── Hide volume by default ── */
-            disabled_features: [
-                "create_volume_indicator_by_default",
-                "volume_force_overlay"
-            ],
-            overrides: {
-                "paneProperties.background":                   c.bg,
-                "paneProperties.backgroundType":               "solid",
-                "paneProperties.backgroundGradientStartColor": c.bg,
-                "paneProperties.backgroundGradientEndColor":   c.bg,
-                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.vertGridProperties.style":     1,
-                "paneProperties.horzGridProperties.style":     1,
-                "paneProperties.crossHairProperties.color":    "#555555",
-                "mainSeriesProperties.candleStyle.upColor":         c.up,
-                "mainSeriesProperties.candleStyle.downColor":       c.down,
-                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
-                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
-                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
-                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
-                "mainSeriesProperties.candleStyle.drawWick":        true,
-                "mainSeriesProperties.candleStyle.drawBorder":      true,
-            }
-        });
+  const c = this._tvColors();
+  const container = document.getElementById('tv-container');
+  if (!container) return;
+  if (this._tvWidget) {
+    try { this._tvWidget.remove(); } catch(e) {}
+    this._tvWidget = null;
+    container.innerHTML = '';
+  }
+
+  const SERVER = 'https://datafeed-server.onrender.com';
+
+  const datafeed = {
+    onReady(cb) {
+      fetch(`${SERVER}/config`).then(r => r.json())
+        .then(cfg => setTimeout(() => cb(cfg), 0));
     },
+    searchSymbols(input, exchange, type, cb) {
+      fetch(`${SERVER}/search?query=${input}`).then(r => r.json()).then(cb);
+    },
+    resolveSymbol(name, onOk, onErr) {
+      fetch(`${SERVER}/symbols?symbol=${name}`).then(r => r.json())
+        .then(info => info.name ? onOk(info) : onErr('not found'));
+    },
+    getBars(info, resolution, { from, to }, onOk, onErr) {
+      fetch(`${SERVER}/history?symbol=${info.name}&resolution=${resolution}&from=${from}&to=${to}`)
+        .then(r => r.json()).then(data => {
+          if (data.s === 'no_data') { onOk([], { noData:true }); return; }
+          if (data.s !== 'ok') { onErr(data.errmsg); return; }
+          const bars = data.t.map((t,i) => ({
+            time:t*1000, open:data.o[i], high:data.h[i],
+            low:data.l[i], close:data.c[i], volume:data.v[i]
+          }));
+          onOk(bars, { noData: bars.length === 0 });
+        }).catch(onErr);
+    },
+    subscribeBars(info, resolution, onTick, guid) {
+      this._subs = this._subs || {};
+      this._subs[guid] = setInterval(async () => {
+        try {
+          const r = await fetch(`${SERVER}/realtime?symbol=${info.name}&resolution=${resolution}`);
+          const d = await r.json();
+          if (d.s === 'ok')
+            onTick({ time:d.t*1000, open:d.o, high:d.h, low:d.l, close:d.c, volume:d.v });
+        } catch(e) {}
+      }, 10000);
+    },
+    unsubscribeBars(guid) {
+      if (this._subs?.[guid]) {
+        clearInterval(this._subs[guid]);
+        delete this._subs[guid];
+      }
+    }
+  };
+
+  this._tvWidget = new TradingView.widget({
+    container: 'tv-container',
+    library_path: 'charting_library/',
+    datafeed: datafeed,
+    symbol: 'EURUSD',
+    interval: this._tf || '240',
+    timezone: 'Asia/Kathmandu',
+    theme: 'dark',
+    locale: 'en',
+    autosize: true,
+    disabled_features: [
+      'use_localstorage_for_settings',
+      'volume_force_overlay'
+    ],
+    overrides: {
+      'paneProperties.background':                   c.bg,
+      'paneProperties.backgroundType':               'solid',
+      'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
+      'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
+      'mainSeriesProperties.candleStyle.upColor':         c.up,
+      'mainSeriesProperties.candleStyle.downColor':       c.down,
+      'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
+      'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
+      'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
+      'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
+    }
+  });
+},
 
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
@@ -1407,7 +1440,7 @@ if('serviceWorker' in navigator) {
 </script>
 
 <!-- TradingView -->
-<script src="https://s3.tradingview.com/tv.js"></script>
+<script src="charting_library/charting_library.standalone.js"></script>
 
 <script>
 /* ── Calculator (in-tab) ── */
