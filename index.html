@@ -296,6 +296,35 @@
         .ctb-divider {
             width:1px;height:auto;align-self:stretch;background:#1a1a1a;margin:0 4px;
         }
+
+        /* ══ DRAWING TOOLBAR ══ */
+        #drawing-toolbar {
+            display:flex;align-items:center;gap:4px;padding:5px 14px;
+            background:#030303;border-bottom:1px solid #111;flex-wrap:wrap;
+            user-select:none;
+        }
+        .draw-btn {
+            display:inline-flex;align-items:center;gap:4px;
+            background:#080808;border:1px solid #1c1c1c;color:#555;
+            padding:4px 9px;font-size:.54rem;cursor:pointer;
+            text-transform:uppercase;letter-spacing:.5px;border-radius:3px;
+            font-family:inherit;transition:all .12s;white-space:nowrap;
+        }
+        .draw-btn:hover { border-color:#404040;color:#bbb;background:#0d0d0d; }
+        .sc-key { display:inline-block;margin-left:4px;padding:0px 3px;font-size:.42rem;font-family:monospace;background:#111;border:1px solid #2a2a2a;color:#444;border-radius:2px;line-height:1.6;pointer-events:none; }
+        .draw-btn.dt-active .sc-key { background:#333;border-color:#555;color:#888; }
+        .draw-btn.dt-active { background:#ffffff;border-color:#ffffff;color:#000;font-weight:700; }
+        .draw-sep { width:1px;height:18px;background:#111;flex-shrink:0;margin:0 2px; }
+        .ditem {
+            display:flex;align-items:center;justify-content:space-between;
+            padding:5px 10px;border-bottom:1px solid #0d0d0d;transition:background .1s;
+        }
+        .ditem:hover { background:#0d0d0d; }
+        .ditem-lbl { font-size:.6rem;color:#777;display:flex;align-items:center;gap:5px; }
+        .ditem-dot { width:6px;height:6px;border-radius:50%;flex-shrink:0; }
+        .ditem-rm { background:transparent;border:1px solid #2a0000;color:#ff5555;
+            padding:2px 7px;font-size:.52rem;cursor:pointer;border-radius:2px;font-family:inherit; }
+        .ditem-rm:hover { background:#1a0000; }
     </style>
 </head>
 <body>
@@ -588,6 +617,79 @@
             </div><!-- /ctb-row2 -->
         </div><!-- /desk-toolbar -->
 
+        <!-- ─── DRAWING TOOLBAR ─── -->
+        <div id="drawing-toolbar">
+            <span style="font-size:.42rem;color:#282828;text-transform:uppercase;letter-spacing:2px;flex-shrink:0;margin-right:3px;">DRAW</span>
+
+            <!-- Line tools -->
+            <button class="draw-btn" id="dt-hline" onclick="ui.activateTool('horizontal_line')" title="Horizontal Line  [H]">
+                <svg width="11" height="2" style="flex-shrink:0"><line x1="0" y1="1" x2="11" y2="1" stroke="currentColor" stroke-width="1.5"/></svg>H.Line<kbd class="sc-key">H</kbd>
+            </button>
+            <button class="draw-btn" id="dt-vline" onclick="ui.activateTool('vertical_line')" title="Vertical Line  [V]">
+                <svg width="2" height="11" style="flex-shrink:0"><line x1="1" y1="0" x2="1" y2="11" stroke="currentColor" stroke-width="1.5"/></svg>V.Line<kbd class="sc-key">V</kbd>
+            </button>
+            <div class="draw-sep"></div>
+
+            <!-- Position tools -->
+            <button class="draw-btn" id="dt-long" onclick="ui.activateTool('long_position')" title="Long Position  [L]" style="color:#44ff88aa;border-color:#0a2a0a;">
+                ▲ Long<kbd class="sc-key">L</kbd>
+            </button>
+            <button class="draw-btn" id="dt-short" onclick="ui.activateTool('short_position')" title="Short Position  [S]" style="color:#ff4444aa;border-color:#2a0a0a;">
+                ▼ Short<kbd class="sc-key">S</kbd>
+            </button>
+            <div class="draw-sep"></div>
+
+            <!-- Pattern tools -->
+            <button class="draw-btn" id="dt-fib" onclick="ui.activateTool('fib_retracement')" title="Fibonacci Retracement  [F]">
+                <svg width="12" height="8" style="flex-shrink:0;opacity:.7">
+                    <path d="M0,7 Q3,1 6,4 Q9,7 12,1" stroke="currentColor" fill="none" stroke-width="1.2"/>
+                </svg>Fib<kbd class="sc-key">F</kbd>
+            </button>
+            <button class="draw-btn" id="dt-gann" onclick="ui.activateTool('gann_box')" title="Gann Box  [G]">
+                <svg width="11" height="9" style="flex-shrink:0;opacity:.7">
+                    <rect x="1" y="1" width="9" height="7" stroke="currentColor" fill="none" stroke-width="1"/>
+                    <line x1="1" y1="1" x2="10" y2="8" stroke="currentColor" stroke-width=".8"/>
+                </svg>Gann<kbd class="sc-key">G</kbd>
+            </button>
+            <button class="draw-btn" id="dt-rect" onclick="ui.activateTool('rectangle')" title="Rectangle  [R]">
+                <svg width="11" height="9" style="flex-shrink:0;opacity:.7">
+                    <rect x="1" y="1" width="9" height="7" stroke="currentColor" fill="none" stroke-width="1.2"/>
+                </svg>Rect<kbd class="sc-key">R</kbd>
+            </button>
+            <button class="draw-btn" id="dt-cross" onclick="ui.activateTool('cross')" title="Crosshair Lines  [C]">
+                <svg width="10" height="10" style="flex-shrink:0;opacity:.7">
+                    <line x1="5" y1="0" x2="5" y2="10" stroke="currentColor" stroke-width="1"/>
+                    <line x1="0" y1="5" x2="10" y2="5" stroke="currentColor" stroke-width="1"/>
+                </svg>Cross<kbd class="sc-key">C</kbd>
+            </button>
+
+            <div class="draw-sep"></div>
+
+            <!-- Remove all -->
+            <button onclick="ui.removeAllDrawings()"
+                style="background:#0a0000;border:1px solid #2a0000;color:#ff5555;padding:4px 9px;font-size:.54rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;"
+                title="Remove all drawings">✕ Clear All</button>
+
+            <div style="flex:1;"></div>
+
+            <!-- Drawings list -->
+            <div style="position:relative;">
+                <button id="drawings-toggle-btn" onclick="ui.toggleDrawingsList()"
+                    style="background:#080808;border:1px solid #1c1c1c;color:#555;padding:4px 10px;font-size:.54rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">
+                    📋 Objects&nbsp;<span id="drawings-count" style="color:#888;">(0)</span>
+                </button>
+                <div id="drawings-panel" style="display:none;position:absolute;right:0;top:calc(100% + 3px);background:#060606;border:1px solid #1e1e1e;min-width:230px;max-height:290px;overflow-y:auto;z-index:600;border-radius:3px;box-shadow:0 4px 24px rgba(0,0,0,.9);">
+                    <div style="padding:6px 10px;border-bottom:1px solid #111;font-size:.46rem;color:#2a2a2a;text-transform:uppercase;letter-spacing:2px;display:flex;align-items:center;justify-content:space-between;">
+                        <span>Active Drawings</span>
+                        <button onclick="ui.toggleDrawingsList()" style="background:transparent;border:none;color:#333;cursor:pointer;font-size:.7rem;padding:0;">✕</button>
+                    </div>
+                    <div id="drawings-items">
+                        <div style="padding:14px 10px;font-size:.6rem;color:#2a2a2a;text-align:center;">No drawings yet</div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /drawing-toolbar -->
+
         <!-- Chart + Calculator split -->
         <div style="display:flex;height:calc(136vh - 80px);">
             <div id="tv-container" style="flex:1;min-width:0;height:100%;"></div>
@@ -794,6 +896,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.ui = {
     charts: {},
+    _drawings: [],
+    _lastPrice: 1.0850,
+    _lastTime: 0,
+    _activeTool: null,
 
     init() {
         document.getElementById('t-date').valueAsDate = new Date();
@@ -831,58 +937,281 @@ window.ui = {
 
     _tf: '240',
 
-    /* ── GoCharting: only BG + up/down body colours are used ── */
     _tvColors() {
         const g = id => document.getElementById(id)?.value || null;
         return {
-            bg:   g('tv-bg')   || '#292A35',
-            up:   g('tv-up')   || '#000F89',
-            down: g('tv-down') || '#000000',
+            bg:          g('tv-bg')         || '#292A35',
+            up:          g('tv-up')         || '#000F89',
+            down:        g('tv-down')       || '#000000',
+            upBorder:    g('tv-upborder')   || '#000000',
+            downBorder:  g('tv-downborder') || '#000000',
+            upWick:      g('tv-upwick')     || '#000000',
+            downWick:    g('tv-downwick')   || '#000000',
         };
     },
 
-    /* ── Launch GoCharting iframe ── */
     launchTradingDesk() {
         const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
-
-        /* Strip '#' for URL params */
-        const sh = hex => (hex || '').replace('#', '');
-
-        /* Map internal timeframe codes to GoCharting interval strings */
-        const tfMap = {
-            '1':'1', '3':'3', '5':'5', '15':'15', '30':'30',
-            '60':'1H', '120':'2H', '240':'4H',
-            'D':'1D', 'W':'1W', 'M':'1M'
-        };
-        const interval = tfMap[this._tf] || '4H';
-
-        const params = new URLSearchParams({
-            ticker:    'OANDA:EURUSD',
-            theme:     'dark',
-            interval:  interval,
-            bgColor:   sh(c.bg),
-            upColor:   sh(c.up),
-            downColor: sh(c.down),
+        container.innerHTML = '';
+        this._drawings = [];
+        this.updateDrawingsList();
+        this._tvWidget = new TradingView.widget({
+            container_id: 'tv-container',
+            autosize: true,
+            symbol: 'ICMARKETS:EURUSD',
+            interval: this._tf,
+            timezone: 'Asia/Kathmandu',
+            theme: 'dark',
+            style: '1',
+            locale: 'en',
+            toolbar_bg: c.bg,
+            backgroundColor: c.bg,
+            gridColor: 'rgba(0,0,0,0)',
+            enable_publishing: false,
+            hide_side_toolbar: false,
+            allow_symbol_change: true,
+            save_image: false,
+            disabled_features: [
+                "create_volume_indicator_by_default",
+                "volume_force_overlay"
+            ],
+            overrides: {
+                "paneProperties.background":                   c.bg,
+                "paneProperties.backgroundType":               "solid",
+                "paneProperties.backgroundGradientStartColor": c.bg,
+                "paneProperties.backgroundGradientEndColor":   c.bg,
+                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
+                "paneProperties.vertGridProperties.style":     1,
+                "paneProperties.horzGridProperties.style":     1,
+                "paneProperties.crossHairProperties.color":    "#555555",
+                "mainSeriesProperties.candleStyle.upColor":         c.up,
+                "mainSeriesProperties.candleStyle.downColor":       c.down,
+                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
+                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
+                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
+                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
+                "mainSeriesProperties.candleStyle.drawWick":        true,
+                "mainSeriesProperties.candleStyle.drawBorder":      true,
+            }
         });
-
-        container.innerHTML =
-            `<iframe
-                src="https://gocharting.com/terminal?${params.toString()}"
-                style="width:100%;height:100%;border:none;display:block;"
-                frameborder="0"
-                allowfullscreen
-            ></iframe>`;
+        /* Track mouse price/time for accurate drawing placement */
+        const _self = this;
+        this._tvWidget.onChartReady(() => {
+            try {
+                _self._tvWidget.activeChart().crossHairMoved(({ price, time }) => {
+                    if (price && price > 0) _self._lastPrice = price;
+                    if (time  && time  > 0) _self._lastTime  = time;
+                });
+            } catch(e) { /* crossHairMoved not available in all widget versions */ }
+        });
     },
 
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
-        this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 600);
+        this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
 
     resetTVColors() {
         applyPreset('phthalo');
+    },
+
+    /* ══ DRAWING TOOLS ══ */
+
+    activateTool(toolType) {
+        /* Toggle: clicking active tool deactivates it */
+        if (this._activeTool === toolType) {
+            this._activeTool = null;
+            document.querySelectorAll('.draw-btn').forEach(b => b.classList.remove('dt-active'));
+            return;
+        }
+        this._activeTool = toolType;
+        document.querySelectorAll('.draw-btn').forEach(b => b.classList.remove('dt-active'));
+        const idMap = {
+            horizontal_line:'dt-hline', vertical_line:'dt-vline',
+            long_position:'dt-long', short_position:'dt-short',
+            fib_retracement:'dt-fib', gann_box:'dt-gann',
+            rectangle:'dt-rect', cross:'dt-cross'
+        };
+        const btn = document.getElementById(idMap[toolType]);
+        if (btn) btn.classList.add('dt-active');
+        this.placeDrawing(toolType);
+        /* Auto-deactivate button highlight after 600ms */
+        setTimeout(() => {
+            if (btn) btn.classList.remove('dt-active');
+            this._activeTool = null;
+        }, 600);
+    },
+
+    placeDrawing(type) {
+        if (!this._tvWidget) return;
+        try {
+            const chart = this._tvWidget.activeChart();
+            const price = this._lastPrice || 1.0850;
+            let vr; try { vr = chart.getVisibleRange(); } catch(e) {}
+            const nowTs = Math.floor(Date.now() / 1000);
+            const from  = vr?.from || (nowTs - 86400 * 5);
+            const to    = vr?.to   || nowTs;
+            const span  = to - from;
+            const midT  = Math.floor(from + span * 0.50);
+            const q1T   = Math.floor(from + span * 0.30);
+            const q3T   = Math.floor(from + span * 0.70);
+
+            /* colour palette per type */
+            const COLORS = {
+                horizontal_line : '#4499ff',
+                vertical_line   : '#ff9944',
+                long_position   : '#44ff88',
+                short_position  : '#ff4444',
+                fib_retracement : '#cc88ff',
+                gann_box        : '#ffcc44',
+                rectangle       : '#4466ff',
+                cross           : '#ffff44',
+            };
+
+            const lblMap = {
+                horizontal_line:'H. Line', vertical_line:'V. Line',
+                long_position:'Long Position', short_position:'Short Position',
+                fib_retracement:'Fibonacci', gann_box:'Gann Box', rectangle:'Rectangle'
+            };
+
+            let id = null;
+
+            if (type === 'horizontal_line') {
+                id = chart.createShape(
+                    { price },
+                    { shape:'horizontal_line', lock:false,
+                      overrides:{ linecolor:COLORS.horizontal_line, linewidth:1, linestyle:0, showLabel:true } }
+                );
+
+            } else if (type === 'vertical_line') {
+                id = chart.createShape(
+                    { time: midT },
+                    { shape:'vertical_line', lock:false,
+                      overrides:{ linecolor:COLORS.vertical_line, linewidth:1, linestyle:0 } }
+                );
+
+            } else if (type === 'long_position') {
+                id = chart.createMultipointShape(
+                    [{ time:q1T, price:price },
+                     { time:q3T, price:price * 0.9975 },
+                     { time:q3T, price:price * 1.0050 }],
+                    { shape:'long_position', lock:false }
+                );
+
+            } else if (type === 'short_position') {
+                id = chart.createMultipointShape(
+                    [{ time:q1T, price:price },
+                     { time:q3T, price:price * 1.0025 },
+                     { time:q3T, price:price * 0.9950 }],
+                    { shape:'short_position', lock:false }
+                );
+
+            } else if (type === 'fib_retracement') {
+                id = chart.createMultipointShape(
+                    [{ time:q1T, price:price * 1.006 },
+                     { time:q3T, price:price * 0.994 }],
+                    { shape:'fib_retracement', lock:false }
+                );
+
+            } else if (type === 'gann_box') {
+                /* Try 'gannbox' first, fall back to 'gann_box' */
+                try {
+                    id = chart.createMultipointShape(
+                        [{ time:q1T, price:price * 1.006 },
+                         { time:q3T, price:price * 0.994 }],
+                        { shape:'gannbox', lock:false }
+                    );
+                } catch(e) {
+                    id = chart.createMultipointShape(
+                        [{ time:q1T, price:price * 1.006 },
+                         { time:q3T, price:price * 0.994 }],
+                        { shape:'gann_box', lock:false }
+                    );
+                }
+
+            } else if (type === 'rectangle') {
+                id = chart.createMultipointShape(
+                    [{ time:q1T, price:price * 1.004 },
+                     { time:q3T, price:price * 0.996 }],
+                    { shape:'rectangle', lock:false,
+                      overrides:{ backgroundColor:'rgba(68,102,255,0.12)',
+                                  borderColor:COLORS.rectangle, linewidth:1 } }
+                );
+
+            } else if (type === 'cross') {
+                /* Cross = H-line + V-line pair */
+                const n = this._drawings.filter(d => d.type === 'cross').length + 1;
+                const hId = chart.createShape(
+                    { price },
+                    { shape:'horizontal_line', lock:false,
+                      overrides:{ linecolor:COLORS.cross, linewidth:1, linestyle:2 } }
+                );
+                const vId = chart.createShape(
+                    { time:midT },
+                    { shape:'vertical_line', lock:false,
+                      overrides:{ linecolor:COLORS.cross, linewidth:1, linestyle:2 } }
+                );
+                if (hId !== null) this._drawings.push({ id:hId, type:'cross', color:COLORS.cross, label:`Cross-H #${n}` });
+                if (vId !== null) this._drawings.push({ id:vId, type:'cross', color:COLORS.cross, label:`Cross-V #${n}` });
+                this.updateDrawingsList();
+                return;
+            }
+
+            if (id !== null) {
+                const n = this._drawings.filter(d => d.type === type).length + 1;
+                this._drawings.push({ id, type, color:COLORS[type]||'#888', label:`${lblMap[type]} #${n}` });
+                this.updateDrawingsList();
+            }
+        } catch(e) {
+            console.warn('Drawing placement error:', e);
+        }
+    },
+
+    removeDrawing(idx) {
+        const d = this._drawings[idx];
+        if (!d) return;
+        try { this._tvWidget.activeChart().removeEntity(d.id); } catch(e) {}
+        this._drawings.splice(idx, 1);
+        this.updateDrawingsList();
+    },
+
+    removeAllDrawings() {
+        if (!this._tvWidget) return;
+        this._drawings.forEach(d => { try { this._tvWidget.activeChart().removeEntity(d.id); } catch(e) {} });
+        this._drawings = [];
+        this.updateDrawingsList();
+    },
+
+    updateDrawingsList() {
+        const countEl = document.getElementById('drawings-count');
+        if (countEl) countEl.textContent = `(${this._drawings.length})`;
+        const itemsEl = document.getElementById('drawings-items');
+        if (!itemsEl) return;
+        if (!this._drawings.length) {
+            itemsEl.innerHTML = '<div style="padding:14px 10px;font-size:.6rem;color:#2a2a2a;text-align:center;">No drawings yet</div>';
+            return;
+        }
+        itemsEl.innerHTML = this._drawings.map((d, i) => `
+            <div class="ditem">
+                <span class="ditem-lbl">
+                    <span class="ditem-dot" style="background:${d.color};"></span>
+                    ${d.label}
+                </span>
+                <button class="ditem-rm" onclick="ui.removeDrawing(${i})">✕</button>
+            </div>`
+        ).join('');
+    },
+
+    toggleDrawingsList() {
+        const panel = document.getElementById('drawings-panel');
+        if (!panel) return;
+        const isOpen = panel.style.display !== 'none';
+        panel.style.display = isOpen ? 'none' : 'block';
+        const btn = document.getElementById('drawings-toggle-btn');
+        if (btn) btn.style.color = isOpen ? '#555' : '#bbb';
     },
 
     classifySession(dateStr) {
@@ -1386,7 +1715,8 @@ if('serviceWorker' in navigator) {
 }
 </script>
 
-<!-- GoCharting widget is loaded via iframe inside launchTradingDesk() — no external script needed -->
+<!-- TradingView widget library -->
+<script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
 /* ── Calculator (in-tab) ── */
@@ -1487,6 +1817,83 @@ function onCustomBgHex(val) {
     var picker = document.getElementById('custom-bg');
     if(/^#[0-9a-fA-F]{6}$/.test(val)) { if(picker) picker.value = val; setCustomBg(val); }
 }
+
+/* ── Drawing Tool Keyboard Shortcuts ── */
+(function initDrawingShortcuts() {
+    var SHORTCUTS = {
+        'h': 'horizontal_line',
+        'v': 'vertical_line',
+        'l': 'long_position',
+        's': 'short_position',
+        'f': 'fib_retracement',
+        'g': 'gann_box',
+        'r': 'rectangle',
+        'c': 'cross',
+    };
+    var LABELS = {
+        'h': 'H', 'v': 'V', 'l': 'L', 's': 'S',
+        'f': 'F', 'g': 'G', 'r': 'R', 'c': 'C'
+    };
+
+    /* Show a toast badge when a shortcut fires */
+    function showShortcutToast(key, toolName) {
+        var old = document.getElementById('sc-toast');
+        if (old) old.remove();
+        var nice = {
+            horizontal_line:'H. Line', vertical_line:'V. Line',
+            long_position:'Long', short_position:'Short',
+            fib_retracement:'Fibonacci', gann_box:'Gann Box',
+            rectangle:'Rectangle', cross:'Crosshair'
+        };
+        var t = document.createElement('div');
+        t.id = 'sc-toast';
+        t.innerHTML = '<span style="color:#555;font-size:.5rem;text-transform:uppercase;letter-spacing:2px;margin-right:6px;">SHORTCUT</span>'
+            + '<kbd style="background:#222;border:1px solid #444;color:#fff;padding:1px 6px;border-radius:2px;font-size:.65rem;font-family:monospace;margin-right:6px;">' + key.toUpperCase() + '</kbd>'
+            + '<span style="color:#ccc;font-size:.6rem;">' + nice[toolName] + '</span>';
+        t.style.cssText = 'position:fixed;bottom:22px;left:50%;transform:translateX(-50%);'
+            + 'background:#0a0a0a;border:1px solid #2a2a2a;padding:6px 14px;border-radius:4px;'
+            + 'z-index:9999;display:flex;align-items:center;gap:2px;'
+            + 'box-shadow:0 4px 20px rgba(0,0,0,.8);pointer-events:none;'
+            + 'animation:scToastIn .12s ease;';
+        document.body.appendChild(t);
+        setTimeout(function() { if (t.parentNode) t.remove(); }, 1200);
+    }
+
+    /* Inject toast keyframe once */
+    var st = document.createElement('style');
+    st.textContent = '@keyframes scToastIn{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+    document.head.appendChild(st);
+
+    document.addEventListener('keydown', function(e) {
+        /* Skip if user is typing in an input / textarea / select */
+        var tag = (e.target.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
+        /* Skip if modifier keys held */
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+        var key = e.key.toLowerCase();
+
+        /* Escape → deactivate current tool */
+        if (e.key === 'Escape' && window.ui) {
+            window.ui._activeTool = null;
+            document.querySelectorAll('.draw-btn').forEach(function(b) { b.classList.remove('dt-active'); });
+            return;
+        }
+
+        var tool = SHORTCUTS[key];
+        if (!tool) return;
+
+        /* Only fire when Charts tab is active */
+        var chartsTab = document.getElementById('tab-charts');
+        if (!chartsTab || chartsTab.style.display === 'none' || chartsTab.classList.contains('hidden')) return;
+
+        e.preventDefault();
+        if (window.ui) {
+            window.ui.activateTool(tool);
+            showShortcutToast(key, tool);
+        }
+    });
+})();
 
 (function initTheme() {
     var saved   = localStorage.getItem('rk_theme')     || 'midnight';
