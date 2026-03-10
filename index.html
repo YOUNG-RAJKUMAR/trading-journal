@@ -902,25 +902,35 @@ window.ui = {
         })
         .catch(err => onErr(err.message));
     },
+    
     subscribeBars(info, resolution, onTick, guid) {
-      this._subs[guid] = setInterval(() => {
-        fetch(`${SERVER}/realtime?symbol=${info.name}&resolution=${resolution}`)
-          .then(r => r.json())
-          .then(d => {
-            if (d && d.s === 'ok') {
-              onTick({
-                time:   d.t * 1000,
-                open:   d.o,
-                high:   d.h,
-                low:    d.l,
-                close:  d.c,
-                volume: d.v || 0
-              });
-            }
-          })
-          .catch(() => {});
-      }, 5000);
-    },
+  this._subs[guid] = setInterval(() => {
+    fetch(`${SERVER}/realtime?symbol=${info.name}&resolution=${resolution}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.s === 'ok') {
+          // Snap timestamp to current bar open time
+          const resSeconds = {
+            '1':60,'3':180,'5':300,'15':900,'30':1800,
+            '60':3600,'240':14400,'D':86400,'W':604800,'M':2592000
+          };
+          const res = resSeconds[resolution] || 60;
+          const now = Math.floor(Date.now() / 1000);
+          const barTime = Math.floor(now / res) * res;
+
+          onTick({
+            time:   barTime * 1000,
+            open:   d.o,
+            high:   d.h,
+            low:    d.l,
+            close:  d.c,
+            volume: d.v || 0
+          });
+        }
+      })
+      .catch(() => {});
+  }, 5000);
+},
     unsubscribeBars(guid) {
       if (this._subs[guid]) {
         clearInterval(this._subs[guid]);
@@ -938,7 +948,7 @@ window.ui = {
     timezone: 'Asia/Kathmandu',
     theme: 'dark',
     locale: 'en',
-    autosize: true,
+    autosize: true,subscr
     disabled_features: [
       'volume_force_overlay'
     ],
