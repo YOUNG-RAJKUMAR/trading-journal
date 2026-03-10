@@ -209,7 +209,7 @@
         .stat-meta { font-size:0.68rem;color:#444;margin-top:4px;display:block; }
         .analytics-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:25px; }
 
-        /* ══ CHARTS TAB 70% ZOOM — zoom property reflowing correctly ══ */
+        /* ══ CHARTS TAB 70% ZOOM ══ */
         #tab-charts {
             zoom: 0.7;
         }
@@ -437,7 +437,7 @@
     <!-- ══ CHARTS TAB ══ -->
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
 
-        <!-- ─── REDESIGNED COLOR TOOLBAR ─── -->
+        <!-- ─── COLOR TOOLBAR ─── -->
         <div id="desk-toolbar">
 
             <!-- ROW 1 — Presets + toggle -->
@@ -830,75 +830,55 @@ window.ui = {
     },
 
     _tf: '240',
-    _tvWidget: null,
 
+    /* ── GoCharting: only BG + up/down body colours are used ── */
     _tvColors() {
         const g = id => document.getElementById(id)?.value || null;
         return {
-            bg:          g('tv-bg')         || '#292A35',
-            up:          g('tv-up')         || '#000F89',
-            down:        g('tv-down')       || '#000000',
-            upBorder:    g('tv-upborder')   || '#000000',
-            downBorder:  g('tv-downborder') || '#000000',
-            upWick:      g('tv-upwick')     || '#000000',
-            downWick:    g('tv-downwick')   || '#000000',
+            bg:   g('tv-bg')   || '#292A35',
+            up:   g('tv-up')   || '#000F89',
+            down: g('tv-down') || '#000000',
         };
     },
 
+    /* ── Launch GoCharting iframe ── */
     launchTradingDesk() {
         const c = this._tvColors();
         const container = document.getElementById('tv-container');
         if (!container) return;
-        if (this._tvWidget) {
-            try { container.innerHTML = ''; } catch(e) {}
-            this._tvWidget = null;
-        }
-        this._tvWidget = new TradingView.widget({
-            container_id: 'tv-container',
-            autosize: true,
-            symbol: 'ICMARKETS:EURUSD',
-            interval: this._tf,
-            timezone: 'Asia/Kathmandu',
-            theme: 'dark',
-            style: '1',
-            locale: 'en',
-            toolbar_bg: c.bg,
-            backgroundColor: c.bg,
-            gridColor: 'rgba(0,0,0,0)',
-            enable_publishing: false,
-            hide_side_toolbar: false,
-            allow_symbol_change: true,
-            save_image: false,
-            /* ── Hide volume by default ── */
-            disabled_features: [
-                "create_volume_indicator_by_default",
-                "volume_force_overlay"
-            ],
-            overrides: {
-                "paneProperties.background":                   c.bg,
-                "paneProperties.backgroundType":               "solid",
-                "paneProperties.backgroundGradientStartColor": c.bg,
-                "paneProperties.backgroundGradientEndColor":   c.bg,
-                "paneProperties.vertGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.horzGridProperties.color":     "rgba(0,0,0,0)",
-                "paneProperties.vertGridProperties.style":     1,
-                "paneProperties.horzGridProperties.style":     1,
-                "paneProperties.crossHairProperties.color":    "#555555",
-                "mainSeriesProperties.candleStyle.upColor":         c.up,
-                "mainSeriesProperties.candleStyle.downColor":       c.down,
-                "mainSeriesProperties.candleStyle.borderUpColor":   c.upBorder,
-                "mainSeriesProperties.candleStyle.borderDownColor": c.downBorder,
-                "mainSeriesProperties.candleStyle.wickUpColor":     c.upWick,
-                "mainSeriesProperties.candleStyle.wickDownColor":   c.downWick,
-                "mainSeriesProperties.candleStyle.drawWick":        true,
-                "mainSeriesProperties.candleStyle.drawBorder":      true,
-            }
+
+        /* Strip '#' for URL params */
+        const sh = hex => (hex || '').replace('#', '');
+
+        /* Map internal timeframe codes to GoCharting interval strings */
+        const tfMap = {
+            '1':'1', '3':'3', '5':'5', '15':'15', '30':'30',
+            '60':'1H', '120':'2H', '240':'4H',
+            'D':'1D', 'W':'1W', 'M':'1M'
+        };
+        const interval = tfMap[this._tf] || '4H';
+
+        const params = new URLSearchParams({
+            ticker:    'OANDA:EURUSD',
+            theme:     'dark',
+            interval:  interval,
+            bgColor:   sh(c.bg),
+            upColor:   sh(c.up),
+            downColor: sh(c.down),
         });
+
+        container.innerHTML =
+            `<iframe
+                src="https://gocharting.com/terminal?${params.toString()}"
+                style="width:100%;height:100%;border:none;display:block;"
+                frameborder="0"
+                allowfullscreen
+            ></iframe>`;
     },
 
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
-        this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
+        this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 600);
     },
 
     resetTVColors() {
@@ -1406,8 +1386,7 @@ if('serviceWorker' in navigator) {
 }
 </script>
 
-<!-- TradingView -->
-<script src="https://s3.tradingview.com/tv.js"></script>
+<!-- GoCharting widget is loaded via iframe inside launchTradingDesk() — no external script needed -->
 
 <script>
 /* ── Calculator (in-tab) ── */
