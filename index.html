@@ -1057,6 +1057,8 @@ window.ui = {
         if (!container) return;
         container.innerHTML = '';
         this._drawings = [];
+        this._tvChart = null;
+        clearInterval(this._chartPollTimer);
         this.updateDrawingsList();
         this._tvWidget = new TradingView.widget({
             container_id: 'tv-container',
@@ -1098,28 +1100,29 @@ window.ui = {
                 "mainSeriesProperties.candleStyle.drawBorder":      true,
             }
         });
-        /* Wait for widget ready, then store chart reference */
+        /* Poll until activeChart() works — widget iframe loads async */
         const _self = this;
         _self._tvChart = null;
-        function waitForChart(attempts) {
-            if (attempts <= 0) return;
+        clearInterval(_self._chartPollTimer);
+        _self._chartPollTimer = setInterval(() => {
             try {
-                if (_self._tvWidget && typeof _self._tvWidget.onChartReady === 'function') {
-                    _self._tvWidget.onChartReady(() => {
-                        try {
-                            _self._tvChart = _self._tvWidget.activeChart();
-                            _self._tvChart.crossHairMoved(({ price, time }) => {
-                                if (price && price > 0) _self._lastPrice = price;
-                                if (time  && time  > 0) _self._lastTime  = time;
-                            });
-                        } catch(e) {}
-                    });
-                } else {
-                    setTimeout(() => waitForChart(attempts - 1), 400);
+                const chart = _self._tvWidget && _self._tvWidget.activeChart
+                    ? _self._tvWidget.activeChart()
+                    : null;
+                if (chart && typeof chart.createShape === 'function') {
+                    _self._tvChart = chart;
+                    clearInterval(_self._chartPollTimer);
+                    try {
+                        chart.crossHairMoved(({ price, time }) => {
+                            if (price && price > 0) _self._lastPrice = price;
+                            if (time  && time  > 0) _self._lastTime  = time;
+                        });
+                    } catch(e) {}
                 }
-            } catch(e) { setTimeout(() => waitForChart(attempts - 1), 400); }
-        }
-        waitForChart(25);
+            } catch(e) { /* not ready yet */ }
+        }, 300);
+        /* Stop polling after 30s regardless */
+        setTimeout(() => clearInterval(_self._chartPollTimer), 30000);
     },
 
     rebuildTVWidget() {
@@ -1171,7 +1174,10 @@ window.ui = {
 
     placeDrawing(type) {
         if (!this._tvChart) {
-            console.warn('Chart not ready yet — please wait a moment and try again.');
+            /* Chart still loading — retry once after 1.5s */
+            setTimeout(() => {
+                if (this._tvChart) this.placeDrawing(type);
+            }, 1500);
             return;
         }
         try {
