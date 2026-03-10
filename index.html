@@ -845,7 +845,7 @@ window.ui = {
         };
     },
 
-    launchTradingDesk() {
+ launchTradingDesk() {
   const c = this._tvColors();
   const container = document.getElementById('tv-container');
   if (!container) return;
@@ -858,42 +858,71 @@ window.ui = {
   const SERVER = 'https://datafeed-server.onrender.com';
 
   const datafeed = {
+    _subs: {},
     onReady(cb) {
-      fetch(`${SERVER}/config`).then(r => r.json())
-        .then(cfg => setTimeout(() => cb(cfg), 0));
+      fetch(`${SERVER}/config`)
+        .then(r => r.json())
+        .then(cfg => setTimeout(() => cb(cfg), 0))
+        .catch(() => setTimeout(() => cb({
+          supported_resolutions: ['1','5','15','30','60','240','D','W','M']
+        }), 0));
     },
     searchSymbols(input, exchange, type, cb) {
-      fetch(`${SERVER}/search?query=${input}`).then(r => r.json()).then(cb);
+      fetch(`${SERVER}/search?query=${encodeURIComponent(input)}`)
+        .then(r => r.json())
+        .then(cb)
+        .catch(() => cb([]));
     },
     resolveSymbol(name, onOk, onErr) {
-      fetch(`${SERVER}/symbols?symbol=${name}`).then(r => r.json())
-        .then(info => info.name ? onOk(info) : onErr('not found'));
+      fetch(`${SERVER}/symbols?symbol=${encodeURIComponent(name)}`)
+        .then(r => r.json())
+        .then(info => {
+          if (info && info.name) onOk(info);
+          else onErr('Symbol not found');
+        })
+        .catch(() => onErr('Network error'));
     },
-    getBars(info, resolution, { from, to }, onOk, onErr) {
-      fetch(`${SERVER}/history?symbol=${info.name}&resolution=${resolution}&from=${from}&to=${to}`)
-        .then(r => r.json()).then(data => {
-          if (data.s === 'no_data') { onOk([], { noData:true }); return; }
-          if (data.s !== 'ok') { onErr(data.errmsg); return; }
-          const bars = data.t.map((t,i) => ({
-            time:t*1000, open:data.o[i], high:data.h[i],
-            low:data.l[i], close:data.c[i], volume:data.v[i]
+    getBars(info, resolution, periodParams, onOk, onErr) {
+      const { from, to } = periodParams;
+      const url = `${SERVER}/history?symbol=${info.name}&resolution=${resolution}&from=${from}&to=${to}`;
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          if (!data || data.s === 'error') { onErr(data?.errmsg || 'Error'); return; }
+          if (data.s === 'no_data') { onOk([], { noData: true }); return; }
+          const bars = data.t.map((t, i) => ({
+            time:  t * 1000,
+            open:  data.o[i],
+            high:  data.h[i],
+            low:   data.l[i],
+            close: data.c[i],
+            volume: data.v[i] || 0
           }));
           onOk(bars, { noData: bars.length === 0 });
-        }).catch(onErr);
+        })
+        .catch(err => onErr(err.message));
     },
     subscribeBars(info, resolution, onTick, guid) {
-      this._subs = this._subs || {};
-      this._subs[guid] = setInterval(async () => {
-        try {
-          const r = await fetch(`${SERVER}/realtime?symbol=${info.name}&resolution=${resolution}`);
-          const d = await r.json();
-          if (d.s === 'ok')
-            onTick({ time:d.t*1000, open:d.o, high:d.h, low:d.l, close:d.c, volume:d.v });
-        } catch(e) {}
+      this._subs[guid] = setInterval(() => {
+        fetch(`${SERVER}/realtime?symbol=${info.name}&resolution=${resolution}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d && d.s === 'ok') {
+              onTick({
+                time:   d.t * 1000,
+                open:   d.o,
+                high:   d.h,
+                low:    d.l,
+                close:  d.c,
+                volume: d.v || 0
+              });
+            }
+          })
+          .catch(() => {});
       }, 5000);
     },
     unsubscribeBars(guid) {
-      if (this._subs?.[guid]) {
+      if (this._subs[guid]) {
         clearInterval(this._subs[guid]);
         delete this._subs[guid];
       }
@@ -914,7 +943,6 @@ window.ui = {
       'volume_force_overlay'
     ],
     enabled_features: [
-      
       'items_favoriting',
       'save_chart_properties_to_local_storage',
       'use_localstorage_for_settings',
@@ -930,10 +958,10 @@ window.ui = {
       'display_market_status'
     ],
     overrides: {
-      'paneProperties.background':                   c.bg,
-      'paneProperties.backgroundType':               'solid',
-      'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
-      'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
+      'paneProperties.background':                        c.bg,
+      'paneProperties.backgroundType':                    'solid',
+      'paneProperties.vertGridProperties.color':          'rgba(0,0,0,0)',
+      'paneProperties.horzGridProperties.color':          'rgba(0,0,0,0)',
       'mainSeriesProperties.candleStyle.upColor':         c.up,
       'mainSeriesProperties.candleStyle.downColor':       c.down,
       'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
@@ -944,13 +972,11 @@ window.ui = {
     }
   });
 
- this._tvWidget.onChartReady(() => {
-  const chart = this._tvWidget.activeChart();
-  chart.applyOverrides({
-    'mainSeriesProperties.showCountdown': true,
-    'mainSeriesProperties.priceAxisProperties.showPriceAfterExpiration': true,
+  this._tvWidget.onChartReady(() => {
+    this._tvWidget.activeChart().applyOverrides({
+      'mainSeriesProperties.showCountdown': true
+    });
   });
-});
 },
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
