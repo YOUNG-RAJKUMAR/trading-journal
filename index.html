@@ -687,20 +687,45 @@ var MT5Feed = (function() {
     var lastData = {};
     var _connected = false;
     var _retryTimer = null;
+    var _countdownTimer = null;
 
     function setStatus(state, text) {
         var badge = document.getElementById('mt5-status-badge');
         var txt   = document.getElementById('mt5-status-text');
-        if(badge) { badge.className = state; }
-        if(txt)   { txt.textContent = text; }
+        if(badge) badge.className = state;
+        if(txt)   txt.textContent = text;
         _connected = (state === 'connected');
-
-        // Show/hide offline overlay
         var overlay = document.getElementById('mt5-offline-overlay');
         if(overlay) {
-            if(state === 'disconnected' && _feedMode === 'mt5') overlay.classList.add('show');
-            else overlay.classList.remove('show');
+            if(state === 'disconnected' && _feedMode === 'mt5')
+                overlay.classList.add('show');
+            else
+                overlay.classList.remove('show');
         }
+    }
+
+    /* ── Start countdown ticker — fires every second ── */
+    function startCountdown() {
+        if(_countdownTimer) clearInterval(_countdownTimer);
+        _countdownTimer = setInterval(function() {
+            Object.keys(subscribers).forEach(function(guid) {
+                var sub = subscribers[guid];
+                var d   = lastData[sub.symbol];
+                if(!d || !d.candles || !d.candles[sub.resolution]) return;
+                var candles = d.candles[sub.resolution];
+                if(!candles.length) return;
+                /* Send latest bar every second so TV recalculates countdown */
+                var bar = candles[candles.length - 1];
+                sub.callback({
+                    time:   bar.time,
+                    open:   bar.open,
+                    high:   bar.high,
+                    low:    bar.low,
+                    close:  bar.close,
+                    volume: bar.volume
+                });
+            });
+        }, 1000);
     }
 
     function connect() {
@@ -714,100 +739,77 @@ var MT5Feed = (function() {
         setStatus('connecting','MT5 CONNECTING...');
 
         ws.onopen = function() {
-            setStatus('connected','● MT5 LIVE');
             clearTimeout(_retryTimer);
-            // If we're in MT5 mode and chart is open, reload with MT5 feed
-            if(_feedMode === 'mt5' && window.ui) {
-                var active = document.getElementById('tab-charts');
-                if(active && active.classList.contains('active')) window.ui.launchTradingDesk();
-            }
         };
 
-    ws.onmessage = function(event) {
-    try {
-        var msg = JSON.parse(event.data);
+        ws.onmessage = function(event) {
+            try {
+                var msg = JSON.parse(event.data);
 
-        // ── Symbol history arriving one by one ──
-        if(msg.type === 'symbol_history') {
-            if(!lastData) lastData = {};
-            lastData[msg.symbol] = msg.data;
+                if(msg.type === 'loading_start') {
+                    var txt = document.getElementById('mt5-status-text');
+                    if(txt) txt.textContent = 'LOADING 0%';
+                    return;
+                }
 
-            // Show loading progress in status
-            var pct = Math.round(((msg.index+1)/msg.total)*100);
-            var txt = document.getElementById('mt5-status-text');
-            if(txt) txt.textContent = 'LOADING ' + pct + '%';
-            return;
-        }
+                if(msg.type === 'symbol_history') {
+                    if(!lastData) lastData = {};
+                    lastData[msg.symbol] = msg.data;
+                    var pct = Math.round(((msg.index+1)/msg.total)*100);
+                    var txt = document.getElementById('mt5-status-text');
+                    if(txt) txt.textContent = 'LOADING ' + pct + '%';
+                    return;
+                }
 
-        // ── All history done ──
-        if(msg.type === 'loading_done') {
-            var badge = document.getElementById('mt5-status-badge');
-            var txt   = document.getElementById('mt5-status-text');
-            if(badge) badge.className = 'connected';
-            if(txt)   txt.textContent = '● MT5 LIVE';
-            // Reload chart now that data is ready
-            if(window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
-            return;
-        }
+                if(msg.type === 'loading_done') {
+                    setStatus('connected','● MT5 LIVE');
+                    startCountdown(); /* ← start countdown after data ready */
+                    if(window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
+                    return;
+                }
 
-        // ── Loading started ──
-        if(msg.type === 'loading_start') {
-            var txt = document.getElementById('mt5-status-text');
-            if(txt) txt.textContent = 'LOADING 0%';
-            return;
-        }
+                if(msg.type === 'tick_update') {
+                    Object.keys(msg.data).forEach(function(sym) {
+                        if(!lastData[sym]) return;
+                        lastData[sym].bid    = msg.data[sym].bid;
+                        lastData[sym].ask    = msg.data[sym].ask;
+                        lastData[sym].spread = msg.data[sym].spread;
+                        lastData[sym].time   = msg.data[sym].time;
 
-        // ── Live tick updates ──
-        if(msg.type === 'tick_update') {
-            Object.keys(msg.data).forEach(function(sym) {
-                if(!lastData[sym]) return;
-                lastData[sym].bid    = msg.data[sym].bid;
-                lastData[sym].ask    = msg.data[sym].ask;
-                lastData[sym].spread = msg.data[sym].spread;
-                lastData[sym].time   = msg.data[sym].time;
+                        /* Merge latest candle into history */
+                        Object.keys(msg.data[sym].candles).forEach(function(tf) {
+                            var incoming = msg.data[sym].candles[tf];
+                            if(!incoming.length) return;
+                            var hist = lastData[sym].candles[tf];
+                            if(!hist || !hist.length) return;
+                            var latest = incoming[incoming.length-1];
+                            var last   = hist[hist.length-1];
+                            if(latest.time === last.time) {
+                                hist[hist.length-1] = latest;
+                            } else if(latest.time > last.time) {
+                                hist.push(latest);
+                            }
+                        });
+                    });
 
-                // Merge latest candle
-                Object.keys(msg.data[sym].candles).forEach(function(tf) {
-                    var incoming = msg.data[sym].candles[tf];
-                    if(!incoming.length) return;
-                    var hist = lastData[sym].candles[tf];
-                    if(!hist || !hist.length) return;
-                    var latest = incoming[incoming.length-1];
-                    var last   = hist[hist.length-1];
-                    if(latest.time === last.time) {
-                        hist[hist.length-1] = latest;
-                    } else if(latest.time > last.time) {
-                        hist.push(latest);
+                    /* Update calculator live price */
+                    var sym = document.getElementById('calc-symbol');
+                    if(sym && lastData[sym.textContent]) {
+                        var d  = lastData[sym.textContent];
+                        var pe = document.getElementById('calc-live-price');
+                        var se = document.getElementById('calc-spread');
+                        if(pe) pe.textContent = d.bid.toFixed(5)+' / '+d.ask.toFixed(5);
+                        if(se) se.textContent = 'spread: '+d.spread;
                     }
-                });
-            });
+                }
+            } catch(e) { console.log('WS parse error:', e); }
+        };
 
-            // Update calculator price
-            var sym = document.getElementById('calc-symbol');
-            if(sym && lastData[sym.textContent]) {
-                var d = lastData[sym.textContent];
-                var pe = document.getElementById('calc-live-price');
-                var se = document.getElementById('calc-spread');
-                if(pe) pe.textContent = d.bid.toFixed(5)+' / '+d.ask.toFixed(5);
-                if(se) se.textContent = 'spread: '+d.spread;
-            }
-
-            // Notify subscribers
-            Object.keys(subscribers).forEach(function(guid) {
-                var sub = subscribers[guid];
-                var sd  = lastData[sub.symbol];
-                if(!sd || !sd.candles) return;
-                var c = sd.candles[sub.resolution];
-                if(!c || !c.length) return;
-                sub.callback(c[c.length-1]);
-            });
-        }
-    } catch(e) {}
-};
         ws.onerror = function() {};
 
         ws.onclose = function() {
             setStatus('disconnected','MT5 OFFLINE');
+            if(_countdownTimer) clearInterval(_countdownTimer);
             scheduleRetry();
         };
     }
@@ -817,137 +819,119 @@ var MT5Feed = (function() {
         _retryTimer = setTimeout(connect, 3000);
     }
 
-    /* ── TradingView Advanced Library Datafeed Interface ── */
     var datafeed = {
         onReady: function(callback) {
             setTimeout(function() {
                 callback({
                     supported_resolutions: ['1','5','15','30','60','240','D','W'],
-                    supports_time: true,
-                    supports_marks: false,
+                    supports_time:         true,
+                    supports_marks:        false,
                     supports_timescale_marks: false,
                 });
             }, 0);
         },
 
         searchSymbols: function(userInput, exchange, symbolType, onResult) {
-            var all = ['EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','NZDUSD',
-                       'USDCAD','EURGBP','EURJPY','GBPJPY','XAUUSD','GBPCHF',
-                       'EURCHF','AUDJPY','CADJPY','CHFJPY','EURAUD','EURCAD'];
-            var q = userInput.toUpperCase();
-            onResult(all.filter(function(s){ return s.indexOf(q) !== -1; }).map(function(s) {
-                return { symbol:s, full_name:s, description:s, exchange:'MT5', type:'forex' };
-            }));
+            var all = Object.keys(lastData);
+            var q   = userInput.toUpperCase();
+            onResult(
+                all.filter(function(s){ return s.indexOf(q) !== -1; })
+                   .map(function(s) {
+                       return { symbol:s, full_name:s, description:s, exchange:'MT5', type:'forex' };
+                   })
+            );
         },
 
         resolveSymbol: function(symbolName, onResolve, onError) {
-    var isGold   = symbolName.indexOf('XAU') !== -1 || symbolName.indexOf('GOLD') !== -1;
-    var isIndex  = symbolName.indexOf('US30') !== -1 || symbolName.indexOf('NAS') !== -1;
-    setTimeout(function() { onResolve({
-                name:         symbolName,
-                ticker:       symbolName,
-                description:  symbolName + ' — MT5 Live',
-                type:         'forex',
-                session:      '24x7',
-                timezone:     'Asia/Kathmandu',
-                minmov:       1,
-                pricescale:   isGold ? 100 : isIndex ? 1 : 100000,
-                has_intraday: true,
-                has_daily:    true,
-                has_weekly_and_monthly: true,
-                supported_resolutions: ['1','5','15','30','60','240','D','W'],
-                volume_precision: 2,
-                data_status: 'streaming',
-            });
-    }, 0);  // ← add this closing
-},
+            var isGold  = symbolName.indexOf('XAU') !== -1 || symbolName.indexOf('XAG') !== -1;
+            var isIndex = symbolName.indexOf('US30') !== -1 || symbolName.indexOf('US500') !== -1
+                       || symbolName.indexOf('US100') !== -1 || symbolName.indexOf('GER') !== -1;
+            var isCrypto = symbolName.indexOf('BTC') !== -1 || symbolName.indexOf('ETH') !== -1;
+            setTimeout(function() {
+                onResolve({
+                    name:         symbolName,
+                    ticker:       symbolName,
+                    description:  symbolName + ' — MT5 Live',
+                    type:         isCrypto ? 'crypto' : isIndex ? 'index' : 'forex',
+                    session:      '24x7',
+                    timezone:     'Asia/Kathmandu',
+                    minmov:       1,
+                    pricescale:   isGold ? 100 : isIndex ? 1 : isCrypto ? 100 : 100000,
+                    has_intraday: true,
+                    has_daily:    true,
+                    has_weekly_and_monthly: true,
+                    supported_resolutions: ['1','5','15','30','60','240','D','W'],
+                    volume_precision: 2,
+                    data_status: 'streaming',
+                    /* ── This is KEY for countdown ── */
+                    has_seconds: false,
+                    force_session_rebuild: false,
+                });
+            }, 0);
+        },
 
-      getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
-    var resMap = {
-        '1':'M1','5':'M5','15':'M15','30':'M30',
-        '60':'H1','240':'H4','D':'D1','W':'W1'
-    };
-    var tf     = resMap[resolution] || 'H1';
-    var symbol = symbolInfo.name;
+        getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
+            var resMap = {
+                '1':'M1','5':'M5','15':'M15','30':'M30',
+                '60':'H1','240':'H4','D':'D1','W':'W1'
+            };
+            var tf     = resMap[resolution] || 'H1';
+            var symbol = symbolInfo.name;
+            var fromMs = periodParams.from * 1000;
+            var toMs   = periodParams.to   * 1000;
+            var tries  = 0;
 
-    // ── TradingView sends from/to in SECONDS ──
-    // ── Our candles are in MILLISECONDS ──
-    var fromMs = periodParams.from * 1000;
-    var toMs   = periodParams.to   * 1000;
-    var tries  = 0;
-
-    function tryGet() {
-        var d = MT5Feed.lastData[symbol];
-        if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
-            var allBars = d.candles[tf];
-
-            // First request → return ALL available history
-            if(periodParams.firstDataRequest) {
-                onResult(allBars, { noData: false });
-                return;
+            function tryGet() {
+                var d = lastData[symbol];
+                if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
+                    var allBars = d.candles[tf];
+                    if(periodParams.firstDataRequest) {
+                        onResult(allBars, { noData: false });
+                    } else {
+                        var bars = allBars.filter(function(b) {
+                            return b.time >= fromMs && b.time <= toMs;
+                        });
+                        onResult(bars, { noData: bars.length === 0 });
+                    }
+                } else if(tries < 40) {
+                    tries++;
+                    setTimeout(tryGet, 500);
+                } else {
+                    onResult([], { noData: true });
+                }
             }
+            tryGet();
+        },
 
-            // Subsequent requests → filter by time range
-            var bars = allBars.filter(function(b) {
-                return b.time >= fromMs && b.time <= toMs;
-            });
-            onResult(bars, { noData: bars.length === 0 });
+        subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
+            var resMap = {
+                '1':'M1','5':'M5','15':'M15','30':'M30',
+                '60':'H1','240':'H4','D':'D1','W':'W1'
+            };
+            subscribers[listenerGuid] = {
+                symbol:     symbolInfo.name,
+                resolution: resMap[resolution] || 'H1',
+                callback:   onTick
+            };
+        },
 
-        } else if(tries < 30) {
-            // Wait for bridge to send data (max 15 seconds)
-            tries++;
-            setTimeout(tryGet, 500);
-        } else {
-            onResult([], { noData: true });
-        }
-    }
-    tryGet();
-},
-
-    subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
-    var resMap = {
-        '1':'M1','5':'M5','15':'M15','30':'M30',
-        '60':'H1','240':'H4','D':'D1','W':'W1'
-    };
-    subscribers[listenerGuid] = {
-        symbol:     symbolInfo.name,
-        resolution: resMap[resolution] || 'H1',
-        callback:   onTick
-    };
-
-    // ── Fire callback every second to keep countdown alive ──
-    var timer = setInterval(function() {
-        var sym = symbolInfo.name;
-        var tf  = resMap[resolution] || 'H1';
-        var d   = lastData[sym];
-        if(!d || !d.candles || !d.candles[tf]) return;
-        var candles = d.candles[tf];
-        if(!candles.length) return;
-        // Send latest candle every second
-        onTick(candles[candles.length - 1]);
-    }, 1000);
-
-    // Store timer so we can clear it on unsubscribe
-    subscribers[listenerGuid].timer = timer;
-},
-
-unsubscribeBars: function(listenerGuid) {
-    // ── Clear the interval timer ──
-    if(subscribers[listenerGuid] && subscribers[listenerGuid].timer) {
-        clearInterval(subscribers[listenerGuid].timer);
-    }
-    delete subscribers[listenerGuid];
-},
+        unsubscribeBars: function(listenerGuid) {
+            delete subscribers[listenerGuid];
+        },
 
         getServerTime: function(callback) {
+            /* Return real current time every call */
             callback(Math.floor(Date.now() / 1000));
         }
     };
 
-    // Start connecting
     connect();
 
-    return {     datafeed:    datafeed,     isConnected: function() { return _connected; },     get lastData() { return lastData; } };
+    return {
+        datafeed:    datafeed,
+        isConnected: function() { return _connected; },
+        get lastData() { return lastData; }
+    };
 })();
 
 /* ── Feed mode switcher ── */
