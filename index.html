@@ -790,9 +790,9 @@ var MT5Feed = (function() {
         },
 
         resolveSymbol: function(symbolName, onResolve, onError) {
-            var isGold   = symbolName.indexOf('XAU') !== -1 || symbolName.indexOf('GOLD') !== -1;
-            var isIndex  = symbolName.indexOf('US30') !== -1 || symbolName.indexOf('NAS') !== -1;
-            onResolve({
+    var isGold   = symbolName.indexOf('XAU') !== -1 || symbolName.indexOf('GOLD') !== -1;
+    var isIndex  = symbolName.indexOf('US30') !== -1 || symbolName.indexOf('NAS') !== -1;
+    setTimeout(function() { onResolve({
                 name:         symbolName,
                 ticker:       symbolName,
                 description:  symbolName + ' — MT5 Live',
@@ -808,7 +808,8 @@ var MT5Feed = (function() {
                 volume_precision: 2,
                 data_status: 'streaming',
             });
-        },
+    }, 0);  // ← add this closing
+},
 
         getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
             var resMap = {'1':'M1','5':'M5','15':'M15','30':'M30','60':'H1','240':'H4','D':'D1','W':'W1'};
