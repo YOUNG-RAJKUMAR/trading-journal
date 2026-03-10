@@ -723,17 +723,42 @@ var MT5Feed = (function() {
             }
         };
 
-      ws.onmessage = function(event) {
+    ws.onmessage = function(event) {
     try {
         var msg = JSON.parse(event.data);
 
-        if(msg.type === 'price_update') {
-            // Full history — store everything
-            lastData = msg.data;
+        // ── Symbol history arriving one by one ──
+        if(msg.type === 'symbol_history') {
+            if(!lastData) lastData = {};
+            lastData[msg.symbol] = msg.data;
+
+            // Show loading progress in status
+            var pct = Math.round(((msg.index+1)/msg.total)*100);
+            var txt = document.getElementById('mt5-status-text');
+            if(txt) txt.textContent = 'LOADING ' + pct + '%';
+            return;
         }
 
+        // ── All history done ──
+        if(msg.type === 'loading_done') {
+            var badge = document.getElementById('mt5-status-badge');
+            var txt   = document.getElementById('mt5-status-text');
+            if(badge) badge.className = 'connected';
+            if(txt)   txt.textContent = '● MT5 LIVE';
+            // Reload chart now that data is ready
+            if(window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
+            return;
+        }
+
+        // ── Loading started ──
+        if(msg.type === 'loading_start') {
+            var txt = document.getElementById('mt5-status-text');
+            if(txt) txt.textContent = 'LOADING 0%';
+            return;
+        }
+
+        // ── Live tick updates ──
         if(msg.type === 'tick_update') {
-            // Live tick — merge latest candle only
             Object.keys(msg.data).forEach(function(sym) {
                 if(!lastData[sym]) return;
                 lastData[sym].bid    = msg.data[sym].bid;
@@ -741,45 +766,42 @@ var MT5Feed = (function() {
                 lastData[sym].spread = msg.data[sym].spread;
                 lastData[sym].time   = msg.data[sym].time;
 
-                // Merge latest candle into history
+                // Merge latest candle
                 Object.keys(msg.data[sym].candles).forEach(function(tf) {
                     var incoming = msg.data[sym].candles[tf];
                     if(!incoming.length) return;
                     var hist = lastData[sym].candles[tf];
                     if(!hist || !hist.length) return;
-                    var latest = incoming[incoming.length - 1];
-                    var last   = hist[hist.length - 1];
+                    var latest = incoming[incoming.length-1];
+                    var last   = hist[hist.length-1];
                     if(latest.time === last.time) {
-                        // Update current candle
-                        hist[hist.length - 1] = latest;
+                        hist[hist.length-1] = latest;
                     } else if(latest.time > last.time) {
-                        // New candle formed
                         hist.push(latest);
                     }
                 });
             });
+
+            // Update calculator price
+            var sym = document.getElementById('calc-symbol');
+            if(sym && lastData[sym.textContent]) {
+                var d = lastData[sym.textContent];
+                var pe = document.getElementById('calc-live-price');
+                var se = document.getElementById('calc-spread');
+                if(pe) pe.textContent = d.bid.toFixed(5)+' / '+d.ask.toFixed(5);
+                if(se) se.textContent = 'spread: '+d.spread;
+            }
+
+            // Notify subscribers
+            Object.keys(subscribers).forEach(function(guid) {
+                var sub = subscribers[guid];
+                var sd  = lastData[sub.symbol];
+                if(!sd || !sd.candles) return;
+                var c = sd.candles[sub.resolution];
+                if(!c || !c.length) return;
+                sub.callback(c[c.length-1]);
+            });
         }
-
-        // Update live price in calculator
-        var sym = document.getElementById('calc-symbol');
-        if(sym && lastData[sym.textContent]) {
-            var d = lastData[sym.textContent];
-            var priceEl  = document.getElementById('calc-live-price');
-            var spreadEl = document.getElementById('calc-spread');
-            if(priceEl)  priceEl.textContent = d.bid.toFixed(5) + ' / ' + d.ask.toFixed(5);
-            if(spreadEl) spreadEl.textContent = 'spread: ' + d.spread;
-        }
-
-        // Notify chart subscribers
-        Object.keys(subscribers).forEach(function(guid) {
-            var sub = subscribers[guid];
-            var symData = lastData[sub.symbol];
-            if(!symData || !symData.candles) return;
-            var candles = symData.candles[sub.resolution];
-            if(!candles || !candles.length) return;
-            sub.callback(candles[candles.length - 1]);
-        });
-
     } catch(e) {}
 };
         ws.onerror = function() {};
