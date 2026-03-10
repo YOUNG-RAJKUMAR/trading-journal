@@ -944,11 +944,13 @@ window.ui = {
     }
   });
 
-  this._tvWidget.onChartReady(() => {
-    this._tvWidget.activeChart().applyOverrides({
-      'mainSeriesProperties.showCountdown': true
-    });
+ this._tvWidget.onChartReady(() => {
+  const chart = this._tvWidget.activeChart();
+  chart.applyOverrides({
+    'mainSeriesProperties.showCountdown': true,
+    'mainSeriesProperties.priceAxisProperties.showPriceAfterExpiration': true,
   });
+});
 },
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
