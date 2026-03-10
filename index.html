@@ -497,7 +497,27 @@
 
             <!-- ══ CHART CONTAINER WITH OFFLINE OVERLAY ══ -->
             <div style="flex:1;min-width:0;height:100%;position:relative;">
-                <div id="tv-container" style="width:100%;height:100%;"></div>
+             <div id="tv-container" style="width:100%;height:100%;"></div>
+
+<!-- Custom countdown overlay -->
+<div id="chart-countdown" style="
+    position:absolute;
+    bottom:36px;
+    right:12px;
+    background:rgba(0,0,0,0.75);
+    border:1px solid #333;
+    padding:4px 10px;
+    font-family:'Courier New',monospace;
+    font-size:.75rem;
+    color:#44ff88;
+    z-index:5;
+    pointer-events:none;
+    display:none;
+    letter-spacing:1px;
+">
+    <span id="countdown-tf" style="color:#555;margin-right:6px;font-size:.65rem;"></span>
+    <span id="countdown-val">--:--</span>
+</div>   
 
                 <!-- MT5 offline overlay -->
                 <div id="mt5-offline-overlay">
@@ -945,6 +965,72 @@ function switchFeed(mode) {
 
     if(window.ui) window.ui.launchTradingDesk();
 }
+
+/* ══════════════════════════════════
+   CUSTOM CHART COUNTDOWN TIMER
+   Works independently of TV library
+══════════════════════════════════ */
+var _countdownInterval = null;
+var _currentTF = '1'; // default 1min
+
+function startCustomCountdown() {
+    if(_countdownInterval) clearInterval(_countdownInterval);
+
+    _countdownInterval = setInterval(function() {
+        var el  = document.getElementById('chart-countdown');
+        var val = document.getElementById('countdown-val');
+        var tf  = document.getElementById('countdown-tf');
+        if(!el || !val) return;
+
+        // Get current timeframe from TV widget if possible
+        var tfMins = getTFMinutes(_currentTF);
+        if(!tfMins) { el.style.display = 'none'; return; }
+
+        var now      = Math.floor(Date.now() / 1000);
+        var barSize  = tfMins * 60;
+        var barStart = Math.floor(now / barSize) * barSize;
+        var barClose = barStart + barSize;
+        var remaining = barClose - now;
+
+        var h = Math.floor(remaining / 3600);
+        var m = Math.floor((remaining % 3600) / 60);
+        var s = remaining % 60;
+
+        var display = '';
+        if(h > 0) {
+            display = pad(h)+':'+pad(m)+':'+pad(s);
+        } else {
+            display = pad(m)+':'+pad(s);
+        }
+
+        val.textContent = display;
+        if(tf) tf.textContent = _currentTF + 'M';
+
+        // Color based on urgency
+        if(remaining <= 30)       val.style.color = '#ff4444';
+        else if(remaining <= 120) val.style.color = '#ffcc44';
+        else                      val.style.color = '#44ff88';
+
+        el.style.display = 'block';
+    }, 1000);
+}
+
+function getTFMinutes(tf) {
+    var map = {
+        '1':1, '3':3, '5':5, '15':15, '30':30,
+        '60':60, '240':240, 'D':1440, 'W':10080
+    };
+    return map[tf] || 1;
+}
+
+function pad(n) {
+    return n < 10 ? '0'+n : ''+n;
+}
+
+// Update current TF when user changes it
+function updateCountdownTF(tf) {
+    _currentTF = tf;
+}
 </script>
 
 <!-- ══ FIREBASE + MAIN APP LOGIC ══ -->
@@ -1051,94 +1137,98 @@ window.ui = {
        MODE A: MT5 feed  → Advanced Charting Library
        MODE B: TV feed   → Free TradingView widget (fallback)
     ══════════════════════════════════════════════════ */
-    launchTradingDesk() {
-        const c   = this._tvColors();
-        const con = document.getElementById('tv-container');
-        if(!con) return;
+   launchTradingDesk() {
+    const c   = this._tvColors();
+    const con = document.getElementById('tv-container');
+    if(!con) return;
 
-        // Destroy previous widget
-        if(this._tvWidget) {
-            try { this._tvWidget.remove(); } catch(e) {}
-            this._tvWidget = null;
+    // Destroy previous widget
+    if(this._tvWidget) {
+        try { this._tvWidget.remove(); } catch(e) {}
+        this._tvWidget = null;
+    }
+    con.innerHTML = '';
+
+    // ── MODE B: TradingView free widget fallback ──
+    if(window._feedMode === 'tv') {
+        if(typeof TradingView === 'undefined') {
+            const s = document.createElement('script');
+            s.src = 'https://s3.tradingview.com/tv.js';
+            s.onload = () => this._launchTVFree(c, con);
+            document.head.appendChild(s);
+        } else {
+            this._launchTVFree(c, con);
         }
-        con.innerHTML = '';
+        startCustomCountdown();
+        return;
+    }
 
-        // ── MODE B: TradingView free widget fallback ──
-        if(window._feedMode === 'tv') {
-            if(typeof TradingView === 'undefined') {
-                // Load free widget script dynamically
-                const s = document.createElement('script');
-                s.src = 'https://s3.tradingview.com/tv.js';
-                s.onload = () => this._launchTVFree(c, con);
-                document.head.appendChild(s);
-            } else {
-                this._launchTVFree(c, con);
-            }
-            return;
-        }
+    // ── MODE A: Advanced Charting Library + MT5 datafeed ──
+    if(typeof TradingView === 'undefined' || !TradingView.widget) {
+        con.innerHTML = '<div style="padding:40px;text-align:center;color:#ff4444;font-size:.75rem;letter-spacing:2px;">CHARTING LIBRARY NOT FOUND</div>';
+        return;
+    }
 
-        // ── MODE A: Advanced Charting Library + MT5 datafeed ──
-        if(typeof TradingView === 'undefined' || !TradingView.widget) {
-            con.innerHTML = '<div style="padding:40px;text-align:center;color:#ff4444;font-size:.75rem;letter-spacing:2px;">CHARTING LIBRARY NOT FOUND<br><span style="color:#555;font-size:.6rem;margin-top:8px;display:block;">Make sure /charting_library/charting_library.js is in your repo</span></div>';
-            return;
-        }
+    this._tvWidget = new TradingView.widget({
+        library_path:    '/charting_library/',
+        datafeed:        MT5Feed.datafeed,
+        container:       'tv-container',
+        symbol:          'EURUSD',
+        interval:        this._tf,
+        timezone:        'Asia/Kathmandu',
+        theme:           'dark',
+        locale:          'en',
+        autosize:        true,
+        fullscreen:      false,
+        debug:           false,
+        disabled_features: [
+            'volume_force_overlay',
+            'create_volume_indicator_by_default',
+            'header_saveload',
+        ],
+        enabled_features: [
+            'side_toolbar_in_fullscreen_mode',
+            'hide_last_na_study_output',
+            'move_logo_to_main_pane',
+        ],
+        overrides: {
+            'paneProperties.background':                   c.bg,
+            'paneProperties.backgroundType':               'solid',
+            'paneProperties.backgroundGradientStartColor': c.bg,
+            'paneProperties.backgroundGradientEndColor':   c.bg,
+            'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
+            'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
+            'paneProperties.crossHairProperties.color':    '#555555',
+            'mainSeriesProperties.candleStyle.upColor':         c.up,
+            'mainSeriesProperties.candleStyle.downColor':       c.down,
+            'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
+            'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
+            'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
+            'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
+            'mainSeriesProperties.candleStyle.drawWick':        true,
+            'mainSeriesProperties.candleStyle.drawBorder':      true,
+        },
+        studies_overrides: {},
+        toolbar_bg: c.bg,
+        loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
+    });
 
-        this._tvWidget = new TradingView.widget({
-            /* ── Required for Advanced Library ── */
-            library_path:    '/charting_library/',
-            datafeed:        MT5Feed.datafeed,
-            container:       'tv-container',
-
-            /* ── Chart Settings ── */
-            symbol:          'EURUSD',
-            interval:        this._tf,
-            timezone:        'Asia/Kathmandu',
-            theme:           'dark',
-            locale:          'en',
-            autosize:        true,
-            fullscreen:      false,
-            debug:           false,
-
-            /* ── Features ── */
-            disabled_features: [
-            
-                'volume_force_overlay',
-                'create_volume_indicator_by_default',
-                'header_saveload',
-            ],
-            enabled_features: [
-                'side_toolbar_in_fullscreen_mode',
-                'hide_last_na_study_output',
-                'move_logo_to_main_pane',
-            ],
-
-            /* ── Custom Colors ── */
-            overrides: {
-                'paneProperties.background':                   c.bg,
-                'paneProperties.backgroundType':               'solid',
-                'paneProperties.backgroundGradientStartColor': c.bg,
-                'paneProperties.backgroundGradientEndColor':   c.bg,
-                'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
-                'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
-                'paneProperties.crossHairProperties.color':    '#555555',
-                'mainSeriesProperties.candleStyle.upColor':         c.up,
-                'mainSeriesProperties.candleStyle.downColor':       c.down,
-                'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
-                'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
-                'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
-                'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
-                'mainSeriesProperties.candleStyle.drawWick':        true,
-                'mainSeriesProperties.candleStyle.drawBorder':      true,
-            },
-
-            studies_overrides: {},
-
-            /* ── Toolbar color ── */
-            toolbar_bg: c.bg,
-            loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
+    // ── START COUNTDOWN ──
+    startCustomCountdown();
+    const self = this;
+    if(this._tvWidget && this._tvWidget.onChartReady) {
+        this._tvWidget.onChartReady(function() {
+            try {
+                self._tvWidget.activeChart().onIntervalChanged().subscribe(
+                    null,
+                    function(interval) { updateCountdownTF(interval); }
+                );
+                var initTF = self._tvWidget.activeChart().resolution();
+                updateCountdownTF(initTF);
+            } catch(e) {}
         });
-    },
-
+    }
+},
     /* TradingView free widget fallback */
     _launchTVFree(c, con) {
         this._tvWidget = new TradingView.widget({
