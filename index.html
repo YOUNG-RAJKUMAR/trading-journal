@@ -904,18 +904,40 @@ var MT5Feed = (function() {
     tryGet();
 },
 
-        subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
-            var resMap = {'1':'M1','5':'M5','15':'M15','30':'M30','60':'H1','240':'H4','D':'D1','W':'W1'};
-            subscribers[listenerGuid] = {
-                symbol:     symbolInfo.name,
-                resolution: resMap[resolution] || 'H1',
-                callback:   onTick
-            };
-        },
+    subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
+    var resMap = {
+        '1':'M1','5':'M5','15':'M15','30':'M30',
+        '60':'H1','240':'H4','D':'D1','W':'W1'
+    };
+    subscribers[listenerGuid] = {
+        symbol:     symbolInfo.name,
+        resolution: resMap[resolution] || 'H1',
+        callback:   onTick
+    };
 
-        unsubscribeBars: function(listenerGuid) {
-            delete subscribers[listenerGuid];
-        },
+    // ── Fire callback every second to keep countdown alive ──
+    var timer = setInterval(function() {
+        var sym = symbolInfo.name;
+        var tf  = resMap[resolution] || 'H1';
+        var d   = lastData[sym];
+        if(!d || !d.candles || !d.candles[tf]) return;
+        var candles = d.candles[tf];
+        if(!candles.length) return;
+        // Send latest candle every second
+        onTick(candles[candles.length - 1]);
+    }, 1000);
+
+    // Store timer so we can clear it on unsubscribe
+    subscribers[listenerGuid].timer = timer;
+},
+
+unsubscribeBars: function(listenerGuid) {
+    // ── Clear the interval timer ──
+    if(subscribers[listenerGuid] && subscribers[listenerGuid].timer) {
+        clearInterval(subscribers[listenerGuid].timer);
+    }
+    delete subscribers[listenerGuid];
+},
 
         getServerTime: function(callback) {
             callback(Math.floor(Date.now() / 1000));
