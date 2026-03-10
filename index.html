@@ -1098,16 +1098,28 @@ window.ui = {
                 "mainSeriesProperties.candleStyle.drawBorder":      true,
             }
         });
-        /* Track mouse price/time for accurate drawing placement */
+        /* Wait for widget ready, then store chart reference */
         const _self = this;
-        this._tvWidget.onChartReady(() => {
+        _self._tvChart = null;
+        function waitForChart(attempts) {
+            if (attempts <= 0) return;
             try {
-                _self._tvWidget.activeChart().crossHairMoved(({ price, time }) => {
-                    if (price && price > 0) _self._lastPrice = price;
-                    if (time  && time  > 0) _self._lastTime  = time;
-                });
-            } catch(e) { /* crossHairMoved not available in all widget versions */ }
-        });
+                if (_self._tvWidget && typeof _self._tvWidget.onChartReady === 'function') {
+                    _self._tvWidget.onChartReady(() => {
+                        try {
+                            _self._tvChart = _self._tvWidget.activeChart();
+                            _self._tvChart.crossHairMoved(({ price, time }) => {
+                                if (price && price > 0) _self._lastPrice = price;
+                                if (time  && time  > 0) _self._lastTime  = time;
+                            });
+                        } catch(e) {}
+                    });
+                } else {
+                    setTimeout(() => waitForChart(attempts - 1), 400);
+                }
+            } catch(e) { setTimeout(() => waitForChart(attempts - 1), 400); }
+        }
+        waitForChart(25);
     },
 
     rebuildTVWidget() {
@@ -1158,9 +1170,12 @@ window.ui = {
     },
 
     placeDrawing(type) {
-        if (!this._tvWidget) return;
+        if (!this._tvChart) {
+            console.warn('Chart not ready yet — please wait a moment and try again.');
+            return;
+        }
         try {
-            const chart = this._tvWidget.activeChart();
+            const chart = this._tvChart;
             const price = this._lastPrice || 1.0850;
             let vr; try { vr = chart.getVisibleRange(); } catch(e) {}
             const nowTs = Math.floor(Date.now() / 1000);
@@ -1285,14 +1300,14 @@ window.ui = {
     removeDrawing(idx) {
         const d = this._drawings[idx];
         if (!d) return;
-        try { this._tvWidget.activeChart().removeEntity(d.id); } catch(e) {}
+        try { if(this._tvChart) this._tvChart.removeEntity(d.id); } catch(e) {}
         this._drawings.splice(idx, 1);
         this.updateDrawingsList();
     },
 
     removeAllDrawings() {
         if (!this._tvWidget) return;
-        this._drawings.forEach(d => { try { this._tvWidget.activeChart().removeEntity(d.id); } catch(e) {} });
+        this._drawings.forEach(d => { try { if(this._tvChart) this._tvChart.removeEntity(d.id); } catch(e) {} });
         this._drawings = [];
         this.updateDrawingsList();
     },
