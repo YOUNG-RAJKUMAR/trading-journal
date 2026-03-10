@@ -1130,40 +1130,47 @@ window.ui = {
         rectangle:'Rect',         cross:'Cross',
     },
 
-    /* ─ init canvas (call once after chart tab opens) ─ */
+    /* ─ init canvas — call each time chart tab becomes visible ─ */
     initCanvas() {
-        if (this._canvasReady) return;
         const canvas = document.getElementById('draw-canvas');
         const wrap   = canvas && canvas.parentElement;
         if (!canvas || !wrap) return;
+
+        /* Size canvas to actual pixel dimensions */
+        const syncSize = () => {
+            const w = wrap.offsetWidth, h = wrap.offsetHeight;
+            if (w > 0 && h > 0 && (canvas.width !== w || canvas.height !== h)) {
+                canvas.width  = w;
+                canvas.height = h;
+                this._redrawAll();
+            }
+        };
+        syncSize();
+
+        /* Only attach events once */
+        if (this._canvasReady) { syncSize(); return; }
         this._canvasReady = true;
 
-        const resize = () => {
-            canvas.width  = wrap.offsetWidth;
-            canvas.height = wrap.offsetHeight;
-            this._redrawAll();
-        };
-        new ResizeObserver(resize).observe(wrap);
-        resize();
+        new ResizeObserver(syncSize).observe(wrap);
 
-        /* ─ drag state ─ */
+        const DRAG_TOOLS = new Set(['fib_retracement','gann_box','rectangle']);
         let dragging = false, p1 = null;
 
         const pt = e => {
             const r = canvas.getBoundingClientRect();
-            return { nx:(e.clientX-r.left)/canvas.width, ny:(e.clientY-r.top)/canvas.height };
+            return {
+                nx: (e.clientX - r.left) / r.width,
+                ny: (e.clientY - r.top)  / r.height
+            };
         };
-
-        const DRAG_TOOLS = ['fib_retracement','gann_box','rectangle'];
 
         canvas.addEventListener('mousedown', e => {
             if (!this._activeTool) return;
-            e.preventDefault();
+            e.preventDefault(); e.stopPropagation();
             p1 = pt(e);
-            if (DRAG_TOOLS.includes(this._activeTool)) {
+            if (DRAG_TOOLS.has(this._activeTool)) {
                 dragging = true;
             } else {
-                /* single-click tools */
                 this._commitDrawing(this._activeTool, p1, p1);
                 this._deactivateTool();
             }
@@ -1171,37 +1178,38 @@ window.ui = {
 
         canvas.addEventListener('mousemove', e => {
             if (!dragging || !p1) return;
-            const p2 = pt(e);
             this._redrawAll();
-            this._drawPreview(this._activeTool, p1, p2, canvas);
+            this._drawPreview(this._activeTool, p1, pt(e), canvas);
         });
 
-        canvas.addEventListener('mouseup', e => {
+        const finishDrag = e => {
             if (!dragging || !p1) return;
-            dragging = false;
             const p2 = pt(e);
-            /* only commit if dragged a meaningful distance */
-            const dx = Math.abs(p2.nx-p1.nx)*canvas.width;
-            const dy = Math.abs(p2.ny-p1.ny)*canvas.height;
-            if (dx > 4 || dy > 4) {
+            dragging = false;
+            const W = canvas.getBoundingClientRect().width;
+            const H = canvas.getBoundingClientRect().height;
+            if (Math.abs(p2.nx-p1.nx)*W > 4 || Math.abs(p2.ny-p1.ny)*H > 4) {
                 this._commitDrawing(this._activeTool, p1, p2);
             }
             p1 = null;
             this._deactivateTool();
-        });
+        };
+        canvas.addEventListener('mouseup',    finishDrag);
+        canvas.addEventListener('mouseleave', finishDrag);
 
-        canvas.addEventListener('mouseleave', () => {
-            if (dragging) { dragging = false; p1 = null; this._deactivateTool(); }
+        /* ESC key cancels */
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { dragging=false; p1=null; this._deactivateTool(); this._redrawAll(); }
         });
     },
 
     _deactivateTool() {
         this._activeTool = null;
         const canvas = document.getElementById('draw-canvas');
-        if (canvas) canvas.style.pointerEvents = 'none';
-        document.querySelectorAll('.draw-btn,.cft-tool').forEach(b => {
-            b.classList.remove('dt-active','cft-active');
-        });
+        if (canvas) { canvas.style.pointerEvents = 'none'; canvas.style.cursor = 'default'; }
+        document.querySelectorAll('.draw-btn,.cft-tool').forEach(b =>
+            b.classList.remove('dt-active','cft-active')
+        );
     },
 
     _commitDrawing(type, p1, p2) {
@@ -1335,12 +1343,17 @@ window.ui = {
         if (this._activeTool === toolType) {
             this._deactivateTool(); return;
         }
+
+        /* Init + size canvas every time (tab may have been hidden on first call) */
         this.initCanvas();
         this._activeTool = toolType;
 
-        /* Enable pointer events on canvas so it captures mouse */
+        /* Enable pointer events so canvas captures mouse — must come after initCanvas */
         const canvas = document.getElementById('draw-canvas');
-        if (canvas) canvas.style.pointerEvents = 'all';
+        if (canvas) {
+            canvas.style.pointerEvents = 'all';
+            canvas.style.cursor = 'crosshair';
+        }
 
         /* Highlight buttons */
         document.querySelectorAll('.draw-btn').forEach(b => b.classList.remove('dt-active'));
