@@ -957,8 +957,8 @@ var MT5Feed = (function() {
         },
 
     getServerTime: function(callback) {
-            /* Nepal Time = UTC + 5:45 (20700 seconds) */
-            callback(Math.floor(Date.now() / 1000) + 20700);
+           
+           callback(Math.floor(Date.now() / 1000));
         }
     };
     connect();
