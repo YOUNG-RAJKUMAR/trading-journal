@@ -1268,39 +1268,42 @@ window.ui = {
     { text: '1M',  resolution: 'M',   description: '1 Month' },
 ],
 
-        custom_indicators_getter: function(PineJS) {
-            return Promise.resolve([{
-                name: 'Session High Low NPT',
-                metainfo: {
-                    _metainfoVersion: 51,
-                    id: 'SessionHighLowNPT@tv-basicstudies-1',
-                    name: 'Session High Low NPT',
-                    description: 'Session High Low - Asia / London / NY (NPT)',
-                    shortDescription: 'Sess H/L',
-                    is_price_study: true,
-                    isCustomIndicator: true,
-                    plots: [
-                        {id:'plot_asia_h', type:'line'},
-                        {id:'plot_asia_l', type:'line'},
-                        {id:'plot_lon_h',  type:'line'},
-                        {id:'plot_lon_l',  type:'line'},
-                        {id:'plot_ny_h',   type:'line'},
-                        {id:'plot_ny_l',   type:'line'},
-                    ],
-                    defaults: {
-                         styles: {
-   plot_asia_h: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', transparency: 0 },
-plot_asia_l: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', transparency: 0 },
-plot_lon_h:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', transparency: 0 },
-plot_lon_l:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', transparency: 0 },
-plot_ny_h:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', transparency: 0 },
-plot_ny_l:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', transparency: 0 },
-    },
-    inputs: {}
-},
-                    inputs: [],
+    custom_indicators_getter: function(PineJS) {
+    console.log('Registering custom indicators...');
+    return Promise.resolve([{
+        name: 'Session High Low NPT',
+        metainfo: {
+            _metainfoVersion: 51,
+            id: 'SessionHighLowNPT@tv-basicstudies-1',
+            scriptIdPart: '',
+            name: 'Session High Low NPT',
+            description: 'Session High Low - Asia / London / NY (NPT)',
+            shortDescription: 'Sess H/L',
+            is_price_study: true,
+            isCustomIndicator: true,
+            linkedToSeries: true,
+            format: { type: 'price', precision: 5 },
+            plots: [
+                {id:'plot_asia_h', type:'line'},
+                {id:'plot_asia_l', type:'line'},
+                {id:'plot_lon_h',  type:'line'},
+                {id:'plot_lon_l',  type:'line'},
+                {id:'plot_ny_h',   type:'line'},
+                {id:'plot_ny_l',   type:'line'},
+            ],
+            defaults: {
+                styles: {
+                    plot_asia_h: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', transparency: 0 },
+                    plot_asia_l: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', transparency: 0 },
+                    plot_lon_h:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', transparency: 0 },
+                    plot_lon_l:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', transparency: 0 },
+                    plot_ny_h:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', transparency: 0 },
+                    plot_ny_l:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', transparency: 0 },
                 },
-
+                inputs: {}
+            },
+            inputs: [],
+        },
               constructor: function() {
                     this.init = function(context, inputCallback) {
                         this._context = context;
@@ -1355,23 +1358,44 @@ plot_ny_l:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', transp
         loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
     });
 
-    // ── START COUNTDOWN ──
+  // ── START COUNTDOWN ──
     startCustomCountdown();
     const self = this;
     if(this._tvWidget && this._tvWidget.onChartReady) {
         this._tvWidget.onChartReady(function() {
-               try {
+            try {
+                console.log('Chart ready...');
+
                 // ── Auto-load Session High/Low indicator ──
-                self._tvWidget.activeChart().createStudy(
-                    'Session High Low NPT', false, false, {}, {}
+                var studyPromise = self._tvWidget.activeChart().createStudy(
+                    'Session High Low NPT',
+                    false,
+                    false,
+                    [],
+                    {},
+                    { checkLimit: false }
                 );
+
+                if(studyPromise && studyPromise.then) {
+                    studyPromise.then(function(id) {
+                        console.log('✅ Indicator loaded, ID:', id);
+                    }).catch(function(err) {
+                        console.error('❌ createStudy error:', err);
+                    });
+                }
+
+                // ── Interval change listener ──
                 self._tvWidget.activeChart().onIntervalChanged().subscribe(
                     null,
                     function(interval) { updateCountdownTF(interval); }
                 );
+
                 var initTF = self._tvWidget.activeChart().resolution();
                 updateCountdownTF(initTF);
-            } catch(e) {}
+
+            } catch(e) {
+                console.error('❌ onChartReady error:', e);
+            }
         });
     }
 },
