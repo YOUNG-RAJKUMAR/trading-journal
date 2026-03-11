@@ -885,7 +885,11 @@ var MT5Feed = (function() {
                     has_intraday: true,
                     has_daily:    true,
                     has_weekly_and_monthly: true,
-                    supported_resolutions: ['1','5','15','30','60','240','D','W'],
+                    supported_resolutions: [
+    '1','2','3','4','5','6','10','12',
+    '15','20','30','60','120','180','240',
+    '360','480','720','D','W','M'
+],
                     volume_precision: 2,
                     data_status: 'streaming',
                     /* ── This is KEY for countdown ── */
@@ -896,10 +900,10 @@ var MT5Feed = (function() {
         },
 
         getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
-          var resMap = {
+     var resMap = {
     '1':'M1',   '2':'M2',   '3':'M3',   '4':'M4',
     '5':'M5',   '6':'M6',   '10':'M10', '12':'M12',
-    '15':'M15', '20':'M20', '30':'M30', 
+    '15':'M15', '20':'M20', '30':'M30',
     '60':'H1',  '120':'H2', '180':'H3', '240':'H4',
     '360':'H6', '480':'H8', '720':'H12',
     'D':'D1',   'W':'W1',   'M':'MN1'
@@ -934,9 +938,13 @@ var MT5Feed = (function() {
 
         subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
             var resMap = {
-                '1':'M1','5':'M5','15':'M15','30':'M30',
-                '60':'H1','240':'H4','D':'D1','W':'W1'
-            };
+    '1':'M1',   '2':'M2',   '3':'M3',   '4':'M4',
+    '5':'M5',   '6':'M6',   '10':'M10', '12':'M12',
+    '15':'M15', '20':'M20', '30':'M30',
+    '60':'H1',  '120':'H2', '180':'H3', '240':'H4',
+    '360':'H6', '480':'H8', '720':'H12',
+    'D':'D1',   'W':'W1',   'M':'MN1'
+};
             subscribers[listenerGuid] = {
                 symbol:     symbolInfo.name,
                 resolution: resMap[resolution] || 'H1',
