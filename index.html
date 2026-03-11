@@ -426,9 +426,66 @@
         <!-- Chart + Calculator -->
         <div style="display:flex;height:calc(136vh - 80px);">
 
-            <!-- ══ CHART CONTAINER WITH OFFLINE OVERLAY ══ -->
-            <div style="flex:1;min-width:0;height:100%;position:relative;zoom:0.65;">
-             <div id="tv-container" style="width:100%;height:100%;"></div>
+        <!-- ══ CHART CONTAINER WITH OFFLINE OVERLAY ══ -->
+            <div style="flex:1;min-width:0;height:100%;position:relative;zoom:0.65;display:flex;flex-direction:column;">
+
+                <!-- LAYOUT TOGGLE BUTTONS -->
+                <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;padding:4px 8px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
+                    <span style="font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-right:4px;">Layout</span>
+                    <button id="layout-btn-single" onclick="setChartLayout('single')"
+                        style="padding:3px 10px;font-size:.52rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #fff;background:#fff;color:#000;font-weight:700;font-family:inherit;border-radius:2px;">
+                        ▣ Single
+                    </button>
+                    <button id="layout-btn-horizontal" onclick="setChartLayout('horizontal')"
+                        style="padding:3px 10px;font-size:.52rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">
+                        ◫ Side by Side
+                    </button>
+                    <button id="layout-btn-vertical" onclick="setChartLayout('vertical')"
+                        style="padding:3px 10px;font-size:.52rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">
+                        ⬒ Top / Bottom
+                    </button>
+                </div>
+
+                <!-- PANELS WRAPPER -->
+                <div id="charts-panels-wrap" style="flex:1;display:flex;flex-direction:row;min-height:0;">
+
+                    <!-- PANEL 1 -->
+                    <div id="chart-panel-1" style="flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid #1a1a1a;">
+                        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
+                            <input id="panel-1-symbol" type="text" value="EURUSD"
+                                style="width:90px;background:#050505;border:1px solid #1a1a1a;color:#44ff88;padding:3px 6px;font-size:.65rem;font-family:'Courier New',monospace;font-weight:700;letter-spacing:1px;outline:none;text-transform:uppercase;"
+                                onchange="refreshPanel(1)">
+                            <select id="panel-1-tf" onchange="refreshPanel(1)"
+                                style="background:#050505;border:1px solid #1a1a1a;color:#aaa;padding:3px 5px;font-size:.6rem;font-family:inherit;outline:none;">
+                                <option value="1">1m</option><option value="2">2m</option><option value="3">3m</option>
+                                <option value="5">5m</option><option value="15">15m</option><option value="30">30m</option>
+                                <option value="60" selected>1h</option><option value="240">4h</option>
+                                <option value="D">1D</option><option value="W">1W</option>
+                            </select>
+                            <span style="font-size:.45rem;color:#333;text-transform:uppercase;letter-spacing:1px;">Panel 1</span>
+                        </div>
+                        <div id="tv-container-1" style="flex:1;min-height:0;"></div>
+                    </div>
+
+                    <!-- PANEL 2 (hidden by default) -->
+                    <div id="chart-panel-2" style="flex:1;display:none;flex-direction:column;min-width:0;min-height:0;">
+                        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
+                            <input id="panel-2-symbol" type="text" value="XAUUSD"
+                                style="width:90px;background:#050505;border:1px solid #1a1a1a;color:#44ff88;padding:3px 6px;font-size:.65rem;font-family:'Courier New',monospace;font-weight:700;letter-spacing:1px;outline:none;text-transform:uppercase;"
+                                onchange="refreshPanel(2)">
+                            <select id="panel-2-tf" onchange="refreshPanel(2)"
+                                style="background:#050505;border:1px solid #1a1a1a;color:#aaa;padding:3px 5px;font-size:.6rem;font-family:inherit;outline:none;">
+                                <option value="1">1m</option><option value="2">2m</option><option value="3">3m</option>
+                                <option value="5">5m</option><option value="15">15m</option><option value="30">30m</option>
+                                <option value="60" selected>1h</option><option value="240">4h</option>
+                                <option value="D">1D</option><option value="W">1W</option>
+                            </select>
+                            <span style="font-size:.45rem;color:#333;text-transform:uppercase;letter-spacing:1px;">Panel 2</span>
+                        </div>
+                        <div id="tv-container-2" style="flex:1;min-height:0;"></div>
+                    </div>
+
+                </div><!-- /panels-wrap -->
 
 <!-- Custom countdown overlay -->
 <!-- Custom countdown — floats next to current candle on right edge -->
@@ -1099,178 +1156,16 @@ window.ui = {
 
     /* ══════════════════════════════════════════════════
        launchTradingDesk
-       MODE A: MT5 feed  → Advanced Charting Library
-       MODE B: TV feed   → Free TradingView widget (fallback)
     ══════════════════════════════════════════════════ */
-   launchTradingDesk() {
-    const c   = this._tvColors();
-    const con = document.getElementById('tv-container');
-    if(!con) return;
-
-    // Destroy previous widget
-    if(this._tvWidget) {
-        try { this._tvWidget.remove(); } catch(e) {}
-        this._tvWidget = null;
-    }
-    con.innerHTML = '';
-
- // ── MODE B: TradingView free widget fallback ──
-if(window._feedMode === 'tv') {
-    if(!window._tvFreeLoaded) {
-        const s = document.createElement('script');
-        s.src = 'https://s3.tradingview.com/tv.js';
-        s.onload = () => {
-            window._tvFreeLoaded = true;
-            this._launchTVFree(c, con);
-        };
-        document.head.appendChild(s);
-    } else {
-        this._launchTVFree(c, con);
-    }
+ launchTradingDesk() {
     startCustomCountdown();
-    return;
-}
-
-    // ── MODE A: Advanced Charting Library + MT5 datafeed ──
-    if(typeof TradingView === 'undefined' || !TradingView.widget) {
-        con.innerHTML = '<div style="padding:40px;text-align:center;color:#ff4444;font-size:.75rem;letter-spacing:2px;">CHARTING LIBRARY NOT FOUND</div>';
-        return;
-    }
-
-    this._tvWidget = new TradingView.widget({
-        library_path:    '/charting_library/',
-        datafeed:        MT5Feed.datafeed,
-        container:       'tv-container',
-        symbol:          'EURUSD',
-        interval:        this._tf,
-        timezone:        'Asia/Kathmandu',
-        theme:           'dark',
-        locale:          'en',
-        autosize:        true,
-        fullscreen:      false,
-        debug:           false,
-        disabled_features: [
-            'volume_force_overlay',
-            'create_volume_indicator_by_default',
-            'header_saveload',
-              'countdown',
-        ],
-        enabled_features: [
-            'side_toolbar_in_fullscreen_mode',
-            'hide_last_na_study_output',
-            'move_logo_to_main_pane',
-        ],
-        overrides: {
-            'paneProperties.background':                   c.bg,
-            'paneProperties.backgroundType':               'solid',
-            'paneProperties.backgroundGradientStartColor': c.bg,
-            'paneProperties.backgroundGradientEndColor':   c.bg,
-            'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
-            'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
-            'paneProperties.crossHairProperties.color':    '#555555',
-            'mainSeriesProperties.candleStyle.upColor':         c.up,
-            'mainSeriesProperties.candleStyle.downColor':       c.down,
-            'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
-            'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
-            'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
-            'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
-            'mainSeriesProperties.candleStyle.drawWick':        true,
-            'mainSeriesProperties.candleStyle.drawBorder':      true,
-        },
-        time_frames: [
-    { text: '1m',  resolution: '1',   description: '1 Minute' },
-    { text: '2m',  resolution: '2',   description: '2 Minutes' },
-    { text: '3m',  resolution: '3',   description: '3 Minutes' },
-    { text: '4m',  resolution: '4',   description: '4 Minutes' },
-    { text: '5m',  resolution: '5',   description: '5 Minutes' },
-    { text: '6m',  resolution: '6',   description: '6 Minutes' },
-    { text: '10m', resolution: '10',  description: '10 Minutes' },
-    { text: '12m', resolution: '12',  description: '12 Minutes' },
-    { text: '15m', resolution: '15',  description: '15 Minutes' },
-    { text: '20m', resolution: '20',  description: '20 Minutes' },
-    { text: '30m', resolution: '30',  description: '30 Minutes' },
-    { text: '1h',  resolution: '60',  description: '1 Hour' },
-    { text: '2h',  resolution: '120', description: '2 Hours' },
-    { text: '3h',  resolution: '180', description: '3 Hours' },
-    { text: '4h',  resolution: '240', description: '4 Hours' },
-    { text: '6h',  resolution: '360', description: '6 Hours' },
-    { text: '8h',  resolution: '480', description: '8 Hours' },
-    { text: '12h', resolution: '720', description: '12 Hours' },
-    { text: '1D',  resolution: 'D',   description: '1 Day' },
-    { text: '1W',  resolution: 'W',   description: '1 Week' },
-    { text: '1M',  resolution: 'M',   description: '1 Month' },
-],
-        studies_overrides: {},
-        toolbar_bg: c.bg,
-        loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
-    });
-
-  // ── START COUNTDOWN ──
-    startCustomCountdown();
-    const self = this;
-    if(this._tvWidget && this._tvWidget.onChartReady) {
-        this._tvWidget.onChartReady(function() {
-            try {
-                console.log('Chart ready...');
-
-                // ── Interval change listener ──
-                self._tvWidget.activeChart().onIntervalChanged().subscribe(
-                    null,
-                    function(interval) { updateCountdownTF(interval); }
-                );
-
-                var initTF = self._tvWidget.activeChart().resolution();
-                updateCountdownTF(initTF);
-
-            } catch(e) {
-                console.error('❌ onChartReady error:', e);
-            }
-        });
-    }
+    launchAllPanels();
 },
-    /* TradingView free widget fallback */
-    _launchTVFree(c, con) {
-        this._tvWidget = new TradingView.widget({
-            container_id:        'tv-container',
-            autosize:            true,
-            symbol:              'ICMARKETS:EURUSD',
-            interval:            this._tf,
-            timezone:            'Asia/Kathmandu',
-            theme:               'dark',
-            style:               '1',
-            locale:              'en',
-            toolbar_bg:          c.bg,
-            backgroundColor:     c.bg,
-            gridColor:           'rgba(0,0,0,0)',
-            enable_publishing:   false,
-            hide_side_toolbar:   false,
-            allow_symbol_change: true,
-            save_image:          false,
-            disabled_features:   ['create_volume_indicator_by_default','volume_force_overlay'],
-            overrides: {
-                'paneProperties.background':                   c.bg,
-                'paneProperties.backgroundType':               'solid',
-                'paneProperties.backgroundGradientStartColor': c.bg,
-                'paneProperties.backgroundGradientEndColor':   c.bg,
-                'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
-                'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
-                'paneProperties.crossHairProperties.color':    '#555555',
-                'mainSeriesProperties.candleStyle.upColor':         c.up,
-                'mainSeriesProperties.candleStyle.downColor':       c.down,
-                'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
-                'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
-                'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
-                'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
-            }
-        });
-    },
-
+    
     rebuildTVWidget() {
         clearTimeout(this._tvRebuildTimer);
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
-
-    
 
     classifySession(dateStr) {
         const tv = document.getElementById('t-start').value; if(!tv || !dateStr) return null;
@@ -1655,6 +1550,169 @@ if('serviceWorker' in navigator) {
 }
 </script>
 
+
+    <script>
+var _chartLayout = 'single';
+var _tvWidgets = [null, null];
+
+function setChartLayout(layout) {
+    _chartLayout = layout;
+    var wrap  = document.getElementById('charts-panels-wrap');
+    var p1    = document.getElementById('chart-panel-1');
+    var p2    = document.getElementById('chart-panel-2');
+
+    // Reset button styles
+    ['single','horizontal','vertical'].forEach(function(l) {
+        var btn = document.getElementById('layout-btn-' + l);
+        if(!btn) return;
+        btn.style.background  = l === layout ? '#fff' : '#111';
+        btn.style.color       = l === layout ? '#000' : '#666';
+        btn.style.border      = l === layout ? '1px solid #fff' : '1px solid #333';
+        btn.style.fontWeight  = l === layout ? '700' : '400';
+    });
+
+    if(layout === 'single') {
+        wrap.style.flexDirection = 'row';
+        p1.style.display = 'flex'; p1.style.flex = '1';
+        p2.style.display = 'none';
+    } else if(layout === 'horizontal') {
+        wrap.style.flexDirection = 'row';
+        p1.style.display = 'flex'; p1.style.flex = '1';
+        p2.style.display = 'flex'; p2.style.flex = '1';
+    } else if(layout === 'vertical') {
+        wrap.style.flexDirection = 'column';
+        p1.style.display = 'flex'; p1.style.flex = '1';
+        p2.style.display = 'flex'; p2.style.flex = '1';
+    }
+
+    // Rebuild all widgets after layout change
+    setTimeout(function() { launchAllPanels(); }, 50);
+}
+
+function refreshPanel(num) {
+    launchPanel(num);
+}
+
+function launchAllPanels() {
+    launchPanel(1);
+    if(_chartLayout !== 'single') launchPanel(2);
+}
+
+function launchPanel(num) {
+    var c = window.ui._tvColors();
+    var containerId = 'tv-container-' + num;
+    var symbol = (document.getElementById('panel-'+num+'-symbol')?.value || 'EURUSD').toUpperCase();
+    var tf     = document.getElementById('panel-'+num+'-tf')?.value || '60';
+
+    // Destroy existing widget
+    if(_tvWidgets[num-1]) {
+        try { _tvWidgets[num-1].remove(); } catch(e) {}
+        _tvWidgets[num-1] = null;
+    }
+    var con = document.getElementById(containerId);
+    if(!con) return;
+    con.innerHTML = '';
+
+    // TV Free fallback
+    if(window._feedMode === 'tv') {
+        if(!window._tvFreeLoaded) {
+            var s = document.createElement('script');
+            s.src = 'https://s3.tradingview.com/tv.js';
+            s.onload = function() {
+                window._tvFreeLoaded = true;
+                _launchPanelFree(num, containerId, symbol, tf, c);
+            };
+            document.head.appendChild(s);
+        } else {
+            _launchPanelFree(num, containerId, symbol, tf, c);
+        }
+        return;
+    }
+
+    // MT5 Advanced Library
+    if(typeof TradingView === 'undefined' || !TradingView.widget) {
+        con.innerHTML = '<div style="padding:40px;text-align:center;color:#ff4444;font-size:.75rem;letter-spacing:2px;">CHARTING LIBRARY NOT FOUND</div>';
+        return;
+    }
+
+    _tvWidgets[num-1] = new TradingView.widget({
+        library_path: '/charting_library/',
+        datafeed:     MT5Feed.datafeed,
+        container:    containerId,
+        symbol:       symbol,
+        interval:     tf,
+        timezone:     'Asia/Kathmandu',
+        theme:        'dark',
+        locale:       'en',
+        autosize:     true,
+        fullscreen:   false,
+        debug:        false,
+        disabled_features: [
+            'volume_force_overlay',
+            'create_volume_indicator_by_default',
+            'header_saveload',
+            'countdown',
+        ],
+        enabled_features: [
+            'side_toolbar_in_fullscreen_mode',
+            'hide_last_na_study_output',
+            'move_logo_to_main_pane',
+        ],
+        overrides: {
+            'paneProperties.background':                   c.bg,
+            'paneProperties.backgroundType':               'solid',
+            'paneProperties.backgroundGradientStartColor': c.bg,
+            'paneProperties.backgroundGradientEndColor':   c.bg,
+            'paneProperties.vertGridProperties.color':     'rgba(0,0,0,0)',
+            'paneProperties.horzGridProperties.color':     'rgba(0,0,0,0)',
+            'paneProperties.crossHairProperties.color':    '#555555',
+            'mainSeriesProperties.candleStyle.upColor':         c.up,
+            'mainSeriesProperties.candleStyle.downColor':       c.down,
+            'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
+            'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
+            'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
+            'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
+            'mainSeriesProperties.candleStyle.drawWick':        true,
+            'mainSeriesProperties.candleStyle.drawBorder':      true,
+        },
+        toolbar_bg:     c.bg,
+        loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
+    });
+}
+
+function _launchPanelFree(num, containerId, symbol, tf, c) {
+    _tvWidgets[num-1] = new TradingView.widget({
+        container_id:        containerId,
+        autosize:            true,
+        symbol:              'ICMARKETS:' + symbol,
+        interval:            tf,
+        timezone:            'Asia/Kathmandu',
+        theme:               'dark',
+        style:               '1',
+        locale:              'en',
+        toolbar_bg:          c.bg,
+        backgroundColor:     c.bg,
+        gridColor:           'rgba(0,0,0,0)',
+        enable_publishing:   false,
+        hide_side_toolbar:   false,
+        allow_symbol_change: true,
+        save_image:          false,
+        disabled_features:   ['create_volume_indicator_by_default','volume_force_overlay'],
+        overrides: {
+            'paneProperties.background':                   c.bg,
+            'paneProperties.backgroundType':               'solid',
+            'mainSeriesProperties.candleStyle.upColor':         c.up,
+            'mainSeriesProperties.candleStyle.downColor':       c.down,
+            'mainSeriesProperties.candleStyle.borderUpColor':   c.upBorder,
+            'mainSeriesProperties.candleStyle.borderDownColor': c.downBorder,
+            'mainSeriesProperties.candleStyle.wickUpColor':     c.upWick,
+            'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
+        }
+    });
+}
+</script>
+
+    
 <!-- Calculator -->
 <script>
 var _dm = 'amt';
