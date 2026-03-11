@@ -1315,54 +1315,56 @@ window.ui = {
                         this._prevInLon  = false;
                         this._prevInNY   = false;
                     };
-                    this.main = function(context, inputCallback) {
-                        try {
-                            this._context = context;
-                            var time = PineJS.Std.time(this._context);
-                            var high = PineJS.Std.high(this._context);
-                            var low  = PineJS.Std.low(this._context);
+                  this.main = function(context, inputCallback) {
+    try {
+        this._context = context;
+        var time  = PineJS.Std.time(this._context);
+        var high  = PineJS.Std.high(this._context);
+        var low   = PineJS.Std.low(this._context);
+        var close = PineJS.Std.close(this._context);
 
-                            if(time == null || high == null || low == null) return [0,0,0,0,0,0];
-                            time = Number(time);
-                            high = Number(high);
-                            low  = Number(low);
-                            if(isNaN(time) || isNaN(high) || isNaN(low)) return [0,0,0,0,0,0];
+        if(time == null || high == null || low == null || close == null) return [close,close,close,close,close,close];
+        time  = Number(time);
+        high  = Number(high);
+        low   = Number(low);
+        close = Number(close);
+        if(isNaN(high) || isNaN(low) || isNaN(close)) return [close,close,close,close,close,close];
 
-                            var nptMs  = time + (5 * 3600 + 45 * 60) * 1000;
-                            var nd     = new Date(nptMs);
-                            var mins   = nd.getUTCHours() * 60 + nd.getUTCMinutes();
-                            var dayKey = nd.getUTCFullYear() * 10000 + (nd.getUTCMonth()+1) * 100 + nd.getUTCDate();
+        var nptMs  = time + (5 * 3600 + 45 * 60) * 1000;
+        var nd     = new Date(nptMs);
+        var mins   = nd.getUTCHours() * 60 + nd.getUTCMinutes();
+        var dayKey = nd.getUTCFullYear() * 10000 + (nd.getUTCMonth()+1) * 100 + nd.getUTCDate();
 
-                            if (dayKey !== this._prevDay) {
-                                this._prevDay = dayKey;
-                                this._asiaH = NaN; this._asiaL = NaN;
-                                this._lonH  = NaN; this._lonL  = NaN;
-                                this._nyH   = NaN; this._nyL   = NaN;
-                                this._prevInAsia = false;
-                                this._prevInLon  = false;
-                                this._prevInNY   = false;
-                            }
+        if (dayKey !== this._prevDay) {
+            this._prevDay = dayKey;
+            this._asiaH = NaN; this._asiaL = NaN;
+            this._lonH  = NaN; this._lonL  = NaN;
+            this._nyH   = NaN; this._nyL   = NaN;
+            this._prevInAsia = false;
+            this._prevInLon  = false;
+            this._prevInNY   = false;
+        }
 
-                            var inAsia   = mins >= 345  && mins < 885;
-                            var inLondon = mins >= 825  && mins < 1365;
-                            var inNY     = mins >= 1125 || mins < 225;
+        var inAsia   = mins >= 345  && mins < 885;
+        var inLondon = mins >= 825  && mins < 1365;
+        var inNY     = mins >= 1125 || mins < 225;
 
-                            if (inAsia)   { this._asiaH = isNaN(this._asiaH) ? high : Math.max(this._asiaH, high); this._asiaL = isNaN(this._asiaL) ? low : Math.min(this._asiaL, low); }
-                            if (inLondon) { this._lonH  = isNaN(this._lonH)  ? high : Math.max(this._lonH,  high); this._lonL  = isNaN(this._lonL)  ? low : Math.min(this._lonL,  low); }
-                            if (inNY)     { this._nyH   = isNaN(this._nyH)   ? high : Math.max(this._nyH,   high); this._nyL   = isNaN(this._nyL)   ? low : Math.min(this._nyL,   low); }
+        if (inAsia)   { this._asiaH = isNaN(this._asiaH) ? high : Math.max(this._asiaH, high); this._asiaL = isNaN(this._asiaL) ? low : Math.min(this._asiaL, low); }
+        if (inLondon) { this._lonH  = isNaN(this._lonH)  ? high : Math.max(this._lonH,  high); this._lonL  = isNaN(this._lonL)  ? low : Math.min(this._lonL,  low); }
+        if (inNY)     { this._nyH   = isNaN(this._nyH)   ? high : Math.max(this._nyH,   high); this._nyL   = isNaN(this._nyL)   ? low : Math.min(this._nyL,   low); }
 
-                            return [
-                                isNaN(this._asiaH) ? 0 : this._asiaH,
-                                isNaN(this._asiaL) ? 0 : this._asiaL,
-                                isNaN(this._lonH)  ? 0 : this._lonH,
-                                isNaN(this._lonL)  ? 0 : this._lonL,
-                                isNaN(this._nyH)   ? 0 : this._nyH,
-                                isNaN(this._nyL)   ? 0 : this._nyL,
-                            ];
-                        } catch(e) {
-                            return [0,0,0,0,0,0];
-                        }
-                    };
+        return [
+            isNaN(this._asiaH) ? close : this._asiaH,
+            isNaN(this._asiaL) ? close : this._asiaL,
+            isNaN(this._lonH)  ? close : this._lonH,
+            isNaN(this._lonL)  ? close : this._lonL,
+            isNaN(this._nyH)   ? close : this._nyH,
+            isNaN(this._nyL)   ? close : this._nyL,
+        ];
+    } catch(e) {
+        return [0,0,0,0,0,0];
+    }
+};
                 }           // ← closes constructor
             }               // ← closes indicator object
         ]);                 // ← closes Promise.resolve([
