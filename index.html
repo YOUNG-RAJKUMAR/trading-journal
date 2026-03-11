@@ -446,47 +446,21 @@
                     </button>
                 </div>
 
-                <!-- PANELS WRAPPER -->
-                <div id="charts-panels-wrap" style="flex:1;display:flex;flex-direction:row;min-height:0;">
+               <!-- PANELS WRAPPER -->
+<div id="charts-panels-wrap" style="flex:1;display:flex;flex-direction:row;min-height:0;">
 
-                    <!-- PANEL 1 -->
-                    <div id="chart-panel-1" style="flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid #1a1a1a;">
-                        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
-                            <input id="panel-1-symbol" type="text" value="EURUSD"
-                                style="width:90px;background:#050505;border:1px solid #1a1a1a;color:#44ff88;padding:3px 6px;font-size:.65rem;font-family:'Courier New',monospace;font-weight:700;letter-spacing:1px;outline:none;text-transform:uppercase;"
-                                onchange="refreshPanel(1)">
-                            <select id="panel-1-tf" onchange="refreshPanel(1)"
-                                style="background:#050505;border:1px solid #1a1a1a;color:#aaa;padding:3px 5px;font-size:.6rem;font-family:inherit;outline:none;">
-                                <option value="1">1m</option><option value="2">2m</option><option value="3">3m</option>
-                                <option value="5">5m</option><option value="15">15m</option><option value="30">30m</option>
-                                <option value="60" selected>1h</option><option value="240">4h</option>
-                                <option value="D">1D</option><option value="W">1W</option>
-                            </select>
-                            <span style="font-size:.45rem;color:#333;text-transform:uppercase;letter-spacing:1px;">Panel 1</span>
-                        </div>
-                        <div id="tv-container-1" style="flex:1;min-height:0;"></div>
-                    </div>
+    <!-- PANEL 1 -->
+    <div id="chart-panel-1" style="flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid #1a1a1a;">
+        <div id="tv-container-1" style="flex:1;min-height:0;"></div>
+    </div>
 
-                    <!-- PANEL 2 (hidden by default) -->
-                    <div id="chart-panel-2" style="flex:1;display:none;flex-direction:column;min-width:0;min-height:0;">
-                        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
-                            <input id="panel-2-symbol" type="text" value="XAUUSD"
-                                style="width:90px;background:#050505;border:1px solid #1a1a1a;color:#44ff88;padding:3px 6px;font-size:.65rem;font-family:'Courier New',monospace;font-weight:700;letter-spacing:1px;outline:none;text-transform:uppercase;"
-                                onchange="refreshPanel(2)">
-                            <select id="panel-2-tf" onchange="refreshPanel(2)"
-                                style="background:#050505;border:1px solid #1a1a1a;color:#aaa;padding:3px 5px;font-size:.6rem;font-family:inherit;outline:none;">
-                                <option value="1">1m</option><option value="2">2m</option><option value="3">3m</option>
-                                <option value="5">5m</option><option value="15">15m</option><option value="30">30m</option>
-                                <option value="60" selected>1h</option><option value="240">4h</option>
-                                <option value="D">1D</option><option value="W">1W</option>
-                            </select>
-                            <span style="font-size:.45rem;color:#333;text-transform:uppercase;letter-spacing:1px;">Panel 2</span>
-                        </div>
-                        <div id="tv-container-2" style="flex:1;min-height:0;"></div>
-                    </div>
+    <!-- PANEL 2 (hidden by default) -->
+    <div id="chart-panel-2" style="flex:1;display:none;flex-direction:column;min-width:0;min-height:0;">
+        <div id="tv-container-2" style="flex:1;min-height:0;"></div>
+    </div>
 
-                </div><!-- /panels-wrap -->
-
+</div><!-- /panels-wrap -->
+                
 <!-- Custom countdown overlay -->
 <!-- Custom countdown — floats next to current candle on right edge -->
 <div id="chart-countdown" style="
@@ -1601,8 +1575,9 @@ function launchAllPanels() {
 function launchPanel(num) {
     var c = window.ui._tvColors();
     var containerId = 'tv-container-' + num;
-    var symbol = (document.getElementById('panel-'+num+'-symbol')?.value || 'EURUSD').toUpperCase();
-    var tf     = document.getElementById('panel-'+num+'-tf')?.value || '60';
+   var symbols = { 1: 'EURUSD', 2: 'XAUUSD' };
+var symbol  = symbols[num] || 'EURUSD';
+var tf      = '60';
 
     // Destroy existing widget
     if(_tvWidgets[num-1]) {
