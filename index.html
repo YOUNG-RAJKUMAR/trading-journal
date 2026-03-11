@@ -1289,80 +1289,64 @@ window.ui = {
                     ],
                     defaults: {
                          styles: {
-        plot_asia_h: { linestyle: 0, linewidth: 2, plottype: 6, color: '#2196F3', transparency: 0 },
-        plot_asia_l: { linestyle: 0, linewidth: 2, plottype: 6, color: '#2196F3', transparency: 0 },
-        plot_lon_h:  { linestyle: 0, linewidth: 2, plottype: 6, color: '#FF5252', transparency: 0 },
-        plot_lon_l:  { linestyle: 0, linewidth: 2, plottype: 6, color: '#FF5252', transparency: 0 },
-        plot_ny_h:   { linestyle: 0, linewidth: 2, plottype: 6, color: '#4CAF50', transparency: 0 },
-        plot_ny_l:   { linestyle: 0, linewidth: 2, plottype: 6, color: '#4CAF50', transparency: 0 },
+   plot_asia_h: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', transparency: 0 },
+plot_asia_l: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', transparency: 0 },
+plot_lon_h:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', transparency: 0 },
+plot_lon_l:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', transparency: 0 },
+plot_ny_h:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', transparency: 0 },
+plot_ny_l:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', transparency: 0 },
     },
     inputs: {}
 },
                     inputs: [],
                 },
+
                 constructor: function() {
-                    this.init = function(context, inputCallback) {
-                        this._context = context;
-                        this._asiaH = NaN; this._asiaL = NaN;
-                        this._lonH  = NaN; this._lonL  = NaN;
-                        this._nyH   = NaN; this._nyL   = NaN;
-                        this._asiaHBroken = false; this._asiaLBroken = false;
-                        this._lonHBroken  = false; this._lonLBroken  = false;
-                        this._nyHBroken   = false; this._nyLBroken   = false;
-                        this._prevDay = -1;
-                        this._prevInAsia = false;
-                        this._prevInLon  = false;
-                        this._prevInNY   = false;
-                    };
-                    this.main = function(context, inputCallback) {
-                        this._context = context;
-                        var time = PineJS.Std.time(this._context);
-                        var high = PineJS.Std.high(this._context);
-                        var low  = PineJS.Std.low(this._context);
-                        var nptMs = time + (5 * 3600 + 45 * 60) * 1000;
-                        var nd    = new Date(nptMs);
-                        var mins  = nd.getUTCHours() * 60 + nd.getUTCMinutes();
-                        var dayKey = nd.getUTCFullYear() * 10000 + (nd.getUTCMonth()+1) * 100 + nd.getUTCDate();
-                        if(dayKey !== this._prevDay) {
-                            this._prevDay = dayKey;
-                            this._asiaH = NaN; this._asiaL = NaN;
-                            this._lonH  = NaN; this._lonL  = NaN;
-                            this._nyH   = NaN; this._nyL   = NaN;
-                            this._asiaHBroken = false; this._asiaLBroken = false;
-                            this._lonHBroken  = false; this._lonLBroken  = false;
-                            this._nyHBroken   = false; this._nyLBroken   = false;
-                            this._prevInAsia = false; this._prevInLon = false; this._prevInNY = false;
-                        }
-                        var inAsia   = mins >= 345  && mins < 885;
-                        var inLondon = mins >= 765  && mins < 1305;
-                        var inNY     = mins >= 1065 || mins < 165;
-                        if(inAsia && !this._prevInAsia)       { this._asiaH = high; this._asiaL = low; this._asiaHBroken = false; this._asiaLBroken = false; }
-                        else if(inAsia)                        { this._asiaH = Math.max(this._asiaH, high); this._asiaL = Math.min(this._asiaL, low); }
-                        this._prevInAsia = inAsia;
-                        if(inLondon && !this._prevInLon)      { this._lonH = high; this._lonL = low; this._lonHBroken = false; this._lonLBroken = false; }
-                        else if(inLondon)                      { this._lonH = Math.max(this._lonH, high); this._lonL = Math.min(this._lonL, low); }
-                        this._prevInLon = inLondon;
-                        if(inNY && !this._prevInNY)           { this._nyH = high; this._nyL = low; this._nyHBroken = false; this._nyLBroken = false; }
-                        else if(inNY)                          { this._nyH = Math.max(this._nyH, high); this._nyL = Math.min(this._nyL, low); }
-                        this._prevInNY = inNY;
-                        if(!this._asiaHBroken && !isNaN(this._asiaH) && high > this._asiaH) this._asiaHBroken = true;
-                        if(!this._asiaLBroken && !isNaN(this._asiaL) && low  < this._asiaL) this._asiaLBroken = true;
-                        if(!this._lonHBroken  && !isNaN(this._lonH)  && high > this._lonH)  this._lonHBroken  = true;
-                        if(!this._lonLBroken  && !isNaN(this._lonL)  && low  < this._lonL)  this._lonLBroken  = true;
-                        if(!this._nyHBroken   && !isNaN(this._nyH)   && high > this._nyH)   this._nyHBroken   = true;
-                        if(!this._nyLBroken   && !isNaN(this._nyL)   && low  < this._nyL)   this._nyLBroken   = true;
-                        return [
-                            this._asiaHBroken ? NaN : this._asiaH,
-                            this._asiaLBroken ? NaN : this._asiaL,
-                            this._lonHBroken  ? NaN : this._lonH,
-                            this._lonLBroken  ? NaN : this._lonL,
-                            this._nyHBroken   ? NaN : this._nyH,
-                            this._nyLBroken   ? NaN : this._nyL,
-                        ];
-                    };
-                }
-            }]);
-        },
+    this.init = function(context, inputCallback) {
+        this._context = context;
+        this._asiaH = NaN; this._asiaL = NaN;
+        this._lonH  = NaN; this._lonL  = NaN;
+        this._nyH   = NaN; this._nyL   = NaN;
+        this._prevDay    = -1;
+        this._prevInAsia = false;
+        this._prevInLon  = false;
+        this._prevInNY   = false;
+    };
+    this.main = function(context, inputCallback) {
+        this._context = context;
+        var time = PineJS.Std.time(this._context);
+        var high = PineJS.Std.high(this._context);
+        var low  = PineJS.Std.low(this._context);
+        var nptMs  = time + (5 * 3600 + 45 * 60) * 1000;
+        var nd     = new Date(nptMs);
+        var mins   = nd.getUTCHours() * 60 + nd.getUTCMinutes();
+        var dayKey = nd.getUTCFullYear() * 10000 + (nd.getUTCMonth()+1) * 100 + nd.getUTCDate();
+
+        if (dayKey !== this._prevDay) {
+            this._prevDay = dayKey;
+            this._asiaH = NaN; this._asiaL = NaN;
+            this._lonH  = NaN; this._lonL  = NaN;
+            this._nyH   = NaN; this._nyL   = NaN;
+            this._prevInAsia = false;
+            this._prevInLon  = false;
+            this._prevInNY   = false;
+        }
+
+        var inAsia   = mins >= 345  && mins < 885;
+        var inLondon = mins >= 825  && mins < 1365;
+        var inNY     = mins >= 1125 || mins < 225;
+
+        if (inAsia)   { this._asiaH = isNaN(this._asiaH) ? high : Math.max(this._asiaH, high); this._asiaL = isNaN(this._asiaL) ? low : Math.min(this._asiaL, low); }
+        if (inLondon) { this._lonH  = isNaN(this._lonH)  ? high : Math.max(this._lonH,  high); this._lonL  = isNaN(this._lonL)  ? low : Math.min(this._lonL,  low); }
+        if (inNY)     { this._nyH   = isNaN(this._nyH)   ? high : Math.max(this._nyH,   high); this._nyL   = isNaN(this._nyL)   ? low : Math.min(this._nyL,   low); }
+
+        return [
+            this._asiaH, this._asiaL,
+            this._lonH,  this._lonL,
+            this._nyH,   this._nyL,
+        ];
+    };
+}
 
         studies_overrides: {},
         toolbar_bg: c.bg,
