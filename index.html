@@ -848,7 +848,7 @@ var MT5Feed = (function() {
         onReady: function(callback) {
             setTimeout(function() {
                 callback({
-                    supported_resolutions: [  '1','2','3','4','5','6','10','12','15','20','30','45', '60','120','180','240','360','480','720', 'D','W','M' ],
+                    supported_resolutions: [  '1','2','3','4','5','6','10','12','15','20','30', '60','120','180','240','360','480','720', 'D','W','M' ],
                     supports_time:         true,
                     supports_marks:        false,
                     supports_timescale_marks: false,
@@ -899,7 +899,7 @@ var MT5Feed = (function() {
           var resMap = {
     '1':'M1',   '2':'M2',   '3':'M3',   '4':'M4',
     '5':'M5',   '6':'M6',   '10':'M10', '12':'M12',
-    '15':'M15', '20':'M20', '30':'M30', '45':'M45',
+    '15':'M15', '20':'M20', '30':'M30', 
     '60':'H1',  '120':'H2', '180':'H3', '240':'H4',
     '360':'H6', '480':'H8', '720':'H12',
     'D':'D1',   'W':'W1',   'M':'MN1'
@@ -1042,7 +1042,7 @@ function getTFMinutes(tf) {
     var map = {
         '1':1,   '2':2,    '3':3,    '4':4,
         '5':5,   '6':6,    '10':10,  '12':12,
-        '15':15, '20':20,  '30':30,  '45':45,
+        '15':15, '20':20,  '30':30,  
         '60':60, '120':120,'180':180,'240':240,
         '360':360,'480':480,'720':720,
         'D':1440,'W':10080,'M':43200
@@ -1236,6 +1236,30 @@ window.ui = {
             'mainSeriesProperties.candleStyle.drawWick':        true,
             'mainSeriesProperties.candleStyle.drawBorder':      true,
         },
+        time_frames: [
+    { text: '1m',  resolution: '1',   description: '1 Minute' },
+    { text: '2m',  resolution: '2',   description: '2 Minutes' },
+    { text: '3m',  resolution: '3',   description: '3 Minutes' },
+    { text: '4m',  resolution: '4',   description: '4 Minutes' },
+    { text: '5m',  resolution: '5',   description: '5 Minutes' },
+    { text: '6m',  resolution: '6',   description: '6 Minutes' },
+    { text: '10m', resolution: '10',  description: '10 Minutes' },
+    { text: '12m', resolution: '12',  description: '12 Minutes' },
+    { text: '15m', resolution: '15',  description: '15 Minutes' },
+    { text: '20m', resolution: '20',  description: '20 Minutes' },
+    { text: '30m', resolution: '30',  description: '30 Minutes' },
+    { text: '1h',  resolution: '60',  description: '1 Hour' },
+    { text: '2h',  resolution: '120', description: '2 Hours' },
+    { text: '3h',  resolution: '180', description: '3 Hours' },
+    { text: '4h',  resolution: '240', description: '4 Hours' },
+    { text: '6h',  resolution: '360', description: '6 Hours' },
+    { text: '8h',  resolution: '480', description: '8 Hours' },
+    { text: '12h', resolution: '720', description: '12 Hours' },
+    { text: '1D',  resolution: 'D',   description: '1 Day' },
+    { text: '1W',  resolution: 'W',   description: '1 Week' },
+    { text: '1M',  resolution: 'M',   description: '1 Month' },
+],
+
         studies_overrides: {},
         toolbar_bg: c.bg,
         loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
