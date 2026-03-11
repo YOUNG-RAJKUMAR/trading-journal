@@ -1318,8 +1318,12 @@ window.ui = {
                     this.main = function(context, inputCallback) {
                         this._context = context;
                         var time = PineJS.Std.time(this._context);
-                        var high = PineJS.Std.high(this._context);
-                        var low  = PineJS.Std.low(this._context);
+                          var high = PineJS.Std.high(this._context);
+                      var low  = PineJS.Std.low(this._context);
+
+                // ADD these two lines right after:
+                      if(high === undefined || low === undefined) return [0,0,0,0,0,0];
+               if(isNaN(high) || isNaN(low)) return [0,0,0,0,0,0];
                         var nptMs  = time + (5 * 3600 + 45 * 60) * 1000;
                         var nd     = new Date(nptMs);
                         var mins   = nd.getUTCHours() * 60 + nd.getUTCMinutes();
@@ -1342,11 +1346,14 @@ window.ui = {
                         if (inAsia)   { this._asiaH = isNaN(this._asiaH) ? high : Math.max(this._asiaH, high); this._asiaL = isNaN(this._asiaL) ? low : Math.min(this._asiaL, low); }
                         if (inLondon) { this._lonH  = isNaN(this._lonH)  ? high : Math.max(this._lonH,  high); this._lonL  = isNaN(this._lonL)  ? low : Math.min(this._lonL,  low); }
                         if (inNY)     { this._nyH   = isNaN(this._nyH)   ? high : Math.max(this._nyH,   high); this._nyL   = isNaN(this._nyL)   ? low : Math.min(this._nyL,   low); }
-                        return [
-                            this._asiaH, this._asiaL,
-                            this._lonH,  this._lonL,
-                            this._nyH,   this._nyL,
-                        ];
+                      return [
+            isNaN(this._asiaH) ? 0 : this._asiaH,
+            isNaN(this._asiaL) ? 0 : this._asiaL,
+            isNaN(this._lonH)  ? 0 : this._lonH,
+            isNaN(this._lonL)  ? 0 : this._lonL,
+            isNaN(this._nyH)   ? 0 : this._nyH,
+            isNaN(this._nyL)   ? 0 : this._nyL,
+        ];
                     };
                 }           // ← closes constructor
             }               // ← closes indicator object
