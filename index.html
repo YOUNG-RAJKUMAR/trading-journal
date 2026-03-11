@@ -1320,7 +1320,10 @@ plot_ny_l:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', transp
                         var nptMs  = time + (5 * 3600 + 45 * 60) * 1000;
                         var nd     = new Date(nptMs);
                         var mins   = nd.getUTCHours() * 60 + nd.getUTCMinutes();
+                         // ← ADD THIS LINE
+               console.log('NPT mins:', mins, 'inAsia:', mins>=345&&mins<885, 'asiaH:', this._asiaH);
                         var dayKey = nd.getUTCFullYear() * 10000 + (nd.getUTCMonth()+1) * 100 + nd.getUTCDate();
+
                         if (dayKey !== this._prevDay) {
                             this._prevDay = dayKey;
                             this._asiaH = NaN; this._asiaL = NaN;
