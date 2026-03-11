@@ -250,7 +250,7 @@
         .analytics-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:25px; }
 
         /* CHARTS TAB */
-        #tab-charts { zoom:0.7; }
+        #tab-charts { zoom:1; }
 
         /* PDF */
         .pdf-export-mode #main-content { padding:0;max-width:100%; }
@@ -274,30 +274,7 @@
         #mt5-offline-overlay p  { color:#555;font-size:.65rem;letter-spacing:1px;text-align:center;max-width:320px;line-height:1.6;margin:0; }
         #mt5-offline-overlay code { background:#111;border:1px solid #333;color:#44ff88;padding:6px 14px;font-size:.7rem;border-radius:3px;display:block;margin-top:4px; }
         .btn-use-tv { background:#fff;color:#000;border:none;padding:8px 20px;font-size:.62rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;margin-top:4px; }
-
-        /* COLOR PICKER TOOLBAR */
-        #desk-toolbar { background:#090909;border-bottom:1px solid #1a1a1a;user-select:none; }
-        .ctb-row1 { display:flex;align-items:center;gap:8px;padding:7px 14px;background:#0a0a0a;border-bottom:1px solid #141414;flex-wrap:wrap; }
-        .ctb-row2 { display:none;padding:10px 14px;gap:6px;background:#060606;border-bottom:1px solid #141414;flex-wrap:wrap;align-items:flex-start; }
-        .ctb-row2.open { display:flex; }
-        .ctb-label { font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:4px;white-space:nowrap; }
-        .preset-chip { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:.55rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;border:1px solid #2a2a2a;background:#111;color:#888;transition:all .15s;white-space:nowrap; }
-        .preset-chip:hover { border-color:#555;color:#ddd; }
-        .preset-chip.active-preset { border-color:#fff;color:#fff;background:#1a1a1a; }
-        .preset-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
-        .cg-wrap { display:flex;flex-direction:column;background:#0d0d0d;border:1px solid #1a1a1a;padding:8px 10px;border-radius:3px;min-width:0; }
-        .cg-title { font-size:.44rem;color:#555;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;border-bottom:1px solid #1a1a1a;padding-bottom:5px; }
-        .cg-fields { display:flex;gap:12px;flex-wrap:wrap; }
-        .cf-item { display:flex;flex-direction:column;align-items:flex-start;gap:3px; }
-        .swatch-row { display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px; }
-        .sw { width:14px;height:14px;border-radius:2px;cursor:pointer;border:1px solid transparent;flex-shrink:0;transition:transform .1s,border-color .1s; }
-        .sw:hover { transform:scale(1.3);border-color:#fff!important; }
-        .sw.active-sw { border-color:#fff!important;transform:scale(1.2); }
-        .ph-row { display:flex;align-items:center;gap:4px; }
-        .ph-row input[type=color] { width:22px;height:22px;padding:1px;border:1px solid #2a2a2a;background:transparent;cursor:pointer;border-radius:2px; }
-        .ph-row input[type=text] { width:58px;background:#0a0a0a;border:1px solid #1e1e1e;color:#aaa;padding:3px 5px;font-size:.62rem;font-family:monospace;outline:none;border-radius:2px; }
-        .ph-row input[type=text]:focus { border-color:#444; }
-        .ctb-divider { width:1px;height:auto;align-self:stretch;background:#1a1a1a;margin:0 4px; }
+        
     </style>
 </head>
 <body>
@@ -446,57 +423,11 @@
     <!-- CHARTS TAB -->
     <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
 
-        <!-- COLOR TOOLBAR -->
-        <div id="desk-toolbar">
-            <div class="ctb-row1">
-                <span style="font-size:.48rem;color:#444;text-transform:uppercase;letter-spacing:2px;margin-right:2px;">CHART STYLE</span>
-                <button class="preset-chip active-preset" id="pch-phthalo" onclick="applyPreset('phthalo')"><span class="preset-dot" style="background:#000F89;border:1px solid #3355cc;"></span>Phthalo + Black</button>
-                <button class="preset-chip" id="pch-classic" onclick="applyPreset('classic')"><span class="preset-dot" style="background:#26a69a;border:1px solid #26a69a;"></span>Classic</button>
-                <button class="preset-chip" id="pch-mono"    onclick="applyPreset('mono')"><span class="preset-dot" style="background:#cccccc;border:1px solid #888;"></span>Monochrome</button>
-                <button class="preset-chip" id="pch-hollow"  onclick="applyPreset('hollow')"><span class="preset-dot" style="background:transparent;border:1px solid #44ff88;"></span>Hollow Candles</button>
-                <button class="preset-chip" id="pch-trader"  onclick="applyPreset('trader')"><span class="preset-dot" style="background:#00e600;border:1px solid #00e600;"></span>Terminal Green</button>
-                <div style="flex:1;"></div>
-                <button id="ctb-toggle" onclick="toggleColorPanel()" style="padding:4px 12px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#888;border-radius:3px;font-family:inherit;transition:all .15s;">🎨 Customize ▾</button>
-                <button onclick="ui.resetTVColors()" style="padding:4px 11px;font-size:.55rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #2a2a2a;background:#111;color:#666;border-radius:3px;font-family:inherit;">↺ Reset</button>
-            </div>
-            <div class="ctb-row2" id="ctb-panel">
-                <div class="cg-wrap">
-                    <div class="cg-title">Background</div>
-                    <div class="cf-item">
-                        <span class="ctb-label">BG Color</span>
-                        <div class="swatch-row" id="sw-bg"></div>
-                        <div class="ph-row">
-                            <input type="color" id="tv-bg" value="#292A35" oninput="syncHex('tv-bg','tv-bg-hex');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)">
-                            <input type="text"  id="tv-bg-hex" value="#292A35" oninput="syncPicker('tv-bg-hex','tv-bg');ui.rebuildTVWidget();updateSwatchActive('sw-bg',this.value)" maxlength="7">
-                        </div>
-                    </div>
-                </div>
-                <div class="ctb-divider"></div>
-                <div class="cg-wrap">
-                    <div class="cg-title" style="color:#5577ff88;">▲ UP CANDLE</div>
-                    <div class="cg-fields">
-                        <div class="cf-item"><span class="ctb-label">Body</span><div class="swatch-row" id="sw-up"></div><div class="ph-row"><input type="color" id="tv-up" value="#000F89" oninput="syncHex('tv-up','tv-up-hex');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)"><input type="text" id="tv-up-hex" value="#000F89" oninput="syncPicker('tv-up-hex','tv-up');ui.rebuildTVWidget();updateSwatchActive('sw-up',this.value)" maxlength="7"></div></div>
-                        <div class="cf-item"><span class="ctb-label">Wick</span><div class="swatch-row" id="sw-upwick"></div><div class="ph-row"><input type="color" id="tv-upwick" value="#000000" oninput="syncHex('tv-upwick','tv-upwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)"><input type="text" id="tv-upwick-hex" value="#000000" oninput="syncPicker('tv-upwick-hex','tv-upwick');ui.rebuildTVWidget();updateSwatchActive('sw-upwick',this.value)" maxlength="7"></div></div>
-                        <div class="cf-item"><span class="ctb-label">Border</span><div class="swatch-row" id="sw-upborder"></div><div class="ph-row"><input type="color" id="tv-upborder" value="#000000" oninput="syncHex('tv-upborder','tv-upborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)"><input type="text" id="tv-upborder-hex" value="#000000" oninput="syncPicker('tv-upborder-hex','tv-upborder');ui.rebuildTVWidget();updateSwatchActive('sw-upborder',this.value)" maxlength="7"></div></div>
-                    </div>
-                </div>
-                <div class="ctb-divider"></div>
-                <div class="cg-wrap">
-                    <div class="cg-title" style="color:#ff444488;">▼ DOWN CANDLE</div>
-                    <div class="cg-fields">
-                        <div class="cf-item"><span class="ctb-label">Body</span><div class="swatch-row" id="sw-down"></div><div class="ph-row"><input type="color" id="tv-down" value="#000000" oninput="syncHex('tv-down','tv-down-hex');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)"><input type="text" id="tv-down-hex" value="#000000" oninput="syncPicker('tv-down-hex','tv-down');ui.rebuildTVWidget();updateSwatchActive('sw-down',this.value)" maxlength="7"></div></div>
-                        <div class="cf-item"><span class="ctb-label">Wick</span><div class="swatch-row" id="sw-downwick"></div><div class="ph-row"><input type="color" id="tv-downwick" value="#000000" oninput="syncHex('tv-downwick','tv-downwick-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)"><input type="text" id="tv-downwick-hex" value="#000000" oninput="syncPicker('tv-downwick-hex','tv-downwick');ui.rebuildTVWidget();updateSwatchActive('sw-downwick',this.value)" maxlength="7"></div></div>
-                        <div class="cf-item"><span class="ctb-label">Border</span><div class="swatch-row" id="sw-downborder"></div><div class="ph-row"><input type="color" id="tv-downborder" value="#000000" oninput="syncHex('tv-downborder','tv-downborder-hex');ui.rebuildTVWidget();updateSwatchActive('sw-downborder',this.value)"><input type="text" id="tv-downborder-hex" value="#000000" oninput="syncPicker('tv-downborder-hex','tv-downborder');ui.rebuildTVWidget();updateSwatchActive('sv-downborder',this.value)" maxlength="7"></div></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Chart + Calculator -->
         <div style="display:flex;height:calc(136vh - 80px);">
 
             <!-- ══ CHART CONTAINER WITH OFFLINE OVERLAY ══ -->
-            <div style="flex:1;min-width:0;height:100%;position:relative;">
+            <div style="flex:1;min-width:0;height:100%;position:relative;zoom:0.65;">
              <div id="tv-container" style="width:100%;height:100%;"></div>
 
 <!-- Custom countdown overlay -->
@@ -535,7 +466,7 @@
             </div>
 
             <!-- Calculator Panel -->
-            <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="width:340px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;zoom:0.80;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
                     <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;">
                         <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;"></span>
@@ -1154,18 +1085,17 @@ window.ui = {
         if(id === 'charts')    this.launchTradingDesk();
     },
 
-    _tvColors() {
-        const g = id => document.getElementById(id)?.value || null;
-        return {
-            bg:         g('tv-bg')         || '#292A35',
-            up:         g('tv-up')         || '#000F89',
-            down:       g('tv-down')       || '#000000',
-            upBorder:   g('tv-upborder')   || '#000000',
-            downBorder: g('tv-downborder') || '#000000',
-            upWick:     g('tv-upwick')     || '#000000',
-            downWick:   g('tv-downwick')   || '#000000',
-        };
-    },
+   _tvColors() {
+    return {
+        bg:         '#292A35',
+        up:         '#000F89',
+        down:       '#000000',
+        upBorder:   '#000000',
+        downBorder: '#000000',
+        upWick:     '#000000',
+        downWick:   '#000000',
+    };
+},
 
     /* ══════════════════════════════════════════════════
        launchTradingDesk
@@ -1184,19 +1114,22 @@ window.ui = {
     }
     con.innerHTML = '';
 
-    // ── MODE B: TradingView free widget fallback ──
-    if(window._feedMode === 'tv') {
-        if(typeof TradingView === 'undefined') {
-            const s = document.createElement('script');
-            s.src = 'https://s3.tradingview.com/tv.js';
-            s.onload = () => this._launchTVFree(c, con);
-            document.head.appendChild(s);
-        } else {
+ // ── MODE B: TradingView free widget fallback ──
+if(window._feedMode === 'tv') {
+    if(!window._tvFreeLoaded) {
+        const s = document.createElement('script');
+        s.src = 'https://s3.tradingview.com/tv.js';
+        s.onload = () => {
+            window._tvFreeLoaded = true;
             this._launchTVFree(c, con);
-        }
-        startCustomCountdown();
-        return;
+        };
+        document.head.appendChild(s);
+    } else {
+        this._launchTVFree(c, con);
     }
+    startCustomCountdown();
+    return;
+}
 
     // ── MODE A: Advanced Charting Library + MT5 datafeed ──
     if(typeof TradingView === 'undefined' || !TradingView.widget) {
@@ -1337,7 +1270,7 @@ window.ui = {
         this._tvRebuildTimer = setTimeout(() => this.launchTradingDesk(), 400);
     },
 
-    resetTVColors() { applyPreset('phthalo'); },
+    
 
     classifySession(dateStr) {
         const tv = document.getElementById('t-start').value; if(!tv || !dateStr) return null;
@@ -1695,103 +1628,6 @@ window.ui = {
         this.renderAll();
     }
 };
-</script>
-
-<!-- SWATCH SYSTEM + PRESETS -->
-<script>
-const SWATCHES = {
-    bg:   ['#000000','#0a0a0a','#0d0d0d','#111111','#1a1a1a','#222222','#292A35','#1c2033','#1a1a2e','#050510','#0e130e','#080c08','#0d1117','#f2ede6'],
-    body: ['#000F89','#0000cc','#0033ff','#1a3aff','#26a69a','#00e600','#44ff88','#ffffff','#cccccc','#888888','#ff4444','#cc2222','#ef5350','#000000'],
-    wick: ['#000000','#111111','#222222','#333333','#444444','#26a69a','#00e600','#44ff88','#ffffff','#888888','#ff4444','#ef5350','#cccccc','#0033ff'],
-};
-SWATCHES.border = SWATCHES.wick;
-
-const SW_MAP = {
-    'sw-bg':        { picker:'tv-bg',        hex:'tv-bg-hex',        palette:'bg'   },
-    'sw-up':        { picker:'tv-up',        hex:'tv-up-hex',        palette:'body' },
-    'sw-upwick':    { picker:'tv-upwick',    hex:'tv-upwick-hex',    palette:'wick' },
-    'sw-upborder':  { picker:'tv-upborder',  hex:'tv-upborder-hex',  palette:'border'},
-    'sw-down':      { picker:'tv-down',      hex:'tv-down-hex',      palette:'body' },
-    'sw-downwick':  { picker:'tv-downwick',  hex:'tv-downwick-hex',  palette:'wick' },
-    'sw-downborder':{ picker:'tv-downborder',hex:'tv-downborder-hex',palette:'border'},
-};
-
-function buildSwatches() {
-    Object.entries(SW_MAP).forEach(([swId, cfg]) => {
-        const wrap = document.getElementById(swId); if(!wrap) return;
-        const palette = SWATCHES[cfg.palette] || SWATCHES.body;
-        wrap.innerHTML = palette.map(c =>
-            `<div class="sw" title="${c}" style="background:${c};border-color:${c==='#000000'?'#333':c};"
-                onclick="setSwatchColor('${swId}','${c}')"></div>`
-        ).join('');
-    });
-}
-
-function setSwatchColor(swId, color) {
-    const cfg = SW_MAP[swId]; if(!cfg) return;
-    const picker = document.getElementById(cfg.picker);
-    const hex    = document.getElementById(cfg.hex);
-    if(picker) picker.value = color;
-    if(hex)    hex.value    = color;
-    updateSwatchActive(swId, color);
-    ui.rebuildTVWidget();
-}
-
-function updateSwatchActive(swId, color) {
-    const wrap = document.getElementById(swId); if(!wrap) return;
-    wrap.querySelectorAll('.sw').forEach(sw => {
-        const match = sw.style.background.replace(/\s/g,'').toLowerCase() === color.toLowerCase()
-                   || sw.title.toLowerCase() === color.toLowerCase();
-        sw.classList.toggle('active-sw', match);
-        sw.style.borderColor = match ? '#ffffff' : (sw.title === '#000000' ? '#333' : sw.title);
-    });
-}
-
-const PRESETS = {
-    phthalo: { bg:'#292A35', up:'#000F89', upWick:'#000000', upBorder:'#000000', down:'#000000', downWick:'#000000', downBorder:'#000000' },
-    classic: { bg:'#131722', up:'#26a69a', upWick:'#26a69a', upBorder:'#26a69a', down:'#ef5350', downWick:'#ef5350', downBorder:'#ef5350' },
-    mono:    { bg:'#0d0d0d', up:'#cccccc', upWick:'#aaaaaa', upBorder:'#888888', down:'#444444', downWick:'#333333', downBorder:'#333333' },
-    hollow:  { bg:'#000000', up:'#44ff88', upWick:'#44ff88', upBorder:'#44ff88', down:'#ff4444', downWick:'#ff4444', downBorder:'#ff4444' },
-    trader:  { bg:'#080c08', up:'#00e600', upWick:'#00e600', upBorder:'#00e600', down:'#ff3344', downWick:'#ff3344', downBorder:'#ff3344' },
-};
-
-function applyPreset(name) {
-    const p = PRESETS[name]; if(!p) return;
-    const map = {
-        'tv-bg':p.bg,'tv-bg-hex':p.bg,
-        'tv-up':p.up,'tv-up-hex':p.up,
-        'tv-upwick':p.upWick,'tv-upwick-hex':p.upWick,
-        'tv-upborder':p.upBorder,'tv-upborder-hex':p.upBorder,
-        'tv-down':p.down,'tv-down-hex':p.down,
-        'tv-downwick':p.downWick,'tv-downwick-hex':p.downWick,
-        'tv-downborder':p.downBorder,'tv-downborder-hex':p.downBorder,
-    };
-    Object.entries(map).forEach(([id,v])=>{ const el=document.getElementById(id); if(el) el.value=v; });
-    updateSwatchActive('sw-bg',p.bg); updateSwatchActive('sw-up',p.up);
-    updateSwatchActive('sw-upwick',p.upWick); updateSwatchActive('sw-upborder',p.upBorder);
-    updateSwatchActive('sw-down',p.down); updateSwatchActive('sw-downwick',p.downWick);
-    updateSwatchActive('sw-downborder',p.downBorder);
-    document.querySelectorAll('.preset-chip').forEach(b => b.classList.remove('active-preset'));
-    const chip = document.getElementById('pch-'+name); if(chip) chip.classList.add('active-preset');
-    ui.launchTradingDesk();
-}
-
-var _ctbOpen = false;
-function toggleColorPanel() {
-    _ctbOpen = !_ctbOpen;
-    const panel = document.getElementById('ctb-panel'), toggle = document.getElementById('ctb-toggle');
-    if(panel) panel.classList.toggle('open', _ctbOpen);
-    if(toggle) { toggle.textContent = _ctbOpen ? '🎨 Customize ▴' : '🎨 Customize ▾'; toggle.style.color = _ctbOpen ? '#ddd' : '#888'; }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    buildSwatches();
-    const p = PRESETS['phthalo'];
-    updateSwatchActive('sw-bg',p.bg); updateSwatchActive('sw-up',p.up);
-    updateSwatchActive('sw-upwick',p.upWick); updateSwatchActive('sw-upborder',p.upBorder);
-    updateSwatchActive('sw-down',p.down); updateSwatchActive('sw-downwick',p.downWick);
-    updateSwatchActive('sw-downborder',p.downBorder);
-});
 </script>
 
 <!-- PWA Install -->
