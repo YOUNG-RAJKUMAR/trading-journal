@@ -1272,17 +1272,19 @@ window.ui = {
     console.log('Registering custom indicators...');
     return Promise.resolve([{
         name: 'Session High Low NPT',
-        metainfo: {
-            _metainfoVersion: 51,
-            id: 'SessionHighLowNPT@tv-basicstudies-1',
-            scriptIdPart: '',
-            name: 'Session High Low NPT',
-            description: 'Session High Low - Asia / London / NY (NPT)',
-            shortDescription: 'Sess H/L',
-            is_price_study: true,
-            isCustomIndicator: true,
-            linkedToSeries: true,
-            format: { type: 'price', precision: 5 },
+       metainfo: {
+    _metainfoVersion: 51,
+    id: 'SessionHighLowNPT@tv-basicstudies-1',
+    scriptIdPart: '',
+    name: 'Session High Low NPT',
+    description: 'Session High Low - Asia / London / NY (NPT)',
+    shortDescription: 'Sess H/L',
+    is_price_study: true,
+    isCustomIndicator: true,
+    linkedToSeries: true,
+    format: { type: 'price', precision: 5 },
+    palettes: {},
+    bands: [],
             plots: [
                 {id:'plot_asia_h', type:'line'},
                 {id:'plot_asia_l', type:'line'},
@@ -1291,15 +1293,17 @@ window.ui = {
                 {id:'plot_ny_h',   type:'line'},
                 {id:'plot_ny_l',   type:'line'},
             ],
-            defaults: {
+          defaults: {
     styles: {
-        plot_asia_h: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3' },
-        plot_asia_l: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3' },
-        plot_lon_h:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252' },
-        plot_lon_l:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252' },
-        plot_ny_h:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50' },
-        plot_ny_l:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50' },
+        plot_asia_h: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', visible: true },
+        plot_asia_l: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', visible: true },
+        plot_lon_h:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', visible: true },
+        plot_lon_l:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', visible: true },
+        plot_ny_h:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', visible: true },
+        plot_ny_l:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', visible: true },
     },
+    inputs: {}
+},
     inputs: {}
 },
             inputs: [],
