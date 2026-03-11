@@ -956,12 +956,11 @@ var MT5Feed = (function() {
             delete subscribers[listenerGuid];
         },
 
-        getServerTime: function(callback) {
-            /* Return real current time every call */
-            callback(Math.floor(Date.now() / 1000));
+    getServerTime: function(callback) {
+            /* Nepal Time = UTC + 5:45 (20700 seconds) */
+            callback(Math.floor(Date.now() / 1000) + 20700);
         }
     };
-
     connect();
 
     return {
@@ -1002,7 +1001,8 @@ function startCustomCountdown() {
         var tfMins = getTFMinutes(_currentTF);
         if(!tfMins) { el.style.display = 'none'; return; }
 
-        var now       = Math.floor(Date.now() / 1000);
+        // Use Nepal time for countdown calculation
+        var now = Math.floor(Date.now() / 1000) + 20700;
         var barSize   = tfMins * 60;
         var barStart  = Math.floor(now / barSize) * barSize;
         var barClose  = barStart + barSize;
