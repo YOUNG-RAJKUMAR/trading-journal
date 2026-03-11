@@ -1267,111 +1267,6 @@ window.ui = {
     { text: '1W',  resolution: 'W',   description: '1 Week' },
     { text: '1M',  resolution: 'M',   description: '1 Month' },
 ],
-
-    custom_indicators_getter: function(PineJS) {
-    console.log('Registering custom indicators...');
-    return Promise.resolve([{
-        name: 'Session High Low NPT',
-       metainfo: {
-    _metainfoVersion: 51,
-    id: 'SessionHighLowNPT@tv-basicstudies-1',
-    scriptIdPart: '',
-    name: 'Session High Low NPT',
-    description: 'Session High Low - Asia / London / NY (NPT)',
-    shortDescription: 'Sess H/L',
-    is_price_study: true,
-    isCustomIndicator: true,
-    linkedToSeries: true,
-    format: { type: 'price', precision: 5 },
-    palettes: {},
-    bands: [],
-            plots: [
-                {id:'plot_asia_h', type:'line'},
-                {id:'plot_asia_l', type:'line'},
-                {id:'plot_lon_h',  type:'line'},
-                {id:'plot_lon_l',  type:'line'},
-                {id:'plot_ny_h',   type:'line'},
-                {id:'plot_ny_l',   type:'line'},
-            ],
-          defaults: {
-    styles: {
-        plot_asia_h: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', visible: true },
-        plot_asia_l: { linestyle: 0, linewidth: 2, plottype: 0, color: '#2196F3', visible: true },
-        plot_lon_h:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', visible: true },
-        plot_lon_l:  { linestyle: 0, linewidth: 2, plottype: 0, color: '#FF5252', visible: true },
-        plot_ny_h:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', visible: true },
-        plot_ny_l:   { linestyle: 0, linewidth: 2, plottype: 0, color: '#4CAF50', visible: true },
-    },
-    inputs: {}
-},
-    inputs: {}
-},
-            inputs: [],
-              constructor: function() {
-                    this.init = function(context, inputCallback) {
-                        this._context = context;
-                        this._asiaH = NaN; this._asiaL = NaN;
-                        this._lonH  = NaN; this._lonL  = NaN;
-                        this._nyH   = NaN; this._nyL   = NaN;
-                        this._prevDay    = -1;
-                        this._prevInAsia = false;
-                        this._prevInLon  = false;
-                        this._prevInNY   = false;
-                    };
-                  this.main = function(context, inputCallback) {
-    try {
-        this._context = context;
-        var time  = PineJS.Std.time(this._context);
-        var high  = PineJS.Std.high(this._context);
-        var low   = PineJS.Std.low(this._context);
-        var close = PineJS.Std.close(this._context);
-
-        if(time == null || high == null || low == null || close == null) return [close,close,close,close,close,close];
-        time  = Number(time);
-        high  = Number(high);
-        low   = Number(low);
-        close = Number(close);
-        if(isNaN(high) || isNaN(low) || isNaN(close)) return [close,close,close,close,close,close];
-
-        var nptMs  = time + (5 * 3600 + 45 * 60) * 1000;
-        var nd     = new Date(nptMs);
-        var mins   = nd.getUTCHours() * 60 + nd.getUTCMinutes();
-        var dayKey = nd.getUTCFullYear() * 10000 + (nd.getUTCMonth()+1) * 100 + nd.getUTCDate();
-
-        if (dayKey !== this._prevDay) {
-            this._prevDay = dayKey;
-            this._asiaH = NaN; this._asiaL = NaN;
-            this._lonH  = NaN; this._lonL  = NaN;
-            this._nyH   = NaN; this._nyL   = NaN;
-            this._prevInAsia = false;
-            this._prevInLon  = false;
-            this._prevInNY   = false;
-        }
-
-        var inAsia   = mins >= 345  && mins < 885;
-        var inLondon = mins >= 825  && mins < 1365;
-        var inNY     = mins >= 1125 || mins < 225;
-
-        if (inAsia)   { this._asiaH = isNaN(this._asiaH) ? high : Math.max(this._asiaH, high); this._asiaL = isNaN(this._asiaL) ? low : Math.min(this._asiaL, low); }
-        if (inLondon) { this._lonH  = isNaN(this._lonH)  ? high : Math.max(this._lonH,  high); this._lonL  = isNaN(this._lonL)  ? low : Math.min(this._lonL,  low); }
-        if (inNY)     { this._nyH   = isNaN(this._nyH)   ? high : Math.max(this._nyH,   high); this._nyL   = isNaN(this._nyL)   ? low : Math.min(this._nyL,   low); }
-
-        return [
-            isNaN(this._asiaH) ? close : this._asiaH,
-            isNaN(this._asiaL) ? close : this._asiaL,
-            isNaN(this._lonH)  ? close : this._lonH,
-            isNaN(this._lonL)  ? close : this._lonL,
-            isNaN(this._nyH)   ? close : this._nyH,
-            isNaN(this._nyL)   ? close : this._nyL,
-        ];
-    } catch(e) {
-        return [0,0,0,0,0,0];
-    }
-};
-                }           // ← closes constructor
-            }               // ← closes indicator object
-        ]);                 // ← closes Promise.resolve([
-        },                  // ← closes custom_indicators_getter
         studies_overrides: {},
         toolbar_bg: c.bg,
         loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
@@ -1384,24 +1279,6 @@ window.ui = {
         this._tvWidget.onChartReady(function() {
             try {
                 console.log('Chart ready...');
-
-                // ── Auto-load Session High/Low indicator ──
-                var studyPromise = self._tvWidget.activeChart().createStudy(
-                    'Session High Low NPT',
-                    false,
-                    false,
-                    [],
-                    {},
-                    { checkLimit: false }
-                );
-
-                if(studyPromise && studyPromise.then) {
-                    studyPromise.then(function(id) {
-                        console.log('✅ Indicator loaded, ID:', id);
-                    }).catch(function(err) {
-                        console.error('❌ createStudy error:', err);
-                    });
-                }
 
                 // ── Interval change listener ──
                 self._tvWidget.activeChart().onIntervalChanged().subscribe(
