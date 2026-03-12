@@ -138,20 +138,8 @@ body.theme-matrix {
     background:#000;
     color:#55cc55;
     font-family:'Share Tech Mono','Courier New',monospace !important;
-    animation:flicker 6s infinite;
 }
 
-/* Static scanlines only — NO moving beam */
-body.theme-matrix::before {
-    content:'';
-    position:fixed; inset:0;
-    pointer-events:none; z-index:9996;
-    background:repeating-linear-gradient(
-        0deg,
-        rgba(0,0,0,0.18) 0px, rgba(0,0,0,0.18) 1px,
-        transparent 1px, transparent 4px
-    );
-}
 /* body.theme-matrix::after intentionally removed — no top-down scan beam */
 
 /* Window chrome cards */
