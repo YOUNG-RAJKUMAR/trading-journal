@@ -150,17 +150,18 @@ body.theme-matrix .table-wrap {
     border:1px solid #1a5a1a;
     border-top:2px solid #00ff41;
     border-radius:0;
-    box-shadow:0 0 0 1px #0a2a0a, 0 0 20px rgba(0,255,65,.08);
+    box-shadow:none;
     position:relative;
     padding-top:28px;
 }
+
 body.theme-matrix .card::before,
 body.theme-matrix .stat-card::before {
     content:'● ● ● TERMINAL';
     display:block; position:absolute;
     top:0; left:0; right:0; height:24px; line-height:24px;
     padding:0 10px;
-    background:linear-gradient(90deg,#001a00,#002a00);
+   background:#000;
     border-bottom:1px solid #1a5a1a;
     font-size:.44rem; letter-spacing:4px; color:#00ff4177;
     font-family:'Share Tech Mono',monospace;
