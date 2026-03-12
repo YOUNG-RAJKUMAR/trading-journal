@@ -1025,46 +1025,12 @@ function switchFeed(mode) {
    Works independently of TV library
 ══════════════════════════════════ */
 var _countdownInterval = null;
-var _currentTF = '1'; // default 1min
+var _currentTF = ['60', '60']; // per-panel TF — index 0 = panel 1, index 1 = panel 2
 
 function startCustomCountdown() {
     if(_countdownInterval) clearInterval(_countdownInterval);
 
     _countdownInterval = setInterval(function() {
-        var tfMins = getTFMinutes(_currentTF);
-        var tfLabels = {
-            '1':'1M','2':'2M','3':'3M','4':'4M','5':'5M','6':'6M',
-            '10':'10M','12':'12M','15':'15M','20':'20M','30':'30M',
-            '60':'1H','120':'2H','180':'3H','240':'4H',
-            '360':'6H','480':'8H','720':'12H',
-            'D':'1D','W':'1W','M':'1MO'
-        };
-
-        // Calculate once, apply to all panels
-        var remaining = 0;
-        if(tfMins) {
-            var now      = Math.floor(Date.now() / 1000) + 20700; // Nepal offset
-            var barSize  = tfMins * 60;
-            var barClose = (Math.floor(now / barSize) + 1) * barSize;
-            remaining    = barClose - now;
-        }
-
-        var h = Math.floor(remaining / 3600);
-        var m = Math.floor((remaining % 3600) / 60);
-        var s = remaining % 60;
-        var display = h > 0
-            ? pad(h)+':'+pad(m)+':'+pad(s)
-            : pad(m)+':'+pad(s);
-
-        // Color based on urgency
-        var color     = remaining <= 30  ? '#ff4444'
-                      : remaining <= 120 ? '#ffcc44'
-                      : '#44ff88';
-        var shadow    = remaining <= 30  ? '-2px 0 8px rgba(255,68,68,0.2)'
-                      : remaining <= 120 ? '-2px 0 8px rgba(255,204,68,0.2)'
-                      : '-2px 0 8px rgba(68,255,136,0.15)';
-
-        // Determine which panels are active
         var activePanels = _chartLayout === 'single' ? [1] : [1, 2];
 
         activePanels.forEach(function(num) {
@@ -1072,24 +1038,50 @@ function startCustomCountdown() {
             var val = document.getElementById('countdown-val-' + num);
             if(!el || !val) return;
 
+            var tf     = _currentTF[num-1] || '60';
+            var tfMins = getTFMinutes(tf);
             if(!tfMins) { el.style.display = 'none'; return; }
 
-            val.textContent              = display;
-            val.style.color              = color;
-            el.style.borderRightColor    = color;
-            el.style.boxShadow           = shadow;
-            el.style.display             = 'block';
+            // Nepal time offset
+            var now       = Math.floor(Date.now() / 1000) + 20700;
+            var barSize   = tfMins * 60;
+            var barClose  = (Math.floor(now / barSize) + 1) * barSize;
+            var remaining = barClose - now;
 
-            // Dynamic vertical centering per panel
+            // Format
+            var h = Math.floor(remaining / 3600);
+            var m = Math.floor((remaining % 3600) / 60);
+            var s = remaining % 60;
+            val.textContent = h > 0
+                ? pad(h)+':'+pad(m)+':'+pad(s)
+                : pad(m)+':'+pad(s);
+
+            // Color urgency
+            if(remaining <= 30) {
+                val.style.color           = '#ff4444';
+                el.style.borderRightColor = '#ff4444';
+                el.style.boxShadow        = '-2px 0 8px rgba(255,68,68,0.2)';
+            } else if(remaining <= 120) {
+                val.style.color           = '#ffcc44';
+                el.style.borderRightColor = '#ffcc44';
+                el.style.boxShadow        = '-2px 0 8px rgba(255,204,68,0.2)';
+            } else {
+                val.style.color           = '#44ff88';
+                el.style.borderRightColor = '#44ff88';
+                el.style.boxShadow        = '-2px 0 8px rgba(68,255,136,0.15)';
+            }
+
+            // Vertical positioning
             var container = document.getElementById('tv-container-' + num);
             if(container) {
-                var chartH = container.offsetHeight;
-                el.style.top       = (chartH * 0.42) + 'px';
+                el.style.top       = (container.offsetHeight * 0.42) + 'px';
                 el.style.transform = 'none';
             }
+
+            el.style.display = 'block';
         });
 
-        // Hide countdown on any panel NOT in active list (e.g. panel 2 in single mode)
+        // Hide inactive panels
         [1, 2].forEach(function(num) {
             if(activePanels.indexOf(num) === -1) {
                 var el = document.getElementById('chart-countdown-' + num);
@@ -1102,12 +1094,12 @@ function startCustomCountdown() {
 
 function getTFMinutes(tf) {
     var map = {
-        '1':1,   '2':2,    '3':3,    '4':4,
-        '5':5,   '6':6,    '10':10,  '12':12,
-        '15':15, '20':20,  '30':30,  
-        '60':60, '120':120,'180':180,'240':240,
+        '1':1,    '2':2,    '3':3,    '4':4,
+        '5':5,    '6':6,    '10':10,  '12':12,
+        '15':15,  '20':20,  '30':30,
+        '60':60,  '120':120,'180':180,'240':240,
         '360':360,'480':480,'720':720,
-        'D':1440,'W':10080,'M':43200
+        'D':1440, 'W':10080,'M':43200
     };
     return map[tf] || 1;
 }
@@ -1116,9 +1108,9 @@ function pad(n) {
     return n < 10 ? '0'+n : ''+n;
 }
 
-// Update current TF when user changes it
+// Legacy single-panel call — kept for safety
 function updateCountdownTF(tf) {
-    _currentTF = tf;
+    _currentTF[0] = tf;
 }
 </script>
 
@@ -1617,9 +1609,10 @@ if('serviceWorker' in navigator) {
 </script>
 
 
-    <script>
+<script>
 var _chartLayout = 'single';
 var _tvWidgets = [null, null];
+var _currentTF = ['60', '60']; // per-panel TF tracking
 
 function setChartLayout(layout) {
     _chartLayout = layout;
@@ -1627,7 +1620,6 @@ function setChartLayout(layout) {
     var p1    = document.getElementById('chart-panel-1');
     var p2    = document.getElementById('chart-panel-2');
 
-    // Reset button styles
     ['single','horizontal','vertical'].forEach(function(l) {
         var btn = document.getElementById('layout-btn-' + l);
         if(!btn) return;
@@ -1651,7 +1643,6 @@ function setChartLayout(layout) {
         p2.style.display = 'flex'; p2.style.flex = '1';
     }
 
-    // Rebuild all widgets after layout change
     setTimeout(function() { launchAllPanels(); }, 50);
 }
 
@@ -1667,37 +1658,38 @@ function launchAllPanels() {
 function launchPanel(num) {
     var c = window.ui._tvColors();
     var containerId = 'tv-container-' + num;
-   var symbols = { 1: 'EURUSD', 2: 'GBPUSD' };
-var symbol  = symbols[num] || 'EURUSD';
-var tf      = '60';
+    var symbols = { 1: 'EURUSD', 2: 'GBPUSD' };
+    var symbol  = symbols[num] || 'EURUSD';
+    var tf      = _currentTF[num-1] || '60';
 
     // Destroy existing widget
     if(_tvWidgets[num-1]) {
         try { _tvWidgets[num-1].remove(); } catch(e) {}
         _tvWidgets[num-1] = null;
     }
+
     var con = document.getElementById(containerId);
     if(!con) return;
     con.innerHTML = '';
 
     // ── Per-panel countdown injection ──
-var panel = document.getElementById('chart-panel-' + num);
-if(panel) {
-    panel.style.position = 'relative';
-    var oldCd = document.getElementById('chart-countdown-' + num);
-    if(oldCd) oldCd.remove();
+    var panel = document.getElementById('chart-panel-' + num);
+    if(panel) {
+        panel.style.position = 'relative';
+        var oldCd = document.getElementById('chart-countdown-' + num);
+        if(oldCd) oldCd.remove();
 
-    var cd = document.createElement('div');
-    cd.id = 'chart-countdown-' + num;
-    cd.style.cssText = 'position:absolute;right:62px;top:50%;transform:translateY(-50%);'
-        + 'background:rgba(0,0,0,0.85);border:1px solid #333;border-right:2px solid #44ff88;'
-        + 'padding:5px 10px 5px 8px;font-family:Courier New,monospace;font-size:.8rem;'
-        + 'color:#44ff88;z-index:5;pointer-events:none;display:none;'
-        + 'letter-spacing:1px;white-space:nowrap;box-shadow:-2px 0 8px rgba(68,255,136,0.15);';
-    cd.innerHTML = '<span id="countdown-val-' + num
-        + '" style="font-size:.85rem;font-weight:700;">--:--</span>';
-    panel.appendChild(cd);
-}
+        var cd = document.createElement('div');
+        cd.id = 'chart-countdown-' + num;
+        cd.style.cssText = 'position:absolute;right:62px;top:50%;transform:translateY(-50%);'
+            + 'background:rgba(0,0,0,0.85);border:1px solid #333;border-right:2px solid #44ff88;'
+            + 'padding:5px 10px 5px 8px;font-family:Courier New,monospace;font-size:.8rem;'
+            + 'color:#44ff88;z-index:5;pointer-events:none;display:none;'
+            + 'letter-spacing:1px;white-space:nowrap;box-shadow:-2px 0 8px rgba(68,255,136,0.15);';
+        cd.innerHTML = '<span id="countdown-val-' + num
+            + '" style="font-size:.85rem;font-weight:700;">--:--</span>';
+        panel.appendChild(cd);
+    }
 
     // TV Free fallback
     if(window._feedMode === 'tv') {
@@ -1764,6 +1756,20 @@ if(panel) {
         toolbar_bg:     c.bg,
         loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
     });
+
+    // ── Sync countdown TF with chart interval (MT5 mode) ──
+    _tvWidgets[num-1].onChartReady(function() {
+        // Grab whatever TF the chart actually loaded with
+        _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
+
+        // Update on every user-driven TF change
+        _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(
+            null,
+            function(interval) {
+                _currentTF[num-1] = interval;
+            }
+        );
+    });
 }
 
 function _launchPanelFree(num, containerId, symbol, tf, c) {
@@ -1795,10 +1801,20 @@ function _launchPanelFree(num, containerId, symbol, tf, c) {
             'mainSeriesProperties.candleStyle.wickDownColor':   c.downWick,
         }
     });
+
+    // ── Sync countdown TF with chart interval (TV free mode) ──
+    _tvWidgets[num-1].onChartReady(function() {
+        _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
+
+        _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(
+            null,
+            function(interval) {
+                _currentTF[num-1] = interval;
+            }
+        );
+    });
 }
 </script>
-
-    
 <!-- Calculator -->
 <script>
 var _dm = 'amt';
