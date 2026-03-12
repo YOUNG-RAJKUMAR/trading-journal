@@ -2126,7 +2126,6 @@ function setTheme(name) {
     document.body.classList.remove.apply(document.body.classList, _allThemes.map(function(t){return 'theme-'+t;}));
     document.body.classList.add('theme-' + name);
     document.body.style.removeProperty('--bg');
-   _allThemes.forEach(function(t) { var btn=document.getElementById('th-'+t); if(!btn) return; btn.style.outline=t===name?'2px solid var(--primary)':'none'; btn.style.outlineOffset='2px'; }); if(!btn) return; btn.style.outline=t===name?'2px solid var(--primary)':'none'; btn.style.outlineOffset='2px'; });
     setTimeout(function() {
         var computed=getComputedStyle(document.body).getPropertyValue('--bg').trim();
         var bgEl=document.getElementById('custom-bg'),bgHexEl=document.getElementById('custom-bg-hex');
@@ -2136,15 +2135,43 @@ function setTheme(name) {
 function setCustomBg(hex) {
     document.body.style.setProperty('--bg', hex);
     var hexEl=document.getElementById('custom-bg-hex'); if(hexEl) hexEl.value=hex;
-    _allThemes.forEach(function(t){var btn=document.getElementById('th-'+t);if(btn)btn.style.outline='none';});
     localStorage.setItem('rk_custom_bg', hex);
 }
 function onCustomBgHex(val) { val=val.trim(); var picker=document.getElementById('custom-bg'); if(/^#[0-9a-fA-F]{6}$/.test(val)){if(picker)picker.value=val;setCustomBg(val);} }
 (function initTheme() {
-    var saved=localStorage.getItem('rk_theme')||'midnight', savedBg=localStorage.getItem('rk_custom_bg');
+    var saved=localStorage.getItem('rk_theme')||'blueprint', savedBg=localStorage.getItem('rk_custom_bg');
     setTheme(saved);
     if(savedBg) setTimeout(function(){setCustomBg(savedBg);},80);
 })();
 </script>
+
+    <!-- Theme System -->
+<script>
+var _currentTheme = localStorage.getItem('rk_theme') || 'blueprint';
+var _allThemes = ['brutalist','glass','terminal','imperial','cyberpunk','arctic','crimson','forest','sunset','blueprint','light'];
+function setTheme(name) {
+    _currentTheme = name; localStorage.setItem('rk_theme', name); localStorage.removeItem('rk_custom_bg');
+    document.body.classList.remove.apply(document.body.classList, _allThemes.map(function(t){return 'theme-'+t;}));
+    document.body.classList.add('theme-' + name);
+    document.body.style.removeProperty('--bg');
+    setTimeout(function() {
+        var computed=getComputedStyle(document.body).getPropertyValue('--bg').trim();
+        var bgEl=document.getElementById('custom-bg'),bgHexEl=document.getElementById('custom-bg-hex');
+        if(bgEl&&computed){try{bgEl.value=computed;}catch(e){}} if(bgHexEl&&computed)bgHexEl.value=computed;
+    }, 50);
+}
+function setCustomBg(hex) {
+    document.body.style.setProperty('--bg', hex);
+    var hexEl=document.getElementById('custom-bg-hex'); if(hexEl) hexEl.value=hex;
+    localStorage.setItem('rk_custom_bg', hex);
+}
+function onCustomBgHex(val) { val=val.trim(); var picker=document.getElementById('custom-bg'); if(/^#[0-9a-fA-F]{6}$/.test(val)){if(picker)picker.value=val;setCustomBg(val);} }
+(function initTheme() {
+    var saved=localStorage.getItem('rk_theme')||'blueprint', savedBg=localStorage.getItem('rk_custom_bg');
+    setTheme(saved);
+    if(savedBg) setTimeout(function(){setCustomBg(savedBg);},80);
+})();
+</script>
+    
 </body>
 </html>
