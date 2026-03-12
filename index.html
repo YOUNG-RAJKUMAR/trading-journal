@@ -628,38 +628,23 @@ tr:hover td { background-color: var(--primary-dim); }
                 <button class="feed-toggle-btn"        id="feed-btn-tv"  onclick="switchFeed('tv')">📺 TV FALLBACK</button>
             </div>
 
-      
 <!-- Theme strip -->
-<div style="display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--border);padding:3px 8px;flex-wrap:wrap;">
-    <span style="font-family:'Share Tech Mono',monospace;font-size:.44rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px;margin-right:3px;">SKIN</span>
-    <button onclick="setTheme('rubble')"    id="th-rubble"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#100c08;border:1px solid #3a2a18;color:#cc8844;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">🧱 RUBBLE</button>
-    <button onclick="setTheme('fracture')"  id="th-fracture"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#080c12;border:1px solid #1a2a3a;color:#88ccff;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">❄ FRACTURE</button>
-    <button onclick="setTheme('detonator')" id="th-detonator"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#0d0d00;border:1px solid #2a2a00;color:#ffee00;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">💥 DETO</button>
-    <button onclick="setTheme('bedrock')"   id="th-bedrock"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#0c0906;border:1px solid #2a1a08;color:#a07040;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">⛏ BEDROCK</button>
-    <button onclick="setTheme('gravel')"    id="th-gravel"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#080c08;border:1px solid #182018;color:#6a8a5a;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">🪖 GRAVEL</button>
-    <button onclick="setTheme('condemned')" id="th-condemned"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#0d0505;border:1px solid #3a0808;color:#ff2222;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">⛔ CONDEMN</button>
-    <button onclick="setTheme('quarry')"    id="th-quarry"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#0c0c0c;border:1px solid #282828;color:#c0b090;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">🪨 QUARRY</button>
-    <button onclick="setTheme('shatter')"   id="th-shatter"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#0a0810;border:1px solid #1e1030;color:#cc88ff;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">💜 SHATTER</button>
-    <button onclick="setTheme('bunker')"    id="th-bunker"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#080c08;border:1px solid #103010;color:#4a8a4a;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">🏚 BUNKER</button>
-    <button onclick="setTheme('wrecking')"  id="th-wrecking"
-        style="padding:3px 8px;font-size:.5rem;cursor:pointer;background:#0d0800;border:1px solid #2a1400;color:#ff8800;text-transform:uppercase;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:700;">🔨 WRECK</button>
+<div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:3px 8px;flex-wrap:wrap;">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:.44rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px;margin-right:4px;">SKIN</span>
+    <button onclick="setTheme('rubble')"    id="th-rubble"    style="padding:4px 10px;font-size:.55rem;cursor:pointer;background:#0e0b07;border:2px solid #3a2a14;color:#cc7733;font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;">🧱 RUBBLE</button>
+    <button onclick="setTheme('blueprint')" id="th-blueprint" style="padding:4px 10px;font-size:.55rem;cursor:pointer;background:#04080f;border:1px solid #0a2a4a;color:#4af;font-family:'Share Tech Mono',monospace;letter-spacing:3px;text-transform:uppercase;">📐 BLUEPRINT</button>
+    <button onclick="setTheme('caution')"   id="th-caution"   style="padding:4px 10px;font-size:.55rem;cursor:pointer;background:#0d0d00;border:3px solid #444400;color:#ffee00;font-family:'Bebas Neue','Oswald',sans-serif;font-weight:400;letter-spacing:4px;text-transform:uppercase;">⚠ CAUTION</button>
+    <button onclick="setTheme('vault')"     id="th-vault"     style="padding:4px 10px;font-size:.55rem;cursor:pointer;background:#0a0a0c;border:1px solid #333344;color:#aab0cc;font-family:'Inter',sans-serif;font-weight:300;letter-spacing:4px;text-transform:uppercase;">🔒 VAULT</button>
+    <button onclick="setTheme('condemned')" id="th-condemned" style="padding:4px 10px;font-size:.55rem;cursor:pointer;background:#0d0303;border:2px solid #440000;color:#ff2200;font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;">⛔ CONDEMNED</button>
     <span style="font-size:.44rem;color:var(--text-dim);margin-left:4px;font-family:'Share Tech Mono',monospace;">BG</span>
-    <input type="color" id="custom-bg" value="#100c08"
+    <input type="color" id="custom-bg" value="#0e0b07"
         oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)"
         style="width:18px;height:18px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;">
-    <input type="text" id="custom-bg-hex" placeholder="#100c08" maxlength="7"
+    <input type="text" id="custom-bg-hex" placeholder="#0e0b07" maxlength="7"
         oninput="onCustomBgHex(this.value)"
         style="width:54px;background:var(--surface);border:1px solid var(--border);color:var(--primary);padding:2px 4px;font-size:.54rem;font-family:'Share Tech Mono',monospace;outline:none;">
 </div>
+            
             <!-- PDF strip -->
             <div style="background:var(--surface);padding:2px 6px;border:1px solid var(--border);display:flex;gap:4px;align-items:center;">
                 <span style="font-size:.48rem;color:#666;">PDF:</span>
@@ -2078,434 +2063,807 @@ function syncPicker(hexId, pickerId) { var h=document.getElementById(hexId),p=do
 <!-- Theme System -->
 <script>
 var _currentTheme = localStorage.getItem('rk_theme') || 'rubble';
-var _allThemes = ['rubble','fracture','detonator','bedrock','gravel','condemned','quarry','shatter','bunker','wrecking'];
+var _allThemes = ['rubble','blueprint','caution','vault','condemned'];
 
+/* ══════════════════════════════════════════════════
+   THEME DEFINITIONS
+   Each theme defines: colors + full structural CSS
+══════════════════════════════════════════════════ */
 var _themes = {
 
-    rubble: {
-        '--bg':'#100c08','--surface':'#18120a','--surface-deep':'#0c0804','--surface-mid':'#140e08',
-        '--border':'#3a2a18','--primary':'#cc8844','--primary-dim':'#cc884444','--primary-glow':'#cc884433',
-        '--text':'#7a5a38','--text-light':'#cc8844','--text-dim':'#3a2a18','--text-faint':'#201808',
-        '--negative':'#ff4444','--positive':'#88cc66',
-        '--brick-h':'rgba(0,0,0,0.65)','--brick-v':'rgba(0,0,0,0.45)',
-        _font_head:  "'Oswald', sans-serif",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Inter', sans-serif",
-        _weight:     '700',
-        _radius:     '0px',
-        _radius_sm:  '0px',
-        _bw:         '2px',
-        _bw_acc:     '4px',
-        _header_sz:  '1.2rem',
-        _header_ls:  '6px',
-        _stat_sz:    '1.7rem',
-        _tab_ls:     '3px',
-        _tab_sz:     '0.75rem',
-        _sect_ls:    '4px',
-        _shadow:     'inset 0 0 50px rgba(0,0,0,0.7), 0 4px 30px rgba(0,0,0,0.6)',
-        _pattern:    'repeating-linear-gradient(0deg,transparent,transparent 23px,rgba(0,0,0,0.4) 23px,rgba(0,0,0,0.4) 25px),repeating-linear-gradient(90deg,transparent,transparent 47px,rgba(0,0,0,0.3) 47px,rgba(0,0,0,0.3) 49px)'
+/* ╔══════════════════════════════════════╗
+   ║  RUBBLE — Heavy masonry concrete     ║
+   ╚══════════════════════════════════════╝ */
+rubble: {
+    colors: {
+        bg:'#0e0b07', surface:'#160f08', deep:'#0a0704', mid:'#120d06',
+        border:'#3a2614', primary:'#cc7733', pdim:'rgba(204,119,51,0.3)',
+        pglow:'rgba(204,119,51,0.15)', text:'#7a5530', txl:'#cc8844',
+        txd:'#3a2210', txf:'#1e1408', neg:'#ff4444', pos:'#88cc55'
     },
+    brick_h: 'rgba(0,0,0,0.7)',
+    brick_v: 'rgba(0,0,0,0.5)',
+    css: function(c) { return `
+        *{transition:background-color .3s,color .3s,border-color .3s,box-shadow .3s!important}
+        body{background-color:${c.bg}!important;color:${c.text}!important;font-family:'Inter',sans-serif!important}
 
-    fracture: {
-        '--bg':'#080c12','--surface':'#0c1018','--surface-deep':'#050810','--surface-mid':'#080e16',
-        '--border':'#1a2a3a','--primary':'#88ccff','--primary-dim':'#88ccff33','--primary-glow':'#88ccff22',
-        '--text':'#3a6080','--text-light':'#88ccff','--text-dim':'#1a3048','--text-faint':'#101820',
-        '--negative':'#ff4488','--positive':'#44ffcc',
-        '--brick-h':'rgba(136,204,255,0.04)','--brick-v':'rgba(136,204,255,0.02)',
-        _font_head:  "'Inter', sans-serif",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Inter', sans-serif",
-        _weight:     '200',
-        _radius:     '3px',
-        _radius_sm:  '2px',
-        _bw:         '1px',
-        _bw_acc:     '1px',
-        _header_sz:  '0.85rem',
-        _header_ls:  '10px',
-        _stat_sz:    '1.9rem',
-        _tab_ls:     '5px',
-        _tab_sz:     '0.65rem',
-        _sect_ls:    '6px',
-        _shadow:     '0 0 1px rgba(136,204,255,0.3), 0 2px 8px rgba(0,0,0,0.4)',
-        _pattern:    'none'
+        /* FONTS */
+        .header-title,.tab-btn,.section-title,.stat-label,.stat-val,.save-btn,
+        .lot-badge,.outcome-badge,.rr-badge,.month-header td,th,.login-card h2,
+        .btn-action,.cal-day b,h3,.feed-toggle-btn.active,.btn-use-tv,
+        #mt5-offline-overlay h3
+        {font-family:'Oswald',sans-serif!important;font-weight:700!important}
+
+        input,select,textarea,td,.search-bar,.login-input,.price-val,
+        .price-lbl,.stat-meta,code,#mt5-status-badge,.scan-status,
+        .feed-toggle-btn,#mt5-offline-overlay code,#mt5-offline-overlay p
+        {font-family:'Share Tech Mono',monospace!important}
+
+        /* HEADER */
+        .header-title{font-size:1.2rem!important;letter-spacing:6px!important;
+            text-shadow:0 0 20px ${c.pdim}!important}
+        .header-top{border-bottom:3px solid ${c.border}!important;padding-bottom:8px!important}
+
+        /* TABS */
+        .tab-btn{font-size:.78rem!important;letter-spacing:3px!important;
+            color:${c.txd}!important;padding:9px 20px!important;border-bottom:4px solid transparent!important}
+        .tab-btn.active{color:${c.primary}!important;border-bottom-color:${c.primary}!important;
+            text-shadow:0 0 10px ${c.pdim}!important}
+        .tab-nav{border-bottom:3px solid ${c.border}!important}
+
+        /* CARDS */
+        .card,.stat-card{
+            background-color:${c.surface}!important;
+            background-image:repeating-linear-gradient(0deg,transparent,transparent 23px,rgba(0,0,0,0.45) 23px,rgba(0,0,0,0.45) 25px),repeating-linear-gradient(90deg,transparent,transparent 47px,rgba(0,0,0,0.3) 47px,rgba(0,0,0,0.3) 49px)!important;
+            border:3px solid ${c.border}!important;
+            border-top:5px solid ${c.primary}!important;
+            border-left:5px solid ${c.primary}!important;
+            border-radius:0!important;
+            box-shadow:inset 0 0 60px rgba(0,0,0,0.7),6px 6px 0 rgba(0,0,0,0.5)!important}
+        .card::after{background:linear-gradient(225deg,${c.pdim} 0%,transparent 60%)!important}
+
+        /* STAT VALUES */
+        .stat-val{font-size:1.8rem!important;color:${c.primary}!important;
+            text-shadow:0 0 20px ${c.pglow}!important;letter-spacing:1px!important}
+        .stat-label{font-size:.6rem!important;letter-spacing:4px!important;color:${c.txd}!important}
+        .stat-meta{color:${c.txd}!important}
+        .section-title{font-size:.72rem!important;letter-spacing:5px!important;
+            color:${c.primary}!important;border-bottom:2px solid ${c.border}!important}
+
+        /* INPUTS */
+        input,select,textarea{
+            background-color:${c.deep}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important;color:${c.txl}!important;
+            border-left:4px solid ${c.pdim}!important}
+        input:focus,select:focus,textarea:focus{border-color:${c.primary}!important;
+            box-shadow:0 0 8px ${c.pglow}!important;color:${c.primary}!important}
+        input::placeholder,textarea::placeholder{color:${c.txd}!important}
+        .search-bar{border:2px solid ${c.border}!important;border-left:5px solid ${c.pdim}!important;
+            border-radius:0!important;background:${c.surface}!important;color:${c.txl}!important}
+
+        /* BUTTONS */
+        .btn-action{background:${c.surface}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important;color:${c.text}!important;font-size:.58rem!important;letter-spacing:1px!important}
+        .btn-action:hover{border-color:${c.primary}!important;color:${c.primary}!important;
+            box-shadow:0 0 8px ${c.pglow}!important}
+        .save-btn{background:${c.primary}!important;color:#000!important;border-radius:0!important;
+            font-size:1rem!important;letter-spacing:5px!important;
+            box-shadow:4px 4px 0 rgba(0,0,0,0.5)!important}
+        .save-btn:hover{letter-spacing:7px!important;box-shadow:6px 6px 0 rgba(0,0,0,0.6)!important}
+
+        /* TABLE */
+        .table-wrap{background:${c.surface}!important;border:3px solid ${c.border}!important;
+            border-radius:0!important}
+        th{background:${c.mid}!important;color:${c.primary}!important;font-size:.6rem!important;
+            letter-spacing:4px!important;border-bottom:3px solid ${c.border}!important;
+            opacity:1!important}
+        td{color:${c.text}!important;border-bottom:1px solid ${c.border}!important;
+            font-size:.78rem!important}
+        tr:hover td{background:${c.pdim}!important}
+        .month-header td{background:${c.mid}!important;color:${c.primary}!important;
+            letter-spacing:7px!important;border-top:3px solid ${c.border}!important;
+            border-bottom:3px solid ${c.border}!important;font-size:.82rem!important}
+
+        /* BADGES */
+        .lot-badge{background:${c.surface}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important;color:${c.primary}!important;font-size:.82rem!important}
+        .rr-badge,.outcome-badge{border-radius:0!important;font-size:.72rem!important;
+            letter-spacing:1px!important}
+
+        /* LOGIN */
+        .login-card{background:${c.surface}!important;border:3px solid ${c.border}!important;
+            border-top:5px solid ${c.primary}!important;border-radius:0!important;
+            box-shadow:inset 0 0 60px rgba(0,0,0,0.7),0 0 60px ${c.pdim}!important}
+        .login-input{background:${c.deep}!important;border:2px solid ${c.border}!important;
+            border-left:4px solid ${c.pdim}!important;border-radius:0!important;color:${c.primary}!important}
+        .login-card h2{font-size:1.4rem!important;letter-spacing:6px!important;color:${c.primary}!important}
+
+        /* CALENDAR */
+        .cal-day{background:${c.surface}!important;border-radius:0!important}
+        .calendar-grid{background:${c.border}!important;border:3px solid ${c.border}!important}
+
+        /* MT5 BADGE */
+        #mt5-status-badge{background:${c.surface}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important}
+        .feed-toggle-wrap{background:${c.surface}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important}
+
+        /* CHART PANEL OVERRIDES */
+        #tab-charts *[style*="background:#000"],#tab-charts *[style*="background: #000"]
+        {background-color:${c.bg}!important}
+        #tab-charts *[style*="background:#0a0a0a"],#tab-charts *[style*="background:#050505"],
+        #tab-charts *[style*="background:#0d0d0d"]
+        {background-color:${c.deep}!important}
+        #tab-charts *[style*="border:1px solid #1a1a1a"],#tab-charts *[style*="border: 1px solid #1a1a1a"]
+        {border-color:${c.border}!important}
+        #tab-charts *[style*="color:#fff"]{color:${c.txl}!important}
+        #tab-charts *[style*="color:#555"]{color:${c.txd}!important}
+        #tab-charts *[style*="color:#44ff88"]{color:${c.pos}!important}
+        #tab-charts *[style*="color:#ff4444"]{color:${c.neg}!important}
+
+        /* SCAN / MEDIA ZONES */
+        .scan-zone,.media-zone{background:${c.deep}!important;border-color:${c.border}!important;
+            border-radius:0!important}
+        .scan-zone:hover,.media-zone:hover{border-color:${c.primary}!important}
+    `}
+},
+
+/* ╔══════════════════════════════════════╗
+   ║  BLUEPRINT — Technical drawing       ║
+   ╚══════════════════════════════════════╝ */
+blueprint: {
+    colors: {
+        bg:'#040810', surface:'#060c18', deep:'#020508', mid:'#050a14',
+        border:'#0a2a50', primary:'#44aaff', pdim:'rgba(68,170,255,0.2)',
+        pglow:'rgba(68,170,255,0.1)', text:'#2a6090', txl:'#88ccff',
+        txd:'#0a2040', txf:'#060f20', neg:'#ff4488', pos:'#44ffdd'
     },
+    brick_h: 'rgba(68,170,255,0.06)',
+    brick_v: 'rgba(68,170,255,0.04)',
+    css: function(c) { return `
+        *{transition:background-color .3s,color .3s,border-color .3s,box-shadow .3s!important}
+        body{background-color:${c.bg}!important;color:${c.text}!important;font-family:'Share Tech Mono',monospace!important}
 
-    detonator: {
-        '--bg':'#0d0d00','--surface':'#141400','--surface-deep':'#080800','--surface-mid':'#101000',
-        '--border':'#2a2a00','--primary':'#ffee00','--primary-dim':'#ffee0055','--primary-glow':'#ffee0044',
-        '--text':'#6a6a00','--text-light':'#ffee00','--text-dim':'#2a2a00','--text-faint':'#181800',
-        '--negative':'#ff4400','--positive':'#aaff00',
-        '--brick-h':'rgba(0,0,0,0.75)','--brick-v':'rgba(255,238,0,0.06)',
-        _font_head:  "'Bebas Neue', 'Oswald', sans-serif",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Share Tech Mono', monospace",
-        _weight:     '400',
-        _radius:     '0px',
-        _radius_sm:  '0px',
-        _bw:         '2px',
-        _bw_acc:     '4px',
-        _header_sz:  '1.6rem',
-        _header_ls:  '10px',
-        _stat_sz:    '2.4rem',
-        _tab_ls:     '6px',
-        _tab_sz:     '0.9rem',
-        _sect_ls:    '7px',
-        _shadow:     'inset 0 0 40px rgba(0,0,0,0.9), 0 0 2px rgba(255,238,0,0.15)',
-        _pattern:    'repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,238,0,0.04) 8px,rgba(255,238,0,0.04) 16px)'
+        /* FONTS — everything mono for technical feel */
+        .header-title,.tab-btn,.section-title,.stat-label,.stat-val,.save-btn,
+        .lot-badge,.outcome-badge,.rr-badge,.month-header td,th,.login-card h2,
+        .btn-action,.cal-day b,h3,.feed-toggle-btn.active,.btn-use-tv,
+        #mt5-offline-overlay h3,input,select,textarea,td,.search-bar,
+        .login-input,.price-val,.price-lbl,.stat-meta,code,#mt5-status-badge,
+        .feed-toggle-btn
+        {font-family:'Share Tech Mono',monospace!important;font-weight:400!important}
+
+        /* HEADER — tight + technical */
+        .header-title{font-size:.9rem!important;letter-spacing:10px!important;
+            color:${c.primary}!important;text-shadow:none!important;
+            text-transform:uppercase!important;opacity:.9!important}
+        .header-top{border-bottom:1px solid ${c.border}!important;
+            padding-bottom:6px!important;
+            background:linear-gradient(90deg,${c.pdim} 0%,transparent 100%)!important}
+
+        /* TABS — flat underline style */
+        .tab-btn{font-size:.65rem!important;letter-spacing:5px!important;
+            color:${c.txd}!important;padding:8px 16px!important;
+            border-bottom:1px solid transparent!important;font-weight:400!important}
+        .tab-btn.active{color:${c.primary}!important;border-bottom-color:${c.primary}!important;
+            text-shadow:none!important;background:${c.pdim}!important}
+        .tab-nav{border-bottom:1px solid ${c.border}!important}
+
+        /* CARDS — blueprint grid style */
+        .card,.stat-card{
+            background-color:${c.surface}!important;
+            background-image:
+                linear-gradient(${c.pdim} 1px,transparent 1px),
+                linear-gradient(90deg,${c.pdim} 1px,transparent 1px),
+                linear-gradient(rgba(68,170,255,0.03) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(68,170,255,0.03) 1px,transparent 1px)!important;
+            background-size:50px 50px,50px 50px,10px 10px,10px 10px!important;
+            border:1px solid ${c.border}!important;
+            border-top:1px solid ${c.primary}!important;
+            border-left:1px solid ${c.border}!important;
+            border-radius:2px!important;
+            box-shadow:inset 0 0 30px rgba(0,0,0,0.6),0 0 1px ${c.primary}!important}
+        .card::after{display:none!important}
+
+        /* STAT VALUES */
+        .stat-val{font-size:2rem!important;color:${c.primary}!important;
+            text-shadow:none!important;font-weight:400!important;letter-spacing:2px!important}
+        .stat-label{font-size:.55rem!important;letter-spacing:6px!important;
+            color:${c.txd}!important;text-transform:uppercase!important}
+        .section-title{font-size:.65rem!important;letter-spacing:7px!important;
+            color:${c.primary}!important;opacity:.7!important;
+            border-bottom:1px solid ${c.border}!important}
+
+        /* INPUTS */
+        input,select,textarea{
+            background-color:${c.deep}!important;border:1px solid ${c.border}!important;
+            border-radius:2px!important;color:${c.txl}!important;
+            border-left:2px solid ${c.primary}!important;font-weight:400!important}
+        input:focus,select:focus,textarea:focus{border-color:${c.primary}!important;
+            box-shadow:0 0 5px ${c.pglow}!important;color:${c.primary}!important}
+        input::placeholder,textarea::placeholder{color:${c.txd}!important}
+        .search-bar{border:1px solid ${c.border}!important;border-left:2px solid ${c.primary}!important;
+            border-radius:2px!important;background:${c.surface}!important;color:${c.txl}!important}
+
+        /* BUTTONS */
+        .btn-action{background:transparent!important;border:1px solid ${c.border}!important;
+            border-radius:2px!important;color:${c.txd}!important;font-size:.55rem!important;
+            letter-spacing:2px!important;font-weight:400!important}
+        .btn-action:hover{border-color:${c.primary}!important;color:${c.primary}!important;
+            background:${c.pdim}!important;box-shadow:none!important}
+        .save-btn{background:transparent!important;color:${c.primary}!important;
+            border:1px solid ${c.primary}!important;border-radius:2px!important;
+            font-size:.8rem!important;letter-spacing:8px!important;font-weight:400!important;
+            box-shadow:inset 0 0 20px ${c.pdim}!important}
+        .save-btn:hover{background:${c.pdim}!important;letter-spacing:10px!important}
+
+        /* TABLE */
+        .table-wrap{background:${c.surface}!important;border:1px solid ${c.border}!important;
+            border-radius:2px!important}
+        th{background:${c.deep}!important;color:${c.primary}!important;font-size:.58rem!important;
+            letter-spacing:6px!important;border-bottom:1px solid ${c.border}!important;
+            opacity:.8!important;font-weight:400!important}
+        td{color:${c.text}!important;border-bottom:1px solid ${c.txf}!important;
+            font-size:.75rem!important;font-weight:400!important}
+        tr:hover td{background:${c.pdim}!important}
+        .month-header td{background:${c.deep}!important;color:${c.primary}!important;
+            letter-spacing:8px!important;border:1px solid ${c.border}!important;
+            font-size:.75rem!important;font-weight:400!important}
+
+        /* BADGES */
+        .lot-badge{background:transparent!important;border:1px solid ${c.border}!important;
+            border-radius:2px!important;color:${c.primary}!important;
+            font-size:.78rem!important;font-weight:400!important}
+        .rr-badge,.outcome-badge{border-radius:2px!important;font-size:.7rem!important;
+            font-weight:400!important;letter-spacing:2px!important}
+
+        /* LOGIN */
+        .login-card{background:${c.surface}!important;border:1px solid ${c.border}!important;
+            border-top:2px solid ${c.primary}!important;border-radius:2px!important;
+            box-shadow:inset 0 0 40px rgba(0,0,0,0.8),0 0 30px ${c.pdim}!important}
+        .login-input{background:${c.deep}!important;border:1px solid ${c.border}!important;
+            border-left:2px solid ${c.primary}!important;border-radius:2px!important;
+            color:${c.primary}!important;font-weight:400!important}
+        .login-card h2{font-size:.9rem!important;letter-spacing:10px!important;
+            color:${c.primary}!important;font-weight:400!important}
+
+        /* CALENDAR */
+        .cal-day{background:${c.surface}!important;border-radius:2px!important}
+        .calendar-grid{background:${c.border}!important;border:1px solid ${c.border}!important;
+            border-radius:2px!important}
+
+        /* MT5 BADGE */
+        #mt5-status-badge{background:${c.deep}!important;border:1px solid ${c.border}!important;
+            border-radius:2px!important}
+        .feed-toggle-wrap{background:${c.deep}!important;border:1px solid ${c.border}!important;
+            border-radius:2px!important}
+
+        /* CHART PANEL */
+        #tab-charts *[style*="background:#000"],#tab-charts *[style*="background: #000"]
+        {background-color:${c.bg}!important}
+        #tab-charts *[style*="background:#0a0a0a"],#tab-charts *[style*="background:#050505"],
+        #tab-charts *[style*="background:#0d0d0d"]
+        {background-color:${c.deep}!important}
+        #tab-charts *[style*="border:1px solid #1a1a1a"]{border-color:${c.border}!important}
+        #tab-charts *[style*="color:#fff"]{color:${c.txl}!important}
+        #tab-charts *[style*="color:#555"]{color:${c.txd}!important}
+
+        /* SCAN ZONES */
+        .scan-zone,.media-zone{background:${c.deep}!important;border-color:${c.border}!important;
+            border-radius:2px!important}
+    `}
+},
+
+/* ╔══════════════════════════════════════╗
+   ║  CAUTION — Hazard industrial         ║
+   ╚══════════════════════════════════════╝ */
+caution: {
+    colors: {
+        bg:'#0d0d00', surface:'#161600', deep:'#090900', mid:'#111100',
+        border:'#333300', primary:'#ffee00', pdim:'rgba(255,238,0,0.3)',
+        pglow:'rgba(255,238,0,0.15)', text:'#686800', txl:'#ffee00',
+        txd:'#2a2a00', txf:'#181800', neg:'#ff4400', pos:'#aaff00'
     },
+    brick_h: 'rgba(0,0,0,0.8)',
+    brick_v: 'rgba(255,238,0,0.05)',
+    css: function(c) { return `
+        *{transition:background-color .3s,color .3s,border-color .3s,box-shadow .3s!important}
+        body{background-color:${c.bg}!important;color:${c.text}!important;
+            font-family:'Bebas Neue','Oswald',sans-serif!important}
 
-    bedrock: {
-        '--bg':'#0c0906','--surface':'#140e08','--surface-deep':'#080604','--surface-mid':'#100c06',
-        '--border':'#2a1a08','--primary':'#a07040','--primary-dim':'#a0704044','--primary-glow':'#a0704033',
-        '--text':'#6a4a28','--text-light':'#c09060','--text-dim':'#2a1a08','--text-faint':'#181008',
-        '--negative':'#cc4422','--positive':'#88aa44',
-        '--brick-h':'rgba(0,0,0,0.7)','--brick-v':'rgba(0,0,0,0.5)',
-        _font_head:  "'Oswald', sans-serif",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Inter', sans-serif",
-        _weight:     '700',
-        _radius:     '0px',
-        _radius_sm:  '0px',
-        _bw:         '3px',
-        _bw_acc:     '5px',
-        _header_sz:  '1.3rem',
-        _header_ls:  '4px',
-        _stat_sz:    '1.6rem',
-        _tab_ls:     '2px',
-        _tab_sz:     '0.8rem',
-        _sect_ls:    '3px',
-        _shadow:     'inset 0 0 60px rgba(0,0,0,0.8), 4px 4px 0 rgba(0,0,0,0.6)',
-        _pattern:    'repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(0,0,0,0.5) 27px,rgba(0,0,0,0.5) 30px),repeating-linear-gradient(90deg,transparent,transparent 55px,rgba(0,0,0,0.4) 55px,rgba(0,0,0,0.4) 58px)'
+        /* FONTS — Bebas everywhere */
+        .header-title,.tab-btn,.section-title,.stat-label,.stat-val,.save-btn,
+        .lot-badge,.outcome-badge,.rr-badge,.month-header td,th,.login-card h2,
+        .btn-action,.cal-day b,h3,.feed-toggle-btn.active,.btn-use-tv,
+        #mt5-offline-overlay h3
+        {font-family:'Bebas Neue','Oswald',sans-serif!important;font-weight:400!important}
+        input,select,textarea,td,.search-bar,.login-input,.price-val,
+        .price-lbl,.stat-meta,code,#mt5-status-badge,.feed-toggle-btn,
+        .scan-status,#mt5-offline-overlay p,#mt5-offline-overlay code
+        {font-family:'Share Tech Mono',monospace!important;font-weight:400!important}
+
+        /* HEADER — massive industrial */
+        .header-title{font-size:1.6rem!important;letter-spacing:10px!important;
+            color:${c.primary}!important;text-shadow:0 0 30px ${c.pdim}!important;
+            text-transform:uppercase!important}
+        .header-top{
+            border-bottom:4px solid ${c.border}!important;padding-bottom:8px!important;
+            background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,238,0,0.03) 10px,rgba(255,238,0,0.03) 20px)!important}
+
+        /* TABS */
+        .tab-btn{font-size:.9rem!important;letter-spacing:6px!important;
+            color:${c.txd}!important;padding:10px 22px!important;
+            border-bottom:4px solid transparent!important;font-weight:400!important}
+        .tab-btn.active{color:${c.primary}!important;border-bottom-color:${c.primary}!important;
+            text-shadow:0 0 15px ${c.pdim}!important;background:rgba(255,238,0,0.05)!important}
+        .tab-nav{border-bottom:4px solid ${c.border}!important}
+
+        /* CARDS — hazard stripe */
+        .card,.stat-card{
+            background-color:${c.surface}!important;
+            background-image:repeating-linear-gradient(
+                45deg,
+                transparent,transparent 12px,
+                rgba(255,238,0,0.04) 12px,rgba(255,238,0,0.04) 14px)!important;
+            border:4px solid ${c.border}!important;
+            border-top:6px solid ${c.primary}!important;
+            border-left:6px solid ${c.primary}!important;
+            border-radius:0!important;
+            box-shadow:inset 0 0 50px rgba(0,0,0,0.8),8px 8px 0 rgba(0,0,0,0.6)!important}
+        .card::after{background:linear-gradient(225deg,${c.pdim} 0%,transparent 50%)!important}
+
+        /* STAT VALUES */
+        .stat-val{font-size:2.4rem!important;color:${c.primary}!important;
+            text-shadow:0 0 30px ${c.pglow}!important;font-weight:400!important;
+            letter-spacing:2px!important}
+        .stat-label{font-size:.65rem!important;letter-spacing:7px!important;
+            color:${c.txd}!important}
+        .section-title{font-size:.85rem!important;letter-spacing:8px!important;
+            color:${c.primary}!important;border-bottom:3px solid ${c.border}!important}
+
+        /* INPUTS */
+        input,select,textarea{
+            background-color:${c.deep}!important;
+            border:3px solid ${c.border}!important;border-radius:0!important;
+            color:${c.txl}!important;border-left:6px solid ${c.pdim}!important}
+        input:focus,select:focus,textarea:focus{border-color:${c.primary}!important;
+            box-shadow:0 0 10px ${c.pglow}!important;color:${c.primary}!important}
+        .search-bar{border:3px solid ${c.border}!important;
+            border-left:6px solid ${c.pdim}!important;border-radius:0!important;
+            background:${c.surface}!important}
+
+        /* BUTTONS */
+        .btn-action{background:${c.surface}!important;border:3px solid ${c.border}!important;
+            border-radius:0!important;color:${c.text}!important;font-size:.72rem!important;
+            letter-spacing:3px!important;font-weight:400!important}
+        .btn-action:hover{border-color:${c.primary}!important;color:${c.primary}!important;
+            box-shadow:0 0 10px ${c.pglow}!important}
+        .save-btn{background:${c.primary}!important;color:#000!important;
+            border:none!important;border-radius:0!important;
+            font-size:1.2rem!important;letter-spacing:10px!important;font-weight:400!important;
+            box-shadow:6px 6px 0 rgba(0,0,0,0.6)!important}
+        .save-btn:hover{letter-spacing:12px!important}
+
+        /* TABLE */
+        .table-wrap{background:${c.surface}!important;border:4px solid ${c.border}!important;
+            border-radius:0!important}
+        th{background:${c.mid}!important;color:${c.primary}!important;font-size:.7rem!important;
+            letter-spacing:6px!important;border-bottom:4px solid ${c.border}!important;
+            opacity:1!important;font-weight:400!important}
+        td{color:${c.text}!important;border-bottom:2px solid ${c.txf}!important;
+            font-size:.8rem!important}
+        tr:hover td{background:${c.pdim}!important}
+        .month-header td{background:${c.mid}!important;color:${c.primary}!important;
+            letter-spacing:10px!important;border-top:4px solid ${c.border}!important;
+            border-bottom:4px solid ${c.border}!important;font-size:.9rem!important;
+            font-weight:400!important}
+
+        /* BADGES */
+        .lot-badge{background:${c.surface}!important;border:3px solid ${c.border}!important;
+            border-radius:0!important;color:${c.primary}!important;font-size:.9rem!important}
+        .rr-badge,.outcome-badge{border-radius:0!important;font-size:.78rem!important;
+            letter-spacing:2px!important}
+
+        /* LOGIN */
+        .login-card{background:${c.surface}!important;border:4px solid ${c.border}!important;
+            border-top:6px solid ${c.primary}!important;border-radius:0!important;
+            box-shadow:inset 0 0 50px rgba(0,0,0,0.8),0 0 60px ${c.pdim}!important}
+        .login-input{background:${c.deep}!important;border:3px solid ${c.border}!important;
+            border-left:6px solid ${c.pdim}!important;border-radius:0!important;
+            color:${c.primary}!important}
+        .login-card h2{font-size:1.6rem!important;letter-spacing:10px!important;
+            color:${c.primary}!important;font-weight:400!important}
+
+        /* CALENDAR */
+        .cal-day{background:${c.surface}!important;border-radius:0!important}
+        .calendar-grid{background:${c.border}!important;border:4px solid ${c.border}!important}
+
+        /* MT5 BADGE */
+        #mt5-status-badge{background:${c.surface}!important;border:3px solid ${c.border}!important;
+            border-radius:0!important}
+        .feed-toggle-wrap{background:${c.surface}!important;border:3px solid ${c.border}!important;
+            border-radius:0!important}
+
+        /* CHART PANEL */
+        #tab-charts *[style*="background:#000"],#tab-charts *[style*="background: #000"]
+        {background-color:${c.bg}!important}
+        #tab-charts *[style*="background:#0a0a0a"],#tab-charts *[style*="background:#050505"],
+        #tab-charts *[style*="background:#0d0d0d"]
+        {background-color:${c.deep}!important}
+        #tab-charts *[style*="border:1px solid #1a1a1a"]{border-color:${c.border}!important}
+        #tab-charts *[style*="color:#fff"]{color:${c.txl}!important}
+        #tab-charts *[style*="color:#555"]{color:${c.txd}!important}
+
+        .scan-zone,.media-zone{background:${c.deep}!important;border-color:${c.border}!important;
+            border-radius:0!important}
+    `}
+},
+
+/* ╔══════════════════════════════════════╗
+   ║  VAULT — Steel bank, minimal clean   ║
+   ╚══════════════════════════════════════╝ */
+vault: {
+    colors: {
+        bg:'#080810', surface:'#0e0e18', deep:'#050510', mid:'#0b0b15',
+        border:'#22223a', primary:'#9aa0cc', pdim:'rgba(154,160,204,0.2)',
+        pglow:'rgba(154,160,204,0.1)', text:'#5a5a80', txl:'#c0c4e0',
+        txd:'#282840', txf:'#141428', neg:'#ff5566', pos:'#66ddaa'
     },
+    brick_h: 'rgba(154,160,204,0.03)',
+    brick_v: 'rgba(154,160,204,0.02)',
+    css: function(c) { return `
+        *{transition:background-color .3s,color .3s,border-color .3s,box-shadow .3s!important}
+        body{background-color:${c.bg}!important;color:${c.text}!important;
+            font-family:'Inter',sans-serif!important}
 
-    gravel: {
-        '--bg':'#080c08','--surface':'#0c100c','--surface-deep':'#060806','--surface-mid':'#0a0e0a',
-        '--border':'#182018','--primary':'#6a8a5a','--primary-dim':'#6a8a5a44','--primary-glow':'#6a8a5a33',
-        '--text':'#3a5030','--text-light':'#8aaa78','--text-dim':'#1a2818','--text-faint':'#101810',
-        '--negative':'#cc4444','--positive':'#66cc44',
-        '--brick-h':'rgba(0,0,0,0.6)','--brick-v':'rgba(106,138,90,0.05)',
-        _font_head:  "'Rajdhani', 'Oswald', sans-serif",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Rajdhani', sans-serif",
-        _weight:     '700',
-        _radius:     '0px',
-        _radius_sm:  '0px',
-        _bw:         '1px',
-        _bw_acc:     '2px',
-        _header_sz:  '1.0rem',
-        _header_ls:  '7px',
-        _stat_sz:    '1.5rem',
-        _tab_ls:     '5px',
-        _tab_sz:     '0.72rem',
-        _sect_ls:    '6px',
-        _shadow:     'inset 0 0 30px rgba(0,0,0,0.7)',
-        _pattern:    'repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(0,0,0,0.35) 19px,rgba(0,0,0,0.35) 20px)'
+        /* FONTS — Inter throughout, weight varies */
+        .header-title,.tab-btn,.section-title,.stat-label,.stat-val,.save-btn,
+        .lot-badge,.outcome-badge,.rr-badge,.month-header td,th,.login-card h2,
+        .btn-action,.cal-day b,h3,.feed-toggle-btn.active,.btn-use-tv,
+        #mt5-offline-overlay h3
+        {font-family:'Inter',sans-serif!important;font-weight:300!important}
+        input,select,textarea,td,.search-bar,.login-input,.price-val,
+        .price-lbl,.stat-meta,code,#mt5-status-badge,.feed-toggle-btn,
+        .scan-status,#mt5-offline-overlay p,#mt5-offline-overlay code
+        {font-family:'Share Tech Mono',monospace!important;font-weight:400!important}
+
+        /* HEADER — ultra minimal */
+        .header-title{font-size:.82rem!important;letter-spacing:12px!important;
+            color:${c.primary}!important;text-shadow:none!important;
+            font-weight:300!important;text-transform:uppercase!important}
+        .header-top{border-bottom:1px solid ${c.border}!important;padding-bottom:8px!important}
+
+        /* TABS — pill style */
+        .tab-btn{font-size:.65rem!important;letter-spacing:4px!important;
+            color:${c.txd}!important;padding:7px 20px!important;
+            border-bottom:1px solid transparent!important;font-weight:300!important;
+            border-radius:20px!important;margin:0 2px!important}
+        .tab-btn.active{color:${c.primary}!important;border-bottom-color:transparent!important;
+            background:${c.pdim}!important;text-shadow:none!important}
+        .tab-nav{border-bottom:1px solid ${c.border}!important;gap:4px!important}
+
+        /* CARDS — clean minimal with top gradient */
+        .card,.stat-card{
+            background:linear-gradient(180deg,${c.surface} 0%,${c.deep} 100%)!important;
+            background-image:none!important;
+            border:1px solid ${c.border}!important;
+            border-top:1px solid ${c.primary}!important;
+            border-left:1px solid ${c.border}!important;
+            border-radius:6px!important;
+            box-shadow:0 4px 20px rgba(0,0,0,0.4),inset 0 1px 0 rgba(154,160,204,0.1)!important}
+        .card::after{display:none!important}
+
+        /* STAT VALUES */
+        .stat-val{font-size:1.6rem!important;color:${c.primary}!important;
+            text-shadow:none!important;font-weight:300!important;
+            letter-spacing:2px!important}
+        .stat-label{font-size:.55rem!important;letter-spacing:5px!important;
+            color:${c.txd}!important;text-transform:uppercase!important}
+        .section-title{font-size:.62rem!important;letter-spacing:8px!important;
+            color:${c.primary}!important;opacity:.6!important;
+            border-bottom:1px solid ${c.border}!important;font-weight:300!important}
+
+        /* INPUTS */
+        input,select,textarea{
+            background:linear-gradient(180deg,${c.deep} 0%,${c.surface} 100%)!important;
+            border:1px solid ${c.border}!important;border-radius:5px!important;
+            color:${c.txl}!important;border-left:1px solid ${c.border}!important}
+        input:focus,select:focus,textarea:focus{
+            border-color:${c.primary}!important;box-shadow:0 0 0 2px ${c.pdim}!important;
+            color:${c.primary}!important}
+        .search-bar{border:1px solid ${c.border}!important;border-left:1px solid ${c.border}!important;
+            border-radius:5px!important;
+            background:linear-gradient(180deg,${c.deep} 0%,${c.surface} 100%)!important}
+
+        /* BUTTONS */
+        .btn-action{
+            background:linear-gradient(180deg,${c.surface} 0%,${c.deep} 100%)!important;
+            border:1px solid ${c.border}!important;border-radius:4px!important;
+            color:${c.txd}!important;font-size:.56rem!important;
+            letter-spacing:2px!important;font-weight:300!important}
+        .btn-action:hover{border-color:${c.primary}!important;color:${c.primary}!important;
+            background:${c.pdim}!important;box-shadow:0 2px 8px rgba(0,0,0,0.3)!important}
+        .save-btn{
+            background:linear-gradient(180deg,${c.primary} 0%,rgba(100,110,180,1) 100%)!important;
+            color:#fff!important;border:none!important;border-radius:5px!important;
+            font-size:.8rem!important;letter-spacing:8px!important;font-weight:300!important;
+            box-shadow:0 4px 12px rgba(0,0,0,0.4)!important}
+        .save-btn:hover{letter-spacing:10px!important;box-shadow:0 6px 20px ${c.pdim}!important}
+
+        /* TABLE */
+        .table-wrap{
+            background:${c.surface}!important;border:1px solid ${c.border}!important;
+            border-radius:6px!important;overflow:hidden!important}
+        th{background:${c.deep}!important;color:${c.primary}!important;font-size:.58rem!important;
+            letter-spacing:4px!important;border-bottom:1px solid ${c.border}!important;
+            opacity:.8!important;font-weight:300!important}
+        td{color:${c.text}!important;border-bottom:1px solid ${c.txf}!important;
+            font-size:.76rem!important;font-weight:400!important}
+        tr:hover td{background:${c.pdim}!important}
+        .month-header td{background:${c.deep}!important;color:${c.primary}!important;
+            letter-spacing:6px!important;border:1px solid ${c.border}!important;
+            font-size:.78rem!important;font-weight:300!important}
+
+        /* BADGES */
+        .lot-badge{
+            background:linear-gradient(180deg,${c.surface} 0%,${c.deep} 100%)!important;
+            border:1px solid ${c.border}!important;border-radius:4px!important;
+            color:${c.primary}!important;font-size:.78rem!important;font-weight:300!important}
+        .rr-badge,.outcome-badge{border-radius:4px!important;font-size:.7rem!important;
+            font-weight:300!important;letter-spacing:1px!important}
+
+        /* LOGIN */
+        .login-card{
+            background:linear-gradient(180deg,${c.surface} 0%,${c.deep} 100%)!important;
+            border:1px solid ${c.border}!important;border-top:1px solid ${c.primary}!important;
+            border-radius:8px!important;
+            box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 30px ${c.pdim}!important}
+        .login-input{
+            background:linear-gradient(180deg,${c.deep} 0%,${c.surface} 100%)!important;
+            border:1px solid ${c.border}!important;border-left:1px solid ${c.border}!important;
+            border-radius:5px!important;color:${c.primary}!important;font-weight:400!important}
+        .login-card h2{font-size:.85rem!important;letter-spacing:12px!important;
+            color:${c.primary}!important;font-weight:300!important}
+
+        /* CALENDAR */
+        .cal-day{background:${c.surface}!important;border-radius:4px!important}
+        .calendar-grid{background:${c.border}!important;border:1px solid ${c.border}!important;
+            border-radius:6px!important}
+
+        /* MT5 BADGE */
+        #mt5-status-badge{background:${c.deep}!important;border:1px solid ${c.border}!important;
+            border-radius:4px!important}
+        .feed-toggle-wrap{background:${c.deep}!important;border:1px solid ${c.border}!important;
+            border-radius:4px!important;overflow:hidden!important}
+
+        /* CHART PANEL */
+        #tab-charts *[style*="background:#000"],#tab-charts *[style*="background: #000"]
+        {background-color:${c.bg}!important}
+        #tab-charts *[style*="background:#0a0a0a"],#tab-charts *[style*="background:#050505"],
+        #tab-charts *[style*="background:#0d0d0d"]
+        {background-color:${c.deep}!important}
+        #tab-charts *[style*="border:1px solid #1a1a1a"]{border-color:${c.border}!important}
+        #tab-charts *[style*="color:#fff"]{color:${c.txl}!important}
+        #tab-charts *[style*="color:#555"]{color:${c.txd}!important}
+
+        .scan-zone,.media-zone{background:${c.deep}!important;border-color:${c.border}!important;
+            border-radius:5px!important}
+    `}
+},
+
+/* ╔══════════════════════════════════════╗
+   ║  CONDEMNED — Red grunge warning      ║
+   ╚══════════════════════════════════════╝ */
+condemned: {
+    colors: {
+        bg:'#0d0303', surface:'#160505', deep:'#090202', mid:'#110404',
+        border:'#3a0808', primary:'#ff2200', pdim:'rgba(255,34,0,0.3)',
+        pglow:'rgba(255,34,0,0.15)', text:'#882020', txl:'#ff6644',
+        txd:'#3a0808', txf:'#200404', neg:'#ff0000', pos:'#44ff88'
     },
+    brick_h: 'rgba(180,0,0,0.3)',
+    brick_v: 'rgba(180,0,0,0.18)',
+    css: function(c) { return `
+        *{transition:background-color .3s,color .3s,border-color .3s,box-shadow .3s!important}
+        body{background-color:${c.bg}!important;color:${c.text}!important;
+            font-family:'Oswald',sans-serif!important}
 
-    condemned: {
-        '--bg':'#0d0505','--surface':'#140808','--surface-deep':'#080303','--surface-mid':'#100606',
-        '--border':'#3a0808','--primary':'#ff2222','--primary-dim':'#ff222244','--primary-glow':'#ff222233',
-        '--text':'#882222','--text-light':'#ff6666','--text-dim':'#3a0808','--text-faint':'#200404',
-        '--negative':'#ff0000','--positive':'#44ff88',
-        '--brick-h':'rgba(180,0,0,0.25)','--brick-v':'rgba(180,0,0,0.15)',
-        _font_head:  "'Oswald', sans-serif",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Inter', sans-serif",
-        _weight:     '700',
-        _radius:     '0px',
-        _radius_sm:  '0px',
-        _bw:         '2px',
-        _bw_acc:     '4px',
-        _header_sz:  '1.3rem',
-        _header_ls:  '5px',
-        _stat_sz:    '1.8rem',
-        _tab_ls:     '3px',
-        _tab_sz:     '0.78rem',
-        _sect_ls:    '4px',
-        _shadow:     'inset 0 0 40px rgba(0,0,0,0.8), 0 0 4px rgba(255,0,0,0.15)',
-        _pattern:    'repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(180,0,0,0.06) 10px,rgba(180,0,0,0.06) 20px)'
-    },
+        /* FONTS */
+        .header-title,.tab-btn,.section-title,.stat-label,.stat-val,.save-btn,
+        .lot-badge,.outcome-badge,.rr-badge,.month-header td,th,.login-card h2,
+        .btn-action,.cal-day b,h3,.feed-toggle-btn.active,.btn-use-tv,
+        #mt5-offline-overlay h3
+        {font-family:'Oswald',sans-serif!important;font-weight:700!important}
+        input,select,textarea,td,.search-bar,.login-input,.price-val,
+        .price-lbl,.stat-meta,code,#mt5-status-badge,.feed-toggle-btn,
+        .scan-status,#mt5-offline-overlay p,#mt5-offline-overlay code
+        {font-family:'Share Tech Mono',monospace!important;font-weight:400!important}
 
-    quarry: {
-        '--bg':'#0c0c0c','--surface':'#141414','--surface-deep':'#080808','--surface-mid':'#101010',
-        '--border':'#282828','--primary':'#c0b090','--primary-dim':'#c0b09044','--primary-glow':'#c0b09033',
-        '--text':'#707060','--text-light':'#d0c0a0','--text-dim':'#303028','--text-faint':'#202018',
-        '--negative':'#ff5544','--positive':'#88cc88',
-        '--brick-h':'rgba(255,255,255,0.025)','--brick-v':'rgba(255,255,255,0.015)',
-        _font_head:  "'Inter', sans-serif",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Inter', sans-serif",
-        _weight:     '300',
-        _radius:     '6px',
-        _radius_sm:  '4px',
-        _bw:         '1px',
-        _bw_acc:     '1px',
-        _header_sz:  '0.82rem',
-        _header_ls:  '10px',
-        _stat_sz:    '1.5rem',
-        _tab_ls:     '6px',
-        _tab_sz:     '0.65rem',
-        _sect_ls:    '8px',
-        _shadow:     '0 2px 8px rgba(0,0,0,0.3)',
-        _pattern:    'none'
-    },
+        /* HEADER — aggressive red */
+        .header-title{font-size:1.3rem!important;letter-spacing:5px!important;
+            color:${c.primary}!important;
+            text-shadow:0 0 20px ${c.pdim},0 0 40px ${c.pglow}!important;
+            text-transform:uppercase!important}
+        .header-top{
+            border-bottom:4px solid ${c.border}!important;padding-bottom:8px!important;
+            background:repeating-linear-gradient(
+                45deg,transparent,transparent 8px,
+                rgba(255,34,0,0.04) 8px,rgba(255,34,0,0.04) 16px)!important}
 
-    shatter: {
-        '--bg':'#0a0810','--surface':'#100c18','--surface-deep':'#060410','--surface-mid':'#0c0a14',
-        '--border':'#1e1030','--primary':'#cc88ff','--primary-dim':'#cc88ff44','--primary-glow':'#cc88ff33',
-        '--text':'#5a3a80','--text-light':'#cc88ff','--text-dim':'#281840','--text-faint':'#180c28',
-        '--negative':'#ff4488','--positive':'#88ffcc',
-        '--brick-h':'rgba(204,136,255,0.04)','--brick-v':'rgba(204,136,255,0.03)',
-        _font_head:  "'Share Tech Mono', monospace",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Share Tech Mono', monospace",
-        _weight:     '400',
-        _radius:     '0px',
-        _radius_sm:  '0px',
-        _bw:         '1px',
-        _bw_acc:     '2px',
-        _header_sz:  '0.95rem',
-        _header_ls:  '6px',
-        _stat_sz:    '1.6rem',
-        _tab_ls:     '3px',
-        _tab_sz:     '0.68rem',
-        _sect_ls:    '4px',
-        _shadow:     'inset 0 0 30px rgba(0,0,0,0.6), 0 0 12px rgba(204,136,255,0.08)',
-        _pattern:    'none'
-    },
+        /* TABS */
+        .tab-btn{font-size:.78rem!important;letter-spacing:3px!important;
+            color:${c.txd}!important;padding:9px 20px!important;
+            border-bottom:4px solid transparent!important;font-weight:700!important}
+        .tab-btn.active{color:${c.primary}!important;border-bottom-color:${c.primary}!important;
+            text-shadow:0 0 10px ${c.pdim}!important;background:rgba(255,34,0,0.05)!important}
+        .tab-nav{border-bottom:4px solid ${c.border}!important}
 
-    bunker: {
-        '--bg':'#080c08','--surface':'#0c100c','--surface-deep':'#050805','--surface-mid':'#0a0e0a',
-        '--border':'#103010','--primary':'#4a8a4a','--primary-dim':'#4a8a4a44','--primary-glow':'#4a8a4a33',
-        '--text':'#2a5a2a','--text-light':'#6aaa6a','--text-dim':'#102010','--text-faint':'#081408',
-        '--negative':'#cc4444','--positive':'#44cc88',
-        '--brick-h':'rgba(0,0,0,0.65)','--brick-v':'rgba(74,138,74,0.06)',
-        _font_head:  "'Share Tech Mono', monospace",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Share Tech Mono', monospace",
-        _weight:     '400',
-        _radius:     '0px',
-        _radius_sm:  '0px',
-        _bw:         '1px',
-        _bw_acc:     '3px',
-        _header_sz:  '1.0rem',
-        _header_ls:  '5px',
-        _stat_sz:    '1.5rem',
-        _tab_ls:     '4px',
-        _tab_sz:     '0.7rem',
-        _sect_ls:    '4px',
-        _shadow:     'inset 0 0 40px rgba(0,0,0,0.8), inset 2px 0 0 rgba(74,138,74,0.1)',
-        _pattern:    'repeating-linear-gradient(0deg,transparent,transparent 21px,rgba(0,0,0,0.4) 21px,rgba(0,0,0,0.4) 22px)'
-    },
+        /* CARDS — condemned X pattern */
+        .card,.stat-card{
+            background-color:${c.surface}!important;
+            background-image:
+                repeating-linear-gradient(
+                    -45deg,transparent,transparent 10px,
+                    rgba(180,0,0,0.07) 10px,rgba(180,0,0,0.07) 12px),
+                repeating-linear-gradient(
+                    45deg,transparent,transparent 10px,
+                    rgba(180,0,0,0.04) 10px,rgba(180,0,0,0.04) 12px)!important;
+            border:3px solid ${c.border}!important;
+            border-top:5px solid ${c.primary}!important;
+            border-left:5px solid ${c.primary}!important;
+            border-radius:0!important;
+            box-shadow:inset 0 0 50px rgba(0,0,0,0.8),0 0 6px ${c.pglow}!important}
+        .card::after{background:linear-gradient(225deg,${c.pdim} 0%,transparent 50%)!important}
 
-    wrecking: {
-        '--bg':'#0d0800','--surface':'#161000','--surface-deep':'#0a0600','--surface-mid':'#120c00',
-        '--border':'#2a1400','--primary':'#ff8800','--primary-dim':'#ff880044','--primary-glow':'#ff880033',
-        '--text':'#804400','--text-light':'#ffaa44','--text-dim':'#301800','--text-faint':'#201000',
-        '--negative':'#ff3300','--positive':'#ccff44',
-        '--brick-h':'rgba(0,0,0,0.7)','--brick-v':'rgba(255,136,0,0.07)',
-        _font_head:  "'Bebas Neue', 'Oswald', sans-serif",
-        _font_mono:  "'Share Tech Mono', monospace",
-        _font_body:  "'Oswald', sans-serif",
-        _weight:     '400',
-        _radius:     '0px',
-        _radius_sm:  '0px',
-        _bw:         '2px',
-        _bw_acc:     '4px',
-        _header_sz:  '1.6rem',
-        _header_ls:  '8px',
-        _stat_sz:    '2.2rem',
-        _tab_ls:     '5px',
-        _tab_sz:     '0.85rem',
-        _sect_ls:    '6px',
-        _shadow:     'inset 0 0 40px rgba(0,0,0,0.7), 0 4px 0 rgba(255,136,0,0.12)',
-        _pattern:    'repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(255,136,0,0.04) 12px,rgba(255,136,0,0.04) 24px)'
-    }
-};
+        /* STAT VALUES */
+        .stat-val{font-size:1.9rem!important;color:${c.primary}!important;
+            text-shadow:0 0 20px ${c.pglow}!important;font-weight:700!important;
+            letter-spacing:1px!important}
+        .stat-label{font-size:.6rem!important;letter-spacing:4px!important;
+            color:${c.txd}!important}
+        .section-title{font-size:.75rem!important;letter-spacing:5px!important;
+            color:${c.primary}!important;border-bottom:3px solid ${c.border}!important}
 
-var _crackSVG = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Cpath d=\'M30 10 L42 38 L28 65 L50 95 L33 130 L55 160\' stroke=\'rgba(0,0,0,0.3)\' stroke-width=\'2.5\' fill=\'none\'/%3E%3Cpath d=\'M38 38 L55 48 L48 62\' stroke=\'rgba(0,0,0,0.2)\' stroke-width=\'1\' fill=\'none\'/%3E%3Cpath d=\'M200 5 L192 35 L215 60 L198 90 L220 120 L205 155\' stroke=\'rgba(0,0,0,0.22)\' stroke-width=\'2\' fill=\'none\'/%3E%3Cpath d=\'M310 80 L295 105 L320 128 L300 162 L318 190\' stroke=\'rgba(0,0,0,0.18)\' stroke-width=\'1.5\' fill=\'none\'/%3E%3C/svg%3E")';
+        /* INPUTS */
+        input,select,textarea{
+            background-color:${c.deep}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important;color:${c.txl}!important;
+            border-left:5px solid ${c.pdim}!important}
+        input:focus,select:focus,textarea:focus{border-color:${c.primary}!important;
+            box-shadow:0 0 8px ${c.pglow}!important;color:${c.primary}!important}
+        .search-bar{border:2px solid ${c.border}!important;
+            border-left:5px solid ${c.pdim}!important;border-radius:0!important;
+            background:${c.surface}!important}
 
+        /* BUTTONS */
+        .btn-action{background:${c.surface}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important;color:${c.text}!important;font-size:.6rem!important;
+            letter-spacing:2px!important;font-weight:700!important}
+        .btn-action:hover{border-color:${c.primary}!important;color:${c.primary}!important;
+            box-shadow:0 0 8px ${c.pglow}!important}
+        .save-btn{background:${c.primary}!important;color:#fff!important;
+            border:none!important;border-radius:0!important;
+            font-size:1.1rem!important;letter-spacing:6px!important;font-weight:700!important;
+            box-shadow:0 0 20px ${c.pglow},4px 4px 0 rgba(0,0,0,0.5)!important;
+            text-shadow:0 0 10px rgba(255,255,255,0.3)!important}
+        .save-btn:hover{letter-spacing:8px!important;box-shadow:0 0 30px ${c.pdim}!important}
+
+        /* TABLE */
+        .table-wrap{background:${c.surface}!important;border:3px solid ${c.border}!important;
+            border-radius:0!important}
+        th{background:${c.mid}!important;color:${c.primary}!important;font-size:.62rem!important;
+            letter-spacing:5px!important;border-bottom:3px solid ${c.border}!important;
+            opacity:1!important;font-weight:700!important}
+        td{color:${c.text}!important;border-bottom:1px solid ${c.txf}!important;
+            font-size:.78rem!important}
+        tr:hover td{background:${c.pdim}!important}
+        .month-header td{background:${c.mid}!important;color:${c.primary}!important;
+            letter-spacing:8px!important;border-top:3px solid ${c.border}!important;
+            border-bottom:3px solid ${c.border}!important;font-size:.85rem!important;
+            font-weight:700!important}
+
+        /* BADGES */
+        .lot-badge{background:${c.surface}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important;color:${c.primary}!important;font-size:.85rem!important}
+        .rr-badge,.outcome-badge{border-radius:0!important;font-size:.72rem!important;
+            letter-spacing:1px!important}
+
+        /* LOGIN */
+        .login-card{background:${c.surface}!important;border:3px solid ${c.border}!important;
+            border-top:5px solid ${c.primary}!important;border-radius:0!important;
+            box-shadow:inset 0 0 60px rgba(0,0,0,0.8),0 0 60px ${c.pdim}!important}
+        .login-input{background:${c.deep}!important;border:2px solid ${c.border}!important;
+            border-left:5px solid ${c.pdim}!important;border-radius:0!important;
+            color:${c.primary}!important}
+        .login-card h2{font-size:1.3rem!important;letter-spacing:5px!important;
+            color:${c.primary}!important;font-weight:700!important}
+
+        /* CALENDAR */
+        .cal-day{background:${c.surface}!important;border-radius:0!important}
+        .calendar-grid{background:${c.border}!important;border:3px solid ${c.border}!important}
+
+        /* MT5 BADGE */
+        #mt5-status-badge{background:${c.surface}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important}
+        .feed-toggle-wrap{background:${c.surface}!important;border:2px solid ${c.border}!important;
+            border-radius:0!important}
+
+        /* CHART PANEL */
+        #tab-charts *[style*="background:#000"],#tab-charts *[style*="background: #000"]
+        {background-color:${c.bg}!important}
+        #tab-charts *[style*="background:#0a0a0a"],#tab-charts *[style*="background:#050505"],
+        #tab-charts *[style*="background:#0d0d0d"]
+        {background-color:${c.deep}!important}
+        #tab-charts *[style*="border:1px solid #1a1a1a"]{border-color:${c.border}!important}
+        #tab-charts *[style*="color:#fff"]{color:${c.txl}!important}
+        #tab-charts *[style*="color:#555"]{color:${c.txd}!important}
+
+        .scan-zone,.media-zone{background:${c.deep}!important;border-color:${c.border}!important;
+            border-radius:0!important}
+    `}
+}
+
+}; // end _themes
+
+/* ════════════════════════════════
+   CRACK SVG OVERLAY
+════════════════════════════════ */
+var _crackSVG = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Cpath d=\'M30 10 L42 38 L28 65 L50 95 L33 130\' stroke=\'rgba(0,0,0,0.25)\' stroke-width=\'2\' fill=\'none\'/%3E%3Cpath d=\'M38 38 L58 50 L48 65\' stroke=\'rgba(0,0,0,0.15)\' stroke-width=\'1\' fill=\'none\'/%3E%3Cpath d=\'M200 5 L192 35 L215 60 L198 90 L220 120\' stroke=\'rgba(0,0,0,0.2)\' stroke-width=\'1.5\' fill=\'none\'/%3E%3Cpath d=\'M310 80 L295 110 L315 135 L298 165\' stroke=\'rgba(0,0,0,0.15)\' stroke-width=\'1\' fill=\'none\'/%3E%3C/svg%3E")';
+
+/* ════════════════════════════════
+   SET THEME
+════════════════════════════════ */
 function setTheme(name) {
     _currentTheme = name;
     localStorage.setItem('rk_theme', name);
     localStorage.removeItem('rk_custom_bg');
 
-    var t = _themes[name] || _themes.rubble;
+    var theme = _themes[name] || _themes.rubble;
+    var c = theme.colors;
 
-    /* 1 ── CSS variables → :root */
-    Object.keys(t).forEach(function(key) {
-        if (key.startsWith('--') && key !== '--brick-h' && key !== '--brick-v') {
-            document.documentElement.style.setProperty(key, t[key]);
-        }
+    /* 1 — CSS variables on :root */
+    var varsMap = {
+        '--bg': c.bg, '--surface': c.surface, '--surface-deep': c.deep,
+        '--surface-mid': c.mid, '--border': c.border,
+        '--primary': c.primary, '--primary-dim': c.pdim, '--primary-glow': c.pglow,
+        '--text': c.text, '--text-light': c.txl, '--text-dim': c.txd, '--text-faint': c.txf,
+        '--negative': c.neg, '--positive': c.pos
+    };
+    Object.keys(varsMap).forEach(function(k) {
+        document.documentElement.style.setProperty(k, varsMap[k]);
     });
 
-    /* 2 ── Brick background on body */
-    document.body.style.backgroundColor = t['--bg'];
+    /* 2 — Brick + crack body background */
+    document.body.style.backgroundColor = c.bg;
     document.body.style.backgroundImage =
-        'repeating-linear-gradient(0deg,transparent,transparent 23px,' + t['--brick-h'] + ' 23px,' + t['--brick-h'] + ' 25px),' +
-        'repeating-linear-gradient(90deg,transparent,transparent 47px,' + t['--brick-v'] + ' 47px,' + t['--brick-v'] + ' 49px),' +
+        'repeating-linear-gradient(0deg,transparent,transparent 23px,' + theme.brick_h + ' 23px,' + theme.brick_h + ' 25px),' +
+        'repeating-linear-gradient(90deg,transparent,transparent 47px,' + theme.brick_v + ' 47px,' + theme.brick_v + ' 49px),' +
         _crackSVG;
 
-    /* 3 ── STRUCTURAL OVERRIDE via injected <style> with !important
-            This beats inline style="" attributes throughout the HTML        */
+    /* 3 — Inject full structural CSS that overrides all inline styles */
     var el = document.getElementById('_rk_theme_inject');
     if (!el) {
         el = document.createElement('style');
         el.id = '_rk_theme_inject';
         document.head.appendChild(el);
     }
+    el.textContent = theme.css(c);
 
-    var fH  = t._font_head;
-    var fM  = t._font_mono;
-    var fB  = t._font_body;
-    var fw  = t._weight;
-    var r   = t._radius;
-    var rsm = t._radius_sm;
-    var bw  = t._bw;
-    var bwa = t._bw_acc;
-    var hsz = t._header_sz;
-    var hls = t._header_ls;
-    var ssz = t._stat_sz;
-    var tls = t._tab_ls;
-    var tsz = t._tab_sz;
-    var sls = t._sect_ls;
-    var shd = t._shadow;
-    var pat = t._pattern;
-    var bg  = t['--bg'];
-    var sur = t['--surface'];
-    var srd = t['--surface-deep'];
-    var srm = t['--surface-mid'];
-    var brd = t['--border'];
-    var pri = t['--primary'];
-    var pdm = t['--primary-dim'];
-    var pgw = t['--primary-glow'];
-    var txt = t['--text'];
-    var txl = t['--text-light'];
-    var txd = t['--text-dim'];
-
-    el.textContent = [
-
-        /* ── FONTS: body default ── */
-        'body, body div, body span, body p, body label, body button { font-family:' + fB + ' !important; }',
-
-        /* ── FONTS: headings, titles, badges, tabs ── */
-        '.header-title, .tab-btn, .section-title, .stat-label, .stat-val,',
-        '.save-btn, .lot-badge, .outcome-badge, .rr-badge, .month-header td,',
-        'th, .login-card h2, .btn-action, .feed-toggle-btn.active,',
-        '.cal-day b, #mt5-offline-overlay h3, .btn-use-tv',
-        '{ font-family:' + fH + ' !important; font-weight:' + fw + ' !important; }',
-
-        /* ── FONTS: mono inputs/data ── */
-        'input, select, textarea, td, .search-bar, .login-input,',
-        '.price-val, .price-lbl, .scan-status, .scan-zone-label, .stat-meta,',
-        'code, #mt5-status-badge, .feed-toggle-btn, #mt5-offline-overlay p, #mt5-offline-overlay code',
-        '{ font-family:' + fM + ' !important; }',
-
-        /* ── HEADER SIZE / SPACING ── */
-        '.header-title { font-size:' + hsz + ' !important; letter-spacing:' + hls + ' !important; }',
-
-        /* ── STAT VALUE SIZE ── */
-        '.stat-val { font-size:' + ssz + ' !important; }',
-
-        /* ── TAB SIZE / SPACING ── */
-        '.tab-btn { font-size:' + tsz + ' !important; letter-spacing:' + tls + ' !important; }',
-
-        /* ── SECTION TITLE SPACING ── */
-        '.section-title { letter-spacing:' + sls + ' !important; }',
-
-        /* ── BORDER RADIUS everywhere ── */
-        '.card, .stat-card, .login-card, .table-wrap, .search-bar, .login-input,',
-        'input, select, textarea, .btn-action, .save-btn, .tab-btn,',
-        '.lot-badge, .rr-badge, .outcome-badge, .cal-day, #mt5-status-badge,',
-        '.feed-toggle-wrap, .btn-use-tv, .scan-zone, .media-zone',
-        '{ border-radius:' + r + ' !important; }',
-
-        '.img-preview { border-radius:' + rsm + ' !important; }',
-
-        /* ── CARD SHADOW + PATTERN ── */
-        '.card, .stat-card { box-shadow:' + shd + ' !important; background-image:' + pat + ' !important; }',
-
-        /* ── CARD BORDER WIDTH ── */
-        '.card, .stat-card { border-width:' + bw + ' !important; border-top-width:' + bwa + ' !important; border-left-width:' + bwa + ' !important; }',
-
-        /* ── INPUT/BUTTON BORDER WIDTH ── */
-        'input, select, textarea, .btn-action, .login-input { border-width:' + bw + ' !important; }',
-
-        /* ── BACKGROUND COLORS: override hardcoded #050505 type values in calculator etc ── */
-        /* surface-deep overrides */
-        '[style*="background:#050505"], [style*="background: #050505"]',
-        '{ background-color:' + srd + ' !important; }',
-
-        '[style*="background:#0a0a0a"], [style*="background:#0d0d0d"], [style*="background:#0a0905"]',
-        '{ background-color:' + srd + ' !important; }',
-
-        /* surface overrides */
-        '[style*="background:#0d0d0d"], [style*="background:#111"], [style*="background:#111111"]',
-        '{ background-color:' + sur + ' !important; }',
-
-        /* border overrides */
-        '[style*="border:1px solid #1a1a1a"], [style*="border: 1px solid #1a1a1a"],',
-        '[style*="border-color:#1a1a1a"], [style*="border-bottom:1px solid #111"]',
-        '{ border-color:' + brd + ' !important; }',
-
-        '[style*="border:1px solid #222"], [style*="border:1px solid #333"]',
-        '{ border-color:' + brd + ' !important; }',
-
-        /* ── CALCULATOR PANEL bg overrides ── */
-        '#tab-charts [style*="background:#000"], #tab-charts [style*="background: #000"]',
-        '{ background-color:' + bg + ' !important; }',
-
-        '#tab-charts [style*="background:#0d0d0d"]',
-        '{ background-color:' + surm + ' !important; }',
-
-        /* ── COLOR OVERRIDES for hardcoded text ── */
-        '[style*="color:#555"]:not(.mt5-dot)',
-        '{ color:' + txd + ' !important; }',
-
-        '[style*="color:#888"], [style*="color: #888"]',
-        '{ color:' + txt + ' !important; }',
-
-        '[style*="color:#fff"]:not(td):not(th)',
-        '{ color:' + txl + ' !important; }',
-
-        /* ── LAYOUT TOGGLE BUTTONS in chart panel ── */
-        '#layout-btn-single, #layout-btn-horizontal, #layout-btn-vertical',
-        '{ font-family:' + fH + ' !important; font-weight:' + fw + ' !important; border-radius:' + r + ' !important; }',
-
-        /* ── STAT card chart headers ── */
-        '.card h3 { font-family:' + fH + ' !important; font-weight:' + fw + ' !important; letter-spacing:' + sls + ' !important; color:' + txd + ' !important; }',
-
-        /* ── MONTH HEADER border ── */
-        '.month-header td { border-top-width:' + bwa + ' !important; border-bottom-width:' + bwa + ' !important; }',
-
-        /* ── SEARCH BAR left accent ── */
-        '.search-bar { border-left-width:' + bwa + ' !important; }',
-
-        /* ── SAVE BUTTON font size scales with header ── */
-        '.save-btn { font-size:' + (parseFloat(hsz) > 1.3 ? '1.1rem' : '0.95rem') + ' !important; letter-spacing:' + hls + ' !important; }',
-
-        /* ── LOGIN CARD ── */
-        '.login-card { border-radius:' + r + ' !important; box-shadow:' + shd + ', 0 0 60px ' + pdm + ' !important; }',
-        '.login-card h2 { font-size:' + hsz + ' !important; letter-spacing:' + hls + ' !important; }',
-        '.login-input { border-radius:' + r + ' !important; border-left-width:' + bwa + ' !important; }',
-
-    ].join('\n');
-
-    /* 4 ── Active theme button highlight */
+    /* 4 — Active button highlight */
     _allThemes.forEach(function(tn) {
         var btn = document.getElementById('th-' + tn);
         if (!btn) return;
-        btn.style.outline       = tn === name ? '2px solid ' + pri : 'none';
+        btn.style.outline       = tn === name ? '2px solid ' + c.primary : 'none';
         btn.style.outlineOffset = '2px';
-        btn.style.boxShadow     = tn === name ? '0 0 12px ' + pdm : 'none';
+        btn.style.boxShadow     = tn === name ? '0 0 12px ' + c.pdim : 'none';
     });
 
-    /* 5 ── Sync BG color picker */
+    /* 5 — Sync BG color picker */
     setTimeout(function() {
         var bgEl    = document.getElementById('custom-bg');
         var bgHexEl = document.getElementById('custom-bg-hex');
-        if (bgEl)    { try { bgEl.value = bg; } catch(e) {} }
-        if (bgHexEl) { bgHexEl.value = bg; }
+        if (bgEl)    { try { bgEl.value = c.bg; } catch(e) {} }
+        if (bgHexEl) { bgHexEl.value = c.bg; }
     }, 50);
 }
 
