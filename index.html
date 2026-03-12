@@ -2083,198 +2083,247 @@ var _allThemes = ['rubble','fracture','detonator','bedrock','gravel','condemned'
 var _themes = {
 
     rubble: {
-        '--bg':           '#100c08',
-        '--surface':      '#18120a',
-        '--surface-deep': '#0c0804',
-        '--surface-mid':  '#140e08',
-        '--border':       '#3a2a18',
-        '--primary':      '#cc8844',
-        '--primary-dim':  '#cc884444',
-        '--primary-glow': '#cc884433',
-        '--text':         '#7a5a38',
-        '--text-light':   '#cc8844',
-        '--text-dim':     '#3a2a18',
-        '--text-faint':   '#201808',
-        '--negative':     '#ff4444',
-        '--positive':     '#88cc66',
-        '--brick-h':      'rgba(0,0,0,0.65)',
-        '--brick-v':      'rgba(0,0,0,0.45)'
+        '--bg':'#100c08','--surface':'#18120a','--surface-deep':'#0c0804','--surface-mid':'#140e08',
+        '--border':'#3a2a18','--primary':'#cc8844','--primary-dim':'#cc884444','--primary-glow':'#cc884433',
+        '--text':'#7a5a38','--text-light':'#cc8844','--text-dim':'#3a2a18','--text-faint':'#201808',
+        '--negative':'#ff4444','--positive':'#88cc66',
+        '--brick-h':'rgba(0,0,0,0.65)','--brick-v':'rgba(0,0,0,0.45)',
+        _font_head:  "'Oswald', sans-serif",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Inter', sans-serif",
+        _weight:     '700',
+        _radius:     '0px',
+        _radius_sm:  '0px',
+        _bw:         '2px',
+        _bw_acc:     '4px',
+        _header_sz:  '1.2rem',
+        _header_ls:  '6px',
+        _stat_sz:    '1.7rem',
+        _tab_ls:     '3px',
+        _tab_sz:     '0.75rem',
+        _sect_ls:    '4px',
+        _shadow:     'inset 0 0 50px rgba(0,0,0,0.7), 0 4px 30px rgba(0,0,0,0.6)',
+        _pattern:    'repeating-linear-gradient(0deg,transparent,transparent 23px,rgba(0,0,0,0.4) 23px,rgba(0,0,0,0.4) 25px),repeating-linear-gradient(90deg,transparent,transparent 47px,rgba(0,0,0,0.3) 47px,rgba(0,0,0,0.3) 49px)'
     },
 
     fracture: {
-        '--bg':           '#080c12',
-        '--surface':      '#0c1018',
-        '--surface-deep': '#050810',
-        '--surface-mid':  '#080e16',
-        '--border':       '#1a2a3a',
-        '--primary':      '#88ccff',
-        '--primary-dim':  '#88ccff44',
-        '--primary-glow': '#88ccff33',
-        '--text':         '#3a6080',
-        '--text-light':   '#88ccff',
-        '--text-dim':     '#1a3048',
-        '--text-faint':   '#101820',
-        '--negative':     '#ff4488',
-        '--positive':     '#44ffcc',
-        '--brick-h':      'rgba(136,204,255,0.06)',
-        '--brick-v':      'rgba(136,204,255,0.04)'
+        '--bg':'#080c12','--surface':'#0c1018','--surface-deep':'#050810','--surface-mid':'#080e16',
+        '--border':'#1a2a3a','--primary':'#88ccff','--primary-dim':'#88ccff33','--primary-glow':'#88ccff22',
+        '--text':'#3a6080','--text-light':'#88ccff','--text-dim':'#1a3048','--text-faint':'#101820',
+        '--negative':'#ff4488','--positive':'#44ffcc',
+        '--brick-h':'rgba(136,204,255,0.04)','--brick-v':'rgba(136,204,255,0.02)',
+        _font_head:  "'Inter', sans-serif",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Inter', sans-serif",
+        _weight:     '200',
+        _radius:     '3px',
+        _radius_sm:  '2px',
+        _bw:         '1px',
+        _bw_acc:     '1px',
+        _header_sz:  '0.85rem',
+        _header_ls:  '10px',
+        _stat_sz:    '1.9rem',
+        _tab_ls:     '5px',
+        _tab_sz:     '0.65rem',
+        _sect_ls:    '6px',
+        _shadow:     '0 0 1px rgba(136,204,255,0.3), 0 2px 8px rgba(0,0,0,0.4)',
+        _pattern:    'none'
     },
 
     detonator: {
-        '--bg':           '#0d0d00',
-        '--surface':      '#141400',
-        '--surface-deep': '#080800',
-        '--surface-mid':  '#101000',
-        '--border':       '#2a2a00',
-        '--primary':      '#ffee00',
-        '--primary-dim':  '#ffee0044',
-        '--primary-glow': '#ffee0033',
-        '--text':         '#6a6a00',
-        '--text-light':   '#ffee00',
-        '--text-dim':     '#2a2a00',
-        '--text-faint':   '#181800',
-        '--negative':     '#ff4400',
-        '--positive':     '#aaff00',
-        '--brick-h':      'rgba(0,0,0,0.7)',
-        '--brick-v':      'rgba(255,238,0,0.06)'
+        '--bg':'#0d0d00','--surface':'#141400','--surface-deep':'#080800','--surface-mid':'#101000',
+        '--border':'#2a2a00','--primary':'#ffee00','--primary-dim':'#ffee0055','--primary-glow':'#ffee0044',
+        '--text':'#6a6a00','--text-light':'#ffee00','--text-dim':'#2a2a00','--text-faint':'#181800',
+        '--negative':'#ff4400','--positive':'#aaff00',
+        '--brick-h':'rgba(0,0,0,0.75)','--brick-v':'rgba(255,238,0,0.06)',
+        _font_head:  "'Bebas Neue', 'Oswald', sans-serif",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Share Tech Mono', monospace",
+        _weight:     '400',
+        _radius:     '0px',
+        _radius_sm:  '0px',
+        _bw:         '2px',
+        _bw_acc:     '4px',
+        _header_sz:  '1.6rem',
+        _header_ls:  '10px',
+        _stat_sz:    '2.4rem',
+        _tab_ls:     '6px',
+        _tab_sz:     '0.9rem',
+        _sect_ls:    '7px',
+        _shadow:     'inset 0 0 40px rgba(0,0,0,0.9), 0 0 2px rgba(255,238,0,0.15)',
+        _pattern:    'repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,238,0,0.04) 8px,rgba(255,238,0,0.04) 16px)'
     },
 
     bedrock: {
-        '--bg':           '#0c0906',
-        '--surface':      '#140e08',
-        '--surface-deep': '#080604',
-        '--surface-mid':  '#100c06',
-        '--border':       '#2a1a08',
-        '--primary':      '#a07040',
-        '--primary-dim':  '#a0704044',
-        '--primary-glow': '#a0704033',
-        '--text':         '#6a4a28',
-        '--text-light':   '#c09060',
-        '--text-dim':     '#2a1a08',
-        '--text-faint':   '#181008',
-        '--negative':     '#cc4422',
-        '--positive':     '#88aa44',
-        '--brick-h':      'rgba(0,0,0,0.7)',
-        '--brick-v':      'rgba(0,0,0,0.5)'
+        '--bg':'#0c0906','--surface':'#140e08','--surface-deep':'#080604','--surface-mid':'#100c06',
+        '--border':'#2a1a08','--primary':'#a07040','--primary-dim':'#a0704044','--primary-glow':'#a0704033',
+        '--text':'#6a4a28','--text-light':'#c09060','--text-dim':'#2a1a08','--text-faint':'#181008',
+        '--negative':'#cc4422','--positive':'#88aa44',
+        '--brick-h':'rgba(0,0,0,0.7)','--brick-v':'rgba(0,0,0,0.5)',
+        _font_head:  "'Oswald', sans-serif",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Inter', sans-serif",
+        _weight:     '700',
+        _radius:     '0px',
+        _radius_sm:  '0px',
+        _bw:         '3px',
+        _bw_acc:     '5px',
+        _header_sz:  '1.3rem',
+        _header_ls:  '4px',
+        _stat_sz:    '1.6rem',
+        _tab_ls:     '2px',
+        _tab_sz:     '0.8rem',
+        _sect_ls:    '3px',
+        _shadow:     'inset 0 0 60px rgba(0,0,0,0.8), 4px 4px 0 rgba(0,0,0,0.6)',
+        _pattern:    'repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(0,0,0,0.5) 27px,rgba(0,0,0,0.5) 30px),repeating-linear-gradient(90deg,transparent,transparent 55px,rgba(0,0,0,0.4) 55px,rgba(0,0,0,0.4) 58px)'
     },
 
     gravel: {
-        '--bg':           '#080c08',
-        '--surface':      '#0c100c',
-        '--surface-deep': '#060806',
-        '--surface-mid':  '#0a0e0a',
-        '--border':       '#182018',
-        '--primary':      '#6a8a5a',
-        '--primary-dim':  '#6a8a5a44',
-        '--primary-glow': '#6a8a5a33',
-        '--text':         '#3a5030',
-        '--text-light':   '#8aaa78',
-        '--text-dim':     '#1a2818',
-        '--text-faint':   '#101810',
-        '--negative':     '#cc4444',
-        '--positive':     '#66cc44',
-        '--brick-h':      'rgba(0,0,0,0.6)',
-        '--brick-v':      'rgba(106,138,90,0.05)'
+        '--bg':'#080c08','--surface':'#0c100c','--surface-deep':'#060806','--surface-mid':'#0a0e0a',
+        '--border':'#182018','--primary':'#6a8a5a','--primary-dim':'#6a8a5a44','--primary-glow':'#6a8a5a33',
+        '--text':'#3a5030','--text-light':'#8aaa78','--text-dim':'#1a2818','--text-faint':'#101810',
+        '--negative':'#cc4444','--positive':'#66cc44',
+        '--brick-h':'rgba(0,0,0,0.6)','--brick-v':'rgba(106,138,90,0.05)',
+        _font_head:  "'Rajdhani', 'Oswald', sans-serif",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Rajdhani', sans-serif",
+        _weight:     '700',
+        _radius:     '0px',
+        _radius_sm:  '0px',
+        _bw:         '1px',
+        _bw_acc:     '2px',
+        _header_sz:  '1.0rem',
+        _header_ls:  '7px',
+        _stat_sz:    '1.5rem',
+        _tab_ls:     '5px',
+        _tab_sz:     '0.72rem',
+        _sect_ls:    '6px',
+        _shadow:     'inset 0 0 30px rgba(0,0,0,0.7)',
+        _pattern:    'repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(0,0,0,0.35) 19px,rgba(0,0,0,0.35) 20px)'
     },
 
     condemned: {
-        '--bg':           '#0d0505',
-        '--surface':      '#140808',
-        '--surface-deep': '#080303',
-        '--surface-mid':  '#100606',
-        '--border':       '#3a0808',
-        '--primary':      '#ff2222',
-        '--primary-dim':  '#ff222244',
-        '--primary-glow': '#ff222233',
-        '--text':         '#882222',
-        '--text-light':   '#ff6666',
-        '--text-dim':     '#3a0808',
-        '--text-faint':   '#200404',
-        '--negative':     '#ff0000',
-        '--positive':     '#44ff88',
-        '--brick-h':      'rgba(180,0,0,0.25)',
-        '--brick-v':      'rgba(180,0,0,0.15)'
+        '--bg':'#0d0505','--surface':'#140808','--surface-deep':'#080303','--surface-mid':'#100606',
+        '--border':'#3a0808','--primary':'#ff2222','--primary-dim':'#ff222244','--primary-glow':'#ff222233',
+        '--text':'#882222','--text-light':'#ff6666','--text-dim':'#3a0808','--text-faint':'#200404',
+        '--negative':'#ff0000','--positive':'#44ff88',
+        '--brick-h':'rgba(180,0,0,0.25)','--brick-v':'rgba(180,0,0,0.15)',
+        _font_head:  "'Oswald', sans-serif",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Inter', sans-serif",
+        _weight:     '700',
+        _radius:     '0px',
+        _radius_sm:  '0px',
+        _bw:         '2px',
+        _bw_acc:     '4px',
+        _header_sz:  '1.3rem',
+        _header_ls:  '5px',
+        _stat_sz:    '1.8rem',
+        _tab_ls:     '3px',
+        _tab_sz:     '0.78rem',
+        _sect_ls:    '4px',
+        _shadow:     'inset 0 0 40px rgba(0,0,0,0.8), 0 0 4px rgba(255,0,0,0.15)',
+        _pattern:    'repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(180,0,0,0.06) 10px,rgba(180,0,0,0.06) 20px)'
     },
 
     quarry: {
-        '--bg':           '#0c0c0c',
-        '--surface':      '#141414',
-        '--surface-deep': '#080808',
-        '--surface-mid':  '#101010',
-        '--border':       '#282828',
-        '--primary':      '#c0b090',
-        '--primary-dim':  '#c0b09044',
-        '--primary-glow': '#c0b09033',
-        '--text':         '#707060',
-        '--text-light':   '#d0c0a0',
-        '--text-dim':     '#303028',
-        '--text-faint':   '#202018',
-        '--negative':     '#ff5544',
-        '--positive':     '#88cc88',
-        '--brick-h':      'rgba(255,255,255,0.04)',
-        '--brick-v':      'rgba(255,255,255,0.025)'
+        '--bg':'#0c0c0c','--surface':'#141414','--surface-deep':'#080808','--surface-mid':'#101010',
+        '--border':'#282828','--primary':'#c0b090','--primary-dim':'#c0b09044','--primary-glow':'#c0b09033',
+        '--text':'#707060','--text-light':'#d0c0a0','--text-dim':'#303028','--text-faint':'#202018',
+        '--negative':'#ff5544','--positive':'#88cc88',
+        '--brick-h':'rgba(255,255,255,0.025)','--brick-v':'rgba(255,255,255,0.015)',
+        _font_head:  "'Inter', sans-serif",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Inter', sans-serif",
+        _weight:     '300',
+        _radius:     '6px',
+        _radius_sm:  '4px',
+        _bw:         '1px',
+        _bw_acc:     '1px',
+        _header_sz:  '0.82rem',
+        _header_ls:  '10px',
+        _stat_sz:    '1.5rem',
+        _tab_ls:     '6px',
+        _tab_sz:     '0.65rem',
+        _sect_ls:    '8px',
+        _shadow:     '0 2px 8px rgba(0,0,0,0.3)',
+        _pattern:    'none'
     },
 
     shatter: {
-        '--bg':           '#0a0810',
-        '--surface':      '#100c18',
-        '--surface-deep': '#060410',
-        '--surface-mid':  '#0c0a14',
-        '--border':       '#1e1030',
-        '--primary':      '#cc88ff',
-        '--primary-dim':  '#cc88ff44',
-        '--primary-glow': '#cc88ff33',
-        '--text':         '#5a3a80',
-        '--text-light':   '#cc88ff',
-        '--text-dim':     '#281840',
-        '--text-faint':   '#180c28',
-        '--negative':     '#ff4488',
-        '--positive':     '#88ffcc',
-        '--brick-h':      'rgba(204,136,255,0.05)',
-        '--brick-v':      'rgba(204,136,255,0.03)'
+        '--bg':'#0a0810','--surface':'#100c18','--surface-deep':'#060410','--surface-mid':'#0c0a14',
+        '--border':'#1e1030','--primary':'#cc88ff','--primary-dim':'#cc88ff44','--primary-glow':'#cc88ff33',
+        '--text':'#5a3a80','--text-light':'#cc88ff','--text-dim':'#281840','--text-faint':'#180c28',
+        '--negative':'#ff4488','--positive':'#88ffcc',
+        '--brick-h':'rgba(204,136,255,0.04)','--brick-v':'rgba(204,136,255,0.03)',
+        _font_head:  "'Share Tech Mono', monospace",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Share Tech Mono', monospace",
+        _weight:     '400',
+        _radius:     '0px',
+        _radius_sm:  '0px',
+        _bw:         '1px',
+        _bw_acc:     '2px',
+        _header_sz:  '0.95rem',
+        _header_ls:  '6px',
+        _stat_sz:    '1.6rem',
+        _tab_ls:     '3px',
+        _tab_sz:     '0.68rem',
+        _sect_ls:    '4px',
+        _shadow:     'inset 0 0 30px rgba(0,0,0,0.6), 0 0 12px rgba(204,136,255,0.08)',
+        _pattern:    'none'
     },
 
     bunker: {
-        '--bg':           '#080c08',
-        '--surface':      '#0c100c',
-        '--surface-deep': '#050805',
-        '--surface-mid':  '#0a0e0a',
-        '--border':       '#103010',
-        '--primary':      '#4a8a4a',
-        '--primary-dim':  '#4a8a4a44',
-        '--primary-glow': '#4a8a4a33',
-        '--text':         '#2a5a2a',
-        '--text-light':   '#6aaa6a',
-        '--text-dim':     '#102010',
-        '--text-faint':   '#081408',
-        '--negative':     '#cc4444',
-        '--positive':     '#44cc88',
-        '--brick-h':      'rgba(0,0,0,0.65)',
-        '--brick-v':      'rgba(74,138,74,0.06)'
+        '--bg':'#080c08','--surface':'#0c100c','--surface-deep':'#050805','--surface-mid':'#0a0e0a',
+        '--border':'#103010','--primary':'#4a8a4a','--primary-dim':'#4a8a4a44','--primary-glow':'#4a8a4a33',
+        '--text':'#2a5a2a','--text-light':'#6aaa6a','--text-dim':'#102010','--text-faint':'#081408',
+        '--negative':'#cc4444','--positive':'#44cc88',
+        '--brick-h':'rgba(0,0,0,0.65)','--brick-v':'rgba(74,138,74,0.06)',
+        _font_head:  "'Share Tech Mono', monospace",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Share Tech Mono', monospace",
+        _weight:     '400',
+        _radius:     '0px',
+        _radius_sm:  '0px',
+        _bw:         '1px',
+        _bw_acc:     '3px',
+        _header_sz:  '1.0rem',
+        _header_ls:  '5px',
+        _stat_sz:    '1.5rem',
+        _tab_ls:     '4px',
+        _tab_sz:     '0.7rem',
+        _sect_ls:    '4px',
+        _shadow:     'inset 0 0 40px rgba(0,0,0,0.8), inset 2px 0 0 rgba(74,138,74,0.1)',
+        _pattern:    'repeating-linear-gradient(0deg,transparent,transparent 21px,rgba(0,0,0,0.4) 21px,rgba(0,0,0,0.4) 22px)'
     },
 
     wrecking: {
-        '--bg':           '#0d0800',
-        '--surface':      '#161000',
-        '--surface-deep': '#0a0600',
-        '--surface-mid':  '#120c00',
-        '--border':       '#2a1400',
-        '--primary':      '#ff8800',
-        '--primary-dim':  '#ff880044',
-        '--primary-glow': '#ff880033',
-        '--text':         '#804400',
-        '--text-light':   '#ffaa44',
-        '--text-dim':     '#301800',
-        '--text-faint':   '#201000',
-        '--negative':     '#ff3300',
-        '--positive':     '#ccff44',
-        '--brick-h':      'rgba(0,0,0,0.7)',
-        '--brick-v':      'rgba(255,136,0,0.07)'
+        '--bg':'#0d0800','--surface':'#161000','--surface-deep':'#0a0600','--surface-mid':'#120c00',
+        '--border':'#2a1400','--primary':'#ff8800','--primary-dim':'#ff880044','--primary-glow':'#ff880033',
+        '--text':'#804400','--text-light':'#ffaa44','--text-dim':'#301800','--text-faint':'#201000',
+        '--negative':'#ff3300','--positive':'#ccff44',
+        '--brick-h':'rgba(0,0,0,0.7)','--brick-v':'rgba(255,136,0,0.07)',
+        _font_head:  "'Bebas Neue', 'Oswald', sans-serif",
+        _font_mono:  "'Share Tech Mono', monospace",
+        _font_body:  "'Oswald', sans-serif",
+        _weight:     '400',
+        _radius:     '0px',
+        _radius_sm:  '0px',
+        _bw:         '2px',
+        _bw_acc:     '4px',
+        _header_sz:  '1.6rem',
+        _header_ls:  '8px',
+        _stat_sz:    '2.2rem',
+        _tab_ls:     '5px',
+        _tab_sz:     '0.85rem',
+        _sect_ls:    '6px',
+        _shadow:     'inset 0 0 40px rgba(0,0,0,0.7), 0 4px 0 rgba(255,136,0,0.12)',
+        _pattern:    'repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(255,136,0,0.04) 12px,rgba(255,136,0,0.04) 24px)'
     }
-
 };
 
-var _crackSVG = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Cpath d=\'M30 10 L42 38 L28 65 L50 95 L33 130 L55 160\' stroke=\'rgba(0,0,0,0.3)\' stroke-width=\'2.5\' fill=\'none\'/%3E%3Cpath d=\'M38 38 L55 48 L48 62\' stroke=\'rgba(0,0,0,0.2)\' stroke-width=\'1\' fill=\'none\'/%3E%3Cpath d=\'M200 5 L192 35 L215 60 L198 90 L220 120 L205 155\' stroke=\'rgba(0,0,0,0.22)\' stroke-width=\'2\' fill=\'none\'/%3E%3Cpath d=\'M205 60 L225 70 L218 85\' stroke=\'rgba(0,0,0,0.15)\' stroke-width=\'1\' fill=\'none\'/%3E%3Cpath d=\'M310 80 L295 105 L320 128 L300 162 L318 190\' stroke=\'rgba(0,0,0,0.18)\' stroke-width=\'1.5\' fill=\'none\'/%3E%3Cpath d=\'M50 200 L70 220 L55 245 L75 265\' stroke=\'rgba(0,0,0,0.15)\' stroke-width=\'1.5\' fill=\'none\'/%3E%3Cpath d=\'M55 220 L75 225\' stroke=\'rgba(0,0,0,0.12)\' stroke-width=\'1\' fill=\'none\'/%3E%3Cpath d=\'M350 20 L340 50 L355 75 L338 100\' stroke=\'rgba(0,0,0,0.12)\' stroke-width=\'1\' fill=\'none\'/%3E%3Cpath d=\'M150 150 L165 170 L148 195\' stroke=\'rgba(0,0,0,0.1)\' stroke-width=\'1\' fill=\'none\'/%3E%3C/svg%3E")';
+var _crackSVG = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Cpath d=\'M30 10 L42 38 L28 65 L50 95 L33 130 L55 160\' stroke=\'rgba(0,0,0,0.3)\' stroke-width=\'2.5\' fill=\'none\'/%3E%3Cpath d=\'M38 38 L55 48 L48 62\' stroke=\'rgba(0,0,0,0.2)\' stroke-width=\'1\' fill=\'none\'/%3E%3Cpath d=\'M200 5 L192 35 L215 60 L198 90 L220 120 L205 155\' stroke=\'rgba(0,0,0,0.22)\' stroke-width=\'2\' fill=\'none\'/%3E%3Cpath d=\'M310 80 L295 105 L320 128 L300 162 L318 190\' stroke=\'rgba(0,0,0,0.18)\' stroke-width=\'1.5\' fill=\'none\'/%3E%3C/svg%3E")';
 
 function setTheme(name) {
     _currentTheme = name;
@@ -2283,34 +2332,180 @@ function setTheme(name) {
 
     var t = _themes[name] || _themes.rubble;
 
-    /* ── Apply all CSS variables to :root ── */
+    /* 1 ── CSS variables → :root */
     Object.keys(t).forEach(function(key) {
-        if (key === '--brick-h' || key === '--brick-v') return;
-        document.documentElement.style.setProperty(key, t[key]);
+        if (key.startsWith('--') && key !== '--brick-h' && key !== '--brick-v') {
+            document.documentElement.style.setProperty(key, t[key]);
+        }
     });
 
-    /* ── Apply brick + crack background ── */
+    /* 2 ── Brick background on body */
     document.body.style.backgroundColor = t['--bg'];
     document.body.style.backgroundImage =
-        'repeating-linear-gradient(0deg, transparent, transparent 23px, ' + t['--brick-h'] + ' 23px, ' + t['--brick-h'] + ' 25px),' +
-        'repeating-linear-gradient(90deg, transparent, transparent 47px, ' + t['--brick-v'] + ' 47px, ' + t['--brick-v'] + ' 49px),' +
+        'repeating-linear-gradient(0deg,transparent,transparent 23px,' + t['--brick-h'] + ' 23px,' + t['--brick-h'] + ' 25px),' +
+        'repeating-linear-gradient(90deg,transparent,transparent 47px,' + t['--brick-v'] + ' 47px,' + t['--brick-v'] + ' 49px),' +
         _crackSVG;
 
-    /* ── Active button highlight ── */
+    /* 3 ── STRUCTURAL OVERRIDE via injected <style> with !important
+            This beats inline style="" attributes throughout the HTML        */
+    var el = document.getElementById('_rk_theme_inject');
+    if (!el) {
+        el = document.createElement('style');
+        el.id = '_rk_theme_inject';
+        document.head.appendChild(el);
+    }
+
+    var fH  = t._font_head;
+    var fM  = t._font_mono;
+    var fB  = t._font_body;
+    var fw  = t._weight;
+    var r   = t._radius;
+    var rsm = t._radius_sm;
+    var bw  = t._bw;
+    var bwa = t._bw_acc;
+    var hsz = t._header_sz;
+    var hls = t._header_ls;
+    var ssz = t._stat_sz;
+    var tls = t._tab_ls;
+    var tsz = t._tab_sz;
+    var sls = t._sect_ls;
+    var shd = t._shadow;
+    var pat = t._pattern;
+    var bg  = t['--bg'];
+    var sur = t['--surface'];
+    var srd = t['--surface-deep'];
+    var srm = t['--surface-mid'];
+    var brd = t['--border'];
+    var pri = t['--primary'];
+    var pdm = t['--primary-dim'];
+    var pgw = t['--primary-glow'];
+    var txt = t['--text'];
+    var txl = t['--text-light'];
+    var txd = t['--text-dim'];
+
+    el.textContent = [
+
+        /* ── FONTS: body default ── */
+        'body, body div, body span, body p, body label, body button { font-family:' + fB + ' !important; }',
+
+        /* ── FONTS: headings, titles, badges, tabs ── */
+        '.header-title, .tab-btn, .section-title, .stat-label, .stat-val,',
+        '.save-btn, .lot-badge, .outcome-badge, .rr-badge, .month-header td,',
+        'th, .login-card h2, .btn-action, .feed-toggle-btn.active,',
+        '.cal-day b, #mt5-offline-overlay h3, .btn-use-tv',
+        '{ font-family:' + fH + ' !important; font-weight:' + fw + ' !important; }',
+
+        /* ── FONTS: mono inputs/data ── */
+        'input, select, textarea, td, .search-bar, .login-input,',
+        '.price-val, .price-lbl, .scan-status, .scan-zone-label, .stat-meta,',
+        'code, #mt5-status-badge, .feed-toggle-btn, #mt5-offline-overlay p, #mt5-offline-overlay code',
+        '{ font-family:' + fM + ' !important; }',
+
+        /* ── HEADER SIZE / SPACING ── */
+        '.header-title { font-size:' + hsz + ' !important; letter-spacing:' + hls + ' !important; }',
+
+        /* ── STAT VALUE SIZE ── */
+        '.stat-val { font-size:' + ssz + ' !important; }',
+
+        /* ── TAB SIZE / SPACING ── */
+        '.tab-btn { font-size:' + tsz + ' !important; letter-spacing:' + tls + ' !important; }',
+
+        /* ── SECTION TITLE SPACING ── */
+        '.section-title { letter-spacing:' + sls + ' !important; }',
+
+        /* ── BORDER RADIUS everywhere ── */
+        '.card, .stat-card, .login-card, .table-wrap, .search-bar, .login-input,',
+        'input, select, textarea, .btn-action, .save-btn, .tab-btn,',
+        '.lot-badge, .rr-badge, .outcome-badge, .cal-day, #mt5-status-badge,',
+        '.feed-toggle-wrap, .btn-use-tv, .scan-zone, .media-zone',
+        '{ border-radius:' + r + ' !important; }',
+
+        '.img-preview { border-radius:' + rsm + ' !important; }',
+
+        /* ── CARD SHADOW + PATTERN ── */
+        '.card, .stat-card { box-shadow:' + shd + ' !important; background-image:' + pat + ' !important; }',
+
+        /* ── CARD BORDER WIDTH ── */
+        '.card, .stat-card { border-width:' + bw + ' !important; border-top-width:' + bwa + ' !important; border-left-width:' + bwa + ' !important; }',
+
+        /* ── INPUT/BUTTON BORDER WIDTH ── */
+        'input, select, textarea, .btn-action, .login-input { border-width:' + bw + ' !important; }',
+
+        /* ── BACKGROUND COLORS: override hardcoded #050505 type values in calculator etc ── */
+        /* surface-deep overrides */
+        '[style*="background:#050505"], [style*="background: #050505"]',
+        '{ background-color:' + srd + ' !important; }',
+
+        '[style*="background:#0a0a0a"], [style*="background:#0d0d0d"], [style*="background:#0a0905"]',
+        '{ background-color:' + srd + ' !important; }',
+
+        /* surface overrides */
+        '[style*="background:#0d0d0d"], [style*="background:#111"], [style*="background:#111111"]',
+        '{ background-color:' + sur + ' !important; }',
+
+        /* border overrides */
+        '[style*="border:1px solid #1a1a1a"], [style*="border: 1px solid #1a1a1a"],',
+        '[style*="border-color:#1a1a1a"], [style*="border-bottom:1px solid #111"]',
+        '{ border-color:' + brd + ' !important; }',
+
+        '[style*="border:1px solid #222"], [style*="border:1px solid #333"]',
+        '{ border-color:' + brd + ' !important; }',
+
+        /* ── CALCULATOR PANEL bg overrides ── */
+        '#tab-charts [style*="background:#000"], #tab-charts [style*="background: #000"]',
+        '{ background-color:' + bg + ' !important; }',
+
+        '#tab-charts [style*="background:#0d0d0d"]',
+        '{ background-color:' + surm + ' !important; }',
+
+        /* ── COLOR OVERRIDES for hardcoded text ── */
+        '[style*="color:#555"]:not(.mt5-dot)',
+        '{ color:' + txd + ' !important; }',
+
+        '[style*="color:#888"], [style*="color: #888"]',
+        '{ color:' + txt + ' !important; }',
+
+        '[style*="color:#fff"]:not(td):not(th)',
+        '{ color:' + txl + ' !important; }',
+
+        /* ── LAYOUT TOGGLE BUTTONS in chart panel ── */
+        '#layout-btn-single, #layout-btn-horizontal, #layout-btn-vertical',
+        '{ font-family:' + fH + ' !important; font-weight:' + fw + ' !important; border-radius:' + r + ' !important; }',
+
+        /* ── STAT card chart headers ── */
+        '.card h3 { font-family:' + fH + ' !important; font-weight:' + fw + ' !important; letter-spacing:' + sls + ' !important; color:' + txd + ' !important; }',
+
+        /* ── MONTH HEADER border ── */
+        '.month-header td { border-top-width:' + bwa + ' !important; border-bottom-width:' + bwa + ' !important; }',
+
+        /* ── SEARCH BAR left accent ── */
+        '.search-bar { border-left-width:' + bwa + ' !important; }',
+
+        /* ── SAVE BUTTON font size scales with header ── */
+        '.save-btn { font-size:' + (parseFloat(hsz) > 1.3 ? '1.1rem' : '0.95rem') + ' !important; letter-spacing:' + hls + ' !important; }',
+
+        /* ── LOGIN CARD ── */
+        '.login-card { border-radius:' + r + ' !important; box-shadow:' + shd + ', 0 0 60px ' + pdm + ' !important; }',
+        '.login-card h2 { font-size:' + hsz + ' !important; letter-spacing:' + hls + ' !important; }',
+        '.login-input { border-radius:' + r + ' !important; border-left-width:' + bwa + ' !important; }',
+
+    ].join('\n');
+
+    /* 4 ── Active theme button highlight */
     _allThemes.forEach(function(tn) {
         var btn = document.getElementById('th-' + tn);
         if (!btn) return;
-        btn.style.outline       = tn === name ? '2px solid ' + t['--primary'] : 'none';
+        btn.style.outline       = tn === name ? '2px solid ' + pri : 'none';
         btn.style.outlineOffset = '2px';
-        btn.style.boxShadow     = tn === name ? '0 0 10px ' + t['--primary-dim'] : 'none';
+        btn.style.boxShadow     = tn === name ? '0 0 12px ' + pdm : 'none';
     });
 
-    /* ── Sync BG color picker ── */
+    /* 5 ── Sync BG color picker */
     setTimeout(function() {
         var bgEl    = document.getElementById('custom-bg');
         var bgHexEl = document.getElementById('custom-bg-hex');
-        if (bgEl)    { try { bgEl.value = t['--bg']; } catch(e) {} }
-        if (bgHexEl) { bgHexEl.value = t['--bg']; }
+        if (bgEl)    { try { bgEl.value = bg; } catch(e) {} }
+        if (bgHexEl) { bgHexEl.value = bg; }
     }, 50);
 }
 
@@ -2336,7 +2531,7 @@ function onCustomBgHex(val) {
 }
 
 (function initTheme() {
-    var saved   = localStorage.getItem('rk_theme')    || 'rubble';
+    var saved   = localStorage.getItem('rk_theme') || 'rubble';
     var savedBg = localStorage.getItem('rk_custom_bg');
     setTheme(saved);
     if (savedBg) setTimeout(function() { setCustomBg(savedBg); }, 80);
