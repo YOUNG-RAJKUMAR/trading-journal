@@ -726,24 +726,24 @@
             </div>
 
             <!-- Theme strip -->
-          <div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;flex-wrap:wrap;">
     <span style="font-size:.44rem;color:var(--text);opacity:.4;text-transform:uppercase;letter-spacing:1px;margin-right:1px;">Style</span>
-    <button onclick="setTheme('brutalist')"  style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:2px solid #000;background:#f0ede6;color:#000;font-family:Impact,sans-serif;border-radius:0;">BRUT</button>
-    <button onclick="setTheme('glass')"      style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #a78bfa55;background:#0d0d1f;color:#c4b5fd;border-radius:16px;">🔮 Glass</button>
-    <button onclick="setTheme('terminal')"   style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ffaa0055;background:#090700;color:#ffaa00;font-family:monospace;border-radius:0;">▣ Term</button>
-    <button onclick="setTheme('imperial')"   style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #d4af3755;background:#07060c;color:#d4af37;border-radius:2px;">👑 Gold</button>
-    <button onclick="setTheme('cyberpunk')"  style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ff009055;background:#08000f;color:#ff0090;border-radius:3px;">⚡ Punk</button>
-    <button onclick="setTheme('arctic')"     style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #c2d8ed;background:#eaf3fc;color:#1d6fa8;border-radius:8px;">❄ Ice</button>
-    <button onclick="setTheme('crimson')"    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #38001055;background:#060003;color:#cc0022;border-radius:2px;">🔴 Crim</button>
-    <button onclick="setTheme('forest')"     style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #0c2a10;background:#030d05;color:#4ade80;border-radius:3px;">🌿 Forest</button>
-    <button onclick="setTheme('sunset')"     style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #28104055;background:#0c0420;color:#fb923c;border-radius:6px;">🌅 Dusk</button>
-    <button onclick="setTheme('blueprint')"  style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #183060;background:#091525;color:#60a5fa;font-family:monospace;border-radius:2px;">📐 Blue</button>
-    <button onclick="setTheme('light')"      style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;border-radius:6px;">☀ Light</button>
+    <button onclick="setTheme('obsidian')"     style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #1c1c1c;background:#000;color:#e8e8e8;border-radius:2px;letter-spacing:1px;">◼ Obsidian</button>
+    <button onclick="setTheme('sakura')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #f0d8e0;background:#fdf6f8;color:#c2607a;border-radius:14px;">🌸 Sakura</button>
+    <button onclick="setTheme('copper')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #3a2010;background:#0e0a07;color:#cd7f32;border-radius:2px;">⚙ Copper</button>
+    <button onclick="setTheme('ocean')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #063040;background:#020d14;color:#00c8c8;border-radius:5px;">🌊 Ocean</button>
+    <button onclick="setTheme('noir')"         style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a2215;background:#0a0906;color:#d4c08a;border-radius:1px;font-style:italic;">🎞 Noir</button>
+    <button onclick="setTheme('toxic')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a3000;background:#050600;color:#ccff00;border-radius:0;font-weight:900;">☢ Toxic</button>
+    <button onclick="setTheme('commodore')"    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:2px solid #5050e8;background:#3434c8;color:#fff;border-radius:0;font-family:monospace;">C= C64</button>
+    <button onclick="setTheme('sand')"         style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #e0cdb0;background:#f5ede0;color:#8b5a2b;border-radius:6px;">🏜 Sand</button>
+    <button onclick="setTheme('holographic')"  style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a2a50;background:#060610;color:#c0a0ff;border-radius:8px;">✦ Holo</button>
+    <button onclick="setTheme('redacted')"     style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:2px solid #1a1a1a;background:#eeeae0;color:#1a1a1a;border-radius:0;font-family:monospace;">█ RDCTD</button>
+    <button onclick="setTheme('light')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;border-radius:6px;">☀ Light</button>
     <span style="font-size:.44rem;color:var(--text);opacity:.35;margin-left:3px;">BG</span>
     <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)" title="Custom BG" style="width:18px;height:18px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
     <input type="text"  id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)" style="width:54px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:2px 4px;font-size:.54rem;font-family:monospace;outline:none;border-radius:2px;">
 </div>
-
+            
             <!-- PDF strip -->
             <div style="background:var(--surface);padding:2px 6px;border:1px solid var(--border);display:flex;gap:4px;align-items:center;">
                 <span style="font-size:.48rem;color:#666;">PDF:</span>
