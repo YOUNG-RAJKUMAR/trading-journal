@@ -56,492 +56,498 @@
         body.theme-light .login-card { background:#faf7f2; }
 
         /* ═══════════════════════════════════════════════
-           1. VOID — ultra clean, white/grey, hairline
+           HACKER TERMINAL — 10 STYLES
+           All old themes removed. Copy-paste to replace.
         ═══════════════════════════════════════════════ */
-        body.theme-void {
-            --bg:#000000; --surface:#080808; --border:#1a1a1a;
+
+        /* ── SHARED ANIMATIONS (used by all themes) ── */
+        @keyframes blink   { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes flicker { 0%,100%{opacity:1} 92%{opacity:.97} 93%{opacity:.82} 94%{opacity:1} 97%{opacity:.93} }
+        @keyframes scanmove{ 0%{background-position:0 0} 100%{background-position:0 100vh} }
+        @keyframes glitch  { 0%,98%,100%{text-shadow:0 0 8px currentColor} 99%{text-shadow:2px 0 #ff0000,-2px 0 #00ffff,0 0 8px currentColor} }
+        @keyframes pulse   { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+        @keyframes fadeIn  { from{opacity:0;transform:translateY(5px)} to{opacity:1} }
+        @keyframes crt-on  { 0%{opacity:0;transform:scaleY(.01)} 5%{opacity:1;transform:scaleY(.02)} 15%{transform:scaleY(1.02)} 20%{transform:scaleY(1)} 100%{opacity:1} }
+
+        /* ══════════════════════════════════════════════════
+           1. MATRIX — Classic green on black
+        ══════════════════════════════════════════════════ */
+        body.theme-matrix {
+            --bg:#000000; --surface:#020d02; --border:#0a2a0a;
+            --primary:#00ff41; --accent:#39ff14;
+            --text:#0a4a0a; --text-light:#00ff41;
+            --negative:#ff2222; --positive:#00ff41;
+            --glow:0 0 10px rgba(0,255,65,0.4); --card-radius:0px;
+        }
+        body.theme-matrix { background:#000; color:#0a4a0a; font-family:'Share Tech Mono','Courier New',monospace !important; animation:flicker 6s infinite; }
+        body.theme-matrix::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,.015) 2px,rgba(0,255,65,.015) 4px); animation:scanmove 8s linear infinite; }
+        body.theme-matrix::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0,rgba(0,0,0,.07) 1px,transparent 1px,transparent 3px); }
+        body.theme-matrix .card, body.theme-matrix .stat-card, body.theme-matrix .table-wrap { background:#020d02; border:1px solid #0a2a0a; border-radius:0; box-shadow:0 0 20px rgba(0,255,65,.04); }
+        body.theme-matrix .header-title { color:#00ff41; letter-spacing:5px; font-weight:700; font-size:.65rem; text-shadow:0 0 12px rgba(0,255,65,.5); animation:glitch 5s infinite; }
+        body.theme-matrix .header-title::after { content:'_'; animation:blink 1s step-end infinite; }
+        body.theme-matrix .header-top { border-bottom:1px solid #0a2a0a; background:#000; }
+        body.theme-matrix .tab-nav { border-bottom:1px solid #0a2a0a; }
+        body.theme-matrix .tab-btn { color:#0a3a0a; letter-spacing:3px; font-size:.6rem; }
+        body.theme-matrix .tab-btn::before { content:'['; color:#0a2a0a; }
+        body.theme-matrix .tab-btn::after  { content:']'; color:#0a2a0a; }
+        body.theme-matrix .tab-btn.active { color:#00ff41; border-bottom:1px solid #00ff41; text-shadow:0 0 8px rgba(0,255,65,.5); }
+        body.theme-matrix .save-btn { background:#00ff41; color:#000; border:none; letter-spacing:4px; font-weight:900; font-size:.75rem; border-radius:0; }
+        body.theme-matrix .save-btn:hover { box-shadow:0 0 30px rgba(0,255,65,.6); }
+        body.theme-matrix .btn-action { border:1px solid #0a2a0a; color:#0a4a0a; background:#000; border-radius:0; }
+        body.theme-matrix .btn-action:hover { border-color:#00ff41; color:#00ff41; box-shadow:0 0 6px rgba(0,255,65,.2); }
+        body.theme-matrix th { color:#0a3a0a; background:#000; border-bottom:1px solid #0a2a0a; letter-spacing:4px; font-size:.5rem; font-weight:700; }
+        body.theme-matrix td { border-bottom:1px solid #040f04; color:#1a7a1a; }
+        body.theme-matrix .section-title { color:#0a3a0a; border-bottom:1px solid #0a2a0a; letter-spacing:5px; font-size:.55rem; }
+        body.theme-matrix .section-title::before { content:'// '; color:#00ff4133; }
+        body.theme-matrix .stat-val { color:#00ff41; font-weight:700; font-size:1.5rem; text-shadow:0 0 10px rgba(0,255,65,.3); }
+        body.theme-matrix .stat-label { color:#0a3a0a; letter-spacing:4px; }
+        body.theme-matrix .rr-badge.good { background:transparent; border:1px solid #00ff4133; color:#00ff41; border-radius:0; text-shadow:0 0 6px rgba(0,255,65,.4); }
+        body.theme-matrix .rr-badge.bad  { background:transparent; border:1px solid #ff222233; color:#ff2222; border-radius:0; }
+        body.theme-matrix .rr-badge.na   { background:transparent; border:1px solid #0a2a0a; color:#0a3a0a; border-radius:0; }
+        body.theme-matrix .outcome-badge.tp-hit { background:transparent; border:1px solid #00ff4133; color:#00ff41; border-radius:0; }
+        body.theme-matrix .outcome-badge.sl-hit { background:transparent; border:1px solid #ff222233; color:#ff2222; border-radius:0; }
+        body.theme-matrix .outcome-badge.partial { background:transparent; border:1px solid #ffcc0033; color:#ffcc00; border-radius:0; }
+        body.theme-matrix .outcome-badge.be { background:transparent; border:1px solid #0a2a0a; color:#1a7a1a; border-radius:0; }
+        body.theme-matrix input, body.theme-matrix select, body.theme-matrix textarea { background:#000; border:1px solid #0a2a0a; color:#00ff41; border-radius:0; }
+        body.theme-matrix input:focus, body.theme-matrix select:focus { border-color:#00ff41; box-shadow:0 0 8px rgba(0,255,65,.2); }
+        body.theme-matrix .search-bar { background:#000; border:1px solid #0a2a0a; color:#00ff41; border-radius:0; }
+        body.theme-matrix .month-header td { background:#000; color:#00ff41; letter-spacing:8px; font-weight:700; border-top:1px solid #0a2a0a; border-bottom:1px solid #0a2a0a; text-shadow:0 0 8px rgba(0,255,65,.3); }
+        body.theme-matrix .lot-badge { background:#000; border:1px solid #0a3a0a; color:#00ff41; border-radius:0; }
+        body.theme-matrix .login-card { background:#000; border:1px solid #00ff41; box-shadow:0 0 40px rgba(0,255,65,.2); }
+        body.theme-matrix .cal-day { background:#020d02; border:1px solid #040f04; }
+        body.theme-matrix .cal-day.profit { border-top:2px solid #00ff4166; }
+        body.theme-matrix .cal-day.loss   { border-top:2px solid #ff222266; }
+
+        /* ══════════════════════════════════════════════════
+           2. REDCODE — Red alert, breach detected
+        ══════════════════════════════════════════════════ */
+        body.theme-redcode {
+            --bg:#080000; --surface:#120000; --border:#3a0000;
+            --primary:#ff2222; --accent:#ff5500;
+            --text:#5a0000; --text-light:#ff2222;
+            --negative:#ff2222; --positive:#ff5500;
+            --glow:0 0 10px rgba(255,34,34,0.4); --card-radius:0px;
+        }
+        body.theme-redcode { background:#080000; color:#5a0000; font-family:'Share Tech Mono','Courier New',monospace !important; animation:flicker 5s infinite; }
+        body.theme-redcode::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,34,34,.015) 2px,rgba(255,34,34,.015) 4px); animation:scanmove 6s linear infinite; }
+        body.theme-redcode::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0,rgba(0,0,0,.08) 1px,transparent 1px,transparent 3px); }
+        body.theme-redcode .card, body.theme-redcode .stat-card, body.theme-redcode .table-wrap { background:#120000; border:1px solid #3a0000; border-radius:0; box-shadow:0 0 20px rgba(255,34,34,.04); }
+        body.theme-redcode .header-title { color:#ff2222; letter-spacing:5px; font-weight:700; font-size:.65rem; text-shadow:0 0 14px rgba(255,34,34,.6); animation:glitch 3s infinite; }
+        body.theme-redcode .header-title::before { content:'! '; color:#ff222266; }
+        body.theme-redcode .header-title::after  { content:'_'; animation:blink 1s step-end infinite; color:#ff2222; }
+        body.theme-redcode .header-top { border-bottom:1px solid #3a0000; background:#080000; }
+        body.theme-redcode .tab-nav { border-bottom:1px solid #3a0000; }
+        body.theme-redcode .tab-btn { color:#3a0000; letter-spacing:3px; font-size:.6rem; }
+        body.theme-redcode .tab-btn.active { color:#ff2222; border-bottom:1px solid #ff2222; text-shadow:0 0 8px rgba(255,34,34,.5); }
+        body.theme-redcode .save-btn { background:#ff2222; color:#000; border:none; letter-spacing:4px; font-weight:900; border-radius:0; }
+        body.theme-redcode .save-btn:hover { box-shadow:0 0 30px rgba(255,34,34,.6); }
+        body.theme-redcode .btn-action { border:1px solid #3a0000; color:#5a0000; background:#080000; border-radius:0; }
+        body.theme-redcode .btn-action:hover { border-color:#ff2222; color:#ff2222; }
+        body.theme-redcode th { color:#3a0000; background:#080000; border-bottom:1px solid #3a0000; letter-spacing:4px; font-size:.5rem; }
+        body.theme-redcode td { border-bottom:1px solid #160000; color:#883333; }
+        body.theme-redcode .section-title { color:#3a0000; border-bottom:1px solid #3a0000; letter-spacing:5px; }
+        body.theme-redcode .section-title::before { content:'!! '; color:#ff222233; }
+        body.theme-redcode .stat-val { color:#ff2222; font-weight:700; font-size:1.5rem; text-shadow:0 0 10px rgba(255,34,34,.3); }
+        body.theme-redcode .stat-label { color:#3a0000; letter-spacing:4px; }
+        body.theme-redcode .rr-badge.good { background:transparent; border:1px solid #ff550033; color:#ff5500; border-radius:0; }
+        body.theme-redcode .rr-badge.bad  { background:transparent; border:1px solid #ff222233; color:#ff2222; border-radius:0; }
+        body.theme-redcode .rr-badge.na   { background:transparent; border:1px solid #3a0000; color:#3a0000; border-radius:0; }
+        body.theme-redcode .outcome-badge.tp-hit { background:transparent; border:1px solid #ff550033; color:#ff5500; border-radius:0; }
+        body.theme-redcode .outcome-badge.sl-hit { background:transparent; border:1px solid #ff222233; color:#ff2222; border-radius:0; }
+        body.theme-redcode .outcome-badge.partial { background:transparent; border:1px solid #ff880033; color:#ff8800; border-radius:0; }
+        body.theme-redcode .outcome-badge.be { background:transparent; border:1px solid #3a0000; color:#883333; border-radius:0; }
+        body.theme-redcode input, body.theme-redcode select, body.theme-redcode textarea { background:#080000; border:1px solid #3a0000; color:#ff2222; border-radius:0; }
+        body.theme-redcode input:focus, body.theme-redcode select:focus { border-color:#ff2222; box-shadow:0 0 8px rgba(255,34,34,.2); }
+        body.theme-redcode .search-bar { background:#080000; border:1px solid #3a0000; color:#ff2222; border-radius:0; }
+        body.theme-redcode .month-header td { background:#080000; color:#ff2222; letter-spacing:8px; font-weight:700; border-top:1px solid #3a0000; border-bottom:1px solid #3a0000; }
+        body.theme-redcode .lot-badge { background:#120000; border:1px solid #3a0000; color:#ff2222; border-radius:0; }
+        body.theme-redcode .login-card { background:#120000; border:1px solid #ff2222; box-shadow:0 0 40px rgba(255,34,34,.2); }
+        body.theme-redcode .cal-day { background:#120000; border:1px solid #1e0000; }
+        body.theme-redcode .cal-day.profit { border-top:2px solid #ff550066; }
+        body.theme-redcode .cal-day.loss   { border-top:2px solid #ff222266; }
+
+        /* ══════════════════════════════════════════════════
+           3. PHOSPHOR — Amber CRT, vintage terminal
+        ══════════════════════════════════════════════════ */
+        body.theme-phosphor {
+            --bg:#060300; --surface:#0d0800; --border:#3a2000;
+            --primary:#ffaa00; --accent:#ffcc44;
+            --text:#5a3800; --text-light:#ffaa00;
+            --negative:#ff4400; --positive:#ffaa00;
+            --glow:0 0 10px rgba(255,170,0,0.4); --card-radius:0px;
+        }
+        body.theme-phosphor { background:#060300; color:#5a3800; font-family:'Share Tech Mono','Courier New',monospace !important; animation:flicker 7s infinite; }
+        body.theme-phosphor::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,170,0,.012) 2px,rgba(255,170,0,.012) 4px); animation:scanmove 9s linear infinite; }
+        body.theme-phosphor::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0,rgba(0,0,0,.07) 1px,transparent 1px,transparent 3px); }
+        body.theme-phosphor .card, body.theme-phosphor .stat-card, body.theme-phosphor .table-wrap { background:#0d0800; border:1px solid #3a2000; border-radius:0; box-shadow:0 0 20px rgba(255,170,0,.03); }
+        body.theme-phosphor .header-title { color:#ffaa00; letter-spacing:5px; font-weight:700; font-size:.65rem; text-shadow:0 0 14px rgba(255,170,0,.5); animation:glitch 6s infinite; }
+        body.theme-phosphor .header-title::after { content:'▮'; animation:blink 1.2s step-end infinite; color:#ffaa00; margin-left:3px; }
+        body.theme-phosphor .header-top { border-bottom:1px solid #3a2000; background:#060300; }
+        body.theme-phosphor .tab-nav { border-bottom:1px solid #3a2000; }
+        body.theme-phosphor .tab-btn { color:#3a2000; letter-spacing:3px; font-size:.6rem; }
+        body.theme-phosphor .tab-btn.active { color:#ffaa00; border-bottom:1px solid #ffaa00; text-shadow:0 0 8px rgba(255,170,0,.5); }
+        body.theme-phosphor .save-btn { background:#ffaa00; color:#000; border:none; letter-spacing:4px; font-weight:900; border-radius:0; }
+        body.theme-phosphor .save-btn:hover { box-shadow:0 0 30px rgba(255,170,0,.5); }
+        body.theme-phosphor .btn-action { border:1px solid #3a2000; color:#5a3800; background:#060300; border-radius:0; }
+        body.theme-phosphor .btn-action:hover { border-color:#ffaa00; color:#ffaa00; }
+        body.theme-phosphor th { color:#3a2000; background:#060300; border-bottom:1px solid #3a2000; letter-spacing:4px; font-size:.5rem; }
+        body.theme-phosphor td { border-bottom:1px solid #160a00; color:#885500; }
+        body.theme-phosphor .section-title { color:#3a2000; border-bottom:1px solid #3a2000; letter-spacing:5px; }
+        body.theme-phosphor .section-title::before { content:'> '; color:#ffaa0033; }
+        body.theme-phosphor .stat-val { color:#ffaa00; font-weight:700; font-size:1.5rem; text-shadow:0 0 10px rgba(255,170,0,.3); }
+        body.theme-phosphor .stat-label { color:#3a2000; letter-spacing:4px; }
+        body.theme-phosphor .rr-badge.good { background:transparent; border:1px solid #ffaa0033; color:#ffaa00; border-radius:0; }
+        body.theme-phosphor .rr-badge.bad  { background:transparent; border:1px solid #ff440033; color:#ff4400; border-radius:0; }
+        body.theme-phosphor .rr-badge.na   { background:transparent; border:1px solid #3a2000; color:#3a2000; border-radius:0; }
+        body.theme-phosphor .outcome-badge.tp-hit { background:transparent; border:1px solid #ffaa0033; color:#ffaa00; border-radius:0; }
+        body.theme-phosphor .outcome-badge.sl-hit { background:transparent; border:1px solid #ff440033; color:#ff4400; border-radius:0; }
+        body.theme-phosphor .outcome-badge.partial { background:transparent; border:1px solid #ffcc4433; color:#ffcc44; border-radius:0; }
+        body.theme-phosphor .outcome-badge.be { background:transparent; border:1px solid #3a2000; color:#885500; border-radius:0; }
+        body.theme-phosphor input, body.theme-phosphor select, body.theme-phosphor textarea { background:#060300; border:1px solid #3a2000; color:#ffaa00; border-radius:0; }
+        body.theme-phosphor input:focus, body.theme-phosphor select:focus { border-color:#ffaa00; box-shadow:0 0 8px rgba(255,170,0,.2); }
+        body.theme-phosphor .search-bar { background:#060300; border:1px solid #3a2000; color:#ffaa00; border-radius:0; }
+        body.theme-phosphor .month-header td { background:#060300; color:#ffaa00; letter-spacing:8px; border-top:1px solid #3a2000; border-bottom:1px solid #3a2000; }
+        body.theme-phosphor .lot-badge { background:#0d0800; border:1px solid #3a2000; color:#ffaa00; border-radius:0; }
+        body.theme-phosphor .login-card { background:#0d0800; border:1px solid #ffaa00; box-shadow:0 0 40px rgba(255,170,0,.15); }
+        body.theme-phosphor .cal-day { background:#0d0800; border:1px solid #1e1000; }
+        body.theme-phosphor .cal-day.profit { border-top:2px solid #ffaa0066; }
+        body.theme-phosphor .cal-day.loss   { border-top:2px solid #ff440066; }
+
+        /* ══════════════════════════════════════════════════
+           4. ICEHACK — Cyan / blue ice cold terminal
+        ══════════════════════════════════════════════════ */
+        body.theme-icehack {
+            --bg:#000810; --surface:#000d1a; --border:#002244;
+            --primary:#00eeff; --accent:#44ddff;
+            --text:#003366; --text-light:#00eeff;
+            --negative:#ff4488; --positive:#00eeff;
+            --glow:0 0 10px rgba(0,238,255,0.4); --card-radius:0px;
+        }
+        body.theme-icehack { background:#000810; color:#003366; font-family:'Share Tech Mono','Courier New',monospace !important; animation:flicker 8s infinite; }
+        body.theme-icehack::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,238,255,.01) 2px,rgba(0,238,255,.01) 4px); animation:scanmove 10s linear infinite; }
+        body.theme-icehack::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0,rgba(0,0,0,.07) 1px,transparent 1px,transparent 3px); }
+        body.theme-icehack .card, body.theme-icehack .stat-card, body.theme-icehack .table-wrap { background:#000d1a; border:1px solid #002244; border-radius:0; box-shadow:0 0 20px rgba(0,238,255,.03); }
+        body.theme-icehack .header-title { color:#00eeff; letter-spacing:5px; font-weight:700; font-size:.65rem; text-shadow:0 0 14px rgba(0,238,255,.5); animation:glitch 5s infinite; }
+        body.theme-icehack .header-title::before { content:'> '; color:#00eeff44; }
+        body.theme-icehack .header-title::after  { content:'█'; animation:blink 1s step-end infinite; color:#00eeff; }
+        body.theme-icehack .header-top { border-bottom:1px solid #002244; background:#000810; }
+        body.theme-icehack .tab-nav { border-bottom:1px solid #002244; }
+        body.theme-icehack .tab-btn { color:#002244; letter-spacing:3px; font-size:.6rem; }
+        body.theme-icehack .tab-btn.active { color:#00eeff; border-bottom:1px solid #00eeff; text-shadow:0 0 8px rgba(0,238,255,.5); }
+        body.theme-icehack .save-btn { background:#00eeff; color:#000; border:none; letter-spacing:4px; font-weight:900; border-radius:0; }
+        body.theme-icehack .save-btn:hover { box-shadow:0 0 30px rgba(0,238,255,.5); }
+        body.theme-icehack .btn-action { border:1px solid #002244; color:#003366; background:#000810; border-radius:0; }
+        body.theme-icehack .btn-action:hover { border-color:#00eeff; color:#00eeff; }
+        body.theme-icehack th { color:#002244; background:#000810; border-bottom:1px solid #002244; letter-spacing:4px; font-size:.5rem; }
+        body.theme-icehack td { border-bottom:1px solid #001122; color:#005588; }
+        body.theme-icehack .section-title { color:#002244; border-bottom:1px solid #002244; letter-spacing:5px; }
+        body.theme-icehack .section-title::before { content:':: '; color:#00eeff33; }
+        body.theme-icehack .stat-val { color:#00eeff; font-weight:700; font-size:1.5rem; text-shadow:0 0 10px rgba(0,238,255,.3); }
+        body.theme-icehack .stat-label { color:#002244; letter-spacing:4px; }
+        body.theme-icehack .rr-badge.good { background:transparent; border:1px solid #00eeff33; color:#00eeff; border-radius:0; }
+        body.theme-icehack .rr-badge.bad  { background:transparent; border:1px solid #ff448833; color:#ff4488; border-radius:0; }
+        body.theme-icehack .rr-badge.na   { background:transparent; border:1px solid #002244; color:#002244; border-radius:0; }
+        body.theme-icehack .outcome-badge.tp-hit { background:transparent; border:1px solid #00eeff33; color:#00eeff; border-radius:0; }
+        body.theme-icehack .outcome-badge.sl-hit { background:transparent; border:1px solid #ff448833; color:#ff4488; border-radius:0; }
+        body.theme-icehack .outcome-badge.partial { background:transparent; border:1px solid #44ddff33; color:#44ddff; border-radius:0; }
+        body.theme-icehack .outcome-badge.be { background:transparent; border:1px solid #002244; color:#005588; border-radius:0; }
+        body.theme-icehack input, body.theme-icehack select, body.theme-icehack textarea { background:#000810; border:1px solid #002244; color:#00eeff; border-radius:0; }
+        body.theme-icehack input:focus, body.theme-icehack select:focus { border-color:#00eeff; box-shadow:0 0 8px rgba(0,238,255,.2); }
+        body.theme-icehack .search-bar { background:#000810; border:1px solid #002244; color:#00eeff; border-radius:0; }
+        body.theme-icehack .month-header td { background:#000810; color:#00eeff; letter-spacing:8px; border-top:1px solid #002244; border-bottom:1px solid #002244; }
+        body.theme-icehack .lot-badge { background:#000d1a; border:1px solid #002244; color:#00eeff; border-radius:0; }
+        body.theme-icehack .login-card { background:#000d1a; border:1px solid #00eeff; box-shadow:0 0 40px rgba(0,238,255,.15); }
+        body.theme-icehack .cal-day { background:#000d1a; border:1px solid #001122; }
+        body.theme-icehack .cal-day.profit { border-top:2px solid #00eeff66; }
+        body.theme-icehack .cal-day.loss   { border-top:2px solid #ff448866; }
+
+        /* ══════════════════════════════════════════════════
+           5. VIRUSCODE — Purple / violet malware aesthetic
+        ══════════════════════════════════════════════════ */
+        body.theme-viruscode {
+            --bg:#060010; --surface:#0a0018; --border:#2a0055;
+            --primary:#cc44ff; --accent:#ff44ee;
+            --text:#4a0088; --text-light:#cc44ff;
+            --negative:#ff2266; --positive:#cc44ff;
+            --glow:0 0 10px rgba(204,68,255,0.4); --card-radius:0px;
+        }
+        body.theme-viruscode { background:#060010; color:#4a0088; font-family:'Share Tech Mono','Courier New',monospace !important; animation:flicker 5s infinite; }
+        body.theme-viruscode::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(204,68,255,.012) 2px,rgba(204,68,255,.012) 4px); animation:scanmove 7s linear infinite; }
+        body.theme-viruscode::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0,rgba(0,0,0,.08) 1px,transparent 1px,transparent 3px); }
+        body.theme-viruscode .card, body.theme-viruscode .stat-card, body.theme-viruscode .table-wrap { background:#0a0018; border:1px solid #2a0055; border-radius:0; box-shadow:0 0 20px rgba(204,68,255,.04); }
+        body.theme-viruscode .header-title { color:#cc44ff; letter-spacing:5px; font-weight:700; font-size:.65rem; text-shadow:0 0 14px rgba(204,68,255,.5); animation:glitch 4s infinite; }
+        body.theme-viruscode .header-title::before { content:'⚠ '; color:#cc44ff66; }
+        body.theme-viruscode .header-title::after  { content:'_'; animation:blink 1s step-end infinite; color:#cc44ff; }
+        body.theme-viruscode .header-top { border-bottom:1px solid #2a0055; background:#060010; }
+        body.theme-viruscode .tab-nav { border-bottom:1px solid #2a0055; }
+        body.theme-viruscode .tab-btn { color:#2a0055; letter-spacing:3px; font-size:.6rem; }
+        body.theme-viruscode .tab-btn.active { color:#cc44ff; border-bottom:1px solid #cc44ff; text-shadow:0 0 8px rgba(204,68,255,.5); }
+        body.theme-viruscode .save-btn { background:#cc44ff; color:#000; border:none; letter-spacing:4px; font-weight:900; border-radius:0; }
+        body.theme-viruscode .save-btn:hover { box-shadow:0 0 30px rgba(204,68,255,.5); }
+        body.theme-viruscode .btn-action { border:1px solid #2a0055; color:#4a0088; background:#060010; border-radius:0; }
+        body.theme-viruscode .btn-action:hover { border-color:#cc44ff; color:#cc44ff; }
+        body.theme-viruscode th { color:#2a0055; background:#060010; border-bottom:1px solid #2a0055; letter-spacing:4px; font-size:.5rem; }
+        body.theme-viruscode td { border-bottom:1px solid #120022; color:#882299; }
+        body.theme-viruscode .section-title { color:#2a0055; border-bottom:1px solid #2a0055; letter-spacing:5px; }
+        body.theme-viruscode .section-title::before { content:'¥ '; color:#cc44ff33; }
+        body.theme-viruscode .stat-val { color:#cc44ff; font-weight:700; font-size:1.5rem; text-shadow:0 0 10px rgba(204,68,255,.3); }
+        body.theme-viruscode .stat-label { color:#2a0055; letter-spacing:4px; }
+        body.theme-viruscode .rr-badge.good { background:transparent; border:1px solid #cc44ff33; color:#cc44ff; border-radius:0; }
+        body.theme-viruscode .rr-badge.bad  { background:transparent; border:1px solid #ff226633; color:#ff2266; border-radius:0; }
+        body.theme-viruscode .rr-badge.na   { background:transparent; border:1px solid #2a0055; color:#2a0055; border-radius:0; }
+        body.theme-viruscode .outcome-badge.tp-hit { background:transparent; border:1px solid #cc44ff33; color:#cc44ff; border-radius:0; }
+        body.theme-viruscode .outcome-badge.sl-hit { background:transparent; border:1px solid #ff226633; color:#ff2266; border-radius:0; }
+        body.theme-viruscode .outcome-badge.partial { background:transparent; border:1px solid #ff44ee33; color:#ff44ee; border-radius:0; }
+        body.theme-viruscode .outcome-badge.be { background:transparent; border:1px solid #2a0055; color:#882299; border-radius:0; }
+        body.theme-viruscode input, body.theme-viruscode select, body.theme-viruscode textarea { background:#060010; border:1px solid #2a0055; color:#cc44ff; border-radius:0; }
+        body.theme-viruscode input:focus, body.theme-viruscode select:focus { border-color:#cc44ff; box-shadow:0 0 8px rgba(204,68,255,.2); }
+        body.theme-viruscode .search-bar { background:#060010; border:1px solid #2a0055; color:#cc44ff; border-radius:0; }
+        body.theme-viruscode .month-header td { background:#060010; color:#cc44ff; letter-spacing:8px; border-top:1px solid #2a0055; border-bottom:1px solid #2a0055; }
+        body.theme-viruscode .lot-badge { background:#0a0018; border:1px solid #2a0055; color:#cc44ff; border-radius:0; }
+        body.theme-viruscode .login-card { background:#0a0018; border:1px solid #cc44ff; box-shadow:0 0 40px rgba(204,68,255,.2); }
+        body.theme-viruscode .cal-day { background:#0a0018; border:1px solid #120022; }
+        body.theme-viruscode .cal-day.profit { border-top:2px solid #cc44ff66; }
+        body.theme-viruscode .cal-day.loss   { border-top:2px solid #ff226666; }
+
+        /* ══════════════════════════════════════════════════
+           6. GHOSTNET — White ghost, near invisible
+        ══════════════════════════════════════════════════ */
+        body.theme-ghostnet {
+            --bg:#000000; --surface:#050505; --border:#1a1a1a;
+            --primary:#dddddd; --accent:#ffffff;
+            --text:#2a2a2a; --text-light:#cccccc;
+            --negative:#ff4444; --positive:#aaaaaa;
+            --glow:0 0 8px rgba(220,220,220,0.15); --card-radius:0px;
+        }
+        body.theme-ghostnet { background:#000; color:#2a2a2a; font-family:'Share Tech Mono','Courier New',monospace !important; animation:flicker 9s infinite; }
+        body.theme-ghostnet::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.006) 2px,rgba(255,255,255,.006) 4px); animation:scanmove 12s linear infinite; }
+        body.theme-ghostnet::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.1) 0,rgba(0,0,0,.1) 1px,transparent 1px,transparent 3px); }
+        body.theme-ghostnet .card, body.theme-ghostnet .stat-card, body.theme-ghostnet .table-wrap { background:#050505; border:1px solid #1a1a1a; border-radius:0; }
+        body.theme-ghostnet .header-title { color:#888; letter-spacing:6px; font-weight:400; font-size:.62rem; }
+        body.theme-ghostnet .header-title::before { content:'> '; color:#333; }
+        body.theme-ghostnet .header-title::after  { content:'|'; animation:blink 1.2s step-end infinite; color:#666; }
+        body.theme-ghostnet .header-top { border-bottom:1px solid #111; background:#000; }
+        body.theme-ghostnet .tab-nav { border-bottom:1px solid #111; }
+        body.theme-ghostnet .tab-btn { color:#1a1a1a; letter-spacing:4px; font-size:.6rem; }
+        body.theme-ghostnet .tab-btn.active { color:#888; border-bottom:1px solid #555; }
+        body.theme-ghostnet .save-btn { background:#cccccc; color:#000; border:none; letter-spacing:4px; font-weight:700; border-radius:0; }
+        body.theme-ghostnet .save-btn:hover { background:#fff; box-shadow:0 0 20px rgba(255,255,255,.15); }
+        body.theme-ghostnet .btn-action { border:1px solid #1a1a1a; color:#2a2a2a; background:#000; border-radius:0; }
+        body.theme-ghostnet .btn-action:hover { border-color:#666; color:#888; }
+        body.theme-ghostnet th { color:#1a1a1a; background:#000; border-bottom:1px solid #111; letter-spacing:5px; font-size:.5rem; }
+        body.theme-ghostnet td { border-bottom:1px solid #0d0d0d; color:#444; }
+        body.theme-ghostnet .section-title { color:#1a1a1a; border-bottom:1px solid #111; letter-spacing:6px; }
+        body.theme-ghostnet .section-title::before { content:'-- '; color:#333; }
+        body.theme-ghostnet .stat-val { color:#cccccc; font-weight:400; font-size:1.5rem; }
+        body.theme-ghostnet .stat-label { color:#1a1a1a; letter-spacing:5px; }
+        body.theme-ghostnet .rr-badge.good { background:transparent; border:1px solid #cccccc22; color:#aaaaaa; border-radius:0; }
+        body.theme-ghostnet .rr-badge.bad  { background:transparent; border:1px solid #ff444422; color:#ff4444; border-radius:0; }
+        body.theme-ghostnet .rr-badge.na   { background:transparent; border:1px solid #1a1a1a; color:#1a1a1a; border-radius:0; }
+        body.theme-ghostnet .outcome-badge.tp-hit { background:transparent; border:1px solid #aaaaaa22; color:#aaaaaa; border-radius:0; }
+        body.theme-ghostnet .outcome-badge.sl-hit { background:transparent; border:1px solid #ff444422; color:#ff4444; border-radius:0; }
+        body.theme-ghostnet .outcome-badge.partial { background:transparent; border:1px solid #88888822; color:#888; border-radius:0; }
+        body.theme-ghostnet .outcome-badge.be { background:transparent; border:1px solid #1a1a1a; color:#444; border-radius:0; }
+        body.theme-ghostnet input, body.theme-ghostnet select, body.theme-ghostnet textarea { background:#000; border:1px solid #1a1a1a; color:#aaaaaa; border-radius:0; }
+        body.theme-ghostnet input:focus, body.theme-ghostnet select:focus { border-color:#555; }
+        body.theme-ghostnet .search-bar { background:#000; border:1px solid #1a1a1a; color:#888; border-radius:0; }
+        body.theme-ghostnet .month-header td { background:#000; color:#666; letter-spacing:8px; border-top:1px solid #111; border-bottom:1px solid #111; }
+        body.theme-ghostnet .lot-badge { background:#050505; border:1px solid #1a1a1a; color:#888; border-radius:0; }
+        body.theme-ghostnet .login-card { background:#050505; border:1px solid #333; }
+        body.theme-ghostnet .cal-day { background:#050505; border:1px solid #0d0d0d; }
+        body.theme-ghostnet .cal-day.profit { border-top:1px solid #aaaaaa55; }
+        body.theme-ghostnet .cal-day.loss   { border-top:1px solid #ff444455; }
+
+        /* ══════════════════════════════════════════════════
+           7. TOXIN — Toxic yellow-green biohazard
+        ══════════════════════════════════════════════════ */
+        body.theme-toxin {
+            --bg:#030600; --surface:#070d00; --border:#1e3300;
+            --primary:#ccff00; --accent:#aaee00;
+            --text:#3a5500; --text-light:#ccff00;
+            --negative:#ff4400; --positive:#ccff00;
+            --glow:0 0 10px rgba(204,255,0,0.4); --card-radius:0px;
+        }
+        body.theme-toxin { background:#030600; color:#3a5500; font-family:'Share Tech Mono','Courier New',monospace !important; animation:flicker 6s infinite; }
+        body.theme-toxin::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(204,255,0,.012) 2px,rgba(204,255,0,.012) 4px); animation:scanmove 8s linear infinite; }
+        body.theme-toxin::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0,rgba(0,0,0,.07) 1px,transparent 1px,transparent 3px); }
+        body.theme-toxin .card, body.theme-toxin .stat-card, body.theme-toxin .table-wrap { background:#070d00; border:1px solid #1e3300; border-radius:0; }
+        body.theme-toxin .header-title { color:#ccff00; letter-spacing:5px; font-weight:700; font-size:.65rem; text-shadow:0 0 12px rgba(204,255,0,.5); animation:glitch 5s infinite; }
+        body.theme-toxin .header-title::before { content:'☢ '; color:#ccff0055; }
+        body.theme-toxin .header-title::after  { content:'_'; animation:blink 1s step-end infinite; color:#ccff00; }
+        body.theme-toxin .header-top { border-bottom:1px solid #1e3300; background:#030600; }
+        body.theme-toxin .tab-nav { border-bottom:1px solid #1e3300; }
+        body.theme-toxin .tab-btn { color:#1e3300; letter-spacing:3px; font-size:.6rem; }
+        body.theme-toxin .tab-btn.active { color:#ccff00; border-bottom:1px solid #ccff00; text-shadow:0 0 8px rgba(204,255,0,.5); }
+        body.theme-toxin .save-btn { background:#ccff00; color:#000; border:none; letter-spacing:4px; font-weight:900; border-radius:0; }
+        body.theme-toxin .save-btn:hover { box-shadow:0 0 30px rgba(204,255,0,.5); }
+        body.theme-toxin .btn-action { border:1px solid #1e3300; color:#3a5500; background:#030600; border-radius:0; }
+        body.theme-toxin .btn-action:hover { border-color:#ccff00; color:#ccff00; }
+        body.theme-toxin th { color:#1e3300; background:#030600; border-bottom:1px solid #1e3300; letter-spacing:4px; font-size:.5rem; }
+        body.theme-toxin td { border-bottom:1px solid #0e1a00; color:#668800; }
+        body.theme-toxin .section-title { color:#1e3300; border-bottom:1px solid #1e3300; letter-spacing:5px; }
+        body.theme-toxin .section-title::before { content:'☢ '; color:#ccff0033; }
+        body.theme-toxin .stat-val { color:#ccff00; font-weight:700; font-size:1.5rem; text-shadow:0 0 10px rgba(204,255,0,.3); }
+        body.theme-toxin .stat-label { color:#1e3300; letter-spacing:4px; }
+        body.theme-toxin .rr-badge.good { background:transparent; border:1px solid #ccff0033; color:#ccff00; border-radius:0; }
+        body.theme-toxin .rr-badge.bad  { background:transparent; border:1px solid #ff440033; color:#ff4400; border-radius:0; }
+        body.theme-toxin .rr-badge.na   { background:transparent; border:1px solid #1e3300; color:#1e3300; border-radius:0; }
+        body.theme-toxin .outcome-badge.tp-hit { background:transparent; border:1px solid #ccff0033; color:#ccff00; border-radius:0; }
+        body.theme-toxin .outcome-badge.sl-hit { background:transparent; border:1px solid #ff440033; color:#ff4400; border-radius:0; }
+        body.theme-toxin .outcome-badge.partial { background:transparent; border:1px solid #aaee0033; color:#aaee00; border-radius:0; }
+        body.theme-toxin .outcome-badge.be { background:transparent; border:1px solid #1e3300; color:#668800; border-radius:0; }
+        body.theme-toxin input, body.theme-toxin select, body.theme-toxin textarea { background:#030600; border:1px solid #1e3300; color:#ccff00; border-radius:0; }
+        body.theme-toxin input:focus, body.theme-toxin select:focus { border-color:#ccff00; box-shadow:0 0 8px rgba(204,255,0,.2); }
+        body.theme-toxin .search-bar { background:#030600; border:1px solid #1e3300; color:#ccff00; border-radius:0; }
+        body.theme-toxin .month-header td { background:#030600; color:#ccff00; letter-spacing:8px; border-top:1px solid #1e3300; border-bottom:1px solid #1e3300; }
+        body.theme-toxin .lot-badge { background:#070d00; border:1px solid #1e3300; color:#ccff00; border-radius:0; }
+        body.theme-toxin .login-card { background:#070d00; border:1px solid #ccff00; box-shadow:0 0 40px rgba(204,255,0,.15); }
+        body.theme-toxin .cal-day { background:#070d00; border:1px solid #0e1a00; }
+        body.theme-toxin .cal-day.profit { border-top:2px solid #ccff0066; }
+        body.theme-toxin .cal-day.loss   { border-top:2px solid #ff440066; }
+
+        /* ══════════════════════════════════════════════════
+           8. CRYPTBLOOD — Deep crimson + orange data burn
+        ══════════════════════════════════════════════════ */
+        body.theme-cryptblood {
+            --bg:#050000; --surface:#0d0200; --border:#440000;
+            --primary:#ff6600; --accent:#ff8833;
+            --text:#661100; --text-light:#ff6600;
+            --negative:#ff0000; --positive:#ff6600;
+            --glow:0 0 10px rgba(255,102,0,0.4); --card-radius:0px;
+        }
+        body.theme-cryptblood { background:#050000; color:#661100; font-family:'Share Tech Mono','Courier New',monospace !important; animation:flicker 5s infinite; }
+        body.theme-cryptblood::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,102,0,.012) 2px,rgba(255,102,0,.012) 4px); animation:scanmove 7s linear infinite; }
+        body.theme-cryptblood::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0,rgba(0,0,0,.08) 1px,transparent 1px,transparent 3px); }
+        body.theme-cryptblood .card, body.theme-cryptblood .stat-card, body.theme-cryptblood .table-wrap { background:#0d0200; border:1px solid #440000; border-radius:0; }
+        body.theme-cryptblood .header-title { color:#ff6600; letter-spacing:5px; font-weight:700; font-size:.65rem; text-shadow:0 0 14px rgba(255,102,0,.5); animation:glitch 4s infinite; }
+        body.theme-cryptblood .header-title::before { content:'# '; color:#ff660055; }
+        body.theme-cryptblood .header-title::after  { content:'_'; animation:blink 1s step-end infinite; color:#ff6600; }
+        body.theme-cryptblood .header-top { border-bottom:1px solid #440000; background:#050000; }
+        body.theme-cryptblood .tab-nav { border-bottom:1px solid #440000; }
+        body.theme-cryptblood .tab-btn { color:#440000; letter-spacing:3px; font-size:.6rem; }
+        body.theme-cryptblood .tab-btn.active { color:#ff6600; border-bottom:1px solid #ff6600; text-shadow:0 0 8px rgba(255,102,0,.5); }
+        body.theme-cryptblood .save-btn { background:#ff6600; color:#000; border:none; letter-spacing:4px; font-weight:900; border-radius:0; }
+        body.theme-cryptblood .save-btn:hover { box-shadow:0 0 30px rgba(255,102,0,.5); }
+        body.theme-cryptblood .btn-action { border:1px solid #440000; color:#661100; background:#050000; border-radius:0; }
+        body.theme-cryptblood .btn-action:hover { border-color:#ff6600; color:#ff6600; }
+        body.theme-cryptblood th { color:#440000; background:#050000; border-bottom:1px solid #440000; letter-spacing:4px; font-size:.5rem; }
+        body.theme-cryptblood td { border-bottom:1px solid #1a0000; color:#993300; }
+        body.theme-cryptblood .section-title { color:#440000; border-bottom:1px solid #440000; letter-spacing:5px; }
+        body.theme-cryptblood .section-title::before { content:'$ '; color:#ff660033; }
+        body.theme-cryptblood .stat-val { color:#ff6600; font-weight:700; font-size:1.5rem; text-shadow:0 0 10px rgba(255,102,0,.3); }
+        body.theme-cryptblood .stat-label { color:#440000; letter-spacing:4px; }
+        body.theme-cryptblood .rr-badge.good { background:transparent; border:1px solid #ff660033; color:#ff6600; border-radius:0; }
+        body.theme-cryptblood .rr-badge.bad  { background:transparent; border:1px solid #ff000033; color:#ff0000; border-radius:0; }
+        body.theme-cryptblood .rr-badge.na   { background:transparent; border:1px solid #440000; color:#440000; border-radius:0; }
+        body.theme-cryptblood .outcome-badge.tp-hit { background:transparent; border:1px solid #ff660033; color:#ff6600; border-radius:0; }
+        body.theme-cryptblood .outcome-badge.sl-hit { background:transparent; border:1px solid #ff000033; color:#ff0000; border-radius:0; }
+        body.theme-cryptblood .outcome-badge.partial { background:transparent; border:1px solid #ff883333; color:#ff8833; border-radius:0; }
+        body.theme-cryptblood .outcome-badge.be { background:transparent; border:1px solid #440000; color:#993300; border-radius:0; }
+        body.theme-cryptblood input, body.theme-cryptblood select, body.theme-cryptblood textarea { background:#050000; border:1px solid #440000; color:#ff6600; border-radius:0; }
+        body.theme-cryptblood input:focus, body.theme-cryptblood select:focus { border-color:#ff6600; box-shadow:0 0 8px rgba(255,102,0,.2); }
+        body.theme-cryptblood .search-bar { background:#050000; border:1px solid #440000; color:#ff6600; border-radius:0; }
+        body.theme-cryptblood .month-header td { background:#050000; color:#ff6600; letter-spacing:8px; border-top:1px solid #440000; border-bottom:1px solid #440000; }
+        body.theme-cryptblood .lot-badge { background:#0d0200; border:1px solid #440000; color:#ff6600; border-radius:0; }
+        body.theme-cryptblood .login-card { background:#0d0200; border:1px solid #ff6600; box-shadow:0 0 40px rgba(255,102,0,.2); }
+        body.theme-cryptblood .cal-day { background:#0d0200; border:1px solid #1a0000; }
+        body.theme-cryptblood .cal-day.profit { border-top:2px solid #ff660066; }
+        body.theme-cryptblood .cal-day.loss   { border-top:2px solid #ff000066; }
+
+        /* ══════════════════════════════════════════════════
+           9. NEONPINK — Hot pink neon, synthwave hacker
+        ══════════════════════════════════════════════════ */
+        body.theme-neonpink {
+            --bg:#060008; --surface:#0d0012; --border:#440033;
+            --primary:#ff00aa; --accent:#ff44cc;
+            --text:#660044; --text-light:#ff00aa;
+            --negative:#ff2222; --positive:#ff00aa;
+            --glow:0 0 10px rgba(255,0,170,0.4); --card-radius:0px;
+        }
+        body.theme-neonpink { background:#060008; color:#660044; font-family:'Share Tech Mono','Courier New',monospace !important; animation:flicker 6s infinite; }
+        body.theme-neonpink::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,0,170,.012) 2px,rgba(255,0,170,.012) 4px); animation:scanmove 8s linear infinite; }
+        body.theme-neonpink::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0,rgba(0,0,0,.08) 1px,transparent 1px,transparent 3px); }
+        body.theme-neonpink .card, body.theme-neonpink .stat-card, body.theme-neonpink .table-wrap { background:#0d0012; border:1px solid #440033; border-radius:0; }
+        body.theme-neonpink .header-title { color:#ff00aa; letter-spacing:5px; font-weight:700; font-size:.65rem; text-shadow:0 0 14px rgba(255,0,170,.6); animation:glitch 4s infinite; }
+        body.theme-neonpink .header-title::before { content:'* '; color:#ff00aa55; }
+        body.theme-neonpink .header-title::after  { content:'_'; animation:blink 1s step-end infinite; color:#ff00aa; }
+        body.theme-neonpink .header-top { border-bottom:1px solid #440033; background:#060008; }
+        body.theme-neonpink .tab-nav { border-bottom:1px solid #440033; }
+        body.theme-neonpink .tab-btn { color:#440033; letter-spacing:3px; font-size:.6rem; }
+        body.theme-neonpink .tab-btn.active { color:#ff00aa; border-bottom:1px solid #ff00aa; text-shadow:0 0 8px rgba(255,0,170,.5); }
+        body.theme-neonpink .save-btn { background:#ff00aa; color:#000; border:none; letter-spacing:4px; font-weight:900; border-radius:0; }
+        body.theme-neonpink .save-btn:hover { box-shadow:0 0 30px rgba(255,0,170,.6); }
+        body.theme-neonpink .btn-action { border:1px solid #440033; color:#660044; background:#060008; border-radius:0; }
+        body.theme-neonpink .btn-action:hover { border-color:#ff00aa; color:#ff00aa; }
+        body.theme-neonpink th { color:#440033; background:#060008; border-bottom:1px solid #440033; letter-spacing:4px; font-size:.5rem; }
+        body.theme-neonpink td { border-bottom:1px solid #180018; color:#992266; }
+        body.theme-neonpink .section-title { color:#440033; border-bottom:1px solid #440033; letter-spacing:5px; }
+        body.theme-neonpink .section-title::before { content:'~ '; color:#ff00aa33; }
+        body.theme-neonpink .stat-val { color:#ff00aa; font-weight:700; font-size:1.5rem; text-shadow:0 0 10px rgba(255,0,170,.3); }
+        body.theme-neonpink .stat-label { color:#440033; letter-spacing:4px; }
+        body.theme-neonpink .rr-badge.good { background:transparent; border:1px solid #ff00aa33; color:#ff00aa; border-radius:0; }
+        body.theme-neonpink .rr-badge.bad  { background:transparent; border:1px solid #ff222233; color:#ff2222; border-radius:0; }
+        body.theme-neonpink .rr-badge.na   { background:transparent; border:1px solid #440033; color:#440033; border-radius:0; }
+        body.theme-neonpink .outcome-badge.tp-hit { background:transparent; border:1px solid #ff00aa33; color:#ff00aa; border-radius:0; }
+        body.theme-neonpink .outcome-badge.sl-hit { background:transparent; border:1px solid #ff222233; color:#ff2222; border-radius:0; }
+        body.theme-neonpink .outcome-badge.partial { background:transparent; border:1px solid #ff44cc33; color:#ff44cc; border-radius:0; }
+        body.theme-neonpink .outcome-badge.be { background:transparent; border:1px solid #440033; color:#992266; border-radius:0; }
+        body.theme-neonpink input, body.theme-neonpink select, body.theme-neonpink textarea { background:#060008; border:1px solid #440033; color:#ff00aa; border-radius:0; }
+        body.theme-neonpink input:focus, body.theme-neonpink select:focus { border-color:#ff00aa; box-shadow:0 0 8px rgba(255,0,170,.2); }
+        body.theme-neonpink .search-bar { background:#060008; border:1px solid #440033; color:#ff00aa; border-radius:0; }
+        body.theme-neonpink .month-header td { background:#060008; color:#ff00aa; letter-spacing:8px; border-top:1px solid #440033; border-bottom:1px solid #440033; }
+        body.theme-neonpink .lot-badge { background:#0d0012; border:1px solid #440033; color:#ff00aa; border-radius:0; }
+        body.theme-neonpink .login-card { background:#0d0012; border:1px solid #ff00aa; box-shadow:0 0 40px rgba(255,0,170,.2); }
+        body.theme-neonpink .cal-day { background:#0d0012; border:1px solid #180018; }
+        body.theme-neonpink .cal-day.profit { border-top:2px solid #ff00aa66; }
+        body.theme-neonpink .cal-day.loss   { border-top:2px solid #ff222266; }
+
+        /* ══════════════════════════════════════════════════
+           10. CLASSIFIED — Black/white, redacted documents
+        ══════════════════════════════════════════════════ */
+        body.theme-classified {
+            --bg:#000000; --surface:#080808; --border:#1c1c1c;
             --primary:#ffffff; --accent:#ffffff;
-            --text:#404040; --text-light:#ffffff;
-            --negative:#ff3333; --positive:#33ff99;
+            --text:#333333; --text-light:#ffffff;
+            --negative:#ff3333; --positive:#ffffff;
             --glow:none; --card-radius:0px;
         }
-        body.theme-void { background:#000; color:#404040; font-family:'Inter',sans-serif; }
-        body.theme-void .card, body.theme-void .stat-card, body.theme-void .table-wrap {
-            border:1px solid #141414; background:#080808; border-radius:0;
-            box-shadow:none;
-        }
-        body.theme-void .header-title { color:#fff; letter-spacing:10px; font-weight:100; font-size:.58rem; }
-        body.theme-void .header-top { border-bottom:1px solid #141414; background:#000; }
-        body.theme-void .tab-nav { border-bottom:1px solid #141414; }
-        body.theme-void .tab-btn { color:#252525; letter-spacing:4px; font-size:.6rem; font-weight:300; }
-        body.theme-void .tab-btn.active { color:#fff; border-bottom:1px solid #fff; }
-        body.theme-void .save-btn { background:#fff; color:#000; border:none; letter-spacing:6px; font-weight:200; font-size:.72rem; border-radius:0; }
-        body.theme-void .save-btn:hover { background:#e0e0e0; }
-        body.theme-void .btn-action { border:1px solid #141414; color:#303030; background:#000; border-radius:0; }
-        body.theme-void .btn-action:hover { border-color:#555; color:#aaa; }
-        body.theme-void th { color:#1c1c1c; background:#000; border-bottom:1px solid #111; letter-spacing:6px; font-size:.5rem; font-weight:300; }
-        body.theme-void td { border-bottom:1px solid #0d0d0d; color:#505050; }
-        body.theme-void .section-title { color:#1c1c1c; border-bottom:1px solid #111; letter-spacing:8px; font-weight:300; font-size:.55rem; }
-        body.theme-void .stat-val { color:#fff; font-weight:100; font-size:1.8rem; letter-spacing:2px; }
-        body.theme-void .stat-label { color:#1c1c1c; letter-spacing:5px; font-size:.55rem; }
-        body.theme-void .rr-badge.good { background:transparent; border:1px solid #33ff9933; color:#33ff99; border-radius:0; }
-        body.theme-void .rr-badge.bad  { background:transparent; border:1px solid #ff333333; color:#ff3333; border-radius:0; }
-        body.theme-void .rr-badge.na   { background:transparent; border:1px solid #141414; color:#252525; border-radius:0; }
-        body.theme-void .outcome-badge.tp-hit { background:transparent; border:1px solid #33ff9933; color:#33ff99; border-radius:0; }
-        body.theme-void .outcome-badge.sl-hit { background:transparent; border:1px solid #ff333333; color:#ff3333; border-radius:0; }
-        body.theme-void .outcome-badge.partial { background:transparent; border:1px solid #ffcc0033; color:#ffcc00; border-radius:0; }
-        body.theme-void .outcome-badge.be { background:transparent; border:1px solid #33333333; color:#555; border-radius:0; }
-        body.theme-void input, body.theme-void select, body.theme-void textarea { background:#000; border:1px solid #141414; color:#fff; border-radius:0; }
-        body.theme-void input:focus, body.theme-void select:focus { border-color:#444; outline:none; }
-        body.theme-void .search-bar { background:#000; border:1px solid #141414; color:#fff; border-radius:0; }
-        body.theme-void .month-header td { background:#000; color:#1c1c1c; letter-spacing:10px; font-weight:300; border-top:1px solid #111; border-bottom:1px solid #111; }
-        body.theme-void .lot-badge { background:#000; border:1px solid #141414; color:#606060; border-radius:0; }
-        body.theme-void .login-card { background:#080808; border:1px solid #141414; border-radius:0; }
-        body.theme-void .cal-day { background:#080808; border:1px solid #0d0d0d; }
-        body.theme-void .cal-day.profit { border-top:1px solid #33ff9966; }
-        body.theme-void .cal-day.loss { border-top:1px solid #ff333366; }
-
-        /* ═══════════════════════════════════════════════
-           2. RAGE — aggressive, thick borders, electric
-        ═══════════════════════════════════════════════ */
-        body.theme-rage {
-            --bg:#080005; --surface:#120008; --border:#500010;
-            --primary:#ff2200; --accent:#ff6600;
-            --text:#882200; --text-light:#ff2200;
-            --negative:#ff0000; --positive:#ff6600;
-            --glow:0 0 20px rgba(255,34,0,0.2); --card-radius:0px;
-        }
-        body.theme-rage { background:#080005; color:#882200; font-family:'Inter',sans-serif; }
-        body.theme-rage .card, body.theme-rage .stat-card, body.theme-rage .table-wrap {
-            border:3px solid #500010; background:#120008; border-radius:0;
-            box-shadow:4px 4px 0 #500010;
-        }
-        body.theme-rage .header-title { color:#ff2200; letter-spacing:6px; font-weight:900; font-size:.72rem; text-shadow:0 0 20px rgba(255,34,0,0.5); text-transform:uppercase; }
-        body.theme-rage .header-top { border-bottom:3px solid #500010; background:#080005; }
-        body.theme-rage .tab-nav { border-bottom:3px solid #500010; }
-        body.theme-rage .tab-btn { color:#3a0008; letter-spacing:3px; font-weight:700; font-size:.65rem; }
-        body.theme-rage .tab-btn.active { color:#ff2200; border-bottom:4px solid #ff2200; text-shadow:0 0 10px rgba(255,34,0,0.6); }
-        body.theme-rage .save-btn { background:#ff2200; color:#fff; border:none; letter-spacing:4px; font-weight:900; font-size:.8rem; border-radius:0; text-transform:uppercase; }
-        body.theme-rage .save-btn:hover { background:#ff6600; box-shadow:0 0 30px rgba(255,102,0,0.6); }
-        body.theme-rage .btn-action { border:2px solid #500010; color:#882200; background:#080005; border-radius:0; font-weight:700; }
-        body.theme-rage .btn-action:hover { border-color:#ff2200; color:#ff2200; background:#120008; }
-        body.theme-rage th { color:#3a0008; background:#080005; border-bottom:3px solid #500010; letter-spacing:4px; font-size:.55rem; font-weight:900; }
-        body.theme-rage td { border-bottom:2px solid #1e0008; color:#cc3300; }
-        body.theme-rage .section-title { color:#3a0008; border-bottom:3px solid #500010; letter-spacing:6px; font-weight:900; font-size:.57rem; }
-        body.theme-rage .stat-val { color:#ff2200; font-weight:900; font-size:1.6rem; text-shadow:0 0 15px rgba(255,34,0,0.4); }
-        body.theme-rage .stat-label { color:#3a0008; font-weight:700; letter-spacing:3px; }
-        body.theme-rage .stat-card { border-left:6px solid #ff220044 !important; box-shadow:6px 6px 0 #3a0008 !important; }
-        body.theme-rage .rr-badge.good { background:#001a00; border:2px solid #ff6600; color:#ff6600; border-radius:0; font-weight:900; }
-        body.theme-rage .rr-badge.bad  { background:#1a0000; border:2px solid #ff0000; color:#ff0000; border-radius:0; font-weight:900; }
-        body.theme-rage .rr-badge.na   { background:#120008; border:2px solid #500010; color:#3a0008; border-radius:0; }
-        body.theme-rage .outcome-badge.tp-hit { background:#001a00; border:2px solid #ff6600; color:#ff6600; border-radius:0; font-weight:900; }
-        body.theme-rage .outcome-badge.sl-hit { background:#1a0000; border:2px solid #ff0000; color:#ff0000; border-radius:0; font-weight:900; }
-        body.theme-rage .outcome-badge.partial { background:#1a0800; border:2px solid #ff6600; color:#ff6600; border-radius:0; }
-        body.theme-rage .outcome-badge.be { background:#100005; border:2px solid #500010; color:#882200; border-radius:0; }
-        body.theme-rage input, body.theme-rage select, body.theme-rage textarea { background:#080005; border:2px solid #500010; color:#ff2200; border-radius:0; }
-        body.theme-rage input:focus, body.theme-rage select:focus { border-color:#ff2200; box-shadow:0 0 10px rgba(255,34,0,0.3); }
-        body.theme-rage .search-bar { background:#080005; border:3px solid #500010; color:#ff2200; border-radius:0; }
-        body.theme-rage .month-header td { background:#080005; color:#ff2200; letter-spacing:6px; font-weight:900; border-top:3px solid #500010; border-bottom:3px solid #500010; }
-        body.theme-rage .lot-badge { background:#1a0008; border:2px solid #500010; color:#ff2200; border-radius:0; font-weight:900; }
-        body.theme-rage .login-card { background:#120008; border:3px solid #500010; border-radius:0; box-shadow:6px 6px 0 #500010; }
-        body.theme-rage .cal-day { background:#120008; border:2px solid #1e0008; }
-        body.theme-rage .cal-day.profit { border-top:4px solid #ff6600; }
-        body.theme-rage .cal-day.loss { border-top:4px solid #ff0000; }
-
-        /* ═══════════════════════════════════════════════
-           3. VELVET — luxury dark, gold, silk, refined
-        ═══════════════════════════════════════════════ */
-        body.theme-velvet {
-            --bg:#06040e; --surface:#0e0a1e; --border:#2a1e40;
-            --primary:#d4af37; --accent:#f0d060;
-            --text:#6a5040; --text-light:#d4af37;
-            --negative:#cc2244; --positive:#44cc88;
-            --glow:0 0 30px rgba(212,175,55,0.08); --card-radius:4px;
-        }
-        body.theme-velvet { background:#06040e; color:#6a5040; }
-        body.theme-velvet .card, body.theme-velvet .stat-card, body.theme-velvet .table-wrap {
-            border:1px solid #2a1e40;
-            border-top:1px solid #d4af3722;
-            background:linear-gradient(180deg, #100c20 0%, #0e0a1e 100%);
-            box-shadow:0 8px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(212,175,55,0.08);
-        }
-        body.theme-velvet .header-title { color:#d4af37; letter-spacing:8px; font-weight:200; font-size:.6rem; text-shadow:0 0 40px rgba(212,175,55,0.2); }
-        body.theme-velvet .header-top { border-bottom:1px solid #2a1e40; background:rgba(6,4,14,0.95); }
-        body.theme-velvet .tab-nav { border-bottom:1px solid #2a1e40; }
-        body.theme-velvet .tab-btn { color:#3a2a1a; letter-spacing:4px; font-weight:300; }
-        body.theme-velvet .tab-btn.active { color:#d4af37; border-bottom:1px solid #d4af37; }
-        body.theme-velvet .save-btn { background:linear-gradient(135deg,#f0d060,#d4af37,#8b6914); color:#000; border:none; letter-spacing:4px; font-weight:600; border-radius:3px; }
-        body.theme-velvet .save-btn:hover { box-shadow:0 0 35px rgba(212,175,55,0.4); }
-        body.theme-velvet .btn-action { border:1px solid #2a1e40; color:#5a4030; border-radius:3px; background:transparent; }
-        body.theme-velvet .btn-action:hover { border-color:#d4af3755; color:#d4af37; }
-        body.theme-velvet th { color:#2a1e10; background:#06040e; border-bottom:1px solid #2a1e40; letter-spacing:4px; font-size:.53rem; font-weight:300; }
-        body.theme-velvet td { border-bottom:1px solid #160e28; color:#7a6050; }
-        body.theme-velvet .section-title { color:#2a1e10; border-bottom:1px solid #2a1e40; letter-spacing:6px; font-weight:300; }
-        body.theme-velvet .stat-val { color:#d4af37; font-weight:200; font-size:1.7rem; text-shadow:0 0 20px rgba(212,175,55,0.2); }
-        body.theme-velvet .stat-label { color:#2a1e10; letter-spacing:4px; font-weight:300; }
-        body.theme-velvet .stat-card { border-left:1px solid #d4af3730 !important; }
-        body.theme-velvet .rr-badge.good { background:rgba(68,204,136,0.06); border:1px solid #44cc8830; color:#44cc88; border-radius:3px; }
-        body.theme-velvet .rr-badge.bad  { background:rgba(204,34,68,0.06); border:1px solid #cc224430; color:#cc2244; border-radius:3px; }
-        body.theme-velvet .rr-badge.na   { background:transparent; border:1px solid #2a1e40; color:#2a1e10; border-radius:3px; }
-        body.theme-velvet .outcome-badge.tp-hit { background:rgba(68,204,136,0.06); border:1px solid #44cc8830; color:#44cc88; border-radius:3px; }
-        body.theme-velvet .outcome-badge.sl-hit { background:rgba(204,34,68,0.06); border:1px solid #cc224430; color:#cc2244; border-radius:3px; }
-        body.theme-velvet .outcome-badge.partial { background:rgba(212,175,55,0.06); border:1px solid #d4af3730; color:#d4af37; border-radius:3px; }
-        body.theme-velvet .outcome-badge.be { background:rgba(90,60,120,0.1); border:1px solid #6a3a8030; color:#8a6aaa; border-radius:3px; }
-        body.theme-velvet input, body.theme-velvet select, body.theme-velvet textarea { background:#06040e; border:1px solid #2a1e40; color:#d4af37; border-radius:3px; }
-        body.theme-velvet input:focus, body.theme-velvet select:focus { border-color:#d4af3755; box-shadow:0 0 8px rgba(212,175,55,0.1); }
-        body.theme-velvet .search-bar { background:#06040e; border:1px solid #2a1e40; color:#d4af37; border-radius:4px; }
-        body.theme-velvet .month-header td { background:#06040e; color:#d4af37; letter-spacing:8px; font-weight:200; border-top:1px solid #2a1e40; border-bottom:1px solid #2a1e40; }
-        body.theme-velvet .lot-badge { background:#160e28; border:1px solid #2a1e40; color:#d4af37; border-radius:3px; }
-        body.theme-velvet .login-card { background:#0e0a1e; border:1px solid #2a1e40; border-top:1px solid #d4af3722; border-radius:6px; box-shadow:0 20px 60px rgba(0,0,0,0.9); }
-        body.theme-velvet .cal-day { background:#0e0a1e; border:1px solid #160e28; }
-        body.theme-velvet .cal-day.profit { border-top:1px solid #44cc8855; }
-        body.theme-velvet .cal-day.loss { border-top:1px solid #cc224455; }
-
-        /* ═══════════════════════════════════════════════
-           4. PARCHMENT — retro vintage, film grain, dark
-        ═══════════════════════════════════════════════ */
-        body.theme-parchment {
-            --bg:#0e0c08; --surface:#181410; --border:#3a3020;
-            --primary:#c8b878; --accent:#e8d898;
-            --text:#7a6840; --text-light:#c8b878;
-            --negative:#aa3322; --positive:#6a8844;
-            --glow:none; --card-radius:2px;
-        }
-        body.theme-parchment, body.theme-parchment .header-title,
-        body.theme-parchment th, body.theme-parchment .section-title { font-family:'Georgia','Times New Roman',serif !important; }
-        body.theme-parchment { background:#0e0c08; color:#7a6840; }
-        body.theme-parchment::before {
-            content:''; position:fixed; inset:0; pointer-events:none; z-index:9998;
-            background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-            opacity:0.35;
-        }
-        body.theme-parchment .card, body.theme-parchment .stat-card, body.theme-parchment .table-wrap {
-            border:1px solid #3a3020; background:#181410;
-            box-shadow:0 4px 16px rgba(0,0,0,0.7), inset 0 0 40px rgba(200,184,120,0.02);
-        }
-        body.theme-parchment .header-title { color:#c8b878; letter-spacing:5px; font-weight:400; font-style:italic; font-size:.65rem; }
-        body.theme-parchment .header-top { border-bottom:1px solid #3a3020; background:#0e0c08; }
-        body.theme-parchment .tab-nav { border-bottom:1px solid #3a3020; }
-        body.theme-parchment .tab-btn { color:#4a3820; letter-spacing:2px; font-style:italic; font-size:.65rem; }
-        body.theme-parchment .tab-btn.active { color:#c8b878; border-bottom:1px solid #c8b878; }
-        body.theme-parchment .save-btn { background:#c8b878; color:#0e0c08; border:none; letter-spacing:3px; font-weight:700; border-radius:1px; font-family:'Georgia',serif !important; }
-        body.theme-parchment .save-btn:hover { background:#e8d898; }
-        body.theme-parchment .btn-action { border:1px solid #3a3020; color:#5a4828; background:transparent; border-radius:1px; }
-        body.theme-parchment .btn-action:hover { border-color:#c8b878; color:#c8b878; }
-        body.theme-parchment th { color:#4a3820; background:#0e0c08; border-bottom:1px solid #3a3020; letter-spacing:3px; font-size:.55rem; font-style:italic; }
-        body.theme-parchment td { border-bottom:1px solid #241e10; color:#8a7848; }
-        body.theme-parchment .section-title { color:#4a3820; border-bottom:1px solid #3a3020; letter-spacing:5px; font-style:italic; font-size:.57rem; }
-        body.theme-parchment .stat-val { color:#c8b878; font-weight:400; font-size:1.5rem; font-family:'Georgia',serif !important; }
-        body.theme-parchment .stat-label { color:#4a3820; font-style:italic; letter-spacing:2px; }
-        body.theme-parchment .rr-badge.good { background:#0a1004; border:1px solid #6a884430; color:#6a8844; border-radius:1px; }
-        body.theme-parchment .rr-badge.bad  { background:#160804; border:1px solid #aa332230; color:#aa3322; border-radius:1px; }
-        body.theme-parchment .rr-badge.na   { background:#181410; border:1px solid #3a3020; color:#4a3820; border-radius:1px; }
-        body.theme-parchment .outcome-badge.tp-hit { background:#0a1004; border:1px solid #6a884430; color:#6a8844; border-radius:1px; }
-        body.theme-parchment .outcome-badge.sl-hit { background:#160804; border:1px solid #aa332230; color:#aa3322; border-radius:1px; }
-        body.theme-parchment .outcome-badge.partial { background:#160e00; border:1px solid #c8b87830; color:#c8b878; border-radius:1px; }
-        body.theme-parchment .outcome-badge.be { background:#141008; border:1px solid #7a684030; color:#7a6840; border-radius:1px; }
-        body.theme-parchment input, body.theme-parchment select, body.theme-parchment textarea { background:#0e0c08; border:1px solid #3a3020; color:#c8b878; border-radius:1px; font-family:'Georgia',serif !important; }
-        body.theme-parchment input:focus, body.theme-parchment select:focus { border-color:#c8b87866; }
-        body.theme-parchment .search-bar { background:#0e0c08; border:1px solid #3a3020; color:#c8b878; border-radius:2px; }
-        body.theme-parchment .month-header td { background:#0e0c08; color:#c8b878; letter-spacing:6px; font-style:italic; border-top:1px solid #3a3020; border-bottom:1px solid #3a3020; }
-        body.theme-parchment .lot-badge { background:#201a0c; border:1px solid #3a3020; color:#c8b878; border-radius:1px; }
-        body.theme-parchment .login-card { background:#181410; border:1px solid #3a3020; border-radius:2px; }
-        body.theme-parchment .cal-day { background:#181410; border:1px solid #241e10; }
-        body.theme-parchment .cal-day.profit { border-top:1px solid #6a884466; }
-        body.theme-parchment .cal-day.loss { border-top:1px solid #aa332266; }
-
-        /* ═══════════════════════════════════════════════
-           5. SPACECRAFT — futuristic HUD, data feed, cyan
-        ═══════════════════════════════════════════════ */
-        body.theme-spacecraft {
-            --bg:#020810; --surface:#040e1c; --border:#0a2840;
-            --primary:#00d4ff; --accent:#00aacc;
-            --text:#1a4a6a; --text-light:#00d4ff;
-            --negative:#ff4466; --positive:#00ffcc;
-            --glow:0 0 20px rgba(0,212,255,0.12); --card-radius:3px;
-        }
-        body.theme-spacecraft { background:#020810; color:#1a4a6a; }
-        body.theme-spacecraft .card, body.theme-spacecraft .stat-card {
-            border:1px solid #0a2840;
-            border-left:2px solid #00d4ff22;
-            background:#040e1c;
-            box-shadow:0 0 0 1px #00d4ff08, inset 0 0 30px rgba(0,212,255,0.025);
-        }
-        body.theme-spacecraft .table-wrap { border:1px solid #0a2840; background:#040e1c; }
-        body.theme-spacecraft .header-title { color:#00d4ff; letter-spacing:6px; font-weight:300; font-size:.62rem; text-shadow:0 0 20px rgba(0,212,255,0.4); font-family:'Courier New',monospace; }
-        body.theme-spacecraft .header-top { border-bottom:1px solid #0a2840; background:#020810; }
-        body.theme-spacecraft .tab-nav { border-bottom:1px solid #0a2840; }
-        body.theme-spacecraft .tab-btn { color:#0a2840; letter-spacing:3px; font-size:.62rem; font-family:'Courier New',monospace; }
-        body.theme-spacecraft .tab-btn.active { color:#00d4ff; border-bottom:1px solid #00d4ff; text-shadow:0 0 8px rgba(0,212,255,0.5); }
-        body.theme-spacecraft .save-btn { background:transparent; color:#00d4ff; border:1px solid #00d4ff; letter-spacing:4px; font-weight:400; font-size:.72rem; border-radius:2px; box-shadow:0 0 15px rgba(0,212,255,0.15),inset 0 0 15px rgba(0,212,255,0.05); font-family:'Courier New',monospace; }
-        body.theme-spacecraft .save-btn:hover { background:#00d4ff; color:#000; box-shadow:0 0 30px rgba(0,212,255,0.5); }
-        body.theme-spacecraft .btn-action { border:1px solid #0a2840; color:#1a4a6a; border-radius:2px; background:transparent; font-family:'Courier New',monospace; font-size:.48rem; }
-        body.theme-spacecraft .btn-action:hover { border-color:#00d4ff44; color:#00d4ff; }
-        body.theme-spacecraft th { color:#0a2840; background:#020810; border-bottom:1px solid #0a2840; letter-spacing:4px; font-size:.52rem; font-family:'Courier New',monospace; }
-        body.theme-spacecraft td { border-bottom:1px solid #060e20; color:#2a6080; font-family:'Courier New',monospace; font-size:.74rem; }
-        body.theme-spacecraft .section-title { color:#0a2840; border-bottom:1px solid #0a2840; letter-spacing:5px; font-family:'Courier New',monospace; }
-        body.theme-spacecraft .stat-val { color:#00d4ff; font-weight:300; font-size:1.5rem; text-shadow:0 0 15px rgba(0,212,255,0.3); font-family:'Courier New',monospace; }
-        body.theme-spacecraft .stat-label { color:#0a2840; letter-spacing:3px; font-family:'Courier New',monospace; font-size:.55rem; }
-        body.theme-spacecraft .stat-card { border-top:1px solid #00d4ff18 !important; }
-        body.theme-spacecraft .rr-badge.good { background:rgba(0,255,204,0.06); border:1px solid #00ffcc33; color:#00ffcc; border-radius:2px; font-family:'Courier New',monospace; }
-        body.theme-spacecraft .rr-badge.bad  { background:rgba(255,68,102,0.06); border:1px solid #ff446633; color:#ff4466; border-radius:2px; font-family:'Courier New',monospace; }
-        body.theme-spacecraft .rr-badge.na   { background:transparent; border:1px solid #0a2840; color:#0a2840; border-radius:2px; font-family:'Courier New',monospace; }
-        body.theme-spacecraft .outcome-badge.tp-hit { background:rgba(0,255,204,0.06); border:1px solid #00ffcc33; color:#00ffcc; border-radius:2px; }
-        body.theme-spacecraft .outcome-badge.sl-hit { background:rgba(255,68,102,0.06); border:1px solid #ff446633; color:#ff4466; border-radius:2px; }
-        body.theme-spacecraft .outcome-badge.partial { background:rgba(0,212,255,0.06); border:1px solid #00d4ff33; color:#00d4ff; border-radius:2px; }
-        body.theme-spacecraft .outcome-badge.be { background:rgba(0,100,160,0.1); border:1px solid #0060a033; color:#0090c0; border-radius:2px; }
-        body.theme-spacecraft input, body.theme-spacecraft select, body.theme-spacecraft textarea { background:#020810; border:1px solid #0a2840; color:#00d4ff; border-radius:2px; font-family:'Courier New',monospace; }
-        body.theme-spacecraft input:focus, body.theme-spacecraft select:focus { border-color:#00d4ff44; box-shadow:0 0 8px rgba(0,212,255,0.15); }
-        body.theme-spacecraft .search-bar { background:#020810; border:1px solid #0a2840; color:#00d4ff; border-radius:3px; font-family:'Courier New',monospace; }
-        body.theme-spacecraft .month-header td { background:#020810; color:#00d4ff; letter-spacing:6px; font-family:'Courier New',monospace; border-top:1px solid #0a2840; border-bottom:1px solid #0a2840; }
-        body.theme-spacecraft .lot-badge { background:#040e1c; border:1px solid #0a2840; color:#00d4ff; border-radius:2px; font-family:'Courier New',monospace; }
-        body.theme-spacecraft .login-card { background:#040e1c; border:1px solid #0a2840; border-radius:4px; box-shadow:0 0 60px rgba(0,212,255,0.08); }
-        body.theme-spacecraft .cal-day { background:#040e1c; border:1px solid #060e20; }
-        body.theme-spacecraft .cal-day.profit { border-top:1px solid #00ffcc55; }
-        body.theme-spacecraft .cal-day.loss { border-top:1px solid #ff446655; }
-
-        /* ═══════════════════════════════════════════════
-           6. MOSS — dark earth, stone, water, nature deep
-        ═══════════════════════════════════════════════ */
-        body.theme-moss {
-            --bg:#060e06; --surface:#0a1408; --border:#1a3018;
-            --primary:#7ab050; --accent:#9acc66;
-            --text:#3a5828; --text-light:#7ab050;
-            --negative:#cc5533; --positive:#7ab050;
-            --glow:none; --card-radius:4px;
-        }
-        body.theme-moss { background:#060e06; color:#3a5828; }
-        body.theme-moss .card, body.theme-moss .stat-card, body.theme-moss .table-wrap {
-            border:1px solid #1a3018; background:#0a1408;
-            box-shadow:0 4px 20px rgba(0,0,0,0.7);
-        }
-        body.theme-moss .header-title { color:#7ab050; letter-spacing:5px; font-weight:300; font-size:.62rem; }
-        body.theme-moss .header-top { border-bottom:1px solid #1a3018; background:#060e06; }
-        body.theme-moss .tab-nav { border-bottom:1px solid #1a3018; }
-        body.theme-moss .tab-btn { color:#1a3018; letter-spacing:3px; }
-        body.theme-moss .tab-btn.active { color:#7ab050; border-bottom:1px solid #7ab050; }
-        body.theme-moss .save-btn { background:#7ab050; color:#060e06; border:none; letter-spacing:3px; font-weight:700; border-radius:3px; }
-        body.theme-moss .save-btn:hover { background:#9acc66; box-shadow:0 0 20px rgba(122,176,80,0.3); }
-        body.theme-moss .btn-action { border:1px solid #1a3018; color:#2a4818; border-radius:3px; background:transparent; }
-        body.theme-moss .btn-action:hover { border-color:#7ab050; color:#7ab050; }
-        body.theme-moss th { color:#1a3018; background:#060e06; border-bottom:1px solid #1a3018; letter-spacing:3px; font-size:.53rem; }
-        body.theme-moss td { border-bottom:1px solid #0e1a0c; color:#4a6835; }
-        body.theme-moss .section-title { color:#1a3018; border-bottom:1px solid #1a3018; letter-spacing:5px; }
-        body.theme-moss .stat-val { color:#7ab050; font-weight:300; font-size:1.5rem; }
-        body.theme-moss .stat-label { color:#1a3018; letter-spacing:3px; }
-        body.theme-moss .rr-badge.good { background:#061004; border:1px solid #7ab05030; color:#7ab050; border-radius:3px; }
-        body.theme-moss .rr-badge.bad  { background:#120800; border:1px solid #cc553330; color:#cc5533; border-radius:3px; }
-        body.theme-moss .rr-badge.na   { background:#0a1408; border:1px solid #1a3018; color:#1a3018; border-radius:3px; }
-        body.theme-moss .outcome-badge.tp-hit { background:#061004; border:1px solid #7ab05030; color:#7ab050; border-radius:3px; }
-        body.theme-moss .outcome-badge.sl-hit { background:#120800; border:1px solid #cc553330; color:#cc5533; border-radius:3px; }
-        body.theme-moss .outcome-badge.partial { background:#0e1200; border:1px solid #9acc6630; color:#9acc66; border-radius:3px; }
-        body.theme-moss .outcome-badge.be { background:#081008; border:1px solid #3a582830; color:#3a5828; border-radius:3px; }
-        body.theme-moss input, body.theme-moss select, body.theme-moss textarea { background:#060e06; border:1px solid #1a3018; color:#7ab050; border-radius:3px; }
-        body.theme-moss input:focus, body.theme-moss select:focus { border-color:#7ab05055; }
-        body.theme-moss .search-bar { background:#060e06; border:1px solid #1a3018; color:#7ab050; border-radius:4px; }
-        body.theme-moss .month-header td { background:#060e06; color:#7ab050; letter-spacing:5px; border-top:1px solid #1a3018; border-bottom:1px solid #1a3018; }
-        body.theme-moss .lot-badge { background:#0e1a0c; border:1px solid #1a3018; color:#7ab050; border-radius:3px; }
-        body.theme-moss .login-card { background:#0a1408; border:1px solid #1a3018; border-radius:5px; }
-        body.theme-moss .cal-day { background:#0a1408; border:1px solid #0e1a0c; }
-        body.theme-moss .cal-day.profit { border-top:2px solid #7ab05066; }
-        body.theme-moss .cal-day.loss { border-top:2px solid #cc553366; }
-
-        /* ═══════════════════════════════════════════════
-           7. DUSK PASTEL — dark base, soft muted pastels
-        ═══════════════════════════════════════════════ */
-        body.theme-duskpastel {
-            --bg:#0e0c14; --surface:#151220; --border:#2a2540;
-            --primary:#b8a8e8; --accent:#d0b8f8;
-            --text:#6a6090; --text-light:#d0c8f0;
-            --negative:#e89090; --positive:#90d8b0;
-            --glow:none; --card-radius:16px;
-        }
-        body.theme-duskpastel { background:#0e0c14; color:#6a6090; }
-        body.theme-duskpastel .card, body.theme-duskpastel .stat-card {
-            border:1px solid #2a2540; background:#151220; border-radius:16px;
-            box-shadow:0 8px 32px rgba(0,0,0,0.5);
-        }
-        body.theme-duskpastel .table-wrap { border:1px solid #2a2540; border-radius:12px; overflow:hidden; background:#151220; }
-        body.theme-duskpastel .header-title { color:#d0c8f0; letter-spacing:4px; font-weight:300; font-size:.62rem; }
-        body.theme-duskpastel .header-top { border-bottom:1px solid #2a2540; background:#0e0c14; }
-        body.theme-duskpastel .tab-nav { border-bottom:1px solid #2a2540; }
-        body.theme-duskpastel .tab-btn { color:#2a2540; letter-spacing:2px; }
-        body.theme-duskpastel .tab-btn.active { color:#b8a8e8; border-bottom:1px solid #b8a8e8; }
-        body.theme-duskpastel .save-btn { background:linear-gradient(135deg,#b8a8e8,#90b8e8); color:#0e0c14; border:none; letter-spacing:2px; font-weight:600; border-radius:12px; }
-        body.theme-duskpastel .save-btn:hover { box-shadow:0 4px 20px rgba(184,168,232,0.3); }
-        body.theme-duskpastel .btn-action { border:1px solid #2a2540; color:#6a6090; border-radius:10px; background:transparent; }
-        body.theme-duskpastel .btn-action:hover { border-color:#b8a8e8; color:#b8a8e8; }
-        body.theme-duskpastel th { color:#2a2540; background:#0e0c14; border-bottom:1px solid #2a2540; letter-spacing:2px; font-size:.55rem; }
-        body.theme-duskpastel td { border-bottom:1px solid #1e1a30; color:#8a80a8; }
-        body.theme-duskpastel .section-title { color:#2a2540; border-bottom:1px solid #2a2540; letter-spacing:4px; }
-        body.theme-duskpastel .stat-val { color:#d0c8f0; font-weight:300; font-size:1.5rem; }
-        body.theme-duskpastel .stat-label { color:#2a2540; letter-spacing:3px; }
-        body.theme-duskpastel .rr-badge.good { background:rgba(144,216,176,0.1); border:1px solid #90d8b040; color:#90d8b0; border-radius:10px; }
-        body.theme-duskpastel .rr-badge.bad  { background:rgba(232,144,144,0.1); border:1px solid #e8909040; color:#e89090; border-radius:10px; }
-        body.theme-duskpastel .rr-badge.na   { background:rgba(42,37,64,0.5); border:1px solid #2a2540; color:#3a3560; border-radius:10px; }
-        body.theme-duskpastel .outcome-badge.tp-hit { background:rgba(144,216,176,0.1); border:1px solid #90d8b040; color:#90d8b0; border-radius:10px; }
-        body.theme-duskpastel .outcome-badge.sl-hit { background:rgba(232,144,144,0.1); border:1px solid #e8909040; color:#e89090; border-radius:10px; }
-        body.theme-duskpastel .outcome-badge.partial { background:rgba(232,200,144,0.1); border:1px solid #e8c89040; color:#e8c890; border-radius:10px; }
-        body.theme-duskpastel .outcome-badge.be { background:rgba(184,168,232,0.1); border:1px solid #b8a8e840; color:#b8a8e8; border-radius:10px; }
-        body.theme-duskpastel input, body.theme-duskpastel select, body.theme-duskpastel textarea { background:#0e0c14; border:1px solid #2a2540; color:#d0c8f0; border-radius:10px; }
-        body.theme-duskpastel input:focus, body.theme-duskpastel select:focus { border-color:#b8a8e855; box-shadow:0 0 0 3px rgba(184,168,232,0.1); }
-        body.theme-duskpastel .search-bar { background:#0e0c14; border:1px solid #2a2540; color:#d0c8f0; border-radius:12px; }
-        body.theme-duskpastel .month-header td { background:#0e0c14; color:#b8a8e8; letter-spacing:4px; border-top:1px solid #2a2540; border-bottom:1px solid #2a2540; }
-        body.theme-duskpastel .lot-badge { background:#1e1a30; border:1px solid #2a2540; color:#b8a8e8; border-radius:8px; }
-        body.theme-duskpastel .login-card { background:#151220; border:1px solid #2a2540; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.7); }
-        body.theme-duskpastel .cal-day { background:#151220; border:1px solid #1e1a30; }
-        body.theme-duskpastel .cal-day.profit { border-top:2px solid #90d8b066; }
-        body.theme-duskpastel .cal-day.loss { border-top:2px solid #e8909066; }
-
-        /* ═══════════════════════════════════════════════
-           8. SLATE — pure monochrome, every shade of grey
-        ═══════════════════════════════════════════════ */
-        body.theme-slate {
-            --bg:#080808; --surface:#101010; --border:#282828;
-            --primary:#aaaaaa; --accent:#dddddd;
-            --text:#484848; --text-light:#cccccc;
-            --negative:#888888; --positive:#cccccc;
-            --glow:none; --card-radius:3px;
-        }
-        body.theme-slate { background:#080808; color:#484848; }
-        body.theme-slate .card, body.theme-slate .stat-card, body.theme-slate .table-wrap {
-            border:1px solid #222; background:#101010; border-radius:3px;
-            box-shadow:0 2px 12px rgba(0,0,0,0.8);
-        }
-        body.theme-slate .header-title { color:#aaaaaa; letter-spacing:8px; font-weight:200; font-size:.6rem; }
-        body.theme-slate .header-top { border-bottom:1px solid #1c1c1c; background:#080808; }
-        body.theme-slate .tab-nav { border-bottom:1px solid #1c1c1c; }
-        body.theme-slate .tab-btn { color:#2a2a2a; letter-spacing:4px; font-weight:300; }
-        body.theme-slate .tab-btn.active { color:#aaaaaa; border-bottom:1px solid #666; }
-        body.theme-slate .save-btn { background:#aaaaaa; color:#080808; border:none; letter-spacing:4px; font-weight:300; border-radius:2px; }
-        body.theme-slate .save-btn:hover { background:#cccccc; }
-        body.theme-slate .btn-action { border:1px solid #222; color:#3a3a3a; background:transparent; border-radius:2px; }
-        body.theme-slate .btn-action:hover { border-color:#666; color:#999; }
-        body.theme-slate th { color:#2a2a2a; background:#080808; border-bottom:1px solid #1c1c1c; letter-spacing:5px; font-size:.52rem; font-weight:300; }
-        body.theme-slate td { border-bottom:1px solid #141414; color:#606060; }
-        body.theme-slate .section-title { color:#2a2a2a; border-bottom:1px solid #1c1c1c; letter-spacing:7px; font-weight:300; }
-        body.theme-slate .stat-val { color:#cccccc; font-weight:200; font-size:1.7rem; }
-        body.theme-slate .stat-label { color:#2a2a2a; letter-spacing:5px; font-weight:300; }
-        body.theme-slate .rr-badge.good { background:transparent; border:1px solid #cccccc33; color:#cccccc; border-radius:2px; }
-        body.theme-slate .rr-badge.bad  { background:transparent; border:1px solid #88888833; color:#888; border-radius:2px; }
-        body.theme-slate .rr-badge.na   { background:transparent; border:1px solid #222; color:#2a2a2a; border-radius:2px; }
-        body.theme-slate .outcome-badge.tp-hit { background:rgba(204,204,204,0.05); border:1px solid #cccccc33; color:#cccccc; border-radius:2px; }
-        body.theme-slate .outcome-badge.sl-hit { background:rgba(136,136,136,0.05); border:1px solid #88888833; color:#888; border-radius:2px; }
-        body.theme-slate .outcome-badge.partial { background:rgba(170,170,170,0.05); border:1px solid #aaaaaa33; color:#aaaaaa; border-radius:2px; }
-        body.theme-slate .outcome-badge.be { background:rgba(68,68,68,0.1); border:1px solid #44444433; color:#555; border-radius:2px; }
-        body.theme-slate input, body.theme-slate select, body.theme-slate textarea { background:#080808; border:1px solid #222; color:#cccccc; border-radius:2px; }
-        body.theme-slate input:focus, body.theme-slate select:focus { border-color:#555; }
-        body.theme-slate .search-bar { background:#080808; border:1px solid #222; color:#cccccc; border-radius:3px; }
-        body.theme-slate .month-header td { background:#080808; color:#666; letter-spacing:8px; border-top:1px solid #1c1c1c; border-bottom:1px solid #1c1c1c; font-weight:300; }
-        body.theme-slate .lot-badge { background:#141414; border:1px solid #222; color:#888; border-radius:2px; }
-        body.theme-slate .login-card { background:#101010; border:1px solid #222; border-radius:4px; }
-        body.theme-slate .cal-day { background:#101010; border:1px solid #141414; }
-        body.theme-slate .cal-day.profit { border-top:1px solid #cccccc55; }
-        body.theme-slate .cal-day.loss { border-top:1px solid #88888855; }
-
-        /* ═══════════════════════════════════════════════
-           9. BASH — Linux terminal, proper shell aesthetic
-        ═══════════════════════════════════════════════ */
-        body.theme-bash {
-            --bg:#0d1117; --surface:#161b22; --border:#21262d;
-            --primary:#58a6ff; --accent:#79c0ff;
-            --text:#484f58; --text-light:#c9d1d9;
-            --negative:#f85149; --positive:#56d364;
-            --glow:none; --card-radius:6px;
-        }
-        body.theme-bash, body.theme-bash input, body.theme-bash select,
-        body.theme-bash textarea, body.theme-bash .header-title,
-        body.theme-bash th, body.theme-bash td,
-        body.theme-bash .section-title, body.theme-bash .tab-btn,
-        body.theme-bash .stat-val, body.theme-bash .stat-label { font-family:'SFMono-Regular','Consolas','Liberation Mono','Menlo',monospace !important; }
-        body.theme-bash { background:#0d1117; color:#484f58; }
-        body.theme-bash .card, body.theme-bash .stat-card, body.theme-bash .table-wrap {
-            border:1px solid #21262d; background:#161b22; border-radius:6px;
-        }
-        body.theme-bash .header-title { color:#c9d1d9; letter-spacing:3px; font-size:.65rem; font-weight:400; }
-        body.theme-bash .header-title::before { content:'$ '; color:#56d364; }
-        body.theme-bash .header-top { border-bottom:1px solid #21262d; background:#0d1117; }
-        body.theme-bash .tab-nav { border-bottom:1px solid #21262d; }
-        body.theme-bash .tab-btn { color:#30363d; letter-spacing:1px; font-size:.63rem; }
-        body.theme-bash .tab-btn::before { content:'~/'; color:#58a6ff44; }
-        body.theme-bash .tab-btn.active { color:#c9d1d9; border-bottom:2px solid #58a6ff; }
-        body.theme-bash .tab-btn.active::before { color:#58a6ff; }
-        body.theme-bash .save-btn { background:#238636; color:#fff; border:1px solid #2ea043; letter-spacing:2px; font-weight:600; border-radius:6px; font-family:monospace !important; }
-        body.theme-bash .save-btn:hover { background:#2ea043; box-shadow:0 0 12px rgba(46,160,67,0.3); }
-        body.theme-bash .btn-action { border:1px solid #21262d; color:#484f58; border-radius:6px; background:#161b22; font-family:monospace !important; }
-        body.theme-bash .btn-action:hover { border-color:#58a6ff55; color:#58a6ff; background:#1c2128; }
-        body.theme-bash th { color:#484f58; background:#0d1117; border-bottom:1px solid #21262d; letter-spacing:2px; font-size:.55rem; }
-        body.theme-bash td { border-bottom:1px solid #1c2128; color:#8b949e; }
-        body.theme-bash .section-title { color:#30363d; border-bottom:1px solid #21262d; letter-spacing:3px; }
-        body.theme-bash .section-title::before { content:'## '; color:#58a6ff55; }
-        body.theme-bash .stat-val { color:#c9d1d9; font-size:1.4rem; font-weight:400; }
-        body.theme-bash .stat-label { color:#30363d; letter-spacing:2px; }
-        body.theme-bash .rr-badge.good { background:#0f2a14; border:1px solid #56d36440; color:#56d364; border-radius:5px; }
-        body.theme-bash .rr-badge.bad  { background:#2a0e0e; border:1px solid #f8514940; color:#f85149; border-radius:5px; }
-        body.theme-bash .rr-badge.na   { background:#161b22; border:1px solid #21262d; color:#484f58; border-radius:5px; }
-        body.theme-bash .outcome-badge.tp-hit { background:#0f2a14; border:1px solid #56d36440; color:#56d364; border-radius:5px; }
-        body.theme-bash .outcome-badge.sl-hit { background:#2a0e0e; border:1px solid #f8514940; color:#f85149; border-radius:5px; }
-        body.theme-bash .outcome-badge.partial { background:#1c1a0e; border:1px solid #e3b34140; color:#e3b341; border-radius:5px; }
-        body.theme-bash .outcome-badge.be { background:#0e1a2a; border:1px solid #58a6ff40; color:#58a6ff; border-radius:5px; }
-        body.theme-bash input, body.theme-bash select, body.theme-bash textarea { background:#0d1117; border:1px solid #21262d; color:#c9d1d9; border-radius:6px; }
-        body.theme-bash input:focus, body.theme-bash select:focus { border-color:#58a6ff55; box-shadow:0 0 0 3px rgba(88,166,255,0.1); }
-        body.theme-bash input::placeholder { color:#30363d; }
-        body.theme-bash .search-bar { background:#0d1117; border:1px solid #21262d; color:#c9d1d9; border-radius:6px; }
-        body.theme-bash .month-header td { background:#0d1117; color:#58a6ff; letter-spacing:3px; border-top:1px solid #21262d; border-bottom:1px solid #21262d; }
-        body.theme-bash .lot-badge { background:#1c2128; border:1px solid #21262d; color:#8b949e; border-radius:4px; }
-        body.theme-bash .login-card { background:#161b22; border:1px solid #21262d; border-radius:10px; }
-        body.theme-bash .cal-day { background:#161b22; border:1px solid #1c2128; }
-        body.theme-bash .cal-day.profit { border-top:2px solid #56d36455; }
-        body.theme-bash .cal-day.loss { border-top:2px solid #f8514955; }
-        body.theme-bash .price-lbl { color:#30363d; }
-
-        /* ═══════════════════════════════════════════════
-           10. STEEL — cold industrial, blue-grey mono
-        ═══════════════════════════════════════════════ */
-        body.theme-steel {
-            --bg:#0a0c10; --surface:#111418; --border:#222830;
-            --primary:#8899bb; --accent:#aabbdd;
-            --text:#445566; --text-light:#99aabb;
-            --negative:#cc4455; --positive:#44aa77;
-            --glow:none; --card-radius:2px;
-        }
-        body.theme-steel { background:#0a0c10; color:#445566; }
-        body.theme-steel .card, body.theme-steel .stat-card, body.theme-steel .table-wrap {
-            border:1px solid #222830; background:#111418; border-radius:2px;
-            box-shadow:0 4px 16px rgba(0,0,0,0.7);
-        }
-        body.theme-steel .header-title { color:#8899bb; letter-spacing:7px; font-weight:200; font-size:.6rem; }
-        body.theme-steel .header-top { border-bottom:1px solid #1a2028; background:#0a0c10; }
-        body.theme-steel .tab-nav { border-bottom:1px solid #1a2028; }
-        body.theme-steel .tab-btn { color:#1a2028; letter-spacing:4px; font-weight:300; }
-        body.theme-steel .tab-btn.active { color:#8899bb; border-bottom:1px solid #8899bb; }
-        body.theme-steel .save-btn { background:#8899bb; color:#0a0c10; border:none; letter-spacing:4px; font-weight:400; border-radius:2px; }
-        body.theme-steel .save-btn:hover { background:#aabbdd; }
-        body.theme-steel .btn-action { border:1px solid #222830; color:#334455; border-radius:2px; background:transparent; }
-        body.theme-steel .btn-action:hover { border-color:#8899bb55; color:#8899bb; }
-        body.theme-steel th { color:#1a2028; background:#0a0c10; border-bottom:1px solid #1a2028; letter-spacing:5px; font-size:.52rem; font-weight:300; }
-        body.theme-steel td { border-bottom:1px solid #161c22; color:#556677; }
-        body.theme-steel .section-title { color:#1a2028; border-bottom:1px solid #1a2028; letter-spacing:7px; font-weight:300; }
-        body.theme-steel .stat-val { color:#8899bb; font-weight:200; font-size:1.6rem; }
-        body.theme-steel .stat-label { color:#1a2028; letter-spacing:5px; font-weight:300; }
-        body.theme-steel .stat-card { border-top:1px solid #8899bb18 !important; }
-        body.theme-steel .rr-badge.good { background:rgba(68,170,119,0.06); border:1px solid #44aa7730; color:#44aa77; border-radius:2px; }
-        body.theme-steel .rr-badge.bad  { background:rgba(204,68,85,0.06); border:1px solid #cc445530; color:#cc4455; border-radius:2px; }
-        body.theme-steel .rr-badge.na   { background:transparent; border:1px solid #222830; color:#1a2028; border-radius:2px; }
-        body.theme-steel .outcome-badge.tp-hit { background:rgba(68,170,119,0.06); border:1px solid #44aa7730; color:#44aa77; border-radius:2px; }
-        body.theme-steel .outcome-badge.sl-hit { background:rgba(204,68,85,0.06); border:1px solid #cc445530; color:#cc4455; border-radius:2px; }
-        body.theme-steel .outcome-badge.partial { background:rgba(136,153,187,0.06); border:1px solid #8899bb30; color:#8899bb; border-radius:2px; }
-        body.theme-steel .outcome-badge.be { background:rgba(34,40,48,0.5); border:1px solid #33404d30; color:#445566; border-radius:2px; }
-        body.theme-steel input, body.theme-steel select, body.theme-steel textarea { background:#0a0c10; border:1px solid #222830; color:#8899bb; border-radius:2px; }
-        body.theme-steel input:focus, body.theme-steel select:focus { border-color:#8899bb44; }
-        body.theme-steel .search-bar { background:#0a0c10; border:1px solid #222830; color:#8899bb; border-radius:2px; }
-        body.theme-steel .month-header td { background:#0a0c10; color:#8899bb; letter-spacing:7px; font-weight:200; border-top:1px solid #1a2028; border-bottom:1px solid #1a2028; }
-        body.theme-steel .lot-badge { background:#161c22; border:1px solid #222830; color:#8899bb; border-radius:2px; }
-        body.theme-steel .login-card { background:#111418; border:1px solid #222830; border-radius:3px; }
-        body.theme-steel .cal-day { background:#111418; border:1px solid #161c22; }
-        body.theme-steel .cal-day.profit { border-top:1px solid #44aa7755; }
-        body.theme-steel .cal-day.loss { border-top:1px solid #cc445555; }
-    
+        body.theme-classified { background:#000; color:#333; font-family:'Share Tech Mono','Courier New',monospace !important; }
+        body.theme-classified::after { content:''; position:fixed; inset:0; pointer-events:none; z-index:9997; background:repeating-linear-gradient(0deg,rgba(0,0,0,.1) 0,rgba(0,0,0,.1) 1px,transparent 1px,transparent 2px); }
+        body.theme-classified .card, body.theme-classified .stat-card, body.theme-classified .table-wrap { background:#080808; border:1px solid #1c1c1c; border-radius:0; }
+        body.theme-classified .header-title { color:#fff; letter-spacing:8px; font-weight:700; font-size:.6rem; }
+        body.theme-classified .header-title::before { content:'[CLASSIFIED] '; color:#fff; background:#fff; padding:0 3px; font-size:.45rem; margin-right:6px; }
+        body.theme-classified .header-title::before { color:#000 !important; }
+        body.theme-classified .header-title::after  { content:'_'; animation:blink 1.4s step-end infinite; }
+        body.theme-classified .header-top { border-bottom:1px solid #1c1c1c; background:#000; }
+        body.theme-classified .tab-nav { border-bottom:1px solid #1c1c1c; }
+        body.theme-classified .tab-btn { color:#1c1c1c; letter-spacing:5px; font-size:.58rem; }
+        body.theme-classified .tab-btn.active { color:#fff; border-bottom:1px solid #fff; }
+        body.theme-classified .save-btn { background:#fff; color:#000; border:none; letter-spacing:6px; font-weight:900; border-radius:0; text-transform:uppercase; }
+        body.theme-classified .save-btn:hover { box-shadow:0 0 20px rgba(255,255,255,.15); }
+        body.theme-classified .btn-action { border:1px solid #1c1c1c; color:#333; background:#000; border-radius:0; }
+        body.theme-classified .btn-action:hover { border-color:#666; color:#aaa; }
+        body.theme-classified th { color:#1c1c1c; background:#000; border-bottom:1px solid #111; letter-spacing:6px; font-size:.5rem; }
+        body.theme-classified td { border-bottom:1px solid #111; color:#555; }
+        body.theme-classified .section-title { color:#222; border-bottom:1px solid #1c1c1c; letter-spacing:8px; font-size:.55rem; }
+        body.theme-classified .section-title::before { content:'█ '; color:#fff; font-size:.4rem; }
+        body.theme-classified .stat-val { color:#fff; font-weight:700; font-size:1.5rem; }
+        body.theme-classified .stat-label { color:#222; letter-spacing:6px; }
+        body.theme-classified .rr-badge.good { background:transparent; border:1px solid #ffffff33; color:#fff; border-radius:0; }
+        body.theme-classified .rr-badge.bad  { background:transparent; border:1px solid #ff333333; color:#ff3333; border-radius:0; }
+        body.theme-classified .rr-badge.na   { background:transparent; border:1px solid #1c1c1c; color:#333; border-radius:0; }
+        body.theme-classified .outcome-badge.tp-hit { background:transparent; border:1px solid #ffffff33; color:#fff; border-radius:0; }
+        body.theme-classified .outcome-badge.sl-hit { background:transparent; border:1px solid #ff333333; color:#ff3333; border-radius:0; }
+        body.theme-classified .outcome-badge.partial { background:transparent; border:1px solid #aaaaaa33; color:#aaa; border-radius:0; }
+        body.theme-classified .outcome-badge.be { background:transparent; border:1px solid #1c1c1c; color:#555; border-radius:0; }
+        body.theme-classified input, body.theme-classified select, body.theme-classified textarea { background:#000; border:1px solid #1c1c1c; color:#fff; border-radius:0; }
+        body.theme-classified input:focus, body.theme-classified select:focus { border-color:#fff; }
+        body.theme-classified .search-bar { background:#000; border:1px solid #1c1c1c; color:#fff; border-radius:0; }
+        body.theme-classified .month-header td { background:#000; color:#fff; letter-spacing:10px; font-weight:700; border-top:1px solid #1c1c1c; border-bottom:1px solid #1c1c1c; }
+        body.theme-classified .lot-badge { background:#000; border:1px solid #1c1c1c; color:#fff; border-radius:0; }
+        body.theme-classified .login-card { background:#080808; border:1px solid #333; }
+        body.theme-classified .cal-day { background:#080808; border:1px solid #111; }
+        body.theme-classified .cal-day.profit { border-top:2px solid #ffffff55; }
+        body.theme-classified .cal-day.loss   { border-top:2px solid #ff333355; }
 
         body,.card,.stat-card,.table-wrap,.btn-action,.tab-btn,.header-title,.stat-val {
             transition:background 0.3s,color 0.3s,border-color 0.3s,box-shadow 0.3s;
@@ -726,22 +732,21 @@
             </div>
 
             <!-- Theme strip -->
-<div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;flex-wrap:wrap;">
-    <span style="font-size:.44rem;color:var(--text);opacity:.4;text-transform:uppercase;letter-spacing:1px;margin-right:1px;">Style</span>
-    <button onclick="setTheme('void')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #141414;background:#000;color:#fff;border-radius:0;font-weight:100;letter-spacing:2px;">◌ Void</button>
-    <button onclick="setTheme('rage')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:3px solid #500010;background:#080005;color:#ff2200;border-radius:0;font-weight:900;">⚡ RAGE</button>
-    <button onclick="setTheme('velvet')"      style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a1e40;background:#06040e;color:#d4af37;border-radius:3px;font-weight:200;">♦ Velvet</button>
-    <button onclick="setTheme('parchment')"   style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #3a3020;background:#0e0c08;color:#c8b878;border-radius:1px;font-style:italic;font-family:Georgia,serif;">📜 Parchment</button>
-    <button onclick="setTheme('spacecraft')"  style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #0a2840;background:#020810;color:#00d4ff;border-radius:2px;font-family:monospace;">⬡ HUD</button>
-    <button onclick="setTheme('moss')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #1a3018;background:#060e06;color:#7ab050;border-radius:3px;">🌿 Moss</button>
-    <button onclick="setTheme('duskpastel')"  style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a2540;background:#0e0c14;color:#b8a8e8;border-radius:14px;font-weight:300;">✦ Dusk</button>
-    <button onclick="setTheme('slate')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #222;background:#080808;color:#aaa;border-radius:2px;font-weight:200;letter-spacing:2px;">▪ Slate</button>
-    <button onclick="setTheme('bash')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #21262d;background:#0d1117;color:#56d364;border-radius:5px;font-family:monospace;">$ Bash</button>
-    <button onclick="setTheme('steel')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #222830;background:#0a0c10;color:#8899bb;border-radius:2px;font-weight:200;letter-spacing:2px;">⬕ Steel</button>
-    <button onclick="setTheme('light')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;border-radius:6px;">☀ Light</button>
-    <span style="font-size:.44rem;color:var(--text);opacity:.35;margin-left:3px;">BG</span>
-    <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)" title="Custom BG" style="width:18px;height:18px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
-    <input type="text"  id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)" style="width:54px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:2px 4px;font-size:.54rem;font-family:monospace;outline:none;border-radius:2px;">
+<div style="display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--border);padding:2px 5px;flex-wrap:wrap;">
+    <span style="font-size:.4rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-right:2px;font-family:monospace;">THEME//</span>
+    <button onclick="setTheme('matrix')"      style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #0a2a0a;background:#000;color:#00ff41;border-radius:0;font-family:monospace;font-weight:700;text-shadow:0 0 6px #00ff41;">◉ MATRIX</button>
+    <button onclick="setTheme('redcode')"     style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #3a0000;background:#080000;color:#ff2222;border-radius:0;font-family:monospace;font-weight:700;text-shadow:0 0 6px #ff2222;">! REDCODE</button>
+    <button onclick="setTheme('phosphor')"    style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #3a2000;background:#060300;color:#ffaa00;border-radius:0;font-family:monospace;font-weight:700;text-shadow:0 0 6px #ffaa00;">▮ PHOSPHOR</button>
+    <button onclick="setTheme('icehack')"     style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #002244;background:#000810;color:#00eeff;border-radius:0;font-family:monospace;font-weight:700;text-shadow:0 0 6px #00eeff;">::ICEHACK</button>
+    <button onclick="setTheme('viruscode')"   style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #2a0055;background:#060010;color:#cc44ff;border-radius:0;font-family:monospace;font-weight:700;text-shadow:0 0 6px #cc44ff;">¥ VIRUS</button>
+    <button onclick="setTheme('ghostnet')"    style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #1a1a1a;background:#000;color:#666;border-radius:0;font-family:monospace;font-weight:400;">-- GHOST</button>
+    <button onclick="setTheme('toxin')"       style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #1e3300;background:#030600;color:#ccff00;border-radius:0;font-family:monospace;font-weight:700;text-shadow:0 0 6px #ccff00;">☢ TOXIN</button>
+    <button onclick="setTheme('cryptblood')"  style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #440000;background:#050000;color:#ff6600;border-radius:0;font-family:monospace;font-weight:700;text-shadow:0 0 6px #ff6600;">$ CRYPT</button>
+    <button onclick="setTheme('neonpink')"    style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #440033;background:#060008;color:#ff00aa;border-radius:0;font-family:monospace;font-weight:700;text-shadow:0 0 6px #ff00aa;">* NEONPINK</button>
+    <button onclick="setTheme('classified')"  style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #333;background:#000;color:#fff;border-radius:0;font-family:monospace;font-weight:700;letter-spacing:1px;">█ CLASSIFIED</button>
+    <span style="font-size:.4rem;color:#333;margin-left:2px;font-family:monospace;">BG:</span>
+    <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)" style="width:16px;height:16px;padding:1px;border:1px solid #1a1a1a;background:transparent;cursor:pointer;">
+    <input type="text"  id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)" style="width:52px;background:#000;border:1px solid #1a1a1a;color:#444;padding:2px 4px;font-size:.5rem;font-family:monospace;outline:none;">
 </div>   
             <!-- PDF strip -->
             <div style="background:var(--surface);padding:2px 6px;border:1px solid var(--border);display:flex;gap:4px;align-items:center;">
@@ -2160,8 +2165,8 @@ function syncPicker(hexId, pickerId) { var h=document.getElementById(hexId),p=do
 
 <!-- Theme System -->
 <script>
-var _currentTheme = localStorage.getItem('rk_theme') || 'light';
-var _allThemes = ['void','rage','velvet','parchment','spacecraft','moss','duskpastel','slate','bash','steel','light'];
+var _currentTheme = localStorage.getItem('rk_theme') || 'matrix';
+var _allThemes = ['matrix','redcode','phosphor','icehack','viruscode','ghostnet','toxin','cryptblood','neonpink','classified'];
 function setTheme(name) {
     _currentTheme = name; localStorage.setItem('rk_theme', name); localStorage.removeItem('rk_custom_bg');
     document.body.classList.remove.apply(document.body.classList, _allThemes.map(function(t){return 'theme-'+t;}));
@@ -2180,7 +2185,7 @@ function setCustomBg(hex) {
 }
 function onCustomBgHex(val) { val=val.trim(); var picker=document.getElementById('custom-bg'); if(/^#[0-9a-fA-F]{6}$/.test(val)){if(picker)picker.value=val;setCustomBg(val);} }
 (function initTheme() {
-    var saved=localStorage.getItem('rk_theme')||'blueprint', savedBg=localStorage.getItem('rk_custom_bg');
+    var saved=localStorage.getItem('rk_theme')||'matrix', savedBg=localStorage.getItem('rk_custom_bg');
     setTheme(saved);
     if(savedBg) setTimeout(function(){setCustomBg(savedBg);},80);
 })();
