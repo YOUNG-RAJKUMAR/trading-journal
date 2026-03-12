@@ -54,493 +54,493 @@
         body.theme-light .outcome-badge.tp-hit { background:#d4f0dc;border-color:#aaddbb;color:#1a6a2a; }
         body.theme-light .outcome-badge.sl-hit { background:#f5d4d4;border-color:#ddaaaa;color:#882222; }
         body.theme-light .login-card { background:#faf7f2; }
-/* ═══════════════════════════════════════════════════════════════
-           THEME 1: OBSIDIAN
-           Pure black · chrome silver · razor minimal · zero decoration
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-obsidian {
-            --bg:#000000; --surface:#0a0a0a; --border:#1c1c1c;
-            --primary:#e8e8e8; --accent:#ffffff;
-            --text:#555555; --text-light:#e8e8e8;
-            --negative:#ff3b3b; --positive:#00e5a0;
+
+        /* ═══════════════════════════════════════════════
+           1. VOID — ultra clean, white/grey, hairline
+        ═══════════════════════════════════════════════ */
+        body.theme-void {
+            --bg:#000000; --surface:#080808; --border:#1a1a1a;
+            --primary:#ffffff; --accent:#ffffff;
+            --text:#404040; --text-light:#ffffff;
+            --negative:#ff3333; --positive:#33ff99;
+            --glow:none; --card-radius:0px;
+        }
+        body.theme-void { background:#000; color:#404040; font-family:'Inter',sans-serif; }
+        body.theme-void .card, body.theme-void .stat-card, body.theme-void .table-wrap {
+            border:1px solid #141414; background:#080808; border-radius:0;
+            box-shadow:none;
+        }
+        body.theme-void .header-title { color:#fff; letter-spacing:10px; font-weight:100; font-size:.58rem; }
+        body.theme-void .header-top { border-bottom:1px solid #141414; background:#000; }
+        body.theme-void .tab-nav { border-bottom:1px solid #141414; }
+        body.theme-void .tab-btn { color:#252525; letter-spacing:4px; font-size:.6rem; font-weight:300; }
+        body.theme-void .tab-btn.active { color:#fff; border-bottom:1px solid #fff; }
+        body.theme-void .save-btn { background:#fff; color:#000; border:none; letter-spacing:6px; font-weight:200; font-size:.72rem; border-radius:0; }
+        body.theme-void .save-btn:hover { background:#e0e0e0; }
+        body.theme-void .btn-action { border:1px solid #141414; color:#303030; background:#000; border-radius:0; }
+        body.theme-void .btn-action:hover { border-color:#555; color:#aaa; }
+        body.theme-void th { color:#1c1c1c; background:#000; border-bottom:1px solid #111; letter-spacing:6px; font-size:.5rem; font-weight:300; }
+        body.theme-void td { border-bottom:1px solid #0d0d0d; color:#505050; }
+        body.theme-void .section-title { color:#1c1c1c; border-bottom:1px solid #111; letter-spacing:8px; font-weight:300; font-size:.55rem; }
+        body.theme-void .stat-val { color:#fff; font-weight:100; font-size:1.8rem; letter-spacing:2px; }
+        body.theme-void .stat-label { color:#1c1c1c; letter-spacing:5px; font-size:.55rem; }
+        body.theme-void .rr-badge.good { background:transparent; border:1px solid #33ff9933; color:#33ff99; border-radius:0; }
+        body.theme-void .rr-badge.bad  { background:transparent; border:1px solid #ff333333; color:#ff3333; border-radius:0; }
+        body.theme-void .rr-badge.na   { background:transparent; border:1px solid #141414; color:#252525; border-radius:0; }
+        body.theme-void .outcome-badge.tp-hit { background:transparent; border:1px solid #33ff9933; color:#33ff99; border-radius:0; }
+        body.theme-void .outcome-badge.sl-hit { background:transparent; border:1px solid #ff333333; color:#ff3333; border-radius:0; }
+        body.theme-void .outcome-badge.partial { background:transparent; border:1px solid #ffcc0033; color:#ffcc00; border-radius:0; }
+        body.theme-void .outcome-badge.be { background:transparent; border:1px solid #33333333; color:#555; border-radius:0; }
+        body.theme-void input, body.theme-void select, body.theme-void textarea { background:#000; border:1px solid #141414; color:#fff; border-radius:0; }
+        body.theme-void input:focus, body.theme-void select:focus { border-color:#444; outline:none; }
+        body.theme-void .search-bar { background:#000; border:1px solid #141414; color:#fff; border-radius:0; }
+        body.theme-void .month-header td { background:#000; color:#1c1c1c; letter-spacing:10px; font-weight:300; border-top:1px solid #111; border-bottom:1px solid #111; }
+        body.theme-void .lot-badge { background:#000; border:1px solid #141414; color:#606060; border-radius:0; }
+        body.theme-void .login-card { background:#080808; border:1px solid #141414; border-radius:0; }
+        body.theme-void .cal-day { background:#080808; border:1px solid #0d0d0d; }
+        body.theme-void .cal-day.profit { border-top:1px solid #33ff9966; }
+        body.theme-void .cal-day.loss { border-top:1px solid #ff333366; }
+
+        /* ═══════════════════════════════════════════════
+           2. RAGE — aggressive, thick borders, electric
+        ═══════════════════════════════════════════════ */
+        body.theme-rage {
+            --bg:#080005; --surface:#120008; --border:#500010;
+            --primary:#ff2200; --accent:#ff6600;
+            --text:#882200; --text-light:#ff2200;
+            --negative:#ff0000; --positive:#ff6600;
+            --glow:0 0 20px rgba(255,34,0,0.2); --card-radius:0px;
+        }
+        body.theme-rage { background:#080005; color:#882200; font-family:'Inter',sans-serif; }
+        body.theme-rage .card, body.theme-rage .stat-card, body.theme-rage .table-wrap {
+            border:3px solid #500010; background:#120008; border-radius:0;
+            box-shadow:4px 4px 0 #500010;
+        }
+        body.theme-rage .header-title { color:#ff2200; letter-spacing:6px; font-weight:900; font-size:.72rem; text-shadow:0 0 20px rgba(255,34,0,0.5); text-transform:uppercase; }
+        body.theme-rage .header-top { border-bottom:3px solid #500010; background:#080005; }
+        body.theme-rage .tab-nav { border-bottom:3px solid #500010; }
+        body.theme-rage .tab-btn { color:#3a0008; letter-spacing:3px; font-weight:700; font-size:.65rem; }
+        body.theme-rage .tab-btn.active { color:#ff2200; border-bottom:4px solid #ff2200; text-shadow:0 0 10px rgba(255,34,0,0.6); }
+        body.theme-rage .save-btn { background:#ff2200; color:#fff; border:none; letter-spacing:4px; font-weight:900; font-size:.8rem; border-radius:0; text-transform:uppercase; }
+        body.theme-rage .save-btn:hover { background:#ff6600; box-shadow:0 0 30px rgba(255,102,0,0.6); }
+        body.theme-rage .btn-action { border:2px solid #500010; color:#882200; background:#080005; border-radius:0; font-weight:700; }
+        body.theme-rage .btn-action:hover { border-color:#ff2200; color:#ff2200; background:#120008; }
+        body.theme-rage th { color:#3a0008; background:#080005; border-bottom:3px solid #500010; letter-spacing:4px; font-size:.55rem; font-weight:900; }
+        body.theme-rage td { border-bottom:2px solid #1e0008; color:#cc3300; }
+        body.theme-rage .section-title { color:#3a0008; border-bottom:3px solid #500010; letter-spacing:6px; font-weight:900; font-size:.57rem; }
+        body.theme-rage .stat-val { color:#ff2200; font-weight:900; font-size:1.6rem; text-shadow:0 0 15px rgba(255,34,0,0.4); }
+        body.theme-rage .stat-label { color:#3a0008; font-weight:700; letter-spacing:3px; }
+        body.theme-rage .stat-card { border-left:6px solid #ff220044 !important; box-shadow:6px 6px 0 #3a0008 !important; }
+        body.theme-rage .rr-badge.good { background:#001a00; border:2px solid #ff6600; color:#ff6600; border-radius:0; font-weight:900; }
+        body.theme-rage .rr-badge.bad  { background:#1a0000; border:2px solid #ff0000; color:#ff0000; border-radius:0; font-weight:900; }
+        body.theme-rage .rr-badge.na   { background:#120008; border:2px solid #500010; color:#3a0008; border-radius:0; }
+        body.theme-rage .outcome-badge.tp-hit { background:#001a00; border:2px solid #ff6600; color:#ff6600; border-radius:0; font-weight:900; }
+        body.theme-rage .outcome-badge.sl-hit { background:#1a0000; border:2px solid #ff0000; color:#ff0000; border-radius:0; font-weight:900; }
+        body.theme-rage .outcome-badge.partial { background:#1a0800; border:2px solid #ff6600; color:#ff6600; border-radius:0; }
+        body.theme-rage .outcome-badge.be { background:#100005; border:2px solid #500010; color:#882200; border-radius:0; }
+        body.theme-rage input, body.theme-rage select, body.theme-rage textarea { background:#080005; border:2px solid #500010; color:#ff2200; border-radius:0; }
+        body.theme-rage input:focus, body.theme-rage select:focus { border-color:#ff2200; box-shadow:0 0 10px rgba(255,34,0,0.3); }
+        body.theme-rage .search-bar { background:#080005; border:3px solid #500010; color:#ff2200; border-radius:0; }
+        body.theme-rage .month-header td { background:#080005; color:#ff2200; letter-spacing:6px; font-weight:900; border-top:3px solid #500010; border-bottom:3px solid #500010; }
+        body.theme-rage .lot-badge { background:#1a0008; border:2px solid #500010; color:#ff2200; border-radius:0; font-weight:900; }
+        body.theme-rage .login-card { background:#120008; border:3px solid #500010; border-radius:0; box-shadow:6px 6px 0 #500010; }
+        body.theme-rage .cal-day { background:#120008; border:2px solid #1e0008; }
+        body.theme-rage .cal-day.profit { border-top:4px solid #ff6600; }
+        body.theme-rage .cal-day.loss { border-top:4px solid #ff0000; }
+
+        /* ═══════════════════════════════════════════════
+           3. VELVET — luxury dark, gold, silk, refined
+        ═══════════════════════════════════════════════ */
+        body.theme-velvet {
+            --bg:#06040e; --surface:#0e0a1e; --border:#2a1e40;
+            --primary:#d4af37; --accent:#f0d060;
+            --text:#6a5040; --text-light:#d4af37;
+            --negative:#cc2244; --positive:#44cc88;
+            --glow:0 0 30px rgba(212,175,55,0.08); --card-radius:4px;
+        }
+        body.theme-velvet { background:#06040e; color:#6a5040; }
+        body.theme-velvet .card, body.theme-velvet .stat-card, body.theme-velvet .table-wrap {
+            border:1px solid #2a1e40;
+            border-top:1px solid #d4af3722;
+            background:linear-gradient(180deg, #100c20 0%, #0e0a1e 100%);
+            box-shadow:0 8px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(212,175,55,0.08);
+        }
+        body.theme-velvet .header-title { color:#d4af37; letter-spacing:8px; font-weight:200; font-size:.6rem; text-shadow:0 0 40px rgba(212,175,55,0.2); }
+        body.theme-velvet .header-top { border-bottom:1px solid #2a1e40; background:rgba(6,4,14,0.95); }
+        body.theme-velvet .tab-nav { border-bottom:1px solid #2a1e40; }
+        body.theme-velvet .tab-btn { color:#3a2a1a; letter-spacing:4px; font-weight:300; }
+        body.theme-velvet .tab-btn.active { color:#d4af37; border-bottom:1px solid #d4af37; }
+        body.theme-velvet .save-btn { background:linear-gradient(135deg,#f0d060,#d4af37,#8b6914); color:#000; border:none; letter-spacing:4px; font-weight:600; border-radius:3px; }
+        body.theme-velvet .save-btn:hover { box-shadow:0 0 35px rgba(212,175,55,0.4); }
+        body.theme-velvet .btn-action { border:1px solid #2a1e40; color:#5a4030; border-radius:3px; background:transparent; }
+        body.theme-velvet .btn-action:hover { border-color:#d4af3755; color:#d4af37; }
+        body.theme-velvet th { color:#2a1e10; background:#06040e; border-bottom:1px solid #2a1e40; letter-spacing:4px; font-size:.53rem; font-weight:300; }
+        body.theme-velvet td { border-bottom:1px solid #160e28; color:#7a6050; }
+        body.theme-velvet .section-title { color:#2a1e10; border-bottom:1px solid #2a1e40; letter-spacing:6px; font-weight:300; }
+        body.theme-velvet .stat-val { color:#d4af37; font-weight:200; font-size:1.7rem; text-shadow:0 0 20px rgba(212,175,55,0.2); }
+        body.theme-velvet .stat-label { color:#2a1e10; letter-spacing:4px; font-weight:300; }
+        body.theme-velvet .stat-card { border-left:1px solid #d4af3730 !important; }
+        body.theme-velvet .rr-badge.good { background:rgba(68,204,136,0.06); border:1px solid #44cc8830; color:#44cc88; border-radius:3px; }
+        body.theme-velvet .rr-badge.bad  { background:rgba(204,34,68,0.06); border:1px solid #cc224430; color:#cc2244; border-radius:3px; }
+        body.theme-velvet .rr-badge.na   { background:transparent; border:1px solid #2a1e40; color:#2a1e10; border-radius:3px; }
+        body.theme-velvet .outcome-badge.tp-hit { background:rgba(68,204,136,0.06); border:1px solid #44cc8830; color:#44cc88; border-radius:3px; }
+        body.theme-velvet .outcome-badge.sl-hit { background:rgba(204,34,68,0.06); border:1px solid #cc224430; color:#cc2244; border-radius:3px; }
+        body.theme-velvet .outcome-badge.partial { background:rgba(212,175,55,0.06); border:1px solid #d4af3730; color:#d4af37; border-radius:3px; }
+        body.theme-velvet .outcome-badge.be { background:rgba(90,60,120,0.1); border:1px solid #6a3a8030; color:#8a6aaa; border-radius:3px; }
+        body.theme-velvet input, body.theme-velvet select, body.theme-velvet textarea { background:#06040e; border:1px solid #2a1e40; color:#d4af37; border-radius:3px; }
+        body.theme-velvet input:focus, body.theme-velvet select:focus { border-color:#d4af3755; box-shadow:0 0 8px rgba(212,175,55,0.1); }
+        body.theme-velvet .search-bar { background:#06040e; border:1px solid #2a1e40; color:#d4af37; border-radius:4px; }
+        body.theme-velvet .month-header td { background:#06040e; color:#d4af37; letter-spacing:8px; font-weight:200; border-top:1px solid #2a1e40; border-bottom:1px solid #2a1e40; }
+        body.theme-velvet .lot-badge { background:#160e28; border:1px solid #2a1e40; color:#d4af37; border-radius:3px; }
+        body.theme-velvet .login-card { background:#0e0a1e; border:1px solid #2a1e40; border-top:1px solid #d4af3722; border-radius:6px; box-shadow:0 20px 60px rgba(0,0,0,0.9); }
+        body.theme-velvet .cal-day { background:#0e0a1e; border:1px solid #160e28; }
+        body.theme-velvet .cal-day.profit { border-top:1px solid #44cc8855; }
+        body.theme-velvet .cal-day.loss { border-top:1px solid #cc224455; }
+
+        /* ═══════════════════════════════════════════════
+           4. PARCHMENT — retro vintage, film grain, dark
+        ═══════════════════════════════════════════════ */
+        body.theme-parchment {
+            --bg:#0e0c08; --surface:#181410; --border:#3a3020;
+            --primary:#c8b878; --accent:#e8d898;
+            --text:#7a6840; --text-light:#c8b878;
+            --negative:#aa3322; --positive:#6a8844;
             --glow:none; --card-radius:2px;
         }
-        body.theme-obsidian { background:#000; color:#555; }
-        body.theme-obsidian .card, body.theme-obsidian .stat-card, body.theme-obsidian .table-wrap {
-            border:1px solid #1c1c1c; background:#0a0a0a;
-            box-shadow:0 1px 0 #1c1c1c;
+        body.theme-parchment, body.theme-parchment .header-title,
+        body.theme-parchment th, body.theme-parchment .section-title { font-family:'Georgia','Times New Roman',serif !important; }
+        body.theme-parchment { background:#0e0c08; color:#7a6840; }
+        body.theme-parchment::before {
+            content:''; position:fixed; inset:0; pointer-events:none; z-index:9998;
+            background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            opacity:0.35;
         }
-        body.theme-obsidian .header-title { color:#e8e8e8; letter-spacing:8px; font-weight:300; font-size:.6rem; }
-        body.theme-obsidian .header-top { border-bottom:1px solid #111; }
-        body.theme-obsidian .tab-nav { border-bottom-color:#111; }
-        body.theme-obsidian .tab-btn { color:#333; letter-spacing:3px; font-size:.65rem; }
-        body.theme-obsidian .tab-btn.active { color:#e8e8e8; border-bottom:1px solid #e8e8e8; }
-        body.theme-obsidian .save-btn { background:#e8e8e8; color:#000; border:none; letter-spacing:4px; font-weight:300; font-size:.75rem; }
-        body.theme-obsidian .save-btn:hover { background:#fff; }
-        body.theme-obsidian .btn-action { border:1px solid #1c1c1c; color:#444; }
-        body.theme-obsidian .btn-action:hover { border-color:#555; color:#e8e8e8; }
-        body.theme-obsidian th { color:#2a2a2a; background:#000; border-bottom:1px solid #111; letter-spacing:4px; font-size:.53rem; }
-        body.theme-obsidian td { border-bottom:1px solid #0f0f0f; }
-        body.theme-obsidian .section-title { color:#2a2a2a; border-bottom-color:#111; letter-spacing:6px; }
-        body.theme-obsidian .stat-val { color:#e8e8e8; font-weight:200; font-size:1.6rem; }
-        body.theme-obsidian .stat-label { color:#2a2a2a; letter-spacing:3px; }
-        body.theme-obsidian .rr-badge.good { background:transparent; border:1px solid #00e5a033; color:#00e5a0; border-radius:2px; }
-        body.theme-obsidian .rr-badge.bad  { background:transparent; border:1px solid #ff3b3b33; color:#ff3b3b; border-radius:2px; }
-        body.theme-obsidian .rr-badge.na   { background:transparent; border:1px solid #1c1c1c; color:#333; border-radius:2px; }
-        body.theme-obsidian .outcome-badge.tp-hit { background:transparent; border:1px solid #00e5a033; color:#00e5a0; border-radius:2px; }
-        body.theme-obsidian .outcome-badge.sl-hit { background:transparent; border:1px solid #ff3b3b33; color:#ff3b3b; border-radius:2px; }
-        body.theme-obsidian .outcome-badge.partial { background:transparent; border:1px solid #ffcc0033; color:#ffcc00; border-radius:2px; }
-        body.theme-obsidian .outcome-badge.be { background:transparent; border:1px solid #55555533; color:#555; border-radius:2px; }
-        body.theme-obsidian input, body.theme-obsidian select, body.theme-obsidian textarea { background:#000; border:1px solid #1c1c1c; color:#e8e8e8; border-radius:0; }
-        body.theme-obsidian input:focus, body.theme-obsidian select:focus { border-color:#444; }
-        body.theme-obsidian .search-bar { background:#000; border:1px solid #1c1c1c; color:#e8e8e8; }
-        body.theme-obsidian .month-header td { background:#000; color:#333; letter-spacing:8px; font-size:.65rem; }
-        body.theme-obsidian .lot-badge { background:#111; border:1px solid #1c1c1c; color:#888; border-radius:2px; }
-        body.theme-obsidian .login-card { background:#0a0a0a; border:1px solid #1c1c1c; border-radius:2px; }
-        body.theme-obsidian .cal-day { background:#0a0a0a; border:1px solid #0f0f0f; }
-        body.theme-obsidian .cal-day.profit { border-top:1px solid #00e5a055; }
-        body.theme-obsidian .cal-day.loss { border-top:1px solid #ff3b3b55; }
+        body.theme-parchment .card, body.theme-parchment .stat-card, body.theme-parchment .table-wrap {
+            border:1px solid #3a3020; background:#181410;
+            box-shadow:0 4px 16px rgba(0,0,0,0.7), inset 0 0 40px rgba(200,184,120,0.02);
+        }
+        body.theme-parchment .header-title { color:#c8b878; letter-spacing:5px; font-weight:400; font-style:italic; font-size:.65rem; }
+        body.theme-parchment .header-top { border-bottom:1px solid #3a3020; background:#0e0c08; }
+        body.theme-parchment .tab-nav { border-bottom:1px solid #3a3020; }
+        body.theme-parchment .tab-btn { color:#4a3820; letter-spacing:2px; font-style:italic; font-size:.65rem; }
+        body.theme-parchment .tab-btn.active { color:#c8b878; border-bottom:1px solid #c8b878; }
+        body.theme-parchment .save-btn { background:#c8b878; color:#0e0c08; border:none; letter-spacing:3px; font-weight:700; border-radius:1px; font-family:'Georgia',serif !important; }
+        body.theme-parchment .save-btn:hover { background:#e8d898; }
+        body.theme-parchment .btn-action { border:1px solid #3a3020; color:#5a4828; background:transparent; border-radius:1px; }
+        body.theme-parchment .btn-action:hover { border-color:#c8b878; color:#c8b878; }
+        body.theme-parchment th { color:#4a3820; background:#0e0c08; border-bottom:1px solid #3a3020; letter-spacing:3px; font-size:.55rem; font-style:italic; }
+        body.theme-parchment td { border-bottom:1px solid #241e10; color:#8a7848; }
+        body.theme-parchment .section-title { color:#4a3820; border-bottom:1px solid #3a3020; letter-spacing:5px; font-style:italic; font-size:.57rem; }
+        body.theme-parchment .stat-val { color:#c8b878; font-weight:400; font-size:1.5rem; font-family:'Georgia',serif !important; }
+        body.theme-parchment .stat-label { color:#4a3820; font-style:italic; letter-spacing:2px; }
+        body.theme-parchment .rr-badge.good { background:#0a1004; border:1px solid #6a884430; color:#6a8844; border-radius:1px; }
+        body.theme-parchment .rr-badge.bad  { background:#160804; border:1px solid #aa332230; color:#aa3322; border-radius:1px; }
+        body.theme-parchment .rr-badge.na   { background:#181410; border:1px solid #3a3020; color:#4a3820; border-radius:1px; }
+        body.theme-parchment .outcome-badge.tp-hit { background:#0a1004; border:1px solid #6a884430; color:#6a8844; border-radius:1px; }
+        body.theme-parchment .outcome-badge.sl-hit { background:#160804; border:1px solid #aa332230; color:#aa3322; border-radius:1px; }
+        body.theme-parchment .outcome-badge.partial { background:#160e00; border:1px solid #c8b87830; color:#c8b878; border-radius:1px; }
+        body.theme-parchment .outcome-badge.be { background:#141008; border:1px solid #7a684030; color:#7a6840; border-radius:1px; }
+        body.theme-parchment input, body.theme-parchment select, body.theme-parchment textarea { background:#0e0c08; border:1px solid #3a3020; color:#c8b878; border-radius:1px; font-family:'Georgia',serif !important; }
+        body.theme-parchment input:focus, body.theme-parchment select:focus { border-color:#c8b87866; }
+        body.theme-parchment .search-bar { background:#0e0c08; border:1px solid #3a3020; color:#c8b878; border-radius:2px; }
+        body.theme-parchment .month-header td { background:#0e0c08; color:#c8b878; letter-spacing:6px; font-style:italic; border-top:1px solid #3a3020; border-bottom:1px solid #3a3020; }
+        body.theme-parchment .lot-badge { background:#201a0c; border:1px solid #3a3020; color:#c8b878; border-radius:1px; }
+        body.theme-parchment .login-card { background:#181410; border:1px solid #3a3020; border-radius:2px; }
+        body.theme-parchment .cal-day { background:#181410; border:1px solid #241e10; }
+        body.theme-parchment .cal-day.profit { border-top:1px solid #6a884466; }
+        body.theme-parchment .cal-day.loss { border-top:1px solid #aa332266; }
 
-        /* ═══════════════════════════════════════════════════════════════
-           THEME 2: SAKURA
-           Japanese cherry blossom · soft pink · delicate · light
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-sakura {
-            --bg:#fdf6f8; --surface:#fff8fa; --border:#f0d8e0;
-            --primary:#c2607a; --accent:#e8839a;
-            --text:#9a6070; --text-light:#5a2535;
-            --negative:#c0392b; --positive:#2e7d5e;
-            --glow:none; --card-radius:14px;
+        /* ═══════════════════════════════════════════════
+           5. SPACECRAFT — futuristic HUD, data feed, cyan
+        ═══════════════════════════════════════════════ */
+        body.theme-spacecraft {
+            --bg:#020810; --surface:#040e1c; --border:#0a2840;
+            --primary:#00d4ff; --accent:#00aacc;
+            --text:#1a4a6a; --text-light:#00d4ff;
+            --negative:#ff4466; --positive:#00ffcc;
+            --glow:0 0 20px rgba(0,212,255,0.12); --card-radius:3px;
         }
-        body.theme-sakura { background:#fdf6f8; color:#9a6070; }
-        body.theme-sakura .card, body.theme-sakura .stat-card {
-            background:#fff8fa; border:1px solid #f0d8e0; border-radius:14px;
-            box-shadow:0 4px 20px rgba(194,96,122,0.07);
+        body.theme-spacecraft { background:#020810; color:#1a4a6a; }
+        body.theme-spacecraft .card, body.theme-spacecraft .stat-card {
+            border:1px solid #0a2840;
+            border-left:2px solid #00d4ff22;
+            background:#040e1c;
+            box-shadow:0 0 0 1px #00d4ff08, inset 0 0 30px rgba(0,212,255,0.025);
         }
-        body.theme-sakura .table-wrap { border:1px solid #f0d8e0; border-radius:14px; overflow:hidden; }
-        body.theme-sakura .header-title { color:#5a2535; letter-spacing:5px; font-weight:300; font-size:.63rem; }
-        body.theme-sakura .header-top { border-bottom:1px solid #f0d8e0; background:#fff8fa; }
-        body.theme-sakura .tab-nav { border-bottom-color:#f0d8e0; }
-        body.theme-sakura .tab-btn { color:#d4a0b0; letter-spacing:2px; }
-        body.theme-sakura .tab-btn.active { color:#c2607a; border-bottom-color:#e8839a; }
-        body.theme-sakura .save-btn { background:linear-gradient(135deg,#e8839a,#c2607a); color:#fff; border:none; border-radius:10px; letter-spacing:2px; font-weight:400; }
-        body.theme-sakura .save-btn:hover { box-shadow:0 4px 20px rgba(194,96,122,0.35); }
-        body.theme-sakura .btn-action { border:1px solid #f0d8e0; color:#b08090; background:#fff8fa; border-radius:10px; }
-        body.theme-sakura .btn-action:hover { border-color:#e8839a; color:#c2607a; }
-        body.theme-sakura th { background:#fdf0f3; color:#d4a0b0; border-bottom:1px solid #f0d8e0; letter-spacing:2px; font-size:.57rem; }
-        body.theme-sakura td { border-bottom:1px solid #fae8ed; color:#7a4050; }
-        body.theme-sakura .section-title { color:#d4a0b0; border-bottom-color:#f0d8e0; letter-spacing:4px; }
-        body.theme-sakura .stat-val { color:#5a2535; font-weight:300; }
-        body.theme-sakura .stat-label { color:#d4a0b0; letter-spacing:2px; }
-        body.theme-sakura .rr-badge.good { background:#e8f5ef; border:1px solid #a8d8c0; color:#2e7d5e; border-radius:10px; }
-        body.theme-sakura .rr-badge.bad  { background:#fce8e8; border:1px solid #f0a8a8; color:#c0392b; border-radius:10px; }
-        body.theme-sakura .rr-badge.na   { background:#fdf0f3; border:1px solid #f0d8e0; color:#d4a0b0; border-radius:10px; }
-        body.theme-sakura .outcome-badge.tp-hit { background:#e8f5ef; border:1px solid #a8d8c0; color:#2e7d5e; border-radius:10px; }
-        body.theme-sakura .outcome-badge.sl-hit { background:#fce8e8; border:1px solid #f0a8a8; color:#c0392b; border-radius:10px; }
-        body.theme-sakura .outcome-badge.partial { background:#fff8e6; border:1px solid #f0d888; color:#a07020; border-radius:10px; }
-        body.theme-sakura .outcome-badge.be { background:#f5f0fc; border:1px solid #d8c8f0; color:#7060b0; border-radius:10px; }
-        body.theme-sakura input, body.theme-sakura select, body.theme-sakura textarea { background:#fff8fa; border:1px solid #f0d8e0; color:#5a2535; border-radius:10px; }
-        body.theme-sakura input:focus, body.theme-sakura select:focus { border-color:#e8839a; box-shadow:0 0 0 3px rgba(232,131,154,0.12); }
-        body.theme-sakura .search-bar { background:#fff8fa; border:1px solid #f0d8e0; color:#5a2535; border-radius:12px; }
-        body.theme-sakura .month-header td { background:#fdf0f3; color:#c2607a; border-top:1px solid #f0d8e0; border-bottom:1px solid #f0d8e0; letter-spacing:4px; }
-        body.theme-sakura .lot-badge { background:#fdf0f3; border:1px solid #f0d8e0; color:#9a6070; border-radius:8px; }
-        body.theme-sakura .login-card { background:#fff8fa; border:1px solid #f0d8e0; border-radius:20px; box-shadow:0 10px 40px rgba(194,96,122,0.1); }
-        body.theme-sakura .cal-day { background:#fff8fa; }
-        body.theme-sakura .cal-day.profit { border-top:2px solid #2e7d5e; }
-        body.theme-sakura .cal-day.loss { border-top:2px solid #c0392b; }
+        body.theme-spacecraft .table-wrap { border:1px solid #0a2840; background:#040e1c; }
+        body.theme-spacecraft .header-title { color:#00d4ff; letter-spacing:6px; font-weight:300; font-size:.62rem; text-shadow:0 0 20px rgba(0,212,255,0.4); font-family:'Courier New',monospace; }
+        body.theme-spacecraft .header-top { border-bottom:1px solid #0a2840; background:#020810; }
+        body.theme-spacecraft .tab-nav { border-bottom:1px solid #0a2840; }
+        body.theme-spacecraft .tab-btn { color:#0a2840; letter-spacing:3px; font-size:.62rem; font-family:'Courier New',monospace; }
+        body.theme-spacecraft .tab-btn.active { color:#00d4ff; border-bottom:1px solid #00d4ff; text-shadow:0 0 8px rgba(0,212,255,0.5); }
+        body.theme-spacecraft .save-btn { background:transparent; color:#00d4ff; border:1px solid #00d4ff; letter-spacing:4px; font-weight:400; font-size:.72rem; border-radius:2px; box-shadow:0 0 15px rgba(0,212,255,0.15),inset 0 0 15px rgba(0,212,255,0.05); font-family:'Courier New',monospace; }
+        body.theme-spacecraft .save-btn:hover { background:#00d4ff; color:#000; box-shadow:0 0 30px rgba(0,212,255,0.5); }
+        body.theme-spacecraft .btn-action { border:1px solid #0a2840; color:#1a4a6a; border-radius:2px; background:transparent; font-family:'Courier New',monospace; font-size:.48rem; }
+        body.theme-spacecraft .btn-action:hover { border-color:#00d4ff44; color:#00d4ff; }
+        body.theme-spacecraft th { color:#0a2840; background:#020810; border-bottom:1px solid #0a2840; letter-spacing:4px; font-size:.52rem; font-family:'Courier New',monospace; }
+        body.theme-spacecraft td { border-bottom:1px solid #060e20; color:#2a6080; font-family:'Courier New',monospace; font-size:.74rem; }
+        body.theme-spacecraft .section-title { color:#0a2840; border-bottom:1px solid #0a2840; letter-spacing:5px; font-family:'Courier New',monospace; }
+        body.theme-spacecraft .stat-val { color:#00d4ff; font-weight:300; font-size:1.5rem; text-shadow:0 0 15px rgba(0,212,255,0.3); font-family:'Courier New',monospace; }
+        body.theme-spacecraft .stat-label { color:#0a2840; letter-spacing:3px; font-family:'Courier New',monospace; font-size:.55rem; }
+        body.theme-spacecraft .stat-card { border-top:1px solid #00d4ff18 !important; }
+        body.theme-spacecraft .rr-badge.good { background:rgba(0,255,204,0.06); border:1px solid #00ffcc33; color:#00ffcc; border-radius:2px; font-family:'Courier New',monospace; }
+        body.theme-spacecraft .rr-badge.bad  { background:rgba(255,68,102,0.06); border:1px solid #ff446633; color:#ff4466; border-radius:2px; font-family:'Courier New',monospace; }
+        body.theme-spacecraft .rr-badge.na   { background:transparent; border:1px solid #0a2840; color:#0a2840; border-radius:2px; font-family:'Courier New',monospace; }
+        body.theme-spacecraft .outcome-badge.tp-hit { background:rgba(0,255,204,0.06); border:1px solid #00ffcc33; color:#00ffcc; border-radius:2px; }
+        body.theme-spacecraft .outcome-badge.sl-hit { background:rgba(255,68,102,0.06); border:1px solid #ff446633; color:#ff4466; border-radius:2px; }
+        body.theme-spacecraft .outcome-badge.partial { background:rgba(0,212,255,0.06); border:1px solid #00d4ff33; color:#00d4ff; border-radius:2px; }
+        body.theme-spacecraft .outcome-badge.be { background:rgba(0,100,160,0.1); border:1px solid #0060a033; color:#0090c0; border-radius:2px; }
+        body.theme-spacecraft input, body.theme-spacecraft select, body.theme-spacecraft textarea { background:#020810; border:1px solid #0a2840; color:#00d4ff; border-radius:2px; font-family:'Courier New',monospace; }
+        body.theme-spacecraft input:focus, body.theme-spacecraft select:focus { border-color:#00d4ff44; box-shadow:0 0 8px rgba(0,212,255,0.15); }
+        body.theme-spacecraft .search-bar { background:#020810; border:1px solid #0a2840; color:#00d4ff; border-radius:3px; font-family:'Courier New',monospace; }
+        body.theme-spacecraft .month-header td { background:#020810; color:#00d4ff; letter-spacing:6px; font-family:'Courier New',monospace; border-top:1px solid #0a2840; border-bottom:1px solid #0a2840; }
+        body.theme-spacecraft .lot-badge { background:#040e1c; border:1px solid #0a2840; color:#00d4ff; border-radius:2px; font-family:'Courier New',monospace; }
+        body.theme-spacecraft .login-card { background:#040e1c; border:1px solid #0a2840; border-radius:4px; box-shadow:0 0 60px rgba(0,212,255,0.08); }
+        body.theme-spacecraft .cal-day { background:#040e1c; border:1px solid #060e20; }
+        body.theme-spacecraft .cal-day.profit { border-top:1px solid #00ffcc55; }
+        body.theme-spacecraft .cal-day.loss { border-top:1px solid #ff446655; }
 
-        /* ═══════════════════════════════════════════════════════════════
-           THEME 3: COPPER
-           Warm bronze · oxidized metal · industrial dark · rust accent
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-copper {
-            --bg:#0e0a07; --surface:#160e08; --border:#3a2010;
-            --primary:#cd7f32; --accent:#e8962a;
-            --text:#7a5030; --text-light:#cd7f32;
-            --negative:#cc3300; --positive:#7ab648;
-            --glow:0 0 16px rgba(205,127,50,0.12); --card-radius:3px;
+        /* ═══════════════════════════════════════════════
+           6. MOSS — dark earth, stone, water, nature deep
+        ═══════════════════════════════════════════════ */
+        body.theme-moss {
+            --bg:#060e06; --surface:#0a1408; --border:#1a3018;
+            --primary:#7ab050; --accent:#9acc66;
+            --text:#3a5828; --text-light:#7ab050;
+            --negative:#cc5533; --positive:#7ab050;
+            --glow:none; --card-radius:4px;
         }
-        body.theme-copper { background:#0e0a07; color:#7a5030; }
-        body.theme-copper .card, body.theme-copper .stat-card, body.theme-copper .table-wrap {
-            border:1px solid #3a2010; background:#160e08;
-            box-shadow:0 4px 20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(205,127,50,0.06);
+        body.theme-moss { background:#060e06; color:#3a5828; }
+        body.theme-moss .card, body.theme-moss .stat-card, body.theme-moss .table-wrap {
+            border:1px solid #1a3018; background:#0a1408;
+            box-shadow:0 4px 20px rgba(0,0,0,0.7);
         }
-        body.theme-copper .header-title { color:#cd7f32; letter-spacing:5px; font-weight:300; text-shadow:0 0 25px rgba(205,127,50,0.2); }
-        body.theme-copper .header-top { border-bottom:1px solid #3a2010; }
-        body.theme-copper .tab-nav { border-bottom-color:#3a2010; }
-        body.theme-copper .tab-btn { color:#4a2810; letter-spacing:2px; }
-        body.theme-copper .tab-btn.active { color:#cd7f32; border-bottom-color:#cd7f32; }
-        body.theme-copper .save-btn { background:linear-gradient(135deg,#cd7f32,#8b4513); color:#fff; border:none; letter-spacing:2px; font-weight:600; }
-        body.theme-copper .save-btn:hover { box-shadow:0 0 25px rgba(205,127,50,0.35); }
-        body.theme-copper .btn-action { border:1px solid #3a2010; color:#6a3818; }
-        body.theme-copper .btn-action:hover { border-color:#cd7f32; color:#cd7f32; }
-        body.theme-copper th { color:#4a2810; background:#0e0a07; border-bottom:1px solid #3a2010; letter-spacing:3px; font-size:.55rem; }
-        body.theme-copper td { border-bottom:1px solid #201008; }
-        body.theme-copper .section-title { color:#4a2810; border-bottom-color:#3a2010; letter-spacing:4px; }
-        body.theme-copper .stat-val { color:#cd7f32; text-shadow:0 0 10px rgba(205,127,50,0.25); }
-        body.theme-copper .stat-label { color:#4a2810; }
-        body.theme-copper .stat-card { border-left:2px solid #cd7f3230 !important; }
-        body.theme-copper .rr-badge.good { background:#0a1400; border:1px solid #7ab64840; color:#7ab648; border-radius:3px; }
-        body.theme-copper .rr-badge.bad  { background:#1a0500; border:1px solid #cc330040; color:#cc3300; border-radius:3px; }
-        body.theme-copper .rr-badge.na   { background:#160e08; border:1px solid #3a2010; color:#4a2810; border-radius:3px; }
-        body.theme-copper .outcome-badge.tp-hit { background:#0a1400; border:1px solid #7ab64840; color:#7ab648; border-radius:3px; }
-        body.theme-copper .outcome-badge.sl-hit { background:#1a0500; border:1px solid #cc330040; color:#cc3300; border-radius:3px; }
-        body.theme-copper .outcome-badge.partial { background:#1a0e00; border:1px solid #cd7f3240; color:#cd7f32; border-radius:3px; }
-        body.theme-copper .outcome-badge.be { background:#100e08; border:1px solid #5a401840; color:#8a6030; border-radius:3px; }
-        body.theme-copper input, body.theme-copper select, body.theme-copper textarea { background:#0e0a07; border:1px solid #3a2010; color:#cd7f32; border-radius:2px; }
-        body.theme-copper input:focus, body.theme-copper select:focus { border-color:#cd7f32; box-shadow:0 0 6px rgba(205,127,50,0.2); }
-        body.theme-copper .search-bar { background:#0e0a07; border:1px solid #3a2010; color:#cd7f32; }
-        body.theme-copper .month-header td { background:#0e0a07; color:#cd7f32; letter-spacing:5px; }
-        body.theme-copper .lot-badge { background:#1e1008; border:1px solid #3a2010; color:#cd7f32; border-radius:2px; }
-        body.theme-copper .login-card { background:#160e08; border:1px solid #3a2010; border-radius:3px; }
-        body.theme-copper .cal-day { background:#160e08; border:1px solid #201008; }
+        body.theme-moss .header-title { color:#7ab050; letter-spacing:5px; font-weight:300; font-size:.62rem; }
+        body.theme-moss .header-top { border-bottom:1px solid #1a3018; background:#060e06; }
+        body.theme-moss .tab-nav { border-bottom:1px solid #1a3018; }
+        body.theme-moss .tab-btn { color:#1a3018; letter-spacing:3px; }
+        body.theme-moss .tab-btn.active { color:#7ab050; border-bottom:1px solid #7ab050; }
+        body.theme-moss .save-btn { background:#7ab050; color:#060e06; border:none; letter-spacing:3px; font-weight:700; border-radius:3px; }
+        body.theme-moss .save-btn:hover { background:#9acc66; box-shadow:0 0 20px rgba(122,176,80,0.3); }
+        body.theme-moss .btn-action { border:1px solid #1a3018; color:#2a4818; border-radius:3px; background:transparent; }
+        body.theme-moss .btn-action:hover { border-color:#7ab050; color:#7ab050; }
+        body.theme-moss th { color:#1a3018; background:#060e06; border-bottom:1px solid #1a3018; letter-spacing:3px; font-size:.53rem; }
+        body.theme-moss td { border-bottom:1px solid #0e1a0c; color:#4a6835; }
+        body.theme-moss .section-title { color:#1a3018; border-bottom:1px solid #1a3018; letter-spacing:5px; }
+        body.theme-moss .stat-val { color:#7ab050; font-weight:300; font-size:1.5rem; }
+        body.theme-moss .stat-label { color:#1a3018; letter-spacing:3px; }
+        body.theme-moss .rr-badge.good { background:#061004; border:1px solid #7ab05030; color:#7ab050; border-radius:3px; }
+        body.theme-moss .rr-badge.bad  { background:#120800; border:1px solid #cc553330; color:#cc5533; border-radius:3px; }
+        body.theme-moss .rr-badge.na   { background:#0a1408; border:1px solid #1a3018; color:#1a3018; border-radius:3px; }
+        body.theme-moss .outcome-badge.tp-hit { background:#061004; border:1px solid #7ab05030; color:#7ab050; border-radius:3px; }
+        body.theme-moss .outcome-badge.sl-hit { background:#120800; border:1px solid #cc553330; color:#cc5533; border-radius:3px; }
+        body.theme-moss .outcome-badge.partial { background:#0e1200; border:1px solid #9acc6630; color:#9acc66; border-radius:3px; }
+        body.theme-moss .outcome-badge.be { background:#081008; border:1px solid #3a582830; color:#3a5828; border-radius:3px; }
+        body.theme-moss input, body.theme-moss select, body.theme-moss textarea { background:#060e06; border:1px solid #1a3018; color:#7ab050; border-radius:3px; }
+        body.theme-moss input:focus, body.theme-moss select:focus { border-color:#7ab05055; }
+        body.theme-moss .search-bar { background:#060e06; border:1px solid #1a3018; color:#7ab050; border-radius:4px; }
+        body.theme-moss .month-header td { background:#060e06; color:#7ab050; letter-spacing:5px; border-top:1px solid #1a3018; border-bottom:1px solid #1a3018; }
+        body.theme-moss .lot-badge { background:#0e1a0c; border:1px solid #1a3018; color:#7ab050; border-radius:3px; }
+        body.theme-moss .login-card { background:#0a1408; border:1px solid #1a3018; border-radius:5px; }
+        body.theme-moss .cal-day { background:#0a1408; border:1px solid #0e1a0c; }
+        body.theme-moss .cal-day.profit { border-top:2px solid #7ab05066; }
+        body.theme-moss .cal-day.loss { border-top:2px solid #cc553366; }
 
-        /* ═══════════════════════════════════════════════════════════════
-           THEME 4: DEEP OCEAN
-           Dark abyss · bioluminescent teal · pressure depth
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-ocean {
-            --bg:#020d14; --surface:#041822; --border:#063040;
-            --primary:#00c8c8; --accent:#00e5e5;
-            --text:#1a6070; --text-light:#00c8c8;
-            --negative:#ff4466; --positive:#00e5b0;
-            --glow:0 0 20px rgba(0,200,200,0.12); --card-radius:6px;
+        /* ═══════════════════════════════════════════════
+           7. DUSK PASTEL — dark base, soft muted pastels
+        ═══════════════════════════════════════════════ */
+        body.theme-duskpastel {
+            --bg:#0e0c14; --surface:#151220; --border:#2a2540;
+            --primary:#b8a8e8; --accent:#d0b8f8;
+            --text:#6a6090; --text-light:#d0c8f0;
+            --negative:#e89090; --positive:#90d8b0;
+            --glow:none; --card-radius:16px;
         }
-        body.theme-ocean { background:#020d14; color:#1a6070; }
-        body.theme-ocean .card, body.theme-ocean .stat-card, body.theme-ocean .table-wrap {
-            border:1px solid #063040; background:#041822;
-            box-shadow:0 8px 32px rgba(0,0,0,0.7), inset 0 0 30px rgba(0,200,200,0.03);
+        body.theme-duskpastel { background:#0e0c14; color:#6a6090; }
+        body.theme-duskpastel .card, body.theme-duskpastel .stat-card {
+            border:1px solid #2a2540; background:#151220; border-radius:16px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.5);
         }
-        body.theme-ocean .header-title { color:#00c8c8; letter-spacing:5px; font-weight:300; text-shadow:0 0 25px rgba(0,200,200,0.3); }
-        body.theme-ocean .header-top { border-bottom:1px solid #063040; }
-        body.theme-ocean .tab-nav { border-bottom-color:#063040; }
-        body.theme-ocean .tab-btn { color:#0a3040; letter-spacing:2px; }
-        body.theme-ocean .tab-btn.active { color:#00c8c8; border-bottom-color:#00c8c8; text-shadow:0 0 8px rgba(0,200,200,0.4); }
-        body.theme-ocean .save-btn { background:linear-gradient(135deg,#00c8c8,#006688); color:#000; border:none; letter-spacing:2px; font-weight:700; border-radius:5px; }
-        body.theme-ocean .save-btn:hover { box-shadow:0 0 25px rgba(0,200,200,0.4); }
-        body.theme-ocean .btn-action { border:1px solid #063040; color:#1a6070; border-radius:5px; }
-        body.theme-ocean .btn-action:hover { border-color:#00c8c8; color:#00c8c8; }
-        body.theme-ocean th { color:#0a3040; background:#020d14; border-bottom:1px solid #063040; letter-spacing:3px; font-size:.55rem; }
-        body.theme-ocean td { border-bottom:1px solid #041820; }
-        body.theme-ocean .section-title { color:#0a3040; border-bottom-color:#063040; letter-spacing:4px; }
-        body.theme-ocean .stat-val { color:#00c8c8; text-shadow:0 0 12px rgba(0,200,200,0.3); }
-        body.theme-ocean .stat-label { color:#0a3040; }
-        body.theme-ocean .rr-badge.good { background:#001e18; border:1px solid #00e5b040; color:#00e5b0; border-radius:5px; }
-        body.theme-ocean .rr-badge.bad  { background:#1a0010; border:1px solid #ff446640; color:#ff4466; border-radius:5px; }
-        body.theme-ocean .rr-badge.na   { background:#041822; border:1px solid #063040; color:#0a3040; border-radius:5px; }
-        body.theme-ocean .outcome-badge.tp-hit { background:#001e18; border:1px solid #00e5b040; color:#00e5b0; border-radius:5px; }
-        body.theme-ocean .outcome-badge.sl-hit { background:#1a0010; border:1px solid #ff446640; color:#ff4466; border-radius:5px; }
-        body.theme-ocean .outcome-badge.partial { background:#001822; border:1px solid #00c8c840; color:#00c8c8; border-radius:5px; }
-        body.theme-ocean .outcome-badge.be { background:#041020; border:1px solid #0060a040; color:#0090c0; border-radius:5px; }
-        body.theme-ocean input, body.theme-ocean select, body.theme-ocean textarea { background:#020d14; border:1px solid #063040; color:#00c8c8; border-radius:5px; }
-        body.theme-ocean input:focus, body.theme-ocean select:focus { border-color:#00c8c8; box-shadow:0 0 8px rgba(0,200,200,0.2); }
-        body.theme-ocean .search-bar { background:#020d14; border:1px solid #063040; color:#00c8c8; border-radius:6px; }
-        body.theme-ocean .month-header td { background:#020d14; color:#00c8c8; letter-spacing:5px; }
-        body.theme-ocean .lot-badge { background:#041822; border:1px solid #063040; color:#00c8c8; border-radius:4px; }
-        body.theme-ocean .login-card { background:#041822; border:1px solid #063040; border-radius:10px; }
-        body.theme-ocean .cal-day { background:#041822; border:1px solid #041820; }
-        body.theme-ocean .cal-day.profit { border-top:2px solid #00e5b0; }
-        body.theme-ocean .cal-day.loss { border-top:2px solid #ff4466; }
+        body.theme-duskpastel .table-wrap { border:1px solid #2a2540; border-radius:12px; overflow:hidden; background:#151220; }
+        body.theme-duskpastel .header-title { color:#d0c8f0; letter-spacing:4px; font-weight:300; font-size:.62rem; }
+        body.theme-duskpastel .header-top { border-bottom:1px solid #2a2540; background:#0e0c14; }
+        body.theme-duskpastel .tab-nav { border-bottom:1px solid #2a2540; }
+        body.theme-duskpastel .tab-btn { color:#2a2540; letter-spacing:2px; }
+        body.theme-duskpastel .tab-btn.active { color:#b8a8e8; border-bottom:1px solid #b8a8e8; }
+        body.theme-duskpastel .save-btn { background:linear-gradient(135deg,#b8a8e8,#90b8e8); color:#0e0c14; border:none; letter-spacing:2px; font-weight:600; border-radius:12px; }
+        body.theme-duskpastel .save-btn:hover { box-shadow:0 4px 20px rgba(184,168,232,0.3); }
+        body.theme-duskpastel .btn-action { border:1px solid #2a2540; color:#6a6090; border-radius:10px; background:transparent; }
+        body.theme-duskpastel .btn-action:hover { border-color:#b8a8e8; color:#b8a8e8; }
+        body.theme-duskpastel th { color:#2a2540; background:#0e0c14; border-bottom:1px solid #2a2540; letter-spacing:2px; font-size:.55rem; }
+        body.theme-duskpastel td { border-bottom:1px solid #1e1a30; color:#8a80a8; }
+        body.theme-duskpastel .section-title { color:#2a2540; border-bottom:1px solid #2a2540; letter-spacing:4px; }
+        body.theme-duskpastel .stat-val { color:#d0c8f0; font-weight:300; font-size:1.5rem; }
+        body.theme-duskpastel .stat-label { color:#2a2540; letter-spacing:3px; }
+        body.theme-duskpastel .rr-badge.good { background:rgba(144,216,176,0.1); border:1px solid #90d8b040; color:#90d8b0; border-radius:10px; }
+        body.theme-duskpastel .rr-badge.bad  { background:rgba(232,144,144,0.1); border:1px solid #e8909040; color:#e89090; border-radius:10px; }
+        body.theme-duskpastel .rr-badge.na   { background:rgba(42,37,64,0.5); border:1px solid #2a2540; color:#3a3560; border-radius:10px; }
+        body.theme-duskpastel .outcome-badge.tp-hit { background:rgba(144,216,176,0.1); border:1px solid #90d8b040; color:#90d8b0; border-radius:10px; }
+        body.theme-duskpastel .outcome-badge.sl-hit { background:rgba(232,144,144,0.1); border:1px solid #e8909040; color:#e89090; border-radius:10px; }
+        body.theme-duskpastel .outcome-badge.partial { background:rgba(232,200,144,0.1); border:1px solid #e8c89040; color:#e8c890; border-radius:10px; }
+        body.theme-duskpastel .outcome-badge.be { background:rgba(184,168,232,0.1); border:1px solid #b8a8e840; color:#b8a8e8; border-radius:10px; }
+        body.theme-duskpastel input, body.theme-duskpastel select, body.theme-duskpastel textarea { background:#0e0c14; border:1px solid #2a2540; color:#d0c8f0; border-radius:10px; }
+        body.theme-duskpastel input:focus, body.theme-duskpastel select:focus { border-color:#b8a8e855; box-shadow:0 0 0 3px rgba(184,168,232,0.1); }
+        body.theme-duskpastel .search-bar { background:#0e0c14; border:1px solid #2a2540; color:#d0c8f0; border-radius:12px; }
+        body.theme-duskpastel .month-header td { background:#0e0c14; color:#b8a8e8; letter-spacing:4px; border-top:1px solid #2a2540; border-bottom:1px solid #2a2540; }
+        body.theme-duskpastel .lot-badge { background:#1e1a30; border:1px solid #2a2540; color:#b8a8e8; border-radius:8px; }
+        body.theme-duskpastel .login-card { background:#151220; border:1px solid #2a2540; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.7); }
+        body.theme-duskpastel .cal-day { background:#151220; border:1px solid #1e1a30; }
+        body.theme-duskpastel .cal-day.profit { border-top:2px solid #90d8b066; }
+        body.theme-duskpastel .cal-day.loss { border-top:2px solid #e8909066; }
 
-        /* ═══════════════════════════════════════════════════════════════
-           THEME 5: NOIR
-           1940s film noir · sepia ivory · near-black · typewriter
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-noir {
-            --bg:#0a0906; --surface:#12100a; --border:#2a2215;
-            --primary:#d4c08a; --accent:#e8d4a0;
-            --text:#6a5a35; --text-light:#d4c08a;
-            --negative:#cc4422; --positive:#7a9a55;
-            --glow:none; --card-radius:1px;
+        /* ═══════════════════════════════════════════════
+           8. SLATE — pure monochrome, every shade of grey
+        ═══════════════════════════════════════════════ */
+        body.theme-slate {
+            --bg:#080808; --surface:#101010; --border:#282828;
+            --primary:#aaaaaa; --accent:#dddddd;
+            --text:#484848; --text-light:#cccccc;
+            --negative:#888888; --positive:#cccccc;
+            --glow:none; --card-radius:3px;
         }
-        body.theme-noir, body.theme-noir .header-title,
-        body.theme-noir .tab-btn, body.theme-noir .section-title,
-        body.theme-noir th { font-family:'Georgia','Times New Roman',serif !important; }
-        body.theme-noir { background:#0a0906; color:#6a5a35; }
-        body.theme-noir .card, body.theme-noir .stat-card, body.theme-noir .table-wrap {
-            border:1px solid #2a2215; background:#12100a;
+        body.theme-slate { background:#080808; color:#484848; }
+        body.theme-slate .card, body.theme-slate .stat-card, body.theme-slate .table-wrap {
+            border:1px solid #222; background:#101010; border-radius:3px;
+            box-shadow:0 2px 12px rgba(0,0,0,0.8);
+        }
+        body.theme-slate .header-title { color:#aaaaaa; letter-spacing:8px; font-weight:200; font-size:.6rem; }
+        body.theme-slate .header-top { border-bottom:1px solid #1c1c1c; background:#080808; }
+        body.theme-slate .tab-nav { border-bottom:1px solid #1c1c1c; }
+        body.theme-slate .tab-btn { color:#2a2a2a; letter-spacing:4px; font-weight:300; }
+        body.theme-slate .tab-btn.active { color:#aaaaaa; border-bottom:1px solid #666; }
+        body.theme-slate .save-btn { background:#aaaaaa; color:#080808; border:none; letter-spacing:4px; font-weight:300; border-radius:2px; }
+        body.theme-slate .save-btn:hover { background:#cccccc; }
+        body.theme-slate .btn-action { border:1px solid #222; color:#3a3a3a; background:transparent; border-radius:2px; }
+        body.theme-slate .btn-action:hover { border-color:#666; color:#999; }
+        body.theme-slate th { color:#2a2a2a; background:#080808; border-bottom:1px solid #1c1c1c; letter-spacing:5px; font-size:.52rem; font-weight:300; }
+        body.theme-slate td { border-bottom:1px solid #141414; color:#606060; }
+        body.theme-slate .section-title { color:#2a2a2a; border-bottom:1px solid #1c1c1c; letter-spacing:7px; font-weight:300; }
+        body.theme-slate .stat-val { color:#cccccc; font-weight:200; font-size:1.7rem; }
+        body.theme-slate .stat-label { color:#2a2a2a; letter-spacing:5px; font-weight:300; }
+        body.theme-slate .rr-badge.good { background:transparent; border:1px solid #cccccc33; color:#cccccc; border-radius:2px; }
+        body.theme-slate .rr-badge.bad  { background:transparent; border:1px solid #88888833; color:#888; border-radius:2px; }
+        body.theme-slate .rr-badge.na   { background:transparent; border:1px solid #222; color:#2a2a2a; border-radius:2px; }
+        body.theme-slate .outcome-badge.tp-hit { background:rgba(204,204,204,0.05); border:1px solid #cccccc33; color:#cccccc; border-radius:2px; }
+        body.theme-slate .outcome-badge.sl-hit { background:rgba(136,136,136,0.05); border:1px solid #88888833; color:#888; border-radius:2px; }
+        body.theme-slate .outcome-badge.partial { background:rgba(170,170,170,0.05); border:1px solid #aaaaaa33; color:#aaaaaa; border-radius:2px; }
+        body.theme-slate .outcome-badge.be { background:rgba(68,68,68,0.1); border:1px solid #44444433; color:#555; border-radius:2px; }
+        body.theme-slate input, body.theme-slate select, body.theme-slate textarea { background:#080808; border:1px solid #222; color:#cccccc; border-radius:2px; }
+        body.theme-slate input:focus, body.theme-slate select:focus { border-color:#555; }
+        body.theme-slate .search-bar { background:#080808; border:1px solid #222; color:#cccccc; border-radius:3px; }
+        body.theme-slate .month-header td { background:#080808; color:#666; letter-spacing:8px; border-top:1px solid #1c1c1c; border-bottom:1px solid #1c1c1c; font-weight:300; }
+        body.theme-slate .lot-badge { background:#141414; border:1px solid #222; color:#888; border-radius:2px; }
+        body.theme-slate .login-card { background:#101010; border:1px solid #222; border-radius:4px; }
+        body.theme-slate .cal-day { background:#101010; border:1px solid #141414; }
+        body.theme-slate .cal-day.profit { border-top:1px solid #cccccc55; }
+        body.theme-slate .cal-day.loss { border-top:1px solid #88888855; }
+
+        /* ═══════════════════════════════════════════════
+           9. BASH — Linux terminal, proper shell aesthetic
+        ═══════════════════════════════════════════════ */
+        body.theme-bash {
+            --bg:#0d1117; --surface:#161b22; --border:#21262d;
+            --primary:#58a6ff; --accent:#79c0ff;
+            --text:#484f58; --text-light:#c9d1d9;
+            --negative:#f85149; --positive:#56d364;
+            --glow:none; --card-radius:6px;
+        }
+        body.theme-bash, body.theme-bash input, body.theme-bash select,
+        body.theme-bash textarea, body.theme-bash .header-title,
+        body.theme-bash th, body.theme-bash td,
+        body.theme-bash .section-title, body.theme-bash .tab-btn,
+        body.theme-bash .stat-val, body.theme-bash .stat-label { font-family:'SFMono-Regular','Consolas','Liberation Mono','Menlo',monospace !important; }
+        body.theme-bash { background:#0d1117; color:#484f58; }
+        body.theme-bash .card, body.theme-bash .stat-card, body.theme-bash .table-wrap {
+            border:1px solid #21262d; background:#161b22; border-radius:6px;
+        }
+        body.theme-bash .header-title { color:#c9d1d9; letter-spacing:3px; font-size:.65rem; font-weight:400; }
+        body.theme-bash .header-title::before { content:'$ '; color:#56d364; }
+        body.theme-bash .header-top { border-bottom:1px solid #21262d; background:#0d1117; }
+        body.theme-bash .tab-nav { border-bottom:1px solid #21262d; }
+        body.theme-bash .tab-btn { color:#30363d; letter-spacing:1px; font-size:.63rem; }
+        body.theme-bash .tab-btn::before { content:'~/'; color:#58a6ff44; }
+        body.theme-bash .tab-btn.active { color:#c9d1d9; border-bottom:2px solid #58a6ff; }
+        body.theme-bash .tab-btn.active::before { color:#58a6ff; }
+        body.theme-bash .save-btn { background:#238636; color:#fff; border:1px solid #2ea043; letter-spacing:2px; font-weight:600; border-radius:6px; font-family:monospace !important; }
+        body.theme-bash .save-btn:hover { background:#2ea043; box-shadow:0 0 12px rgba(46,160,67,0.3); }
+        body.theme-bash .btn-action { border:1px solid #21262d; color:#484f58; border-radius:6px; background:#161b22; font-family:monospace !important; }
+        body.theme-bash .btn-action:hover { border-color:#58a6ff55; color:#58a6ff; background:#1c2128; }
+        body.theme-bash th { color:#484f58; background:#0d1117; border-bottom:1px solid #21262d; letter-spacing:2px; font-size:.55rem; }
+        body.theme-bash td { border-bottom:1px solid #1c2128; color:#8b949e; }
+        body.theme-bash .section-title { color:#30363d; border-bottom:1px solid #21262d; letter-spacing:3px; }
+        body.theme-bash .section-title::before { content:'## '; color:#58a6ff55; }
+        body.theme-bash .stat-val { color:#c9d1d9; font-size:1.4rem; font-weight:400; }
+        body.theme-bash .stat-label { color:#30363d; letter-spacing:2px; }
+        body.theme-bash .rr-badge.good { background:#0f2a14; border:1px solid #56d36440; color:#56d364; border-radius:5px; }
+        body.theme-bash .rr-badge.bad  { background:#2a0e0e; border:1px solid #f8514940; color:#f85149; border-radius:5px; }
+        body.theme-bash .rr-badge.na   { background:#161b22; border:1px solid #21262d; color:#484f58; border-radius:5px; }
+        body.theme-bash .outcome-badge.tp-hit { background:#0f2a14; border:1px solid #56d36440; color:#56d364; border-radius:5px; }
+        body.theme-bash .outcome-badge.sl-hit { background:#2a0e0e; border:1px solid #f8514940; color:#f85149; border-radius:5px; }
+        body.theme-bash .outcome-badge.partial { background:#1c1a0e; border:1px solid #e3b34140; color:#e3b341; border-radius:5px; }
+        body.theme-bash .outcome-badge.be { background:#0e1a2a; border:1px solid #58a6ff40; color:#58a6ff; border-radius:5px; }
+        body.theme-bash input, body.theme-bash select, body.theme-bash textarea { background:#0d1117; border:1px solid #21262d; color:#c9d1d9; border-radius:6px; }
+        body.theme-bash input:focus, body.theme-bash select:focus { border-color:#58a6ff55; box-shadow:0 0 0 3px rgba(88,166,255,0.1); }
+        body.theme-bash input::placeholder { color:#30363d; }
+        body.theme-bash .search-bar { background:#0d1117; border:1px solid #21262d; color:#c9d1d9; border-radius:6px; }
+        body.theme-bash .month-header td { background:#0d1117; color:#58a6ff; letter-spacing:3px; border-top:1px solid #21262d; border-bottom:1px solid #21262d; }
+        body.theme-bash .lot-badge { background:#1c2128; border:1px solid #21262d; color:#8b949e; border-radius:4px; }
+        body.theme-bash .login-card { background:#161b22; border:1px solid #21262d; border-radius:10px; }
+        body.theme-bash .cal-day { background:#161b22; border:1px solid #1c2128; }
+        body.theme-bash .cal-day.profit { border-top:2px solid #56d36455; }
+        body.theme-bash .cal-day.loss { border-top:2px solid #f8514955; }
+        body.theme-bash .price-lbl { color:#30363d; }
+
+        /* ═══════════════════════════════════════════════
+           10. STEEL — cold industrial, blue-grey mono
+        ═══════════════════════════════════════════════ */
+        body.theme-steel {
+            --bg:#0a0c10; --surface:#111418; --border:#222830;
+            --primary:#8899bb; --accent:#aabbdd;
+            --text:#445566; --text-light:#99aabb;
+            --negative:#cc4455; --positive:#44aa77;
+            --glow:none; --card-radius:2px;
+        }
+        body.theme-steel { background:#0a0c10; color:#445566; }
+        body.theme-steel .card, body.theme-steel .stat-card, body.theme-steel .table-wrap {
+            border:1px solid #222830; background:#111418; border-radius:2px;
             box-shadow:0 4px 16px rgba(0,0,0,0.7);
         }
-        body.theme-noir .header-title { color:#d4c08a; letter-spacing:6px; font-weight:400; font-style:italic; font-size:.68rem; }
-        body.theme-noir .header-top { border-bottom:1px solid #2a2215; }
-        body.theme-noir .tab-nav { border-bottom-color:#2a2215; }
-        body.theme-noir .tab-btn { color:#3a2a10; letter-spacing:2px; font-style:italic; }
-        body.theme-noir .tab-btn.active { color:#d4c08a; border-bottom:1px solid #d4c08a; }
-        body.theme-noir .save-btn { background:#d4c08a; color:#0a0906; border:none; letter-spacing:3px; font-weight:700; font-family:'Georgia',serif !important; }
-        body.theme-noir .save-btn:hover { background:#e8d4a0; }
-        body.theme-noir .btn-action { border:1px solid #2a2215; color:#4a3a18; font-family:'Georgia',serif !important; }
-        body.theme-noir .btn-action:hover { border-color:#d4c08a; color:#d4c08a; }
-        body.theme-noir th { color:#3a2a10; background:#0a0906; border-bottom:1px solid #2a2215; letter-spacing:3px; font-size:.57rem; font-style:italic; }
-        body.theme-noir td { border-bottom:1px solid #1a1508; }
-        body.theme-noir .section-title { color:#3a2a10; border-bottom:1px solid #2a2215; letter-spacing:5px; font-style:italic; }
-        body.theme-noir .stat-val { color:#d4c08a; font-family:'Georgia',serif !important; font-weight:400; }
-        body.theme-noir .stat-label { color:#3a2a10; font-style:italic; }
-        body.theme-noir .rr-badge.good { background:#0a1204; border:1px solid #7a9a5540; color:#7a9a55; border-radius:1px; }
-        body.theme-noir .rr-badge.bad  { background:#14080a; border:1px solid #cc442240; color:#cc4422; border-radius:1px; }
-        body.theme-noir .rr-badge.na   { background:#12100a; border:1px solid #2a2215; color:#3a2a10; border-radius:1px; }
-        body.theme-noir .outcome-badge.tp-hit { background:#0a1204; border:1px solid #7a9a5540; color:#7a9a55; border-radius:1px; }
-        body.theme-noir .outcome-badge.sl-hit { background:#14080a; border:1px solid #cc442240; color:#cc4422; border-radius:1px; }
-        body.theme-noir .outcome-badge.partial { background:#141006; border:1px solid #d4c08a40; color:#d4c08a; border-radius:1px; }
-        body.theme-noir .outcome-badge.be { background:#100e08; border:1px solid #6a5a3540; color:#6a5a35; border-radius:1px; }
-        body.theme-noir input, body.theme-noir select, body.theme-noir textarea { background:#0a0906; border:1px solid #2a2215; color:#d4c08a; border-radius:0; font-family:'Georgia',serif !important; }
-        body.theme-noir input:focus, body.theme-noir select:focus { border-color:#d4c08a; }
-        body.theme-noir .search-bar { background:#0a0906; border:1px solid #2a2215; color:#d4c08a; }
-        body.theme-noir .month-header td { background:#0a0906; color:#d4c08a; letter-spacing:6px; font-style:italic; }
-        body.theme-noir .lot-badge { background:#1a1508; border:1px solid #2a2215; color:#d4c08a; border-radius:1px; }
-        body.theme-noir .login-card { background:#12100a; border:1px solid #2a2215; border-radius:1px; }
-        body.theme-noir .cal-day { background:#12100a; border:1px solid #1a1508; }
-
-        /* ═══════════════════════════════════════════════════════════════
-           THEME 6: TOXIC
-           Acid yellow-green · hazard · industrial warning · pitch black
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-toxic {
-            --bg:#050600; --surface:#0a0c00; --border:#2a3000;
-            --primary:#ccff00; --accent:#aadd00;
-            --text:#556600; --text-light:#ccff00;
-            --negative:#ff3300; --positive:#ccff00;
-            --glow:0 0 16px rgba(204,255,0,0.15); --card-radius:0px;
-        }
-        body.theme-toxic { background:#050600; color:#556600; }
-        body.theme-toxic .card, body.theme-toxic .stat-card, body.theme-toxic .table-wrap {
-            border:1px solid #2a3000; background:#0a0c00;
-            box-shadow:inset 0 0 30px rgba(204,255,0,0.02);
-        }
-        body.theme-toxic .header-title { color:#ccff00; letter-spacing:4px; font-weight:800; font-size:.68rem; text-shadow:0 0 20px rgba(204,255,0,0.4); }
-        body.theme-toxic .header-top { border-bottom:1px solid #2a3000; }
-        body.theme-toxic .tab-nav { border-bottom-color:#2a3000; }
-        body.theme-toxic .tab-btn { color:#2a3300; letter-spacing:3px; font-weight:700; }
-        body.theme-toxic .tab-btn.active { color:#ccff00; border-bottom:2px solid #ccff00; text-shadow:0 0 8px rgba(204,255,0,0.5); }
-        body.theme-toxic .save-btn { background:#ccff00; color:#000; border:none; letter-spacing:3px; font-weight:900; font-size:.8rem; }
-        body.theme-toxic .save-btn:hover { background:#aadd00; box-shadow:0 0 30px rgba(204,255,0,0.5); }
-        body.theme-toxic .btn-action { border:1px solid #2a3000; color:#3a4400; font-weight:700; }
-        body.theme-toxic .btn-action:hover { border-color:#ccff00; color:#ccff00; }
-        body.theme-toxic th { color:#2a3300; background:#050600; border-bottom:1px solid #2a3000; letter-spacing:4px; font-size:.55rem; font-weight:800; }
-        body.theme-toxic td { border-bottom:1px solid #141800; }
-        body.theme-toxic .section-title { color:#2a3300; border-bottom-color:#2a3000; letter-spacing:5px; font-weight:800; }
-        body.theme-toxic .stat-val { color:#ccff00; text-shadow:0 0 15px rgba(204,255,0,0.4); font-weight:800; }
-        body.theme-toxic .stat-label { color:#2a3300; font-weight:700; }
-        body.theme-toxic .rr-badge.good { background:#0a1400; border:1px solid #ccff0044; color:#ccff00; border-radius:0; font-weight:800; }
-        body.theme-toxic .rr-badge.bad  { background:#1a0500; border:1px solid #ff330044; color:#ff3300; border-radius:0; font-weight:800; }
-        body.theme-toxic .rr-badge.na   { background:#0a0c00; border:1px solid #2a3000; color:#3a4400; border-radius:0; }
-        body.theme-toxic .outcome-badge.tp-hit { background:#0a1400; border:1px solid #ccff0044; color:#ccff00; border-radius:0; font-weight:800; }
-        body.theme-toxic .outcome-badge.sl-hit { background:#1a0500; border:1px solid #ff330044; color:#ff3300; border-radius:0; font-weight:800; }
-        body.theme-toxic .outcome-badge.partial { background:#181a00; border:1px solid #aadd0044; color:#aadd00; border-radius:0; }
-        body.theme-toxic .outcome-badge.be { background:#0c0e00; border:1px solid #55660044; color:#556600; border-radius:0; }
-        body.theme-toxic input, body.theme-toxic select, body.theme-toxic textarea { background:#050600; border:1px solid #2a3000; color:#ccff00; border-radius:0; }
-        body.theme-toxic input:focus, body.theme-toxic select:focus { border-color:#ccff00; box-shadow:0 0 8px rgba(204,255,0,0.25); }
-        body.theme-toxic .search-bar { background:#050600; border:1px solid #2a3000; color:#ccff00; }
-        body.theme-toxic .month-header td { background:#050600; color:#ccff00; letter-spacing:6px; font-weight:800; }
-        body.theme-toxic .lot-badge { background:#141800; border:1px solid #2a3000; color:#ccff00; border-radius:0; font-weight:800; }
-        body.theme-toxic .login-card { background:#0a0c00; border:1px solid #2a3000; border-radius:0; }
-        body.theme-toxic .cal-day { background:#0a0c00; border:1px solid #141800; }
-        body.theme-toxic .cal-day.profit { border-top:2px solid #ccff00; }
-        body.theme-toxic .cal-day.loss { border-top:2px solid #ff3300; }
-
-        /* ═══════════════════════════════════════════════════════════════
-           THEME 7: COMMODORE
-           Retro 8-bit · cobalt blue · white pixel text · C64 vibes
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-commodore {
-            --bg:#3434c8; --surface:#2828aa; --border:#5050e8;
-            --primary:#a8a8ff; --accent:#ffffff;
-            --text:#8080d0; --text-light:#ffffff;
-            --negative:#ff5555; --positive:#55ff55;
-            --glow:none; --card-radius:0px;
-        }
-        body.theme-commodore, body.theme-commodore * { font-family:'Courier New',Courier,monospace !important; }
-        body.theme-commodore { background:#3434c8; color:#8080d0; }
-        body.theme-commodore .card, body.theme-commodore .stat-card, body.theme-commodore .table-wrap {
-            border:2px solid #5050e8; background:#2828aa; border-radius:0;
-        }
-        body.theme-commodore .header-title { color:#fff; letter-spacing:3px; font-size:.72rem; font-weight:400; }
-        body.theme-commodore .header-top { border-bottom:2px solid #5050e8; background:#2828aa; }
-        body.theme-commodore .tab-nav { border-bottom:2px solid #5050e8; }
-        body.theme-commodore .tab-btn { color:#6868c8; letter-spacing:2px; font-size:.65rem; text-transform:uppercase; }
-        body.theme-commodore .tab-btn.active { color:#fff; border-bottom:2px solid #fff; }
-        body.theme-commodore .save-btn { background:#fff; color:#3434c8; border:none; letter-spacing:3px; font-weight:700; font-size:.75rem; border-radius:0; }
-        body.theme-commodore .save-btn:hover { background:#a8a8ff; }
-        body.theme-commodore .btn-action { border:2px solid #5050e8; color:#a8a8ff; background:#2828aa; border-radius:0; }
-        body.theme-commodore .btn-action:hover { background:#5050e8; color:#fff; }
-        body.theme-commodore th { color:#a8a8ff; background:#2020a0; border-bottom:2px solid #5050e8; letter-spacing:2px; font-size:.58rem; }
-        body.theme-commodore td { border-bottom:1px solid #3838d0; color:#d0d0ff; }
-        body.theme-commodore .section-title { color:#a8a8ff; border-bottom:2px solid #5050e8; letter-spacing:4px; }
-        body.theme-commodore .stat-val { color:#fff; font-size:1.4rem; }
-        body.theme-commodore .stat-label { color:#8080d0; letter-spacing:2px; }
-        body.theme-commodore .rr-badge.good { background:#2020a0; border:2px solid #55ff55; color:#55ff55; border-radius:0; }
-        body.theme-commodore .rr-badge.bad  { background:#2020a0; border:2px solid #ff5555; color:#ff5555; border-radius:0; }
-        body.theme-commodore .rr-badge.na   { background:#2020a0; border:2px solid #5050e8; color:#8080d0; border-radius:0; }
-        body.theme-commodore .outcome-badge.tp-hit { background:#2020a0; border:2px solid #55ff55; color:#55ff55; border-radius:0; }
-        body.theme-commodore .outcome-badge.sl-hit { background:#2020a0; border:2px solid #ff5555; color:#ff5555; border-radius:0; }
-        body.theme-commodore .outcome-badge.partial { background:#2020a0; border:2px solid #ffff55; color:#ffff55; border-radius:0; }
-        body.theme-commodore .outcome-badge.be { background:#2020a0; border:2px solid #a8a8ff; color:#a8a8ff; border-radius:0; }
-        body.theme-commodore input, body.theme-commodore select, body.theme-commodore textarea { background:#2020a0; border:2px solid #5050e8; color:#fff; border-radius:0; }
-        body.theme-commodore input:focus, body.theme-commodore select:focus { border-color:#fff; outline:none; }
-        body.theme-commodore .search-bar { background:#2020a0; border:2px solid #5050e8; color:#fff; border-radius:0; }
-        body.theme-commodore .month-header td { background:#2020a0; color:#fff; letter-spacing:4px; border-top:2px solid #5050e8; border-bottom:2px solid #5050e8; }
-        body.theme-commodore .lot-badge { background:#2020a0; border:2px solid #5050e8; color:#a8a8ff; border-radius:0; }
-        body.theme-commodore .login-card { background:#2828aa; border:2px solid #5050e8; border-radius:0; }
-        body.theme-commodore .cal-day { background:#2828aa; border:1px solid #3838d0; }
-        body.theme-commodore .cal-day.profit { border-top:3px solid #55ff55; }
-        body.theme-commodore .cal-day.loss { border-top:3px solid #ff5555; }
-
-        /* ═══════════════════════════════════════════════════════════════
-           THEME 8: SAND DUNE
-           Desert warm beige · terracotta · dusty minimal · earthy
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-sand {
-            --bg:#f5ede0; --surface:#fdf6ec; --border:#e0cdb0;
-            --primary:#8b5a2b; --accent:#c07840;
-            --text:#9a7855; --text-light:#4a2a10;
-            --negative:#c0392b; --positive:#527a3a;
-            --glow:none; --card-radius:8px;
-        }
-        body.theme-sand { background:#f5ede0; color:#9a7855; }
-        body.theme-sand .card, body.theme-sand .stat-card {
-            background:#fdf6ec; border:1px solid #e0cdb0; border-radius:8px;
-            box-shadow:0 2px 12px rgba(139,90,43,0.08);
-        }
-        body.theme-sand .table-wrap { border:1px solid #e0cdb0; border-radius:8px; overflow:hidden; }
-        body.theme-sand .header-title { color:#4a2a10; letter-spacing:5px; font-weight:300; font-size:.62rem; }
-        body.theme-sand .header-top { border-bottom:1px solid #e0cdb0; background:#fdf6ec; }
-        body.theme-sand .tab-nav { border-bottom-color:#e0cdb0; }
-        body.theme-sand .tab-btn { color:#c0a880; letter-spacing:2px; }
-        body.theme-sand .tab-btn.active { color:#8b5a2b; border-bottom-color:#c07840; }
-        body.theme-sand .save-btn { background:#8b5a2b; color:#fdf6ec; border:none; border-radius:6px; letter-spacing:2px; }
-        body.theme-sand .save-btn:hover { background:#c07840; box-shadow:0 4px 16px rgba(139,90,43,0.3); }
-        body.theme-sand .btn-action { border:1px solid #e0cdb0; color:#9a7855; background:#fdf6ec; border-radius:6px; }
-        body.theme-sand .btn-action:hover { border-color:#8b5a2b; color:#8b5a2b; }
-        body.theme-sand th { background:#f0e4d0; color:#c0a880; border-bottom:1px solid #e0cdb0; letter-spacing:2px; font-size:.57rem; }
-        body.theme-sand td { border-bottom:1px solid #eedcc0; color:#6a4825; }
-        body.theme-sand .section-title { color:#c0a880; border-bottom-color:#e0cdb0; letter-spacing:4px; }
-        body.theme-sand .stat-val { color:#4a2a10; font-weight:300; }
-        body.theme-sand .stat-label { color:#c0a880; letter-spacing:2px; }
-        body.theme-sand .rr-badge.good { background:#e8f0e0; border:1px solid #a8c880; color:#527a3a; border-radius:6px; }
-        body.theme-sand .rr-badge.bad  { background:#f8e8e0; border:1px solid #e0a888; color:#c0392b; border-radius:6px; }
-        body.theme-sand .rr-badge.na   { background:#f0e4d0; border:1px solid #e0cdb0; color:#c0a880; border-radius:6px; }
-        body.theme-sand .outcome-badge.tp-hit { background:#e8f0e0; border:1px solid #a8c880; color:#527a3a; border-radius:6px; }
-        body.theme-sand .outcome-badge.sl-hit { background:#f8e8e0; border:1px solid #e0a888; color:#c0392b; border-radius:6px; }
-        body.theme-sand .outcome-badge.partial { background:#fdf0dc; border:1px solid #e8c880; color:#8b5a2b; border-radius:6px; }
-        body.theme-sand .outcome-badge.be { background:#f0ecea; border:1px solid #d8c4b0; color:#9a7855; border-radius:6px; }
-        body.theme-sand input, body.theme-sand select, body.theme-sand textarea { background:#fdf6ec; border:1px solid #e0cdb0; color:#4a2a10; border-radius:6px; }
-        body.theme-sand input:focus, body.theme-sand select:focus { border-color:#c07840; box-shadow:0 0 0 3px rgba(192,120,64,0.12); }
-        body.theme-sand .search-bar { background:#fdf6ec; border:1px solid #e0cdb0; color:#4a2a10; border-radius:8px; }
-        body.theme-sand .month-header td { background:#f0e4d0; color:#8b5a2b; border-top:1px solid #e0cdb0; border-bottom:1px solid #e0cdb0; letter-spacing:4px; }
-        body.theme-sand .lot-badge { background:#f0e4d0; border:1px solid #e0cdb0; color:#6a4825; border-radius:5px; }
-        body.theme-sand .login-card { background:#fdf6ec; border:1px solid #e0cdb0; border-radius:14px; box-shadow:0 10px 40px rgba(139,90,43,0.1); }
-        body.theme-sand .cal-day { background:#fdf6ec; }
-        body.theme-sand .cal-day.profit { border-top:2px solid #527a3a; }
-        body.theme-sand .cal-day.loss { border-top:2px solid #c0392b; }
-
-        /* ═══════════════════════════════════════════════════════════════
-           THEME 9: HOLOGRAPHIC
-           Iridescent rainbow shimmer · dark base · prismatic glints
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-holographic {
-            --bg:#060610; --surface:#0c0c20; --border:#2a2a50;
-            --primary:#c0a0ff; --accent:#80d0ff;
-            --text:#6060a0; --text-light:#e0d0ff;
-            --negative:#ff6080; --positive:#60ffcc;
-            --glow:0 0 20px rgba(192,160,255,0.15); --card-radius:10px;
-        }
-        body.theme-holographic { background:#060610; color:#6060a0; }
-        body.theme-holographic .card, body.theme-holographic .stat-card, body.theme-holographic .table-wrap {
-            background:#0c0c20; border-radius:10px;
-            border:1px solid transparent;
-            background-clip:padding-box;
-            box-shadow:0 0 0 1px rgba(192,160,255,0.15), 0 8px 32px rgba(0,0,0,0.6);
-        }
-        body.theme-holographic .stat-card { border-top:1px solid rgba(192,160,255,0.3) !important; }
-        body.theme-holographic .header-title {
-            letter-spacing:5px; font-weight:300; font-size:.63rem;
-            background:linear-gradient(90deg,#ff80c0,#c0a0ff,#80d0ff,#60ffcc,#c0a0ff);
-            background-size:200%;
-            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-        }
-        body.theme-holographic .header-top { border-bottom:1px solid #2a2a50; }
-        body.theme-holographic .tab-nav { border-bottom-color:#2a2a50; }
-        body.theme-holographic .tab-btn { color:#2a2a60; letter-spacing:2px; }
-        body.theme-holographic .tab-btn.active { color:#c0a0ff; border-bottom-color:#c0a0ff; }
-        body.theme-holographic .save-btn {
-            background:linear-gradient(90deg,#ff80c0,#c0a0ff,#80d0ff,#60ffcc);
-            color:#000; border:none; font-weight:700; letter-spacing:2px; border-radius:8px;
-            background-size:200%;
-        }
-        body.theme-holographic .save-btn:hover { box-shadow:0 0 30px rgba(192,160,255,0.4); }
-        body.theme-holographic .btn-action { border:1px solid rgba(192,160,255,0.2); color:#6060a0; border-radius:8px; }
-        body.theme-holographic .btn-action:hover { border-color:rgba(192,160,255,0.5); color:#c0a0ff; }
-        body.theme-holographic th { color:#2a2a60; background:#06060e; border-bottom:1px solid #2a2a50; letter-spacing:2px; }
-        body.theme-holographic td { border-bottom:1px solid #14143a; }
-        body.theme-holographic .section-title { color:#2a2a60; border-bottom-color:#2a2a50; letter-spacing:4px; }
-        body.theme-holographic .stat-val { color:#e0d0ff; font-weight:200; font-size:1.5rem; }
-        body.theme-holographic .stat-label { color:#2a2a60; }
-        body.theme-holographic .rr-badge.good { background:rgba(96,255,204,0.08); border:1px solid rgba(96,255,204,0.3); color:#60ffcc; border-radius:8px; }
-        body.theme-holographic .rr-badge.bad  { background:rgba(255,96,128,0.08); border:1px solid rgba(255,96,128,0.3); color:#ff6080; border-radius:8px; }
-        body.theme-holographic .rr-badge.na   { background:rgba(192,160,255,0.05); border:1px solid rgba(192,160,255,0.15); color:#6060a0; border-radius:8px; }
-        body.theme-holographic .outcome-badge.tp-hit { background:rgba(96,255,204,0.08); border:1px solid rgba(96,255,204,0.3); color:#60ffcc; border-radius:8px; }
-        body.theme-holographic .outcome-badge.sl-hit { background:rgba(255,96,128,0.08); border:1px solid rgba(255,96,128,0.3); color:#ff6080; border-radius:8px; }
-        body.theme-holographic .outcome-badge.partial { background:rgba(255,200,80,0.08); border:1px solid rgba(255,200,80,0.3); color:#ffc850; border-radius:8px; }
-        body.theme-holographic .outcome-badge.be { background:rgba(128,208,255,0.08); border:1px solid rgba(128,208,255,0.3); color:#80d0ff; border-radius:8px; }
-        body.theme-holographic input, body.theme-holographic select, body.theme-holographic textarea { background:#060610; border:1px solid #2a2a50; color:#e0d0ff; border-radius:8px; }
-        body.theme-holographic input:focus, body.theme-holographic select:focus { border-color:rgba(192,160,255,0.5); box-shadow:0 0 0 3px rgba(192,160,255,0.1); }
-        body.theme-holographic .search-bar { background:#060610; border:1px solid #2a2a50; color:#e0d0ff; border-radius:10px; }
-        body.theme-holographic .month-header td { background:#06060e; color:#c0a0ff; letter-spacing:4px; }
-        body.theme-holographic .lot-badge { background:rgba(192,160,255,0.08); border:1px solid rgba(192,160,255,0.2); color:#c0a0ff; border-radius:6px; }
-        body.theme-holographic .login-card { background:#0c0c20; border:1px solid rgba(192,160,255,0.2); border-radius:20px; box-shadow:0 0 60px rgba(192,160,255,0.1); }
-        body.theme-holographic .cal-day { background:#0c0c20; border:1px solid #14143a; }
-        body.theme-holographic .cal-day.profit { border-top:2px solid #60ffcc; }
-        body.theme-holographic .cal-day.loss { border-top:2px solid #ff6080; }
-
-        /* ═══════════════════════════════════════════════════════════════
-           THEME 10: REDACTED
-           Classified document · black bars · government intel
-        ═══════════════════════════════════════════════════════════════ */
-        body.theme-redacted {
-            --bg:#f4f0e8; --surface:#eeeae0; --border:#c8c0a8;
-            --primary:#1a1a1a; --accent:#000000;
-            --text:#6a6050; --text-light:#1a1a1a;
-            --negative:#8b0000; --positive:#1a4a1a;
-            --glow:none; --card-radius:0px;
-        }
-        body.theme-redacted, body.theme-redacted .header-title,
-        body.theme-redacted th, body.theme-redacted .section-title,
-        body.theme-redacted .tab-btn { font-family:'Courier New',Courier,monospace !important; }
-        body.theme-redacted { background:#f4f0e8; color:#6a6050; }
-        body.theme-redacted .card, body.theme-redacted .stat-card, body.theme-redacted .table-wrap {
-            background:#eeeae0; border:1px solid #c8c0a8; border-radius:0;
-            box-shadow:inset 0 0 0 1px #d8d0b8;
-        }
-        body.theme-redacted .header-title { color:#1a1a1a; letter-spacing:4px; font-size:.65rem; font-weight:700; text-transform:uppercase; }
-        body.theme-redacted .header-top { border-bottom:3px solid #1a1a1a; background:#eeeae0; }
-        body.theme-redacted .tab-nav { border-bottom:2px solid #1a1a1a; }
-        body.theme-redacted .tab-btn { color:#8a8070; letter-spacing:3px; font-size:.6rem; }
-        body.theme-redacted .tab-btn.active { color:#1a1a1a; border-bottom:3px solid #1a1a1a; }
-        body.theme-redacted .save-btn { background:#1a1a1a; color:#f4f0e8; border:none; letter-spacing:4px; font-weight:700; border-radius:0; font-family:'Courier New',monospace !important; }
-        body.theme-redacted .save-btn:hover { background:#000; }
-        body.theme-redacted .btn-action { border:1px solid #c8c0a8; color:#6a6050; background:#eeeae0; border-radius:0; font-family:'Courier New',monospace !important; }
-        body.theme-redacted .btn-action:hover { background:#1a1a1a; color:#f4f0e8; border-color:#1a1a1a; }
-        body.theme-redacted th { background:#1a1a1a; color:#f4f0e8; border-bottom:2px solid #1a1a1a; letter-spacing:3px; font-size:.57rem; }
-        body.theme-redacted td { border-bottom:1px solid #d8d0b8; color:#3a3028; }
-        body.theme-redacted .section-title { color:#8a8070; border-bottom:2px solid #1a1a1a; letter-spacing:5px; font-size:.58rem; }
-        body.theme-redacted .stat-val { color:#1a1a1a; font-weight:700; }
-        body.theme-redacted .stat-label { color:#8a8070; font-size:.58rem; letter-spacing:3px; }
-        body.theme-redacted .stat-card { border-left:4px solid #1a1a1a !important; }
-        body.theme-redacted .rr-badge.good { background:#1a4a1a; border:none; color:#f4f0e8; border-radius:0; }
-        body.theme-redacted .rr-badge.bad  { background:#8b0000; border:none; color:#f4f0e8; border-radius:0; }
-        body.theme-redacted .rr-badge.na   { background:#1a1a1a; border:none; color:#f4f0e8; border-radius:0; }
-        body.theme-redacted .outcome-badge.tp-hit { background:#1a4a1a; border:none; color:#f4f0e8; border-radius:0; }
-        body.theme-redacted .outcome-badge.sl-hit { background:#8b0000; border:none; color:#f4f0e8; border-radius:0; }
-        body.theme-redacted .outcome-badge.partial { background:#4a3800; border:none; color:#f4f0e8; border-radius:0; }
-        body.theme-redacted .outcome-badge.be { background:#3a3028; border:none; color:#f4f0e8; border-radius:0; }
-        body.theme-redacted input, body.theme-redacted select, body.theme-redacted textarea { background:#eeeae0; border:1px solid #c8c0a8; color:#1a1a1a; border-radius:0; font-family:'Courier New',monospace !important; }
-        body.theme-redacted input:focus, body.theme-redacted select:focus { border-color:#1a1a1a; outline:none; }
-        body.theme-redacted .search-bar { background:#eeeae0; border:2px solid #1a1a1a; color:#1a1a1a; border-radius:0; }
-        body.theme-redacted .month-header td { background:#1a1a1a; color:#f4f0e8; letter-spacing:6px; border-top:none; border-bottom:none; }
-        body.theme-redacted .lot-badge { background:#1a1a1a; border:none; color:#f4f0e8; border-radius:0; }
-        body.theme-redacted .login-card { background:#eeeae0; border:2px solid #1a1a1a; border-radius:0; box-shadow:4px 4px 0 #1a1a1a; }
-        body.theme-redacted .cal-day { background:#eeeae0; border:1px solid #d8d0b8; }
-        body.theme-redacted .cal-day.profit { border-top:3px solid #1a4a1a; }
-        body.theme-redacted .cal-day.loss { border-top:3px solid #8b0000; }
+        body.theme-steel .header-title { color:#8899bb; letter-spacing:7px; font-weight:200; font-size:.6rem; }
+        body.theme-steel .header-top { border-bottom:1px solid #1a2028; background:#0a0c10; }
+        body.theme-steel .tab-nav { border-bottom:1px solid #1a2028; }
+        body.theme-steel .tab-btn { color:#1a2028; letter-spacing:4px; font-weight:300; }
+        body.theme-steel .tab-btn.active { color:#8899bb; border-bottom:1px solid #8899bb; }
+        body.theme-steel .save-btn { background:#8899bb; color:#0a0c10; border:none; letter-spacing:4px; font-weight:400; border-radius:2px; }
+        body.theme-steel .save-btn:hover { background:#aabbdd; }
+        body.theme-steel .btn-action { border:1px solid #222830; color:#334455; border-radius:2px; background:transparent; }
+        body.theme-steel .btn-action:hover { border-color:#8899bb55; color:#8899bb; }
+        body.theme-steel th { color:#1a2028; background:#0a0c10; border-bottom:1px solid #1a2028; letter-spacing:5px; font-size:.52rem; font-weight:300; }
+        body.theme-steel td { border-bottom:1px solid #161c22; color:#556677; }
+        body.theme-steel .section-title { color:#1a2028; border-bottom:1px solid #1a2028; letter-spacing:7px; font-weight:300; }
+        body.theme-steel .stat-val { color:#8899bb; font-weight:200; font-size:1.6rem; }
+        body.theme-steel .stat-label { color:#1a2028; letter-spacing:5px; font-weight:300; }
+        body.theme-steel .stat-card { border-top:1px solid #8899bb18 !important; }
+        body.theme-steel .rr-badge.good { background:rgba(68,170,119,0.06); border:1px solid #44aa7730; color:#44aa77; border-radius:2px; }
+        body.theme-steel .rr-badge.bad  { background:rgba(204,68,85,0.06); border:1px solid #cc445530; color:#cc4455; border-radius:2px; }
+        body.theme-steel .rr-badge.na   { background:transparent; border:1px solid #222830; color:#1a2028; border-radius:2px; }
+        body.theme-steel .outcome-badge.tp-hit { background:rgba(68,170,119,0.06); border:1px solid #44aa7730; color:#44aa77; border-radius:2px; }
+        body.theme-steel .outcome-badge.sl-hit { background:rgba(204,68,85,0.06); border:1px solid #cc445530; color:#cc4455; border-radius:2px; }
+        body.theme-steel .outcome-badge.partial { background:rgba(136,153,187,0.06); border:1px solid #8899bb30; color:#8899bb; border-radius:2px; }
+        body.theme-steel .outcome-badge.be { background:rgba(34,40,48,0.5); border:1px solid #33404d30; color:#445566; border-radius:2px; }
+        body.theme-steel input, body.theme-steel select, body.theme-steel textarea { background:#0a0c10; border:1px solid #222830; color:#8899bb; border-radius:2px; }
+        body.theme-steel input:focus, body.theme-steel select:focus { border-color:#8899bb44; }
+        body.theme-steel .search-bar { background:#0a0c10; border:1px solid #222830; color:#8899bb; border-radius:2px; }
+        body.theme-steel .month-header td { background:#0a0c10; color:#8899bb; letter-spacing:7px; font-weight:200; border-top:1px solid #1a2028; border-bottom:1px solid #1a2028; }
+        body.theme-steel .lot-badge { background:#161c22; border:1px solid #222830; color:#8899bb; border-radius:2px; }
+        body.theme-steel .login-card { background:#111418; border:1px solid #222830; border-radius:3px; }
+        body.theme-steel .cal-day { background:#111418; border:1px solid #161c22; }
+        body.theme-steel .cal-day.profit { border-top:1px solid #44aa7755; }
+        body.theme-steel .cal-day.loss { border-top:1px solid #cc445555; }
     
 
         body,.card,.stat-card,.table-wrap,.btn-action,.tab-btn,.header-title,.stat-val {
@@ -726,24 +726,23 @@
             </div>
 
             <!-- Theme strip -->
-      <div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;flex-wrap:wrap;">
+<div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;flex-wrap:wrap;">
     <span style="font-size:.44rem;color:var(--text);opacity:.4;text-transform:uppercase;letter-spacing:1px;margin-right:1px;">Style</span>
-    <button onclick="setTheme('obsidian')"     style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #1c1c1c;background:#000;color:#e8e8e8;border-radius:2px;letter-spacing:1px;">◼ Obsidian</button>
-    <button onclick="setTheme('sakura')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #f0d8e0;background:#fdf6f8;color:#c2607a;border-radius:14px;">🌸 Sakura</button>
-    <button onclick="setTheme('copper')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #3a2010;background:#0e0a07;color:#cd7f32;border-radius:2px;">⚙ Copper</button>
-    <button onclick="setTheme('ocean')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #063040;background:#020d14;color:#00c8c8;border-radius:5px;">🌊 Ocean</button>
-    <button onclick="setTheme('noir')"         style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a2215;background:#0a0906;color:#d4c08a;border-radius:1px;font-style:italic;">🎞 Noir</button>
-    <button onclick="setTheme('toxic')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a3000;background:#050600;color:#ccff00;border-radius:0;font-weight:900;">☢ Toxic</button>
-    <button onclick="setTheme('commodore')"    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:2px solid #5050e8;background:#3434c8;color:#fff;border-radius:0;font-family:monospace;">C= C64</button>
-    <button onclick="setTheme('sand')"         style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #e0cdb0;background:#f5ede0;color:#8b5a2b;border-radius:6px;">🏜 Sand</button>
-    <button onclick="setTheme('holographic')"  style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a2a50;background:#060610;color:#c0a0ff;border-radius:8px;">✦ Holo</button>
-    <button onclick="setTheme('redacted')"     style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:2px solid #1a1a1a;background:#eeeae0;color:#1a1a1a;border-radius:0;font-family:monospace;">█ RDCTD</button>
-    <button onclick="setTheme('light')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;border-radius:6px;">☀ Light</button>
+    <button onclick="setTheme('void')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #141414;background:#000;color:#fff;border-radius:0;font-weight:100;letter-spacing:2px;">◌ Void</button>
+    <button onclick="setTheme('rage')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:3px solid #500010;background:#080005;color:#ff2200;border-radius:0;font-weight:900;">⚡ RAGE</button>
+    <button onclick="setTheme('velvet')"      style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a1e40;background:#06040e;color:#d4af37;border-radius:3px;font-weight:200;">♦ Velvet</button>
+    <button onclick="setTheme('parchment')"   style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #3a3020;background:#0e0c08;color:#c8b878;border-radius:1px;font-style:italic;font-family:Georgia,serif;">📜 Parchment</button>
+    <button onclick="setTheme('spacecraft')"  style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #0a2840;background:#020810;color:#00d4ff;border-radius:2px;font-family:monospace;">⬡ HUD</button>
+    <button onclick="setTheme('moss')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #1a3018;background:#060e06;color:#7ab050;border-radius:3px;">🌿 Moss</button>
+    <button onclick="setTheme('duskpastel')"  style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #2a2540;background:#0e0c14;color:#b8a8e8;border-radius:14px;font-weight:300;">✦ Dusk</button>
+    <button onclick="setTheme('slate')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #222;background:#080808;color:#aaa;border-radius:2px;font-weight:200;letter-spacing:2px;">▪ Slate</button>
+    <button onclick="setTheme('bash')"        style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #21262d;background:#0d1117;color:#56d364;border-radius:5px;font-family:monospace;">$ Bash</button>
+    <button onclick="setTheme('steel')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #222830;background:#0a0c10;color:#8899bb;border-radius:2px;font-weight:200;letter-spacing:2px;">⬕ Steel</button>
+    <button onclick="setTheme('light')"       style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;border-radius:6px;">☀ Light</button>
     <span style="font-size:.44rem;color:var(--text);opacity:.35;margin-left:3px;">BG</span>
     <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)" title="Custom BG" style="width:18px;height:18px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
     <input type="text"  id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)" style="width:54px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:2px 4px;font-size:.54rem;font-family:monospace;outline:none;border-radius:2px;">
-</div>
-            
+</div>   
             <!-- PDF strip -->
             <div style="background:var(--surface);padding:2px 6px;border:1px solid var(--border);display:flex;gap:4px;align-items:center;">
                 <span style="font-size:.48rem;color:#666;">PDF:</span>
@@ -2162,7 +2161,7 @@ function syncPicker(hexId, pickerId) { var h=document.getElementById(hexId),p=do
 <!-- Theme System -->
 <script>
 var _currentTheme = localStorage.getItem('rk_theme') || 'light';
-var _allThemes = ['obsidian','sakura','copper','ocean','noir','toxic','commodore','sand','holographic','redacted','light'];
+var _allThemes = ['void','rage','velvet','parchment','spacecraft','moss','duskpastel','slate','bash','steel','light'];
 function setTheme(name) {
     _currentTheme = name; localStorage.setItem('rk_theme', name); localStorage.removeItem('rk_custom_bg');
     document.body.classList.remove.apply(document.body.classList, _allThemes.map(function(t){return 'theme-'+t;}));
