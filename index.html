@@ -20,112 +20,166 @@
     <script src="/charting_library/charting_library.js"></script>
 
     <style>
-        :root {
-            --bg:#000000; --surface:#0a0a0a; --border:#222222;
-            --primary:#ffffff; --negative:#ff4444; --positive:#44ff88;
-            --text:#cccccc; --text-light:#ffffff;
-            --glow:none; --card-radius:0px; --font-body:'Inter',sans-serif;
-            --header-glow:none; --accent:#ffffff; --tab-active-color:#ffffff;
-        }
-        body.theme-midnight {
-            --bg:#000000; --surface:#0a0a0a; --border:#222222;
-            --primary:#ffffff; --accent:#ffffff;
-            --text:#cccccc; --text-light:#ffffff;
-            --negative:#ff4444; --positive:#44ff88;
-            --glow:none; --card-radius:0px; --tab-active-color:#ffffff;
-        }
-        body.theme-neon {
-            --bg:#050510; --surface:#0a0a1a; --border:#0ff3;
-            --primary:#00f5ff; --accent:#ff00cc;
-            --text:#88ccff; --text-light:#00f5ff;
-            --negative:#ff003c; --positive:#00ff9d;
-            --glow:0 0 8px #00f5ff88; --card-radius:4px; --tab-active-color:#00f5ff;
-        }
-        body.theme-neon .card,
-        body.theme-neon .stat-card,
-        body.theme-neon .table-wrap { box-shadow:0 0 0 1px #00f5ff22,inset 0 0 20px #00f5ff08;border-color:#00f5ff33; }
-        body.theme-neon .header-title { color:#00f5ff;text-shadow:0 0 20px #00f5ffaa,0 0 40px #00f5ff44; }
-        body.theme-neon .tab-btn.active { color:#00f5ff;border-bottom-color:#00f5ff;text-shadow:0 0 10px #00f5ff88; }
-        body.theme-neon .save-btn { background:linear-gradient(90deg,#00f5ff,#ff00cc);color:#000;font-weight:800;border:none; }
-        body.theme-neon .save-btn:hover { box-shadow:0 0 20px #00f5ff88; }
-        body.theme-neon .btn-action { border-color:#00f5ff44;color:#00f5ff; }
-        body.theme-neon .btn-action:hover { border-color:#00f5ff;box-shadow:0 0 8px #00f5ff66; }
-        body.theme-neon .section-title { color:#00f5ff99;border-bottom-color:#00f5ff22; }
-        body.theme-neon th { color:#00f5ff88; }
-        body.theme-neon .tab-btn { color:#88ccff; }
-        body.theme-neon .header-top { border-bottom-color:#00f5ff22; }
-        body.theme-neon input:focus,body.theme-neon select:focus,body.theme-neon textarea:focus { border-color:#00f5ff;box-shadow:0 0 6px #00f5ff44; }
-        body.theme-neon .month-header td { background:#0a0a1a;color:#00f5ff; }
-        body.theme-neon .rr-badge.good { background:#00ff9d11;border-color:#00ff9d44;color:#00ff9d; }
-        body.theme-neon .outcome-badge.tp-hit { background:#00ff9d11;border-color:#00ff9d44;color:#00ff9d; }
-        body.theme-neon .stat-val { color:#00f5ff; }
-        body.theme-easyeye {
-            --bg:#1c2033; --surface:#242840; --border:#303660;
-            --primary:#a8b8e8; --accent:#6c8ebf;
-            --text:#8898c8; --text-light:#c8d4f0;
-            --negative:#e07878; --positive:#60c890;
-            --glow:none; --card-radius:6px; --tab-active-color:#a8b8e8;
-        }
-        body.theme-easyeye .card,
-        body.theme-easyeye .stat-card,
-        body.theme-easyeye .table-wrap { border-radius:6px; }
-        body.theme-easyeye .header-title { color:#c8d4f0;font-weight:400;letter-spacing:3px; }
-        body.theme-easyeye .save-btn { background:#6c8ebf;color:#fff;border-radius:4px; }
-        body.theme-easyeye .btn-action { border-radius:4px; }
-        body.theme-easyeye input,body.theme-easyeye select,body.theme-easyeye textarea { border-radius:4px;background:#1c2033; }
-        body.theme-easyeye .tab-btn.active { color:#a8b8e8;border-bottom-color:#6c8ebf; }
-        body.theme-easyeye .month-header td { background:#1c2033;color:#a8b8e8; }
-        body.theme-easyeye .stat-val { color:#c8d4f0; }
-        body.theme-light {
-            --bg:#f2ede6; --surface:#faf7f2; --border:#ddd8d0;
-            --primary:#2a2a2a; --accent:#7a6a52;
-            --text:#5a5040; --text-light:#1a1a1a;
-            --negative:#c03030; --positive:#2a7a3a;
-            --glow:none; --card-radius:6px; --tab-active-color:#2a2a2a;
-        }
-        body.theme-light { background:#f2ede6;color:#5a5040; }
-        body.theme-light input,body.theme-light select,body.theme-light textarea,body.theme-light button { color:#2a2a2a;background:#faf7f2; }
-        body.theme-light .card,body.theme-light .stat-card,body.theme-light .table-wrap { border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.08); }
-        body.theme-light .header-title { color:#2a2a2a; }
-        body.theme-light .tab-btn { color:#7a6a52; }
-        body.theme-light .tab-btn.active { color:#2a2a2a;border-bottom-color:#2a2a2a; }
-        body.theme-light .save-btn { background:#2a2a2a;color:#fff;border-radius:4px; }
-        body.theme-light .btn-action { border-color:#ccc;color:#3a3a3a;border-radius:4px; }
-        body.theme-light th { background:#f0ebe3;color:#9a8a72; }
-        body.theme-light .search-bar { background:#faf7f2;color:#2a2a2a; }
-        body.theme-light .month-header td { background:#f0ebe3;color:#2a2a2a; }
-        body.theme-light .section-title { color:#9a8a72; }
-        body.theme-light .stat-val { color:#2a2a2a; }
-        body.theme-light .rr-badge.good { background:#d4f0dc;border-color:#aaddbb;color:#1a6a2a; }
-        body.theme-light .rr-badge.bad  { background:#f5d4d4;border-color:#ddaaaa;color:#882222; }
-        body.theme-light .outcome-badge.tp-hit { background:#d4f0dc;border-color:#aaddbb;color:#1a6a2a; }
-        body.theme-light .outcome-badge.sl-hit { background:#f5d4d4;border-color:#ddaaaa;color:#882222; }
-        body.theme-light .login-card { background:#faf7f2; }
-        body.theme-trader {
-            --bg:#080c08; --surface:#0e130e; --border:#1c2e1c;
-            --primary:#00e600; --accent:#00e600;
-            --text:#669966; --text-light:#99ff99;
-            --negative:#ff3344; --positive:#00e600;
-            --glow:0 0 6px #00e60044; --card-radius:0px; --tab-active-color:#00e600;
-        }
-        body.theme-trader { font-family:'Courier New',monospace; }
-        body.theme-trader .header-title { color:#00e600;text-shadow:0 0 15px #00e60066;letter-spacing:4px;font-weight:700; }
-        body.theme-trader .card,body.theme-trader .stat-card { border-color:#1c2e1c;border-left:2px solid #00e60044; }
-        body.theme-trader .tab-btn.active { color:#00e600;border-bottom-color:#00e600;text-shadow:0 0 8px #00e60066; }
-        body.theme-trader .tab-btn { color:#669966; }
-        body.theme-trader .save-btn { background:#00e600;color:#000;font-weight:900;letter-spacing:2px; }
-        body.theme-trader .save-btn:hover { box-shadow:0 0 15px #00e60088; }
-        body.theme-trader .btn-action { border-color:#1c2e1c;color:#669966; }
-        body.theme-trader .btn-action:hover { border-color:#00e600;color:#00e600; }
-        body.theme-trader .section-title { color:#00e60088;border-bottom-color:#1c2e1c; }
-        body.theme-trader th { color:#00e60077;font-family:'Courier New',monospace; }
-        body.theme-trader .header-top { border-bottom-color:#1c2e1c; }
-        body.theme-trader input:focus,body.theme-trader select:focus { border-color:#00e600; }
-        body.theme-trader .stat-val { color:#00e600;text-shadow:0 0 8px #00e60044; }
-        body.theme-trader .month-header td { background:#0e130e;color:#00e600; }
-        body.theme-trader .rr-badge.good { background:#001a00;border-color:#00e60044;color:#00e600; }
-        body.theme-trader .outcome-badge.tp-hit { background:#001a00;border-color:#00e60044;color:#00e600; }
-        body.theme-trader .lot-badge { border-color:#1c2e1c;color:#00e600; }
+      :root {
+    --bg:#0d0a08; --surface:#141008; --border:#2a1f10;
+    --primary:#F7931A; --negative:#ff4444; --positive:#44ff88;
+    --text:#a08060; --text-light:#F7931A;
+    --glow:none; --card-radius:0px; --font-body:'Inter',sans-serif;
+    --header-glow:none; --accent:#F7931A; --tab-active-color:#F7931A;
+    --brick-h: repeating-linear-gradient(0deg,transparent,transparent 17px,rgba(0,0,0,0.55) 17px,rgba(0,0,0,0.55) 19px);
+    --brick-v: repeating-linear-gradient(90deg,transparent,transparent 37px,rgba(0,0,0,0.35) 37px,rgba(0,0,0,0.35) 39px);
+    --brick-v2: repeating-linear-gradient(90deg,transparent,transparent 19px,rgba(0,0,0,0.35) 19px,rgba(0,0,0,0.35) 21px);
+    --crack: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cpath d='M20 10 L35 40 L25 60 L45 90 L30 120' stroke='rgba(0,0,0,0.18)' stroke-width='1.5' fill='none'/%3E%3Cpath d='M120 5 L115 30 L130 55 L110 80 L125 110' stroke='rgba(0,0,0,0.12)' stroke-width='1' fill='none'/%3E%3Cpath d='M160 80 L145 100 L165 120 L150 150' stroke='rgba(0,0,0,0.1)' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+}
+
+/* ── SATOSHI — Bitcoin Orange on Cracked Dark Brick ── */
+body.theme-satoshi {
+    --bg:#0d0a08; --surface:#12100c; --border:#2e1e0a;
+    --primary:#F7931A; --accent:#F7931A;
+    --text:#8a6a40; --text-light:#F7931A;
+    --negative:#ff4444; --positive:#44ff88;
+    --glow:0 0 8px #F7931A44; --card-radius:0px; --tab-active-color:#F7931A;
+}
+body.theme-satoshi {
+    background-color: #0d0a08;
+    background-image: var(--brick-h), var(--brick-v), var(--crack);
+}
+body.theme-satoshi .header-title { color:#F7931A; text-shadow:0 0 18px #F7931A66; letter-spacing:4px; }
+body.theme-satoshi .tab-btn.active { color:#F7931A; border-bottom-color:#F7931A; text-shadow:0 0 8px #F7931A66; }
+body.theme-satoshi .tab-btn { color:#6a4a20; }
+body.theme-satoshi .save-btn { background:linear-gradient(90deg,#F7931A,#e07a00); color:#000; font-weight:900; border:none; letter-spacing:2px; }
+body.theme-satoshi .save-btn:hover { box-shadow:0 0 20px #F7931A88; }
+body.theme-satoshi .btn-action { border-color:#2e1e0a; color:#8a6a40; }
+body.theme-satoshi .btn-action:hover { border-color:#F7931A; color:#F7931A; box-shadow:0 0 8px #F7931A44; }
+body.theme-satoshi .section-title { color:#F7931A66; border-bottom-color:#2e1e0a; }
+body.theme-satoshi th { color:#6a4a20; }
+body.theme-satoshi .header-top { border-bottom-color:#2e1e0a; }
+body.theme-satoshi .stat-val { color:#F7931A; }
+body.theme-satoshi .card, body.theme-satoshi .stat-card, body.theme-satoshi .table-wrap { border-color:#2e1e0a; box-shadow:inset 0 0 30px rgba(0,0,0,0.4); }
+body.theme-satoshi .month-header td { background:#100d08; color:#F7931A; }
+body.theme-satoshi .rr-badge.good { background:#0a1500; border-color:#44ff8844; color:#44ff88; }
+body.theme-satoshi input:focus, body.theme-satoshi select:focus { border-color:#F7931A; box-shadow:0 0 6px #F7931A33; }
+body.theme-satoshi .feed-toggle-btn.active { background:#F7931A; color:#000; }
+
+/* ── GENESIS — Gold Veins on Obsidian ── */
+body.theme-genesis {
+    --bg:#08090d; --surface:#0d0e14; --border:#1a1a2e;
+    --primary:#ffd700; --accent:#ffd700;
+    --text:#6a6a88; --text-light:#ffd700;
+    --negative:#ff4466; --positive:#80ffaa;
+    --glow:0 0 8px #ffd70044; --card-radius:0px; --tab-active-color:#ffd700;
+}
+body.theme-genesis {
+    background-color: #08090d;
+    background-image:
+        repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(255,215,0,0.04) 19px,rgba(255,215,0,0.04) 20px),
+        repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,215,0,0.03) 39px,rgba(255,215,0,0.03) 40px),
+        var(--crack);
+}
+body.theme-genesis .header-title { color:#ffd700; text-shadow:0 0 25px #ffd70077; letter-spacing:4px; }
+body.theme-genesis .tab-btn.active { color:#ffd700; border-bottom-color:#ffd700; }
+body.theme-genesis .tab-btn { color:#444466; }
+body.theme-genesis .save-btn { background:linear-gradient(90deg,#997700,#ffd700,#997700); color:#000; font-weight:900; letter-spacing:2px; border:none; }
+body.theme-genesis .save-btn:hover { box-shadow:0 0 25px #ffd70066; }
+body.theme-genesis .btn-action { border-color:#1a1a2e; color:#6a6a88; }
+body.theme-genesis .btn-action:hover { border-color:#ffd700; color:#ffd700; }
+body.theme-genesis .section-title { color:#ffd70055; border-bottom-color:#1a1a2e; }
+body.theme-genesis th { color:#3a3a55; }
+body.theme-genesis .stat-val { color:#ffd700; text-shadow:0 0 10px #ffd70044; }
+body.theme-genesis .card, body.theme-genesis .stat-card, body.theme-genesis .table-wrap { border-color:#1a1a2e; }
+body.theme-genesis .month-header td { background:#0a0b10; color:#ffd700; }
+body.theme-genesis input:focus, body.theme-genesis select:focus { border-color:#ffd700; }
+body.theme-genesis .feed-toggle-btn.active { background:#ffd700; color:#000; }
+
+/* ── CIPHER — Electric Blue on Cracked Slate ── */
+body.theme-cipher {
+    --bg:#060a10; --surface:#080d16; --border:#0a1a30;
+    --primary:#00c8ff; --accent:#00c8ff;
+    --text:#2a5070; --text-light:#00c8ff;
+    --negative:#ff3366; --positive:#00ffcc;
+    --glow:0 0 8px #00c8ff44; --card-radius:0px; --tab-active-color:#00c8ff;
+}
+body.theme-cipher {
+    background-color: #060a10;
+    background-image:
+        repeating-linear-gradient(0deg,transparent,transparent 17px,rgba(0,200,255,0.04) 17px,rgba(0,200,255,0.04) 18px),
+        repeating-linear-gradient(90deg,transparent,transparent 37px,rgba(0,200,255,0.03) 37px,rgba(0,200,255,0.03) 38px),
+        var(--crack);
+}
+body.theme-cipher .header-title { color:#00c8ff; text-shadow:0 0 20px #00c8ff88; letter-spacing:4px; font-weight:300; }
+body.theme-cipher .tab-btn.active { color:#00c8ff; border-bottom-color:#00c8ff; }
+body.theme-cipher .tab-btn { color:#1a3a55; }
+body.theme-cipher .save-btn { background:linear-gradient(90deg,#00c8ff,#0066ff); color:#000; font-weight:800; border:none; letter-spacing:2px; }
+body.theme-cipher .save-btn:hover { box-shadow:0 0 20px #00c8ff66; }
+body.theme-cipher .btn-action { border-color:#0a1a30; color:#2a5070; }
+body.theme-cipher .btn-action:hover { border-color:#00c8ff; color:#00c8ff; }
+body.theme-cipher .section-title { color:#00c8ff55; border-bottom-color:#0a1a30; }
+body.theme-cipher th { color:#1a3a55; }
+body.theme-cipher .stat-val { color:#00c8ff; }
+body.theme-cipher .card, body.theme-cipher .stat-card, body.theme-cipher .table-wrap { border-color:#0a1a30; }
+body.theme-cipher .month-header td { background:#060c14; color:#00c8ff; }
+body.theme-cipher .rr-badge.good { background:#002a1a; border-color:#00ffcc44; color:#00ffcc; }
+body.theme-cipher input:focus, body.theme-cipher select:focus { border-color:#00c8ff; box-shadow:0 0 6px #00c8ff33; }
+body.theme-cipher .feed-toggle-btn.active { background:#00c8ff; color:#000; }
+
+/* ── BLOOD — Crimson Cracked Stone ── */
+body.theme-blood {
+    --bg:#0d0505; --surface:#120808; --border:#2a0a0a;
+    --primary:#ff3333; --accent:#ff3333;
+    --text:#7a2a2a; --text-light:#ff6666;
+    --negative:#ff1111; --positive:#44ff88;
+    --glow:0 0 8px #ff333344; --card-radius:0px; --tab-active-color:#ff3333;
+}
+body.theme-blood {
+    background-color: #0d0505;
+    background-image:
+        repeating-linear-gradient(0deg,transparent,transparent 17px,rgba(180,0,0,0.15) 17px,rgba(180,0,0,0.15) 19px),
+        repeating-linear-gradient(90deg,transparent,transparent 37px,rgba(180,0,0,0.1) 37px,rgba(180,0,0,0.1) 39px),
+        var(--crack);
+}
+body.theme-blood .header-title { color:#ff3333; text-shadow:0 0 20px #ff333377; letter-spacing:4px; }
+body.theme-blood .tab-btn.active { color:#ff3333; border-bottom-color:#ff3333; }
+body.theme-blood .tab-btn { color:#5a1a1a; }
+body.theme-blood .save-btn { background:linear-gradient(90deg,#880000,#ff3333); color:#fff; font-weight:900; border:none; letter-spacing:2px; }
+body.theme-blood .save-btn:hover { box-shadow:0 0 20px #ff333355; }
+body.theme-blood .btn-action { border-color:#2a0a0a; color:#7a2a2a; }
+body.theme-blood .btn-action:hover { border-color:#ff3333; color:#ff3333; }
+body.theme-blood .section-title { color:#ff333355; border-bottom-color:#2a0a0a; }
+body.theme-blood th { color:#5a1a1a; }
+body.theme-blood .stat-val { color:#ff6666; }
+body.theme-blood .card, body.theme-blood .stat-card, body.theme-blood .table-wrap { border-color:#2a0a0a; }
+body.theme-blood .month-header td { background:#0f0606; color:#ff4444; }
+body.theme-blood input:focus, body.theme-blood select:focus { border-color:#ff3333; }
+body.theme-blood .feed-toggle-btn.active { background:#ff3333; color:#fff; }
+
+/* ── STONE — Cold Concrete ── */
+body.theme-stone {
+    --bg:#0a0a0a; --surface:#111111; --border:#222222;
+    --primary:#aaaaaa; --accent:#cccccc;
+    --text:#555555; --text-light:#cccccc;
+    --negative:#ff4444; --positive:#88ffaa;
+    --glow:none; --card-radius:0px; --tab-active-color:#cccccc;
+}
+body.theme-stone {
+    background-color: #0a0a0a;
+    background-image:
+        repeating-linear-gradient(0deg,transparent,transparent 17px,rgba(255,255,255,0.025) 17px,rgba(255,255,255,0.025) 18px),
+        repeating-linear-gradient(90deg,transparent,transparent 37px,rgba(255,255,255,0.02) 37px,rgba(255,255,255,0.02) 38px),
+        var(--crack);
+}
+body.theme-stone .header-title { color:#aaaaaa; letter-spacing:5px; font-weight:300; }
+body.theme-stone .tab-btn.active { color:#cccccc; border-bottom-color:#888; }
+body.theme-stone .tab-btn { color:#333; }
+body.theme-stone .save-btn { background:#cccccc; color:#000; font-weight:900; border:none; letter-spacing:3px; }
+body.theme-stone .btn-action { border-color:#222; color:#555; }
+body.theme-stone .btn-action:hover { border-color:#888; color:#aaa; }
+body.theme-stone .section-title { color:#333; border-bottom-color:#1a1a1a; }
+body.theme-stone th { color:#333; }
+body.theme-stone .stat-val { color:#cccccc; }
+body.theme-stone .card, body.theme-stone .stat-card, body.theme-stone .table-wrap { border-color:#1a1a1a; }
+body.theme-stone .month-header td { background:#0d0d0d; color:#aaaaaa; }
+body.theme-stone input:focus, body.theme-stone select:focus { border-color:#888; }
+body.theme-stone .feed-toggle-btn.active { background:#ccc; color:#000; }
 
         body,.card,.stat-card,.table-wrap,.btn-action,.tab-btn,.header-title,.stat-val {
             transition:background 0.3s,color 0.3s,border-color 0.3s,box-shadow 0.3s;
@@ -310,17 +364,23 @@
             </div>
 
             <!-- Theme strip -->
-            <div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;">
-                <span style="font-size:.44rem;color:var(--text);opacity:.4;text-transform:uppercase;letter-spacing:1px;margin-right:1px;">Style</span>
-                <button onclick="setTheme('midnight')" id="th-midnight" title="Midnight" style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #444;background:#000;color:#fff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">⬛ Mid</button>
-                <button onclick="setTheme('neon')"     id="th-neon"     title="Neon"     style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #00f5ff55;background:#050510;color:#00f5ff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 6px #00f5ff;">⚡ Neon</button>
-                <button onclick="setTheme('easyeye')"  id="th-easyeye"  title="Easy Eye" style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #303660;background:#1c2033;color:#a8b8e8;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">🌙 Eye</button>
-                <button onclick="setTheme('light')"    id="th-light"    title="Light"    style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #ccc;background:#f2ede6;color:#3a3020;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;">☀ Light</button>
-                <button onclick="setTheme('trader')"   id="th-trader"   title="Trader"   style="padding:2px 6px;font-size:.48rem;cursor:pointer;border:1px solid #1c2e1c;background:#080c08;color:#00e600;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;text-shadow:0 0 5px #00e600;">📊 Pro</button>
-                <span style="font-size:.44rem;color:var(--text);opacity:.35;margin-left:3px;">BG</span>
-                <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)" title="Custom BG" style="width:18px;height:18px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
-                <input type="text"  id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)" style="width:54px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:2px 4px;font-size:.54rem;font-family:monospace;outline:none;border-radius:2px;">
-            </div>
+        <!-- Theme strip -->
+<div style="display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;">
+    <span style="font-size:.44rem;color:var(--text);opacity:.4;text-transform:uppercase;letter-spacing:1px;margin-right:1px;">₿ Theme</span>
+    <button onclick="setTheme('satoshi')" id="th-satoshi" title="Satoshi"
+        style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #2e1e0a;background:#0d0a08;color:#F7931A;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;font-weight:700;text-shadow:0 0 6px #F7931A;">₿ SATOSHI</button>
+    <button onclick="setTheme('genesis')" id="th-genesis" title="Genesis"
+        style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #1a1a2e;background:#08090d;color:#ffd700;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;font-weight:700;text-shadow:0 0 6px #ffd70088;">⛏ GENESIS</button>
+    <button onclick="setTheme('cipher')" id="th-cipher" title="Cipher"
+        style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #0a1a30;background:#060a10;color:#00c8ff;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;font-weight:700;text-shadow:0 0 6px #00c8ff88;">⚡ CIPHER</button>
+    <button onclick="setTheme('blood')" id="th-blood" title="Blood"
+        style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #2a0a0a;background:#0d0505;color:#ff3333;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;font-weight:700;text-shadow:0 0 6px #ff333366;">🩸 BLOOD</button>
+    <button onclick="setTheme('stone')" id="th-stone" title="Stone"
+        style="padding:2px 7px;font-size:.48rem;cursor:pointer;border:1px solid #222;background:#0a0a0a;color:#aaa;text-transform:uppercase;letter-spacing:.5px;border-radius:2px;font-weight:700;">🪨 STONE</button>
+    <span style="font-size:.44rem;color:var(--text);opacity:.35;margin-left:3px;">BG</span>
+    <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)" title="Custom BG" style="width:18px;height:18px;padding:1px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:2px;">
+    <input type="text"  id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)" style="width:54px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:2px 4px;font-size:.54rem;font-family:monospace;outline:none;border-radius:2px;">
+</div>
 
             <!-- PDF strip -->
             <div style="background:var(--surface);padding:2px 6px;border:1px solid var(--border);display:flex;gap:4px;align-items:center;">
@@ -1739,8 +1799,9 @@ function syncPicker(hexId, pickerId) { var h=document.getElementById(hexId),p=do
 
 <!-- Theme System -->
 <script>
-var _currentTheme = localStorage.getItem('rk_theme') || 'midnight';
-var _allThemes = ['midnight','neon','easyeye','light','trader'];
+// To this:
+var _currentTheme = localStorage.getItem('rk_theme') || 'satoshi';
+var _allThemes = ['satoshi','genesis','cipher','blood','stone'];
 function setTheme(name) {
     _currentTheme = name; localStorage.setItem('rk_theme', name); localStorage.removeItem('rk_custom_bg');
     document.body.classList.remove.apply(document.body.classList, _allThemes.map(function(t){return 'theme-'+t;}));
