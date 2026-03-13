@@ -591,50 +591,9 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
                 </div>
                 <div style="flex:1;overflow-y:auto;padding:12px;">
                     
-                 <!-- Symbol selector + live price -->
-                    <div style="margin-bottom:10px;">
+           
 
-                        <!-- Symbol search input -->
-                        <div style="position:relative;margin-bottom:6px;">
-                            <input id="calc-sym-input" type="text" value="EURUSD"
-                                placeholder="Type symbol…"
-                                oninput="deskFilterSymbols(this.value)"
-                                onfocus="deskShowDropdown()"
-                                onblur="setTimeout(deskHideDropdown,200)"
-                                autocomplete="off"
-                                style="width:100%;background:#050505;border:1px solid #1a3a1a;color:#44ff88;
-                                       padding:8px 10px;font-size:.95rem;font-family:'Courier New',monospace;
-                                       font-weight:700;letter-spacing:2px;outline:none;border-radius:2px;
-                                       text-transform:uppercase;">
-                            <!-- dropdown list -->
-                            <div id="calc-sym-dropdown"
-                                style="display:none;position:absolute;top:100%;left:0;right:0;z-index:99;
-                                       background:#0a0a0a;border:1px solid #1a3a1a;border-top:none;
-                                       max-height:160px;overflow-y:auto;">
-                            </div>
-                        </div>
-
-                        <!-- Quick symbol pills -->
-                        <div id="calc-sym-pills" style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:7px;">
-                            <!-- filled dynamically once MT5 data arrives -->
-                        </div>
-
-                        <!-- Live price row -->
-                        <div id="calc-price-row" style="display:flex;align-items:center;justify-content:space-between;
-                             gap:7px;background:#050505;border:1px solid #1a3a1a;padding:7px 10px;border-radius:3px;">
-                            <div style="display:flex;align-items:center;gap:6px;">
-                                <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;
-                                      display:inline-block;animation:pulse 1.5s infinite;"></span>
-                                <span id="calc-symbol" style="font-size:.85rem;font-weight:700;
-                                      color:#44ff88;letter-spacing:2px;">EURUSD</span>
-                            </div>
-                            <div style="text-align:right;">
-                                <div style="font-size:.55rem;color:#555;text-transform:uppercase;letter-spacing:1px;">BID / ASK</div>
-                                <div id="calc-live-price" style="font-size:.72rem;color:#fff;letter-spacing:1px;">--- / ---</div>
-                                <div id="calc-spread"     style="font-size:.52rem;color:#777;">spread: ---</div>
-                            </div>
-                        </div>
-                    </div>
+                    
                     <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Account Balance ($)</label><input type="number" id="d-bal" placeholder="e.g. 10000" oninput="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
                     <div style="display:flex;margin-bottom:9px;">
                         <button id="d-pb" onclick="deskSm('pct')" style="flex:1;padding:7px;font-size:.6rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;background:#050505;color:#444;border:1px solid #1a1a1a;border-right:none;">Risk %</button>
@@ -974,27 +933,20 @@ var MT5Feed = (function() {
                         });
                     });
 
-                 /* Update calculator live price */
-                    var sym = document.getElementById('calc-symbol');
-                    if(sym && lastData[sym.textContent]) {
-                        var d  = lastData[sym.textContent];
-                        var pe = document.getElementById('calc-live-price');
-                        var se = document.getElementById('calc-spread');
-                        if(pe) pe.textContent = d.bid.toFixed(5)+' / '+d.ask.toFixed(5);
-                        if(se) se.textContent = 'spread: '+d.spread;
-
-                       /* ── Push live bid/ask → calculator, recalculate ── */
+              /* ── Update calculator if this tick matches selected symbol ── */
+                    var _activeSym = window._calcSymbol || 'EURUSD';
+                    if(lastData[_activeSym]) {
+                        var d = lastData[_activeSym];
                         window._calcLiveBid = d.bid;
                         window._calcLiveAsk = d.ask;
                         var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
+                        var dec = Math.max((d.bid.toString().split('.')[1]||'').length, 5);
+                        var pe = document.getElementById('calc-live-price');
+                        var se = document.getElementById('calc-spread');
                         var ed = document.getElementById('d-entry-display');
-                        if(ed) {
-                            ed.textContent = entryPrice.toFixed(5);
-                            ed.style.color  = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
-                        }
-                        /* also update the calc-symbol to match active chart panel */
-                        var cs = document.getElementById('calc-symbol');
-                        if(cs) cs.textContent = sym.textContent;
+                        if(pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
+                        if(se) se.textContent = 'spread: ' + (d.spread || '---');
+                        if(ed) { ed.textContent = entryPrice.toFixed(dec); ed.style.color = (window._calcSide==='BUY') ? '#44ff88' : '#ff6666'; }
                         if(typeof deskCl === 'function') deskCl();
                     }
                 }
@@ -1966,10 +1918,22 @@ function _launchPanelFree(num, containerId, symbol, tf, c) {
    LOT CALCULATOR — Price-based, live entry price
 ═══════════════════════════════════════════════ */
     <script>
-var _dm = 'amt';
+var _dm          = 'amt';
 var _calcLiveBid = 0;
 var _calcLiveAsk = 0;
-var _calcSide    = 'BUY'; // BUY uses ASK, SELL uses BID
+var _calcSide    = 'BUY';
+var _calcSymbol  = 'EURUSD';
+
+function deskDetectInst(sym) {
+    sym = sym.toUpperCase();
+    if(sym.indexOf('XAU')!=-1||sym.indexOf('GOLD')!=-1||sym.indexOf('XAG')!=-1) return 'gold';
+    if(sym.indexOf('US30')!=-1||sym.indexOf('US500')!=-1||sym.indexOf('NAS')!=-1||
+       sym.indexOf('US100')!=-1||sym.indexOf('GER')!=-1||sym.indexOf('SPX')!=-1||
+       sym.indexOf('UK100')!=-1||sym.indexOf('JP225')!=-1) return 'indices';
+    if(sym.indexOf('BTC')!=-1||sym.indexOf('ETH')!=-1||sym.indexOf('XRP')!=-1||
+       sym.indexOf('SOL')!=-1||sym.indexOf('LTC')!=-1) return 'crypto';
+    return 'forex';
+}
 
 function deskSetSide(side) {
     _calcSide = side;
