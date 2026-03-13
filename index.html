@@ -944,25 +944,31 @@ var MT5Feed = (function() {
                         window._calcLiveAsk   = d.ask;
                         window._calcSpreadPts = d.spread || 0;
 
-                        /* 2. Update price display */
-                        var pe = document.getElementById('calc-live-price');
-                        var se = document.getElementById('calc-spread');
-                        var ed = document.getElementById('d-entry-display');
-                        if(pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
-                        if(se) {
-                            se.textContent = 'spread: ' + d.spread;
-                            /* flash green on spread change */
-                            se.style.color = '#44ff88';
-                            clearTimeout(se._fadeTimer);
-                            se._fadeTimer = setTimeout(function(){ se.style.color = '#777'; }, 400);
-                        }
+                    
+                 /* 2. Update price display — use rAF for smooth rendering */
+                        requestAnimationFrame(function() {
+                            var pe = document.getElementById('calc-live-price');
+                            var se = document.getElementById('calc-spread');
+                            var ed = document.getElementById('d-entry-display');
+                            if(pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
+                            if(se) {
+                                var inst = document.getElementById('d-inst');
+                                var spreadDisplay = (inst && inst.value === 'forex')
+                                    ? (d.spread / 10).toFixed(1) + ' pips'
+                                    : d.spread + ' pts';
+                                se.textContent = 'spread: ' + spreadDisplay;
+                                se.style.color = '#44ff88';
+                                clearTimeout(se._fadeTimer);
+                                se._fadeTimer = setTimeout(function(){ se.style.color = '#777'; }, 200);
+                            }
 
-                        /* 3. Update entry price display */
-                        var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
-                        if(ed) {
-                            ed.textContent = entryPrice.toFixed(dec);
-                            ed.style.color = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
-                        }
+                            /* 3. Update entry price display */
+                            var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
+                            if(ed) {
+                                ed.textContent = entryPrice.toFixed(dec);
+                                ed.style.color = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
+                            }
+                        }); /* end requestAnimationFrame */
 
                         /* 4. Recalculate lot size with updated spread */
                         if(typeof deskCl === 'function') deskCl();
