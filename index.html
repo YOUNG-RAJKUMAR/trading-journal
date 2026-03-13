@@ -940,7 +940,7 @@ var MT5Feed = (function() {
                         window._calcLiveBid = d.bid;
                         window._calcLiveAsk = d.ask;
                         var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
-                        var dec = Math.max((d.bid.toString().split('.')[1]||'').length, 5);
+                        var dec = (d.bid.toString().split('.')[1]||'').length;
                         var pe = document.getElementById('calc-live-price');
                         var se = document.getElementById('calc-spread');
                         var ed = document.getElementById('d-entry-display');
@@ -2151,7 +2151,7 @@ function deskRefreshPrice() {
         window._calcLiveBid = data.bid;
         window._calcLiveAsk = data.ask;
         var entryPrice = (_calcSide === 'BUY') ? data.ask : data.bid;
-        var dec = Math.max((data.bid.toString().split('.')[1]||'').length, 5);
+        var dec = (data.bid.toString().split('.')[1]||'').length;
         if(pe)  pe.textContent  = data.bid.toFixed(dec) + ' / ' + data.ask.toFixed(dec);
         if(se)  se.textContent  = 'spread: ' + (data.spread || '---');
         if(ed)  { ed.textContent = entryPrice.toFixed(dec); ed.style.color = (_calcSide==='BUY') ? '#44ff88' : '#ff6666'; }
