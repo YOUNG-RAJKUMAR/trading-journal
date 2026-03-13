@@ -843,7 +843,7 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
 
                         <div style="margin-bottom:7px;">
                             <label style="display:block;font-size:.5rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Timeframe</label>
-                            <select id="replay-tf" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:7px 9px;font-size:.72rem;font-family:inherit;outline:none;border-radius:2px;">
+                           <select id="replay-tf" onchange="replayLoadTF()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:7px 9px;font-size:.72rem;font-family:inherit;outline:none;border-radius:2px;">
                                 <option value="M1">M1 — 1 min</option>
                                 <option value="M2">M2 — 2 min</option>
                                 <option value="M3">M3 — 3 min</option>
@@ -871,7 +871,15 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
                             <input type="date" id="replay-start-date" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:7px 9px;font-size:.72rem;font-family:inherit;outline:none;border-radius:2px;">
                         </div>
 
-                        <button onclick="replayLoadSymbol()" style="width:100%;background:#111;border:1px solid #333;color:#888;padding:9px;font-size:.64rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;font-family:inherit;border-radius:2px;margin-bottom:7px;">↓ Load History File</button>
+                       <!-- Hidden file input -->
+                        <input type="file" id="replay-file-picker" accept=".json"
+                            style="display:none;"
+                            onchange="replayLoadFromFile(this.files[0])">
+
+                        <button onclick="document.getElementById('replay-file-picker').click()"
+                            style="width:100%;background:#111;border:1px solid #ff994455;color:#ff9944;padding:9px;font-size:.64rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;font-family:inherit;border-radius:2px;margin-bottom:7px;">
+                            📂 Select History File
+                        </button>
 
                         <div id="replay-progress-wrap" style="display:none;margin-bottom:6px;">
                             <div style="height:2px;background:#111;border-radius:2px;">
@@ -2585,70 +2593,95 @@ var REPLAY_SPD = {1:1000,2:500,5:200,10:100,50:20,100:10};
 
 function initReplayTab() { /* placeholder for tab switch hook */ }
 
-/* ── LOAD ── */
-async function replayLoadSymbol() {
-    var sym       = document.getElementById('replay-sym').value;
-    var tf        = document.getElementById('replay-tf').value;
-    var statusEl  = document.getElementById('replay-load-status');
-    var progEl    = document.getElementById('replay-load-progress');
-    var wrapEl    = document.getElementById('replay-progress-wrap');
-    var startBtn  = document.getElementById('replay-start-btn');
+/* ── LOAD FROM LOCAL FILE PICKER ── */
+async function replayLoadFromFile(file) {
+    if(!file) return;
+    var statusEl = document.getElementById('replay-load-status');
+    var progEl   = document.getElementById('replay-load-progress');
+    var wrapEl   = document.getElementById('replay-progress-wrap');
+    var startBtn = document.getElementById('replay-start-btn');
 
-    _replaySymbol = sym;
-    _replayTF     = tf;
-    statusEl.style.color = '#555';
-    if(wrapEl)  wrapEl.style.display  = 'block';
-    if(progEl)  progEl.style.width    = '5%';
+    if(wrapEl)  wrapEl.style.display = 'block';
+    if(progEl)  progEl.style.width   = '5%';
     if(startBtn){ startBtn.disabled = true; startBtn.style.opacity = '0.4'; }
-    statusEl.textContent = '⟳ Loading ' + sym + '_history.json…';
+    statusEl.style.color = '#555';
+    statusEl.textContent = '⟳ Reading ' + file.name + '  (' + (file.size/1024/1024).toFixed(1) + ' MB)…';
 
     try {
-        if(!_replayCache[sym]) {
-            statusEl.textContent = '⟳ Downloading ' + sym + '_history.json (~100MB) — please wait…';
-            var resp = await fetch(sym + '_history.json');
-            if(!resp.ok) throw new Error(sym + '_history.json not found. Ensure it is in the same folder as index.html');
-            if(progEl) progEl.style.width = '55%';
-            statusEl.textContent = '⟳ Parsing JSON data…';
-            _replayCache[sym] = await resp.json();
-        }
-        if(progEl) progEl.style.width = '90%';
+        var text = await file.text();
+        if(progEl) progEl.style.width = '60%';
+        statusEl.textContent = '⟳ Parsing JSON…';
 
-        var json    = _replayCache[sym];
-        var candles = (json.data && json.data[tf]) ? json.data[tf] : [];
+        var json = JSON.parse(text);
+        if(progEl) progEl.style.width = '85%';
 
-        if(!candles.length) {
-            statusEl.style.color = '#ffcc44';
-            statusEl.textContent = '⚠ No ' + tf + ' data for ' + sym + '. Try a different timeframe.';
-            if(progEl) progEl.style.width = '0%';
-            return;
-        }
-
-        _replayCandles = candles;
-
-        var firstDate = new Date(candles[0].time).toISOString().split('T')[0];
-        var lastDate  = new Date(candles[candles.length-1].time).toISOString().split('T')[0];
-        var dateEl    = document.getElementById('replay-start-date');
-        if(dateEl) {
-            dateEl.min = firstDate;
-            dateEl.max = lastDate;
-            if(!dateEl.value || dateEl.value < firstDate || dateEl.value > lastDate) {
-                /* default to 200 candles before end */
-                var defIdx = Math.max(0, candles.length - 200);
-                dateEl.value = new Date(candles[defIdx].time).toISOString().split('T')[0];
+        /* Auto-detect symbol from filename e.g. EURUSD_history.json */
+        var detectedSym = file.name.split('_')[0].toUpperCase();
+        var symEl = document.getElementById('replay-sym');
+        if(symEl && detectedSym) {
+            var exists = Array.from(symEl.options).some(function(o){ return o.value === detectedSym; });
+            if(!exists) {
+                var opt = document.createElement('option');
+                opt.value = detectedSym; opt.textContent = detectedSym;
+                symEl.appendChild(opt);
             }
+            symEl.value = detectedSym;
+            _replaySymbol = detectedSym;
         }
+
+        _replayCache[_replaySymbol] = json;
+        replayLoadTF();
 
         if(progEl) progEl.style.width = '100%';
-        statusEl.style.color = '#44ff88';
-        statusEl.textContent = '✅ ' + sym + ' ' + tf + ' — ' + candles.length.toLocaleString() + ' candles  (' + firstDate + ' → ' + lastDate + ')';
-        if(startBtn){ startBtn.disabled = false; startBtn.style.opacity = '1'; }
 
     } catch(e) {
         statusEl.style.color = '#ff4444';
-        statusEl.textContent = '❌ ' + e.message;
+        statusEl.textContent = '❌ Failed to read file: ' + e.message;
         if(progEl) progEl.style.width = '0%';
     }
 }
+
+function replayLoadTF() {
+    var sym      = document.getElementById('replay-sym').value;
+    var tf       = document.getElementById('replay-tf').value;
+    var statusEl = document.getElementById('replay-load-status');
+    var startBtn = document.getElementById('replay-start-btn');
+
+    _replaySymbol = sym;
+    _replayTF     = tf;
+
+    var json = _replayCache[sym];
+    if(!json) {
+        statusEl.style.color = '#ffcc44';
+        statusEl.textContent = '⚠ Load ' + sym + '_history.json file first.';
+        return;
+    }
+
+    var candles = (json.data && json.data[tf]) ? json.data[tf] : [];
+    if(!candles.length) {
+        statusEl.style.color = '#ffcc44';
+        statusEl.textContent = '⚠ No ' + tf + ' data found in this file.';
+        return;
+    }
+
+    _replayCandles = candles;
+
+    var firstDate = new Date(candles[0].time).toISOString().split('T')[0];
+    var lastDate  = new Date(candles[candles.length-1].time).toISOString().split('T')[0];
+    var dateEl    = document.getElementById('replay-start-date');
+    if(dateEl) {
+        dateEl.min = firstDate;
+        dateEl.max = lastDate;
+        var defIdx = Math.max(0, candles.length - 200);
+        dateEl.value = new Date(candles[defIdx].time).toISOString().split('T')[0];
+    }
+
+    statusEl.style.color = '#44ff88';
+    statusEl.textContent = '✅ ' + sym + ' ' + tf + ' — ' + candles.length.toLocaleString() + ' candles  (' + firstDate + ' → ' + lastDate + ')';
+    if(startBtn){ startBtn.disabled = false; startBtn.style.opacity = '1'; }
+}
+
+function replayLoadSymbol() { replayLoadTF(); } /* legacy stub */
 
 /* ── START ── */
 function replayStart() {
