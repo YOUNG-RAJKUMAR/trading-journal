@@ -575,9 +575,17 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
             <!-- Calculator Panel -->
             <div style="width:190px;flex-shrink:0;height:100%;background:#000;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;overflow:hidden;zoom:1;">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0d0d0d;border-bottom:1px solid #1a1a1a;height:40px;flex-shrink:0;">
-                    <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;">
-                        <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;"></span>
-                        ⚓ LOT CALCULATOR
+                 <div style="display:flex;flex-direction:column;gap:1px;">
+                        <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:6px;">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0;"></span>
+                            ⚓ LOT CALCULATOR
+                        </div>
+                        <div id="calc-header-sym"
+                            style="font-size:.7rem;font-weight:700;color:#44ff88;
+                                   font-family:'Courier New',monospace;letter-spacing:3px;
+                                   padding-left:13px;">
+                            EURUSD
+                        </div>
                     </div>
                     <button onclick="deskRs()" style="background:transparent;border:1px solid #222;color:#555;padding:3px 8px;font-size:.55rem;cursor:pointer;border-radius:3px;font-family:inherit;text-transform:uppercase;">↺ Reset</button>
                 </div>
@@ -932,11 +940,13 @@ var MT5Feed = (function() {
                     return;
                 }
 
-           if(msg.type === 'loading_done') {
+       if(msg.type === 'loading_done') {
                     setStatus('connected','● MT5 LIVE');
                     startCountdown();
                     if(window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
-                    setTimeout(function(){ if(typeof deskBuildPills==='function') deskBuildPills(); }, 400);
+                    setTimeout(function(){
+                        if(typeof deskBuildPills==='function') deskBuildPills();
+                    }, 600);
                     return;
                 }
 
@@ -2113,10 +2123,15 @@ function deskCl(){
     deskSv('d-rtv',  '$'+pvl.toFixed(0)+'/'+cfg.lbl+'/lot');
 }
 
-        function deskBuildPills() {
-    var data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
+   function deskBuildPills() {
+    var data = {};
+    try { data = MT5Feed.lastData || {}; } catch(e) { return; }
     var syms = Object.keys(data).sort();
-    if(!syms.length) return;
+    if(!syms.length) {
+        /* retry in 1s if data not ready yet */
+        setTimeout(deskBuildPills, 1000);
+        return;
+    }
 
     var sel = document.getElementById('calc-sym-select');
     if(!sel) return;
@@ -2125,28 +2140,42 @@ function deskCl(){
         return '<option value="'+s+'" '+(s===_calcSymbol?'selected':'')+'>'+s+'</option>';
     }).join('');
 
+    /* set to first symbol if _calcSymbol not in list */
+    if(syms.indexOf(_calcSymbol) === -1) _calcSymbol = syms[0];
+    sel.value = _calcSymbol;
+
     deskSelectSymbol(_calcSymbol);
 }
 
-function deskSelectSymbol(sym) {
+        function deskSelectSymbol(sym) {
     sym = sym.toUpperCase();
     _calcSymbol = sym;
 
+    /* sync select */
     var sel = document.getElementById('calc-sym-select');
     if(sel) sel.value = sym;
 
-    var lbl = document.getElementById('calc-symbol');
-    if(lbl) lbl.textContent = sym;
+    /* update BOTH header labels */
+    var lbl1 = document.getElementById('calc-symbol');
+    if(lbl1) lbl1.textContent = sym;
+   var hdr2 = document.getElementById('calc-header-sym');
+    if(hdr2) hdr2.textContent = sym;
 
+    /* update the big header title at top of calculator panel */
+    var hdr = document.querySelector('#main-content .header-title');
+    /* only update calc header, not app header */
+
+    /* auto-detect instrument */
     var inst = deskDetectInst(sym);
     var instEl = document.getElementById('d-inst');
     if(instEl) instEl.value = inst;
 
+    /* refresh live price immediately */
     deskRefreshPrice();
     deskAtp();
     deskCl();
 }
-
+        
 function deskRefreshPrice() {
     var data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData[_calcSymbol] : null;
     var pe  = document.getElementById('calc-live-price');
