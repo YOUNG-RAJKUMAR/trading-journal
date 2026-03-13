@@ -933,20 +933,38 @@ var MT5Feed = (function() {
                         });
                     });
 
-              /* ── Update calculator if this tick matches selected symbol ── */
+             /* ── Update calculator live on every tick ── */
                     var _activeSym = window._calcSymbol || 'EURUSD';
                     if(lastData[_activeSym]) {
-                        var d = lastData[_activeSym];
-                        window._calcLiveBid = d.bid;
-                        window._calcLiveAsk = d.ask;
-                        var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
+                        var d   = lastData[_activeSym];
                         var dec = (d.bid.toString().split('.')[1]||'').length;
+
+                        /* 1. Store live values FIRST */
+                        window._calcLiveBid   = d.bid;
+                        window._calcLiveAsk   = d.ask;
+                        window._calcSpreadPts = d.spread || 0;
+
+                        /* 2. Update price display */
                         var pe = document.getElementById('calc-live-price');
                         var se = document.getElementById('calc-spread');
                         var ed = document.getElementById('d-entry-display');
                         if(pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
-                        if(se) se.textContent = 'spread: ' + (d.spread || '---');
-                        if(ed) { ed.textContent = entryPrice.toFixed(dec); ed.style.color = (window._calcSide==='BUY') ? '#44ff88' : '#ff6666'; }
+                        if(se) {
+                            se.textContent = 'spread: ' + d.spread;
+                            /* flash green on spread change */
+                            se.style.color = '#44ff88';
+                            clearTimeout(se._fadeTimer);
+                            se._fadeTimer = setTimeout(function(){ se.style.color = '#777'; }, 400);
+                        }
+
+                        /* 3. Update entry price display */
+                        var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
+                        if(ed) {
+                            ed.textContent = entryPrice.toFixed(dec);
+                            ed.style.color = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
+                        }
+
+                        /* 4. Recalculate lot size with updated spread */
                         if(typeof deskCl === 'function') deskCl();
                     }
                 }
@@ -1926,15 +1944,40 @@ var _calcSymbol  = 'EURUSD';
 
 function deskDetectInst(sym) {
     sym = sym.toUpperCase();
-    if(sym.indexOf('XAU')!=-1||sym.indexOf('GOLD')!=-1||sym.indexOf('XAG')!=-1) return 'gold';
-    if(sym.indexOf('US30')!=-1||sym.indexOf('US500')!=-1||sym.indexOf('NAS')!=-1||
-       sym.indexOf('US100')!=-1||sym.indexOf('GER')!=-1||sym.indexOf('SPX')!=-1||
-       sym.indexOf('UK100')!=-1||sym.indexOf('JP225')!=-1) return 'indices';
-    if(sym.indexOf('BTC')!=-1||sym.indexOf('ETH')!=-1||sym.indexOf('XRP')!=-1||
-       sym.indexOf('SOL')!=-1||sym.indexOf('LTC')!=-1) return 'crypto';
+
+    /* ── GOLD / SILVER ── */
+    if(sym.indexOf('XAU') !== -1 || sym.indexOf('GOLD') !== -1 ||
+       sym.indexOf('XAG') !== -1 || sym.indexOf('SILVER') !== -1)
+        return 'gold';
+
+    /* ── INDICES ── */
+    if(sym.indexOf('US30')  !== -1 || sym.indexOf('DJ30')   !== -1 ||
+       sym.indexOf('DOW')   !== -1 || sym.indexOf('US500')  !== -1 ||
+       sym.indexOf('SPX')   !== -1 || sym.indexOf('SP500')  !== -1 ||
+       sym.indexOf('NAS')   !== -1 || sym.indexOf('US100')  !== -1 ||
+       sym.indexOf('NDX')   !== -1 || sym.indexOf('USTEC')  !== -1 ||
+       sym.indexOf('GER')   !== -1 || sym.indexOf('DAX')    !== -1 ||
+       sym.indexOf('UK100') !== -1 || sym.indexOf('FTSE')   !== -1 ||
+       sym.indexOf('JP225') !== -1 || sym.indexOf('NIKKEI') !== -1 ||
+       sym.indexOf('AUS200')!== -1 || sym.indexOf('ASX')    !== -1 ||
+       sym.indexOf('FRA40') !== -1 || sym.indexOf('CAC')    !== -1 ||
+       sym.indexOf('EU50')  !== -1 || sym.indexOf('STOXX')  !== -1 ||
+       sym.indexOf('HK50')  !== -1 || sym.indexOf('CHINA')  !== -1 ||
+       sym.indexOf('VIX')   !== -1)
+        return 'indices';
+
+    /* ── CRYPTO ── */
+    if(sym.indexOf('BTC')  !== -1 || sym.indexOf('ETH')  !== -1 ||
+       sym.indexOf('XRP')  !== -1 || sym.indexOf('SOL')  !== -1 ||
+       sym.indexOf('LTC')  !== -1 || sym.indexOf('BNB')  !== -1 ||
+       sym.indexOf('ADA')  !== -1 || sym.indexOf('DOT')  !== -1 ||
+       sym.indexOf('DOGE') !== -1 || sym.indexOf('MATIC')!== -1 ||
+       sym.indexOf('AVAX') !== -1 || sym.indexOf('LINK') !== -1)
+        return 'crypto';
+
+    /* ── Everything else = FOREX ── */
     return 'forex';
 }
-
 function deskSetSide(side) {
     _calcSide = side;
     var bb = document.getElementById('d-buy-btn');
@@ -1966,11 +2009,66 @@ var INST_MULT = { 'forex':100000, 'gold':100, 'indices':10, 'crypto':1 };
 var INST_PIP  = { 'forex':10000,  'gold':10,  'indices':1,  'crypto':1 };
 var INST_LBL  = { 'forex':'pips', 'gold':'pts','indices':'pts','crypto':'pts' };
 
+/* ── Per-symbol tick value overrides ($ per 1.0 price move per standard lot) ──
+   Formula: lots = risk / (slDist * tickVal)
+   where slDist is in raw price units (e.g. 0.0010 for EURUSD = 10 pips)
+*/
+var SYM_TICK = {
+    /* Forex — $10/pip/lot, pip=0.0001, so $100,000 per price unit */
+    'EURUSD':100000,'GBPUSD':100000,'AUDUSD':100000,'NZDUSD':100000,
+    'USDCHF':100000,'USDCAD':100000,'EURGBP':100000,'EURJPY':100000,
+    'GBPJPY':100000,'USDJPY':100000,'AUDJPY':100000,'CADJPY':100000,
+    'CHFJPY':100000,'EURCHF':100000,'EURAUD':100000,'EURCAD':100000,
+    'GBPAUD':100000,'GBPCAD':100000,'GBPCHF':100000,'AUDCAD':100000,
+    'AUDCHF':100000,'AUDNZD':100000,'NZDCAD':100000,'NZDCHF':100000,
+    'NZDJPY':100000,'EURNZD':100000,'GBPNZD':100000,
+    /* Gold / Silver */
+    'XAUUSD':100,   /* $100/point/lot (100 oz contract) */
+    'XAGUSD':50,    /* $50/point/lot  (5000 oz contract) */
+    'GOLD':100,
+    /* Indices — most brokers $1/point/lot */
+    'US30':1,   'DJ30':1,   'DOW30':1,
+    'US500':1,  'SPX500':1, 'SP500':1,
+    'NAS100':1, 'US100':1,  'USTEC':1, 'NDX100':1,
+    'GER40':1,  'GER30':1,  'DAX':1,   'DE40':1,
+    'UK100':1,  'FTSE100':1,
+    'JP225':1,  'JPN225':1,
+    'AUS200':1, 'AU200':1,
+    'FRA40':1,  'CAC40':1,
+    'EU50':1,   'STOXX50':1,
+    'HK50':1,   'HK33':1,
+    /* Crypto — $1/point/lot */
+    'BTCUSD':1, 'ETHUSD':1, 'XRPUSD':1, 'SOLUSD':1,
+    'LTCUSD':1, 'BNBUSD':1, 'ADAUSD':1, 'DOGEUSD':1,
+};
+
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 
 function _instCfg(){
-    var i = document.getElementById('d-inst').value;
-    return { mult: INST_MULT[i]||100000, pip: INST_PIP[i]||10000, lbl: INST_LBL[i]||'pips' };
+    var inst = document.getElementById('d-inst').value;
+    var sym  = (window._calcSymbol || '').toUpperCase();
+
+    /* Look up exact symbol first, then fall back to instrument type */
+    var mult = SYM_TICK[sym] || INST_MULT[inst] || 100000;
+    var pip  = INST_PIP[inst]  || 10000;
+    var lbl  = INST_LBL[inst]  || 'pips';
+
+    /* Auto pip label */
+    if(inst === 'gold' || inst === 'indices' || inst === 'crypto') lbl = 'pts';
+
+    return { mult: mult, pip: pip, lbl: lbl };
+}
+
+/* ── Calculate spread in price units from MT5 spread (in points) ── */
+function _spreadPrice() {
+    var bid = window._calcLiveBid;
+    if(!bid) return 0;
+    var spread = window._calcSpreadPts || 0;
+    if(!spread) return 0;
+    /* point size = smallest decimal of bid price */
+    var dec = (bid.toString().split('.')[1]||'').length;
+    var pointSize = Math.pow(10, -dec);
+    return spread * pointSize;
 }
 
 function _liveEntry(){
@@ -2058,8 +2156,12 @@ function deskCl(){
         deskSv('d-rls','Enter SL price'); return;
     }
 
-    var slDist = Math.abs(ent - slP);
+  var slDist = Math.abs(ent - slP);
     if(slDist===0){ deskSv('d-rl','ERR'); deskSv('d-rls','SL = Entry!'); return; }
+
+    /* ── Add spread to SL distance (spread widens your effective risk) ── */
+    var spreadDist = _spreadPrice();
+    var effectiveSL = slDist + spreadDist;
 
     var rm = _dm==='amt' ? ra : (b>0 ? b*rp/100 : 0);
     if(!rm){
@@ -2067,8 +2169,8 @@ function deskCl(){
         deskSv('d-rls','Set risk amount'); return;
     }
 
-    var l      = Math.floor(rm/(slDist*cfg.mult)*100)/100;
-    var ar     = l*slDist*cfg.mult;
+    var l      = Math.floor(rm/(effectiveSL*cfg.mult)*100)/100;
+    var ar     = l*effectiveSL*cfg.mult;
     var slPips = Math.round(slDist*cfg.pip*10)/10;
     var tpPips = tpP ? Math.round(Math.abs(tpP-ent)*cfg.pip*10)/10 : 0;
     var pp     = (tpP && l>0) ? l*Math.abs(tpP-ent)*cfg.mult : 0;
@@ -2081,7 +2183,8 @@ function deskCl(){
     deskSv('d-rrs', b>0 ? ((ar/b)*100).toFixed(2)+'% of bal' : '--');
     deskSv('d-rp2', tpP ? '$'+pp.toFixed(2) : '---');
     deskSv('d-rps', (b>0&&tpP) ? ((pp/b)*100).toFixed(2)+'% of bal' : '--');
-    deskSv('d-rsout', slPips+' '+cfg.lbl);
+    var spreadPips = Math.round(spreadDist * cfg.pip * 10) / 10;
+    deskSv('d-rsout', slPips + (spreadPips > 0 ? ' +'+spreadPips+'sp' : '') +' '+cfg.lbl);
     deskSv('d-rt',   tpP ? tpPips+' '+cfg.lbl : '---');
     deskSv('d-rrr',  rr2>0 ? '1:'+parseFloat(rr2.toFixed(2)) : '---');
     deskSv('d-rtv',  '$'+pvl.toFixed(0)+'/'+cfg.lbl+'/lot');
@@ -2154,6 +2257,7 @@ function deskRefreshPrice() {
         var dec = (data.bid.toString().split('.')[1]||'').length;
         if(pe)  pe.textContent  = data.bid.toFixed(dec) + ' / ' + data.ask.toFixed(dec);
         if(se)  se.textContent  = 'spread: ' + (data.spread || '---');
+        window._calcSpreadPts = data.spread || 0;
         if(ed)  { ed.textContent = entryPrice.toFixed(dec); ed.style.color = (_calcSide==='BUY') ? '#44ff88' : '#ff6666'; }
         if(lbl) { lbl.textContent = (_calcSide==='BUY') ? '● ASK (BUY)' : '● BID (SELL)'; lbl.style.color = (_calcSide==='BUY') ? '#44ff88' : '#ff6666'; }
     } else {
