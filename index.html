@@ -607,14 +607,30 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
                             <option value="forex">Forex</option><option value="gold">Gold</option><option value="indices">Indices</option><option value="crypto">Crypto</option>
                         </select>
                     </div>
-<!-- LIVE ENTRY PRICE — auto-filled from MT5 bid -->
-                    <div style="margin-bottom:9px;">
-                        <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">
-                            Entry Price &nbsp;<span style="font-size:.48rem;color:#44ff88;letter-spacing:0;animation:pulse 1.5s infinite;display:inline-block;">● LIVE</span>
-                        </label>
-                        <div id="d-entry-display" style="width:100%;background:#020d02;border:1px solid #1a3a1a;color:#44ff88;padding:9px 10px;font-size:.95rem;font-family:'Courier New',monospace;border-radius:2px;letter-spacing:2px;font-weight:700;min-height:36px;">---</div>
+
+                    <!-- BUY / SELL SIDE TOGGLE -->
+                    <div style="display:flex;margin-bottom:9px;border:1px solid #1a1a1a;overflow:hidden;border-radius:2px;">
+                        <button id="d-buy-btn" onclick="deskSetSide('BUY')"
+                            style="flex:1;padding:8px;font-size:.65rem;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:inherit;border:none;background:#003300;color:#44ff88;transition:all .15s;">
+                            ▲ BUY
+                        </button>
+                        <button id="d-sell-btn" onclick="deskSetSide('SELL')"
+                            style="flex:1;padding:8px;font-size:.65rem;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:inherit;border:none;background:#050505;color:#444;transition:all .15s;">
+                            ▼ SELL
+                        </button>
                     </div>
 
+                    <!-- LIVE ENTRY PRICE — ASK for BUY, BID for SELL -->
+                    <div style="margin-bottom:9px;">
+                        <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">
+                            Entry Price &nbsp;
+                            <span id="d-side-lbl" style="font-size:.48rem;color:#44ff88;letter-spacing:0;">● ASK (BUY)</span>
+                            &nbsp;<span style="font-size:.48rem;color:#44ff88;animation:pulse 1.5s infinite;display:inline-block;">● LIVE</span>
+                        </label>
+                        <div id="d-entry-display"
+                            style="width:100%;background:#020d02;border:1px solid #1a3a1a;color:#44ff88;padding:9px 10px;font-size:.95rem;font-family:'Courier New',monospace;border-radius:2px;letter-spacing:2px;font-weight:700;min-height:36px;">---</div>
+                    </div>
+                    
                     <!-- SL PRICE + R:R -->
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;">
                         <div>
@@ -888,10 +904,18 @@ var MT5Feed = (function() {
                         if(pe) pe.textContent = d.bid.toFixed(5)+' / '+d.ask.toFixed(5);
                         if(se) se.textContent = 'spread: '+d.spread;
 
-                        /* ── Push live bid → calculator entry display, recalculate ── */
+                       /* ── Push live bid/ask → calculator, recalculate ── */
                         window._calcLiveBid = d.bid;
+                        window._calcLiveAsk = d.ask;
+                        var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
                         var ed = document.getElementById('d-entry-display');
-                        if(ed) ed.textContent = d.bid.toFixed(5);
+                        if(ed) {
+                            ed.textContent = entryPrice.toFixed(5);
+                            ed.style.color  = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
+                        }
+                        /* also update the calc-symbol to match active chart panel */
+                        var cs = document.getElementById('calc-symbol');
+                        if(cs) cs.textContent = sym.textContent;
                         if(typeof deskCl === 'function') deskCl();
                     }
                 }
@@ -1788,17 +1812,30 @@ function launchPanel(num) {
     });
 
     // ── Sync countdown TF with chart interval (MT5 mode) ──
-    _tvWidgets[num-1].onChartReady(function() {
-        // Grab whatever TF the chart actually loaded with
+   _tvWidgets[num-1].onChartReady(function() {
         _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
 
-        // Update on every user-driven TF change
         _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(
             null,
             function(interval) {
                 _currentTF[num-1] = interval;
             }
         );
+
+        /* ── Sync calc symbol when user changes symbol on panel 1 ── */
+        if(num === 1) {
+            _tvWidgets[0].activeChart().onSymbolChanged().subscribe(
+                null,
+                function() {
+                    var newSym = _tvWidgets[0].activeChart().symbol();
+                    var cs = document.getElementById('calc-symbol');
+                    if(cs) cs.textContent = newSym;
+                    /* reset entry display until next tick arrives */
+                    var ed = document.getElementById('d-entry-display');
+                    if(ed) ed.textContent = 'waiting…';
+                }
+            );
+        }
     });
 }
 
@@ -1851,7 +1888,30 @@ function _launchPanelFree(num, containerId, symbol, tf, c) {
 ═══════════════════════════════════════════════ */
     <script>
 var _dm = 'amt';
-var _calcLiveBid = 0; // continuously updated from MT5 feed
+var _calcLiveBid = 0;
+var _calcLiveAsk = 0;
+var _calcSide    = 'BUY'; // BUY uses ASK, SELL uses BID
+
+function deskSetSide(side) {
+    _calcSide = side;
+    var bb = document.getElementById('d-buy-btn');
+    var sb = document.getElementById('d-sell-btn');
+    var lbl = document.getElementById('d-side-lbl');
+    var ed  = document.getElementById('d-entry-display');
+    if(side === 'BUY') {
+        if(bb){ bb.style.background='#003300'; bb.style.color='#44ff88'; }
+        if(sb){ sb.style.background='#050505'; sb.style.color='#444'; }
+        if(lbl) lbl.textContent = '● ASK (BUY)';
+        if(ed)  ed.style.color = '#44ff88';
+    } else {
+        if(bb){ bb.style.background='#050505'; bb.style.color='#444'; }
+        if(sb){ sb.style.background='#1a0000'; sb.style.color='#ff6666'; }
+        if(lbl){ lbl.textContent = '● BID (SELL)'; lbl.style.color='#ff6666'; }
+        if(ed)  ed.style.color = '#ff6666';
+    }
+    deskAtp();
+    deskCl();
+}
 
 /* Instrument multiplier: lots = risk / (priceDist * mult)
    Forex  EURUSD: 50 pip SL, $100 risk → 0.20 lots  (mult=100000 = pips*$10/pip/lot)
@@ -1866,8 +1926,14 @@ var INST_LBL  = { 'forex':'pips', 'gold':'pts','indices':'pts','crypto':'pts' };
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 
 function _instCfg(){
-    var i=document.getElementById('d-inst').value;
+    var i = document.getElementById('d-inst').value;
     return { mult: INST_MULT[i]||100000, pip: INST_PIP[i]||10000, lbl: INST_LBL[i]||'pips' };
+}
+
+function _liveEntry(){
+    /* BUY  → fill at ASK (higher price) */
+    /* SELL → fill at BID (lower price)  */
+    return _calcSide === 'BUY' ? _calcLiveAsk : _calcLiveBid;
 }
 
 function deskSm(m){
@@ -1885,7 +1951,7 @@ function deskAtp(){
     var sl  = parseFloat(document.getElementById('d-sl').value)||0;
     var te  = document.getElementById('d-tp');
     var tg  = document.getElementById('d-at');
-    var ent = _calcLiveBid;
+   var ent = _liveEntry();
     if(rr===0){
         te.readOnly=false; te.style.borderColor=''; te.style.color='#44cc88';
         if(tg) tg.style.display='none'; deskCl(); return;
@@ -1918,7 +1984,7 @@ function deskCl(){
     var ra  = parseFloat(document.getElementById('d-ra').value)||0;
     var slP = parseFloat(document.getElementById('d-sl').value)||0;
     var tpP = parseFloat(document.getElementById('d-tp').value)||0;
-    var ent = _calcLiveBid;
+    var ent = _liveEntry();
     var cfg = _instCfg();
 
     /* ── Quick risk reference table ── */
