@@ -607,21 +607,45 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
                             <option value="forex">Forex</option><option value="gold">Gold</option><option value="indices">Indices</option><option value="crypto">Crypto</option>
                         </select>
                     </div>
+<!-- LIVE ENTRY PRICE — auto-filled from MT5 bid -->
+                    <div style="margin-bottom:9px;">
+                        <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">
+                            Entry Price &nbsp;<span style="font-size:.48rem;color:#44ff88;letter-spacing:0;animation:pulse 1.5s infinite;display:inline-block;">● LIVE</span>
+                        </label>
+                        <div id="d-entry-display" style="width:100%;background:#020d02;border:1px solid #1a3a1a;color:#44ff88;padding:9px 10px;font-size:.95rem;font-family:'Courier New',monospace;border-radius:2px;letter-spacing:2px;font-weight:700;min-height:36px;">---</div>
+                    </div>
+
+                    <!-- SL PRICE + R:R -->
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;">
-                        <div><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL (ticks)</label><input type="number" id="d-sl" placeholder="50" min="0" step="1" oninput="deskAtp();deskCl();" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
-                        <div><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Target R:R</label>
+                        <div>
+                            <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL Price</label>
+                            <input type="number" id="d-sl" placeholder="e.g. 1.09500" step="0.00001" oninput="deskAtp();deskCl();"
+                                style="width:100%;background:#050505;border:1px solid #3a1a1a;color:#ff6666;padding:9px;font-size:.95rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;">
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Target R:R</label>
                             <select id="d-rr" onchange="deskAtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;">
                                 <option value="0">Manual TP</option><option value="0.5">1:0.5</option><option value="1" selected>1:1</option><option value="1.5">1:1.5</option><option value="2">1:2</option><option value="2.5">1:2.5</option><option value="3">1:3</option><option value="4">1:4</option><option value="5">1:5</option>
                             </select>
                         </div>
                     </div>
-                    <div style="margin-bottom:9px;"><label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP (ticks) <span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">● AUTO</span></label><input type="number" id="d-tp" placeholder="100" min="0" step="1" oninput="deskMtp()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:9px;font-size:1rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;"></div>
+
+                    <!-- TP PRICE -->
+                    <div style="margin-bottom:9px;">
+                        <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">
+                            TP Price &nbsp;<span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">● AUTO</span>
+                        </label>
+                        <input type="number" id="d-tp" placeholder="e.g. 1.10500" step="0.00001" oninput="deskMtp()"
+                            style="width:100%;background:#050505;border:1px solid #1a3a1a;color:#44cc88;padding:9px;font-size:.95rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;">
+                    </div>
+                    
+                    
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;">
                         <div id="d-rcl" style="grid-column:span 2;background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Lot Size</div><div id="d-rl" style="font-size:1.4rem;color:#44ff88;font-weight:700;">---</div><div id="d-rls" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">Enter values</div></div>
                         <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Risk ($)</div><div id="d-rr2" style="font-size:.88rem;color:#ff4444;">---</div><div id="d-rrs" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">---</div></div>
                         <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Profit ($)</div><div id="d-rp2" style="font-size:.88rem;color:#44ff88;">---</div><div id="d-rps" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">---</div></div>
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL Ticks</div><div id="d-rsout" style="font-size:.88rem;color:#fff;">---</div></div>
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP Ticks</div><div id="d-rt" style="font-size:.88rem;color:#fff;">---</div></div>
+                 <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL Dist</div><div id="d-rsout" style="font-size:.88rem;color:#ff6666;">---</div></div>
+                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP Dist</div><div id="d-rt" style="font-size:.88rem;color:#44cc88;">---</div></div>
                         <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">R:R</div><div id="d-rrr" style="font-size:.88rem;color:#fff;">---</div></div>
                         <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Tick Val</div><div id="d-rtv" style="font-size:.88rem;color:#fff;">---</div></div>
                     </div>
@@ -855,7 +879,7 @@ var MT5Feed = (function() {
                         });
                     });
 
-                    /* Update calculator live price */
+                 /* Update calculator live price */
                     var sym = document.getElementById('calc-symbol');
                     if(sym && lastData[sym.textContent]) {
                         var d  = lastData[sym.textContent];
@@ -863,6 +887,12 @@ var MT5Feed = (function() {
                         var se = document.getElementById('calc-spread');
                         if(pe) pe.textContent = d.bid.toFixed(5)+' / '+d.ask.toFixed(5);
                         if(se) se.textContent = 'spread: '+d.spread;
+
+                        /* ── Push live bid → calculator entry display, recalculate ── */
+                        window._calcLiveBid = d.bid;
+                        var ed = document.getElementById('d-entry-display');
+                        if(ed) ed.textContent = d.bid.toFixed(5);
+                        if(typeof deskCl === 'function') deskCl();
                     }
                 }
             } catch(e) { console.log('WS parse error:', e); }
@@ -1815,10 +1845,31 @@ function _launchPanelFree(num, containerId, symbol, tf, c) {
     });
 }
 </script>
-<!-- Calculator -->
-<script>
+
+    /* ═══════════════════════════════════════════════
+   LOT CALCULATOR — Price-based, live entry price
+═══════════════════════════════════════════════ */
+    <script>
 var _dm = 'amt';
+var _calcLiveBid = 0; // continuously updated from MT5 feed
+
+/* Instrument multiplier: lots = risk / (priceDist * mult)
+   Forex  EURUSD: 50 pip SL, $100 risk → 0.20 lots  (mult=100000 = pips*$10/pip/lot)
+   Gold   XAUUSD: 20 pt  SL, $100 risk → 0.05 lots  (mult=100   = pts*$100/lot)
+   Index  US30  : 20 pt  SL, $100 risk → 0.50 lots  (mult=10    = pts*$10/lot)
+   Crypto BTC   : 500 pt SL, $100 risk → 0.20 lots  (mult=1)
+*/
+var INST_MULT = { 'forex':100000, 'gold':100, 'indices':10, 'crypto':1 };
+var INST_PIP  = { 'forex':10000,  'gold':10,  'indices':1,  'crypto':1 };
+var INST_LBL  = { 'forex':'pips', 'gold':'pts','indices':'pts','crypto':'pts' };
+
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+
+function _instCfg(){
+    var i=document.getElementById('d-inst').value;
+    return { mult: INST_MULT[i]||100000, pip: INST_PIP[i]||10000, lbl: INST_LBL[i]||'pips' };
+}
+
 function deskSm(m){
     _dm=m;
     document.getElementById('d-pr').style.display=m==='pct'?'block':'none';
@@ -1828,32 +1879,110 @@ function deskSm(m){
     if(ab){ab.style.background=m==='amt'?'#fff':'#050505';ab.style.color=m==='amt'?'#000':'#444';ab.style.border=m==='amt'?'1px solid #fff':'1px solid #1a1a1a';ab.style.fontWeight=m==='amt'?'700':'400';}
     deskCl();
 }
+
 function deskAtp(){
-    var rr=parseFloat(document.getElementById('d-rr').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,te=document.getElementById('d-tp'),tg=document.getElementById('d-at');
-    if(rr===0){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';if(tg)tg.style.display='none';deskCl();return;}
-    if(!sl){document.getElementById('d-rr').value='0';deskCl();return;}
-    te.value=Math.round(sl*rr*10)/10;te.readOnly=true;te.style.borderColor='#44ff88';te.style.color='#44ff88';if(tg)tg.style.display='inline';deskCl();
+    var rr  = parseFloat(document.getElementById('d-rr').value)||0;
+    var sl  = parseFloat(document.getElementById('d-sl').value)||0;
+    var te  = document.getElementById('d-tp');
+    var tg  = document.getElementById('d-at');
+    var ent = _calcLiveBid;
+    if(rr===0){
+        te.readOnly=false; te.style.borderColor=''; te.style.color='#44cc88';
+        if(tg) tg.style.display='none'; deskCl(); return;
+    }
+    if(!ent||!sl){ deskCl(); return; }
+    var dist   = Math.abs(ent-sl);
+    var tpDir  = sl < ent ? 1 : -1; // long → TP above, short → TP below
+    var tp     = ent + dist*rr*tpDir;
+    var dec    = Math.max(
+        (ent.toString().split('.')[1]||'').length,
+        (sl.toString().split('.')[1]||'').length
+    );
+    te.value=tp.toFixed(Math.max(dec,5));
+    te.readOnly=true; te.style.borderColor='#44ff88'; te.style.color='#44ff88';
+    if(tg) tg.style.display='inline';
+    deskCl();
 }
-function deskMtp(){document.getElementById('d-rr').value='0';var te=document.getElementById('d-tp');te.readOnly=false;te.style.borderColor='';te.style.color='#fff';var tg=document.getElementById('d-at');if(tg)tg.style.display='none';deskCl();}
+
+function deskMtp(){
+    document.getElementById('d-rr').value='0';
+    var te=document.getElementById('d-tp');
+    te.readOnly=false; te.style.borderColor=''; te.style.color='#44cc88';
+    var tg=document.getElementById('d-at'); if(tg) tg.style.display='none';
+    deskCl();
+}
+
 function deskCl(){
-    var b=parseFloat(document.getElementById('d-bal').value)||0,rp=parseFloat(document.getElementById('d-rp').value)||0,ra=parseFloat(document.getElementById('d-ra').value)||0,sl=parseFloat(document.getElementById('d-sl').value)||0,tp=parseFloat(document.getElementById('d-tp').value)||0,tv=1;
-    var qs=document.getElementById('d-qs'),qb=document.getElementById('d-qb');
-    if(b>0&&qs&&qb){var rows=[0.5,1,1.5,2,3,5].map(function(p){var a=b*p/100,l=sl>0?Math.floor(a/(sl*tv)*100)/100:0,pr=(tp&&l)?l*tp*tv:0,hi=(_dm==='pct'&&p===rp);return'<tr style="'+(hi?'background:#0d1a0d;':'')+'"><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">'+p+'%</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';">$'+a.toFixed(0)+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0?l.toFixed(2):'---')+'</td><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+(hi?'#fff':'#888')+';"> '+(sl>0&&tp?'$'+pr.toFixed(0):'---')+'</td></tr>';}).join('');qb.innerHTML=rows;qs.style.display='block';}
-    if(!sl){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Enter values');deskSv('d-rrs','---');deskSv('d-rps','---');return;}
-    var rm=_dm==='amt'?ra:(b>0?b*rp/100:0);
-    if(!rm){['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});deskSv('d-rls','Set risk amount');return;}
-    var l=Math.floor(rm/(sl*tv)*100)/100,ar=l*sl*tv,pp=tp?l*tp*tv:0,r=tp>0?tp/sl:0;
-    deskSv('d-rl',l.toFixed(2));deskSv('d-rls','Standard lots');
-    deskSv('d-rr2','$'+ar.toFixed(2));deskSv('d-rrs',b>0?((ar/b)*100).toFixed(2)+'% of bal':'--');
-    deskSv('d-rp2',tp?'$'+pp.toFixed(2):'---');deskSv('d-rps',(b>0&&tp)?((pp/b)*100).toFixed(2)+'% of bal':'--');
-    deskSv('d-rsout',sl+' ticks');deskSv('d-rt',tp?tp+' ticks':'---');
-    deskSv('d-rrr',r>0?'1:'+parseFloat(r.toFixed(2)):'---');deskSv('d-rtv','$'+tv.toFixed(2));
+    var b   = parseFloat(document.getElementById('d-bal').value)||0;
+    var rp  = parseFloat(document.getElementById('d-rp').value)||0;
+    var ra  = parseFloat(document.getElementById('d-ra').value)||0;
+    var slP = parseFloat(document.getElementById('d-sl').value)||0;
+    var tpP = parseFloat(document.getElementById('d-tp').value)||0;
+    var ent = _calcLiveBid;
+    var cfg = _instCfg();
+
+    /* ── Quick risk reference table ── */
+    var qs=document.getElementById('d-qs'), qb=document.getElementById('d-qb');
+    if(b>0 && qs && qb && ent && slP){
+        var dist0=Math.abs(ent-slP);
+        var rows=[0.5,1,1.5,2,3,5].map(function(p){
+            var a=b*p/100;
+            var l=dist0>0?Math.floor(a/(dist0*cfg.mult)*100)/100:0;
+            var pr=(tpP&&l>0)?l*Math.abs(tpP-ent)*cfg.mult:0;
+            var hi=(_dm==='pct'&&p===rp);
+            var c=hi?'#fff':'#888';
+            return '<tr style="'+(hi?'background:#0d1a0d;':'')+'"><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+c+';">'+p+'%</td>'
+                +'<td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+c+';">$'+a.toFixed(0)+'</td>'
+                +'<td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+c+';">'+(dist0>0?l.toFixed(2):'---')+'</td>'
+                +'<td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+c+';">'+(dist0>0&&tpP?'$'+pr.toFixed(0):'---')+'</td></tr>';
+        }).join('');
+        qb.innerHTML=rows; qs.style.display='block';
+    }
+
+    /* ── Guard: need live price + SL ── */
+    if(!ent){
+        ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
+        deskSv('d-rls','Waiting for live price…'); return;
+    }
+    if(!slP){
+        ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
+        deskSv('d-rls','Enter SL price'); return;
+    }
+
+    var slDist = Math.abs(ent - slP);
+    if(slDist===0){ deskSv('d-rl','ERR'); deskSv('d-rls','SL = Entry!'); return; }
+
+    var rm = _dm==='amt' ? ra : (b>0 ? b*rp/100 : 0);
+    if(!rm){
+        ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
+        deskSv('d-rls','Set risk amount'); return;
+    }
+
+    var l      = Math.floor(rm/(slDist*cfg.mult)*100)/100;
+    var ar     = l*slDist*cfg.mult;
+    var slPips = Math.round(slDist*cfg.pip*10)/10;
+    var tpPips = tpP ? Math.round(Math.abs(tpP-ent)*cfg.pip*10)/10 : 0;
+    var pp     = (tpP && l>0) ? l*Math.abs(tpP-ent)*cfg.mult : 0;
+    var rr2    = tpPips>0 ? tpPips/slPips : 0;
+    var pvl    = cfg.mult/cfg.pip; // pip value per standard lot
+
+    deskSv('d-rl',  l.toFixed(2));
+    deskSv('d-rls', 'Standard lots');
+    deskSv('d-rr2', '$'+ar.toFixed(2));
+    deskSv('d-rrs', b>0 ? ((ar/b)*100).toFixed(2)+'% of bal' : '--');
+    deskSv('d-rp2', tpP ? '$'+pp.toFixed(2) : '---');
+    deskSv('d-rps', (b>0&&tpP) ? ((pp/b)*100).toFixed(2)+'% of bal' : '--');
+    deskSv('d-rsout', slPips+' '+cfg.lbl);
+    deskSv('d-rt',   tpP ? tpPips+' '+cfg.lbl : '---');
+    deskSv('d-rrr',  rr2>0 ? '1:'+parseFloat(rr2.toFixed(2)) : '---');
+    deskSv('d-rtv',  '$'+pvl.toFixed(0)+'/'+cfg.lbl+'/lot');
 }
+
 function deskRs(){
     ['d-bal','d-rp','d-sl','d-tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
     var ra=document.getElementById('d-ra');if(ra)ra.value='0';
     var rrEl=document.getElementById('d-rr');if(rrEl)rrEl.value='1';
-    var te=document.getElementById('d-tp');if(te){te.readOnly=false;te.style.borderColor='';te.style.color='#fff';}
+    var te=document.getElementById('d-tp');if(te){te.readOnly=false;te.style.borderColor='';te.style.color='#44cc88';}
     var tg=document.getElementById('d-at');if(tg)tg.style.display='none';
     deskSm('amt');
     ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
@@ -1862,7 +1991,8 @@ function deskRs(){
 }
 function syncHex(pickerId, hexId) { var p=document.getElementById(pickerId),h=document.getElementById(hexId); if(p&&h)h.value=p.value; }
 function syncPicker(hexId, pickerId) { var h=document.getElementById(hexId),p=document.getElementById(pickerId); if(!h||!p)return; var v=h.value.trim(); if(/^#[0-9a-fA-F]{6}$/.test(v))p.value=v; }
-</script>
+
+    </script>
 
 <!-- Theme System -->
 <script>
