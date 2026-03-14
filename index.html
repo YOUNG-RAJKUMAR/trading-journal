@@ -2649,14 +2649,16 @@ function _tfMinutes(tf) {
     return map[tf] || 1;
 }
 
-/* ── How many chart-TF candles = 1 step-TF candle ── */
-function _candlesPerStep() {
-    var chartMins = _tfMinutes(_replayTF);
-    var stepMins  = _tfMinutes(_replayStepTF);
-    /* if step < chart (e.g. step=M1, chart=H4), just advance 1 candle */
-    return Math.max(1, Math.round(stepMins / chartMins));
-}
 
+    /* ── How many chart-TF candles = 1 step-TF candle ── */
+function _candlesPerStep() {
+    var chartMins = _tfMinutes(_replayTF   || 'H1');
+    var stepMins  = _tfMinutes(_replayStepTF || _replayTF || 'H1');
+    var n = Math.max(1, Math.round(stepMins / chartMins));
+    /* debug — remove after confirming */
+    console.log('[REPLAY] chart='+_replayTF+' step='+_replayStepTF+' → '+n+' candles/step');
+    return n;
+}
 function initReplayTab() { /* placeholder for tab switch hook */ }
 
 /* ── LOAD FROM LOCAL FILE PICKER ── */
@@ -2931,21 +2933,10 @@ function launchReplayChart() {
                 });
             }, 0);
         },
-        getBars: function(si, resolution, pp, onResult, onErr) {
-            /* Show 500 candles of context before start + all candles up to replay cursor */
-            var ctxStart = Math.max(0, _replayStartIdx - 500);
-            var bars = _replayCandles.slice(ctxStart, _replayIndex + 1);
-            if(pp.firstDataRequest) {
-                onResult(bars, { noData: bars.length === 0 });
-            } else {
-                var fMs = pp.from * 1000, tMs = pp.to * 1000;
-                var filtered = bars.filter(function(b){ return b.time >= fMs && b.time <= tMs; });
-                onResult(filtered, { noData: filtered.length === 0 });
-            }
-        },
 
-        subscribeBars: function(si, res, onTick, guid) {
-            /* sync TF when TV widget switches resolution internally */
+        getBars: function(si, resolution, pp, onResult, onErr) {
+            /* ── Always resolve candles directly from cache by resolution ──
+               This ensures correct data even before subscribeBars fires    */
             var tfRev = {
                 '1':'M1',  '2':'M2',  '3':'M3',   '4':'M4',
                 '5':'M5',  '6':'M6',  '10':'M10', '12':'M12',
@@ -2953,40 +2944,49 @@ function launchReplayChart() {
                 '60':'H1', '120':'H2','180':'H3', '240':'H4',
                 '360':'H6','480':'H8','720':'H12','D':'D1'
             };
-            var newTF = tfRev[res] || 'H1';
-            if(newTF !== _replayTF) {
-                /* silently switch candle data without rebuilding widget */
-                var json = _replayCache[_replaySymbol];
-                if(json && json.data && json.data[newTF] && json.data[newTF].length) {
-                    var currentTime = _replayCandles[_replayIndex] ? _replayCandles[_replayIndex].time : 0;
-                    _replayTF      = newTF;
-                    _replayCandles = json.data[newTF];
+            var tf   = tfRev[resolution] || 'H1';
+            var json = _replayCache[_replaySymbol];
 
-                    /* re-find start index */
-                    var startEl = document.getElementById('replay-start-date');
-                    var startMs = startEl && startEl.value ? new Date(startEl.value).getTime() : _replayCandles[0].time;
-                    _replayStartIdx = 0;
-                    for(var i = 0; i < _replayCandles.length; i++) {
-                        if(_replayCandles[i].time >= startMs) { _replayStartIdx = i; break; }
+            /* get candles for THIS resolution from cache */
+            var allCandles = (json && json.data && json.data[tf]) ? json.data[tf] : _replayCandles;
+
+            /* if TF changed, sync engine state */
+            if(tf !== _replayTF && allCandles.length) {
+                var currentTime = _replayCandles[_replayIndex] ? _replayCandles[_replayIndex].time : 0;
+                _replayTF      = tf;
+                _replayCandles = allCandles;
+
+                var startEl = document.getElementById('replay-start-date');
+                var startMs = startEl && startEl.value ? new Date(startEl.value).getTime() : allCandles[0].time;
+                _replayStartIdx = 0;
+                for(var si2 = 0; si2 < allCandles.length; si2++) {
+                    if(allCandles[si2].time >= startMs) { _replayStartIdx = si2; break; }
+                }
+                _replayIndex = _replayStartIdx;
+                if(currentTime > 0) {
+                    for(var ci = 0; ci < allCandles.length; ci++) {
+                        if(allCandles[ci].time >= currentTime) { _replayIndex = ci; break; }
                     }
-                    /* find closest candle to current time */
-                    _replayIndex = _replayStartIdx;
-                    if(currentTime > 0) {
-                        for(var j = 0; j < _replayCandles.length; j++) {
-                            if(_replayCandles[j].time >= currentTime) { _replayIndex = j; break; }
-                        }
-                    }
-                    /* highlight matching TF button */
-                    document.querySelectorAll('.tf-btn').forEach(function(btn) {
-                        var isActive = btn.textContent.trim() === newTF;
-                        btn.style.background = isActive ? '#1a0d00' : '#050505';
-                        btn.style.color      = isActive ? '#ff9944' : '#666';
-                        btn.style.border     = isActive ? '1px solid #ff9944' : '1px solid #222';
-                        btn.style.fontWeight = isActive ? '700' : '400';
-                    });
                 }
             }
-            _replaySub = { guid:guid, callback:onTick };
+
+            /* return candles up to current replay position */
+            var ctxStart = Math.max(0, _replayStartIdx - 500);
+            var bars     = allCandles.slice(ctxStart, _replayIndex + 1);
+
+            if(pp.firstDataRequest) {
+                onResult(bars, { noData: bars.length === 0 });
+            } else {
+                var fMs      = pp.from * 1000;
+                var tMs      = pp.to   * 1000;
+                var filtered = bars.filter(function(b){ return b.time >= fMs && b.time <= tMs; });
+                onResult(filtered, { noData: filtered.length === 0 });
+            }
+        },
+
+        subscribeBars: function(si, res, onTick, guid) {
+            /* TF sync already handled in getBars — just register subscriber */
+            _replaySub = { guid: guid, callback: onTick };
         },
         unsubscribeBars: function(guid) { _replaySub = null; },
         getServerTime: function(cb) {
