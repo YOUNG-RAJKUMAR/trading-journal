@@ -2831,7 +2831,8 @@ function btStart() {
     }
 
     bt.index  = bt.startIdx;
-    bt.vTime  = candles[bt.startIdx] ? candles[bt.startIdx].time : 0;
+    /* start vTime just BEFORE the first candle so nothing shows yet */
+    bt.vTime  = candles[bt.startIdx] ? candles[bt.startIdx].time - 1 : 0;
 
     /* sync step TF overlay */
     var stepSel = document.getElementById('bt-step-tf');
@@ -2904,13 +2905,14 @@ function btLaunchChart() {
             /* current virtual time — what the replay has revealed so far */
             var curTime = bt.vTime || (bt.candles[bt.index] ? bt.candles[bt.index].time : 0);
 
-            /* ── find cutIdx = last candle whose open time <= curTime ──
-               MUST scan ALL candles — never break early              */
+           /* ── find cutIdx = last candle whose time <= curTime ──
+               scan ALL — never break early                        */
             var cutIdx = -1;
             for(var k = 0; k < allC.length; k++) {
                 if(allC[k].time <= curTime) cutIdx = k;
             }
-            if(cutIdx < 0) { onResult([], {noData:true}); return; }
+            /* nothing revealed yet — return empty */
+            if(cutIdx < 0) { onResult([], {noData:false}); return; }
 
             /* find startIdx for context (200 candles before replay start) */
             var startMs = 0;
@@ -2987,18 +2989,19 @@ function btLaunchChart() {
 function btAdvance() {
     if(bt.index >= bt.endIdx) { btPause(); return; }
 
-    /* advance virtual time by 1 step-TF unit */
+ /* advance virtual time by 1 step-TF unit */
     bt.vTime += btMins(bt.stepTF) * 60 * 1000;
 
-    /* find new index = last candle whose time <= vTime */
+    /* reveal all chart-TF candles whose time <= vTime */
     var prev = bt.index;
     while(bt.index < bt.endIdx) {
         var next = bt.candles[bt.index + 1];
         if(!next || next.time > bt.vTime) break;
         bt.index++;
-        /* check SL/TP */
         if(bt.trade) btCheckHit(bt.candles[bt.index]);
     }
+
+    if(bt.index >= bt.endIdx) btPause();
 
     /* force chart to reload via resetData() */
     if(bt.widget) {
@@ -3058,9 +3061,7 @@ function btSetSpeed(val) {
 
 function btSetStepTF(tf) {
     bt.stepTF = tf;
-    /* re-align vTime to current candle cleanly */
-    var cur = bt.candles[bt.index];
-    if(cur) bt.vTime = cur.time;
+    /* vTime stays where it is — step size just changes going forward */
 }
 
 /* ═══════════ TRADING ═══════════ */
