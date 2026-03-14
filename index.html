@@ -2781,14 +2781,20 @@ function replaySpeedSlider(val) {
     var labels = {1:'1×',2:'2×',3:'5×',4:'10×',5:'50×',6:'100×'};
     var lbl = document.getElementById('ov-speed-label');
     if(lbl) lbl.textContent = labels[val] || val+'×';
-    if(_replayPlaying) { replayPause(); replayPlay(); }
+    /* restart timer immediately with new speed if playing */
+    if(_replayPlaying) {
+        clearTimeout(_replayTimer);
+        _scheduleStep();
+    }
 }
 
-/* ── Overlay step TF changed ── */
+/* ── Overlay step TF changed — only sets step size, never touches chart TF ── */
 function replayOverlayTF(tf) {
-    _replayStepTF = tf;
+    _replayStepTF = tf;  /* how much time advances per step */
+    /* update panel indicator */
     var el = document.getElementById('panel-active-tf');
     if(el) el.textContent = tf;
+    /* do NOT call replaySwitchTF — that would rebuild the chart */
 }
     
 /* ── Switch TF instantly during replay ── */
@@ -3034,31 +3040,39 @@ function _scheduleStep() {
     var val    = slider ? parseInt(slider.value) : 1;
     var ms     = REPLAY_SPD_MAP[val] || 1000;
     _replayTimer = setTimeout(function(){
-        if(_replayPlaying){ _doStep(); _scheduleStep(); }
+        if(!_replayPlaying) return;
+        _doStep();
+        /* only continue if still playing after step */
+        if(_replayPlaying) _scheduleStep();
     }, ms);
 }
-
 function replayPause() {
     _replayPlaying = false;
     clearTimeout(_replayTimer);
     updateReplayBtns();
 }
 
-function _doStep() {
+    function _doStep() {
     var endLimit = window._replayEndIdx !== undefined ? window._replayEndIdx : _replayCandles.length - 1;
     if(_replayIndex >= endLimit){ replayPause(); return; }
 
-    /* advance by N candles = 1 step-TF candle worth of chart-TF candles */
+    /* how many chart-TF candles = 1 step-TF candle */
     var n   = _candlesPerStep();
     var bar = null;
+    var hit = false;
 
     for(var s = 0; s < n; s++) {
-        if(_replayIndex >= endLimit) { replayPause(); break; }
+        if(_replayIndex >= endLimit) {
+            replayPause();
+            hit = true;
+            break;
+        }
         _replayIndex++;
         bar = _replayCandles[_replayIndex];
+        if(!bar) continue;
 
-        /* push every candle so chart draws them all */
-        if(_replaySub && _replaySub.callback && bar) {
+        /* push to TV chart subscriber so candle appears */
+        if(_replaySub && _replaySub.callback) {
             _replaySub.callback({
                 time:   bar.time,
                 open:   bar.open,
@@ -3069,8 +3083,11 @@ function _doStep() {
             });
         }
 
-        /* SL/TP check on every candle */
-        if(_replayOpenTrade && bar) _checkTradeHit(bar);
+        /* check SL/TP on every candle even inside a step */
+        if(_replayOpenTrade) _checkTradeHit(bar);
+
+        /* if trade closed mid-step, stop advancing */
+        if(!_replayOpenTrade && hit) break;
     }
 
     if(bar) {
@@ -3200,8 +3217,8 @@ function _showReplayOverlay() {
     if(bar)   { bar.style.display   = 'flex'; }
     if(setup) { setup.style.display = 'none'; }
 
-    /* default step TF = chart TF */
-    _replayStepTF = _replayTF || 'H1';
+    /* default step TF = chart TF on first launch */
+    if(!_replayStepTF) _replayStepTF = _replayTF || 'H1';
     var ovTF = document.getElementById('ov-step-tf');
     if(ovTF) ovTF.value = _replayStepTF;
     var paTF = document.getElementById('panel-active-tf');
