@@ -2623,7 +2623,8 @@ var _replayWidget    = null;
 var _replaySub       = null;
 var _replayOpenTrade = null;
 var _replayTrades    = [];
-var _replayCache     = {}; // loaded JSON per symbol
+var _replayCache       = {}; // loaded JSON per symbol
+var _replayVirtualTime = 0;  // tracks time position independently of candle index
 
 /* ── TF → TV resolution mapping ── */
 var REPLAY_TF_RES = {
@@ -2874,10 +2875,11 @@ function replayStart() {
     }
     window._replayEndIdx = _replayEndIdx;
 
-    _replayIndex    = _replayStartIdx; /* chart shows history UP TO here */
-    _replayPlaying  = false;
-    _replayOpenTrade= null;
-    _replayTrades   = [];
+    _replayIndex       = _replayStartIdx;
+    _replayVirtualTime = _replayCandles[_replayStartIdx] ? _replayCandles[_replayStartIdx].time : 0;
+    _replayPlaying     = false;
+    _replayOpenTrade   = null;
+    _replayTrades      = [];
 
     document.getElementById('replay-setup-section').style.display    = 'none';
     document.getElementById('replay-controls-section').style.display = 'block';
@@ -3009,13 +3011,14 @@ function launchReplayChart() {
                 for(var i = 0; i < newCandles.length; i++) {
                     if(newCandles[i].time >= startMs) { _replayStartIdx = i; break; }
                 }
-                /* find closest candle to previous position */
                 _replayIndex = _replayStartIdx;
                 if(curTime > 0) {
                     for(var j = 0; j < newCandles.length; j++) {
                         if(newCandles[j].time >= curTime) { _replayIndex = j; break; }
                     }
                 }
+                /* sync virtual time to current candle */
+                _replayVirtualTime = _replayCandles[_replayIndex] ? _replayCandles[_replayIndex].time : 0;
                 /* recalc end index */
                 var endEl = document.getElementById('replay-end-date');
                 var endMs = endEl && endEl.value ? new Date(endEl.value).getTime() + 86400000 : newCandles[newCandles.length-1].time;
@@ -3094,26 +3097,29 @@ function replayPause() {
     updateReplayBtns();
 }
 
-    function _doStep() {
+  function _doStep() {
     var endLimit = window._replayEndIdx !== undefined ? window._replayEndIdx : _replayCandles.length - 1;
     if(_replayIndex >= endLimit){ replayPause(); return; }
 
-    /* how many chart-TF candles = 1 step-TF candle */
-    var n   = _candlesPerStep();
-    var bar = null;
-    var hit = false;
+    /* ── Advance virtual time by exactly 1 step-TF unit ──
+       e.g. chart=H4, step=H1 → advance 60 mins per click
+       H4 candle appears only after 4 clicks (4×60=240 mins) */
+    var stepMs = _tfMinutes(_replayStepTF || _replayTF || 'H1') * 60 * 1000;
+    _replayVirtualTime += stepMs;
 
-    for(var s = 0; s < n; s++) {
-        if(_replayIndex >= endLimit) {
-            replayPause();
-            hit = true;
-            break;
-        }
+    /* ── Reveal all chart candles whose time <= virtual time ── */
+    var bar     = null;
+    var pushed  = false;
+
+    while(_replayIndex < endLimit) {
+        var nextBar = _replayCandles[_replayIndex + 1];
+        if(!nextBar || nextBar.time > _replayVirtualTime) break;
+
         _replayIndex++;
         bar = _replayCandles[_replayIndex];
         if(!bar) continue;
 
-        /* push to TV chart subscriber so candle appears */
+        /* push candle to TV chart */
         if(_replaySub && _replaySub.callback) {
             _replaySub.callback({
                 time:   bar.time,
@@ -3125,17 +3131,14 @@ function replayPause() {
             });
         }
 
-        /* check SL/TP on every candle even inside a step */
+        /* check SL/TP */
         if(_replayOpenTrade) _checkTradeHit(bar);
-
-        /* if trade closed mid-step, stop advancing */
-        if(!_replayOpenTrade && hit) break;
+        pushed = true;
     }
 
-    if(bar) {
-        updateReplayCandleInfo();
-        updateReplayTradePanel();
-    }
+    /* always update info display even if no new candle appeared */
+    updateReplayCandleInfo();
+    if(pushed) updateReplayTradePanel();
 }
 
 function replayStepOne() {
