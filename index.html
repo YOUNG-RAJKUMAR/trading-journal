@@ -2914,21 +2914,29 @@ function btLaunchChart() {
             /* nothing revealed yet — return empty */
             if(cutIdx < 0) { onResult([], {noData:false}); return; }
 
-            /* find startIdx for context (200 candles before replay start) */
-            var startMs = 0;
-            var sd = document.getElementById('bt-start');
-            startMs = (sd && sd.value) ? new Date(sd.value).getTime() : allC[0].time;
+           /* find startIdx for this TF matching replay start date */
+            var sd      = document.getElementById('bt-start');
+            var startMs = (sd && sd.value) ? new Date(sd.value).getTime() : allC[0].time;
             var startIdx = 0;
             for(var s = 0; s < allC.length; s++) {
                 if(allC[s].time >= startMs) { startIdx = s; break; }
             }
-            var ctxStart = Math.max(0, startIdx - 300);
-            var bars = allC.slice(ctxStart, cutIdx + 1);
+
+            /* ── Only reveal candles from startIdx onwards up to curTime ──
+               cutIdx is already found above scanning ALL candles          */
+            if(cutIdx < startIdx) {
+                /* nothing revealed yet — blank chart */
+                onResult([], { noData: false });
+                return;
+            }
+
+            var bars = allC.slice(startIdx, cutIdx + 1);
 
             if(pp.firstDataRequest) {
                 onResult(bars, { noData: bars.length === 0 });
             } else {
-                var fMs = pp.from * 1000, tMs = pp.to * 1000;
+                var fMs      = pp.from * 1000;
+                var tMs      = pp.to   * 1000;
                 var filtered = bars.filter(function(b){ return b.time >= fMs && b.time <= tMs; });
                 onResult(filtered, { noData: filtered.length === 0 });
             }
