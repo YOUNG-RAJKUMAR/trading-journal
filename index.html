@@ -2891,40 +2891,44 @@ function btLaunchChart() {
                 });
             }, 0);
         },
-        getBars: function(si, resolution, pp, onResult) {
-            /* ── KEY: always read from cache for the requested TF ── */
+      getBars: function(si, resolution, pp, onResult) {
             var tfRev = {'1':'M1','2':'M2','3':'M3','4':'M4','5':'M5','6':'M6',
                 '10':'M10','12':'M12','15':'M15','20':'M20','30':'M30',
                 '60':'H1','120':'H2','180':'H3','240':'H4',
                 '360':'H6','480':'H8','720':'H12','D':'D1'};
-            var tf       = tfRev[resolution] || 'H1';
-            var json     = bt.cache[bt.sym];
-            var allC     = (json && json.data && json.data[tf]) ? json.data[tf] : bt.candles;
+            var tf   = tfRev[resolution] || 'H1';
+            var json = bt.cache[bt.sym];
+            var allC = (json && json.data && json.data[tf]) ? json.data[tf] : bt.candles;
+            if(!allC || !allC.length) { onResult([], {noData:true}); return; }
 
-            /* find position in this TF matching virtual time */
-            var curTime  = bt.vTime || (bt.candles[bt.index] ? bt.candles[bt.index].time : 0);
-            var cutIdx   = 0;
-            for(var k=0; k<allC.length; k++) {
-                if(allC[k].time <= curTime) cutIdx = k; else break;
-            }
+            /* current virtual time — what the replay has revealed so far */
+            var curTime = bt.vTime || (bt.candles[bt.index] ? bt.candles[bt.index].time : 0);
 
-            /* show context + history up to cut */
-            var json2    = bt.cache[bt.sym];
-            var startMs2 = (document.getElementById('bt-start')||{}).value;
-            startMs2 = startMs2 ? new Date(startMs2).getTime() : allC[0].time;
-            var startIdx2 = 0;
-            for(var s=0; s<allC.length; s++){
-                if(allC[s].time >= startMs2){ startIdx2 = s; break; }
+            /* ── find cutIdx = last candle whose open time <= curTime ──
+               MUST scan ALL candles — never break early              */
+            var cutIdx = -1;
+            for(var k = 0; k < allC.length; k++) {
+                if(allC[k].time <= curTime) cutIdx = k;
             }
-            var ctxStart = Math.max(0, startIdx2 - 200);
+            if(cutIdx < 0) { onResult([], {noData:true}); return; }
+
+            /* find startIdx for context (200 candles before replay start) */
+            var startMs = 0;
+            var sd = document.getElementById('bt-start');
+            startMs = (sd && sd.value) ? new Date(sd.value).getTime() : allC[0].time;
+            var startIdx = 0;
+            for(var s = 0; s < allC.length; s++) {
+                if(allC[s].time >= startMs) { startIdx = s; break; }
+            }
+            var ctxStart = Math.max(0, startIdx - 300);
             var bars = allC.slice(ctxStart, cutIdx + 1);
 
             if(pp.firstDataRequest) {
                 onResult(bars, { noData: bars.length === 0 });
             } else {
                 var fMs = pp.from * 1000, tMs = pp.to * 1000;
-                onResult(bars.filter(function(b){ return b.time>=fMs && b.time<=tMs; }),
-                         { noData: false });
+                var filtered = bars.filter(function(b){ return b.time >= fMs && b.time <= tMs; });
+                onResult(filtered, { noData: filtered.length === 0 });
             }
         },
         subscribeBars:   function(si, res, onTick, guid) { /* no streaming needed */ },
