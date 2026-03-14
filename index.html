@@ -3036,34 +3036,27 @@ function btAdvance() {
 
     if(bt.index >= bt.endIdx) btPause();
 
-    /* 3. Push correct-resolution bar to TV subscriber
-          subscriber TF may differ from chart TF (e.g. user switched to H4 view)
-          Always push from the cache TF that matches what TV is subscribed to  */
+     /* 3. Push ALL new bars since last push to TV subscriber */
     if(bt._sub && bt._subRes) {
         var subTF      = BT_TF_REV[bt._subRes] || 'H1';
         var json       = bt.cache[bt.sym];
         var subCandles = (json && json.data && json.data[subTF]) ? json.data[subTF] : bt.candles;
+        var prevVTime  = bt.vTime - (btMins(bt.stepTF) * 60 * 1000);
 
-        /* find last candle in subscriber TF whose time <= vTime */
-        var latestBar = null;
-        for(var i = subCandles.length - 1; i >= 0; i--) {
-            if(subCandles[i].time <= bt.vTime){ latestBar = subCandles[i]; break; }
+        /* push every sub-TF candle that opened in this step window */
+        for(var pi = 0; pi < subCandles.length; pi++) {
+            var sc = subCandles[pi];
+            if(sc.time > prevVTime && sc.time <= bt.vTime) {
+                bt._sub({
+                    time:   sc.time,
+                    open:   sc.open,
+                    high:   sc.high,
+                    low:    sc.low,
+                    close:  sc.close,
+                    volume: sc.volume || 0
+                });
+            }
         }
-        if(latestBar) {
-            bt._sub({
-                time:   latestBar.time,
-                open:   latestBar.open,
-                high:   latestBar.high,
-                low:    latestBar.low,
-                close:  latestBar.close,
-                volume: latestBar.volume || 0
-            });
-        }
-    }
-
-    /* 4. resetData so getBars re-runs for ALL TF switches correctly */
-    if(bt._chartReady && bt.widget){
-        try { bt.widget.activeChart().resetData(); } catch(e) {}
     }
 
     btUpdateInfo();
