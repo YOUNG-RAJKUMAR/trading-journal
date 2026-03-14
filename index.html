@@ -2843,6 +2843,7 @@ function btStart() {
 
     bt.index       = bt.startIdx;
     bt._chartReady = false;
+    bt._resetting  = false;
     bt.vTime       = workCandles[bt.startIdx] ? workCandles[bt.startIdx].time - 1 : 0;
 
     console.log('[BT] start='+new Date(workCandles[bt.startIdx].time).toISOString()+
@@ -3036,9 +3037,7 @@ function btAdvance() {
 
     if(bt.index >= bt.endIdx) btPause();
 
-  /* 3. Push ONE bar — the latest candle in subscriber TF <= vTime
-          TV uses this to update the current bar on screen.
-          Full history is always served correctly by getBars.        */
+/* 3. Push latest bar via subscriber (updates current candle) */
     if(bt._sub && bt._subRes) {
         var subTF      = BT_TF_REV[bt._subRes] || 'H1';
         var json3      = bt.cache[bt.sym];
@@ -3058,6 +3057,22 @@ function btAdvance() {
                 volume: latestBar.volume || 0
             });
         }
+    }
+
+    /* 4. resetData with guard — shows all new candles for current TF
+          Only fires if step produced more than 1 new chart-TF candle
+          Guard prevents recursive getBars → resetData loop           */
+    var subTFMins  = btMins(BT_TF_REV[bt._subRes||'60']||'H1');
+    var stepTFMins = btMins(bt.stepTF);
+    var newBars    = Math.floor(stepTFMins / subTFMins);
+    if(newBars > 1 && bt._chartReady && bt.widget && !bt._resetting) {
+        bt._resetting = true;
+        setTimeout(function(){
+            bt._resetting = false;
+            if(bt.widget && bt._chartReady){
+                try { bt.widget.activeChart().resetData(); } catch(e){}
+            }
+        }, 0);
     }
     btUpdateInfo();
     if(bt.trade) btUpdateOpenTrade();
