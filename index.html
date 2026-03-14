@@ -817,41 +817,63 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
             <div style="flex:1;min-width:0;height:100%;position:relative;">
                 <div id="tv-container-replay" style="width:100%;height:100%;"></div>
 
-                <!-- ── OVERLAY CONTROL BAR (like TradersCasa) ── -->
+              <!-- ── OVERLAY CONTROL BAR ── -->
                 <div id="replay-overlay-bar"
                     style="display:none;position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
-                           z-index:10;background:rgba(10,10,10,0.92);border:1px solid #333;
-                           border-radius:6px;padding:6px 12px;display:none;
-                           align-items:center;gap:8px;box-shadow:0 4px 24px rgba(0,0,0,0.6);
-                           backdrop-filter:blur(8px);white-space:nowrap;">
+                           z-index:10;background:rgba(13,13,13,0.95);border:1px solid #2a2a2a;
+                           border-radius:6px;padding:7px 14px;
+                           align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,0.7);
+                           backdrop-filter:blur(10px);white-space:nowrap;">
 
-                    <!-- Playback buttons -->
-                    <button id="ov-play-btn" onclick="replayPlay()"
-                        style="background:#1a0d00;border:1px solid #ff9944;color:#ff9944;width:32px;height:32px;
-                               font-size:.9rem;cursor:pointer;border-radius:4px;display:flex;align-items:center;
-                               justify-content:center;transition:all .15s;">▶</button>
-                    <button id="ov-pause-btn" onclick="replayPause()"
-                        style="background:#050505;border:1px solid #333;color:#555;width:32px;height:32px;
-                               font-size:.9rem;cursor:pointer;border-radius:4px;display:flex;align-items:center;
-                               justify-content:center;transition:all .15s;">⏸</button>
-                    <button onclick="replayStepOne()"
-                        style="background:#050505;border:1px solid #333;color:#888;width:32px;height:32px;
-                               font-size:.9rem;cursor:pointer;border-radius:4px;display:flex;align-items:center;
-                               justify-content:center;">⏭</button>
-                    <button onclick="replayStop()"
-                        style="background:#1a0000;border:1px solid #4a1a1a;color:#ff4444;width:32px;height:32px;
-                               font-size:.9rem;cursor:pointer;border-radius:4px;display:flex;align-items:center;
-                               justify-content:center;">⏹</button>
+                    <!-- Speed slider -->
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                        <span style="font-size:.4rem;color:#444;text-transform:uppercase;letter-spacing:1px;">Speed</span>
+                        <input type="range" id="ov-speed-slider" min="1" max="6" value="1"
+                            oninput="replaySpeedSlider(this.value)"
+                            style="width:72px;height:4px;accent-color:#ff9944;cursor:pointer;background:#222;border:none;padding:0;outline:none;">
+                        <span id="ov-speed-label" style="font-size:.48rem;color:#ff9944;font-weight:700;">1×</span>
+                    </div>
 
-                    <div style="width:1px;height:24px;background:#222;margin:0 2px;"></div>
+                    <div style="width:1px;height:28px;background:#222;"></div>
 
-                    <!-- Step TF selector — controls candle size per step -->
-                    <div style="display:flex;flex-direction:column;gap:1px;">
-                        <span style="font-size:.42rem;color:#555;text-transform:uppercase;letter-spacing:1px;">Step</span>
+                    <!-- Play -->
+                    <button id="ov-play-btn" onclick="replayPlay()" title="Play"
+                        style="background:transparent;border:none;color:#ff9944;width:30px;height:30px;
+                               font-size:1rem;cursor:pointer;border-radius:50%;display:flex;align-items:center;
+                               justify-content:center;transition:all .15s;padding:0;">▶</button>
+
+                    <!-- Pause -->
+                    <button id="ov-pause-btn" onclick="replayPause()" title="Pause"
+                        style="background:transparent;border:none;color:#555;width:30px;height:30px;
+                               font-size:1rem;cursor:pointer;border-radius:50%;display:flex;align-items:center;
+                               justify-content:center;transition:all .15s;padding:0;">⏸</button>
+
+                    <!-- Skip 1 step-TF candle -->
+                    <button onclick="replayStepOne()" title="Skip 1 candle of step TF"
+                        style="background:transparent;border:none;color:#888;width:30px;height:30px;
+                               font-size:1rem;cursor:pointer;border-radius:50%;display:flex;align-items:center;
+                               justify-content:center;padding:0;">⏭</button>
+
+                    <div style="width:1px;height:28px;background:#222;"></div>
+
+                    <!-- Current candle date + price -->
+                    <div style="display:flex;flex-direction:column;gap:1px;min-width:130px;">
+                        <div id="ov-dt" style="font-size:.62rem;color:#ff9944;font-family:'Courier New',monospace;letter-spacing:1px;">---</div>
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <span style="font-size:.46rem;color:#444;">Close</span>
+                            <span id="ov-pr" style="font-size:.72rem;color:#fff;font-weight:700;font-family:'Courier New',monospace;">---</span>
+                        </div>
+                    </div>
+
+                    <div style="width:1px;height:28px;background:#222;"></div>
+
+                    <!-- Step TF selector -->
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                        <span style="font-size:.4rem;color:#444;text-transform:uppercase;letter-spacing:1px;">Step TF</span>
                         <select id="ov-step-tf" onchange="replayOverlayTF(this.value)"
                             style="background:#0a0a0a;border:1px solid #ff994466;color:#ff9944;
-                                   padding:4px 8px;font-size:.72rem;font-family:'Courier New',monospace;
-                                   font-weight:700;outline:none;border-radius:3px;cursor:pointer;min-width:60px;">
+                                   padding:5px 8px;font-size:.72rem;font-family:'Courier New',monospace;
+                                   font-weight:700;outline:none;border-radius:3px;cursor:pointer;min-width:58px;">
                             <option value="M1">1m</option>
                             <option value="M2">2m</option>
                             <option value="M3">3m</option>
@@ -870,44 +892,21 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
                         </select>
                     </div>
 
-                    <div style="width:1px;height:24px;background:#222;margin:0 2px;"></div>
+                    <div style="width:1px;height:28px;background:#222;"></div>
 
-                    <!-- Auto-play speed -->
-                    <div style="display:flex;flex-direction:column;gap:1px;">
-                        <span style="font-size:.42rem;color:#555;text-transform:uppercase;letter-spacing:1px;">Speed</span>
-                        <select id="replay-speed" onchange="replaySetSpeed()"
-                            style="background:#0a0a0a;border:1px solid #333;color:#fff;
-                                   padding:4px 8px;font-size:.72rem;font-family:inherit;
-                                   outline:none;border-radius:3px;cursor:pointer;">
-                            <option value="1">1×</option>
-                            <option value="2">2×</option>
-                            <option value="5">5×</option>
-                            <option value="10">10×</option>
-                            <option value="50">50×</option>
-                            <option value="100">100×</option>
-                        </select>
-                    </div>
-
-                    <div style="width:1px;height:24px;background:#222;margin:0 2px;"></div>
-
-                    <!-- Current candle info -->
-                    <div style="display:flex;flex-direction:column;gap:1px;min-width:140px;">
-                        <div id="ov-dt" style="font-size:.62rem;color:#ff9944;font-family:'Courier New',monospace;letter-spacing:1px;">---</div>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <span style="font-size:.48rem;color:#555;">Close</span>
-                            <span id="ov-pr" style="font-size:.72rem;color:#fff;font-weight:700;">---</span>
-                        </div>
-                    </div>
-
-                    <div style="width:1px;height:24px;background:#222;margin:0 2px;"></div>
-
-                    <!-- Mini progress -->
-                    <div style="display:flex;flex-direction:column;gap:2px;min-width:80px;">
-                        <div style="height:3px;background:#111;border-radius:2px;overflow:hidden;">
+                    <!-- Mini progress + stop -->
+                    <div style="display:flex;flex-direction:column;gap:3px;min-width:70px;">
+                        <div style="height:2px;background:#111;border-radius:2px;overflow:hidden;">
                             <div id="ov-pb" style="height:100%;background:#ff9944;width:0%;transition:width .1s;border-radius:2px;"></div>
                         </div>
-                        <div id="ov-pl" style="font-size:.42rem;color:#444;text-align:right;">---</div>
+                        <div id="ov-pl" style="font-size:.4rem;color:#444;text-align:right;">---</div>
                     </div>
+
+                    <!-- Stop -->
+                    <button onclick="replayStop()" title="Stop replay"
+                        style="background:transparent;border:none;color:#ff4444;width:26px;height:26px;
+                               font-size:.9rem;cursor:pointer;border-radius:50%;display:flex;align-items:center;
+                               justify-content:center;padding:0;opacity:.7;">⏹</button>
 
                 </div><!-- /overlay bar -->
 
@@ -2635,8 +2634,28 @@ var REPLAY_TF_RES = {
     'H6':'360','H8':'480','H12':'720','D1':'D'
 };
 
-/* ── Speed → ms per candle ── */
-var REPLAY_SPD = {1:1000,2:500,5:200,10:100,50:20,100:10};
+/* ── Speed slider values → ms per step ── */
+var REPLAY_SPD_MAP = {1:1000, 2:500, 3:200, 4:100, 5:50, 6:16};
+var _replayStepTF  = 'H1'; /* the step timeframe — how much time advances per tick */
+
+/* ── TF name → minutes ── */
+function _tfMinutes(tf) {
+    var map = {
+        'M1':1,'M2':2,'M3':3,'M4':4,'M5':5,'M6':6,
+        'M10':10,'M12':12,'M15':15,'M20':20,'M30':30,
+        'H1':60,'H2':120,'H3':180,'H4':240,
+        'H6':360,'H8':480,'H12':720,'D1':1440
+    };
+    return map[tf] || 1;
+}
+
+/* ── How many chart-TF candles = 1 step-TF candle ── */
+function _candlesPerStep() {
+    var chartMins = _tfMinutes(_replayTF);
+    var stepMins  = _tfMinutes(_replayStepTF);
+    /* if step < chart (e.g. step=M1, chart=H4), just advance 1 candle */
+    return Math.max(1, Math.round(stepMins / chartMins));
+}
 
 function initReplayTab() { /* placeholder for tab switch hook */ }
 
@@ -2757,14 +2776,21 @@ var firstDate = new Date(candles[0].time).toISOString().split('T')[0];
 
 function replayLoadSymbol() { replayLoadTF(); } /* legacy stub */
 
-/* ── Overlay TF switcher ── */
+/* ── Speed slider ── */
+function replaySpeedSlider(val) {
+    var labels = {1:'1×',2:'2×',3:'5×',4:'10×',5:'50×',6:'100×'};
+    var lbl = document.getElementById('ov-speed-label');
+    if(lbl) lbl.textContent = labels[val] || val+'×';
+    if(_replayPlaying) { replayPause(); replayPlay(); }
+}
+
+/* ── Overlay step TF changed ── */
 function replayOverlayTF(tf) {
-    replaySwitchTF(tf);
-    /* sync panel indicator */
+    _replayStepTF = tf;
     var el = document.getElementById('panel-active-tf');
     if(el) el.textContent = tf;
 }
-
+    
 /* ── Switch TF instantly during replay ── */
 function replaySwitchTF(tf) {
     _replayTF = tf;
@@ -3004,8 +3030,9 @@ function replayPlay() {
 
 function _scheduleStep() {
     if(!_replayPlaying) return;
-    var spd = parseInt((document.getElementById('replay-speed')||{}).value) || 1;
-    var ms  = REPLAY_SPD[spd] || 1000;
+    var slider = document.getElementById('ov-speed-slider');
+    var val    = slider ? parseInt(slider.value) : 1;
+    var ms     = REPLAY_SPD_MAP[val] || 1000;
     _replayTimer = setTimeout(function(){
         if(_replayPlaying){ _doStep(); _scheduleStep(); }
     }, ms);
@@ -3020,22 +3047,42 @@ function replayPause() {
 function _doStep() {
     var endLimit = window._replayEndIdx !== undefined ? window._replayEndIdx : _replayCandles.length - 1;
     if(_replayIndex >= endLimit){ replayPause(); return; }
-    _replayIndex++;
-    var bar = _replayCandles[_replayIndex];
 
-    /* Push new bar to TV chart via subscriber */
-    if(_replaySub && _replaySub.callback) {
-        _replaySub.callback({ time:bar.time, open:bar.open, high:bar.high, low:bar.low, close:bar.close, volume:bar.volume });
+    /* advance by N candles = 1 step-TF candle worth of chart-TF candles */
+    var n   = _candlesPerStep();
+    var bar = null;
+
+    for(var s = 0; s < n; s++) {
+        if(_replayIndex >= endLimit) { replayPause(); break; }
+        _replayIndex++;
+        bar = _replayCandles[_replayIndex];
+
+        /* push every candle so chart draws them all */
+        if(_replaySub && _replaySub.callback && bar) {
+            _replaySub.callback({
+                time:   bar.time,
+                open:   bar.open,
+                high:   bar.high,
+                low:    bar.low,
+                close:  bar.close,
+                volume: bar.volume
+            });
+        }
+
+        /* SL/TP check on every candle */
+        if(_replayOpenTrade && bar) _checkTradeHit(bar);
     }
 
-    /* Auto SL/TP check */
-    if(_replayOpenTrade) _checkTradeHit(bar);
-
-    updateReplayCandleInfo();
-    updateReplayTradePanel();
+    if(bar) {
+        updateReplayCandleInfo();
+        updateReplayTradePanel();
+    }
 }
 
-function replayStepOne() { replayPause(); _doStep(); }
+function replayStepOne() {
+    replayPause();
+    _doStep(); /* _doStep already advances by _candlesPerStep() */
+}
 
 function replaySetSpeed() {
     if(_replayPlaying){ replayPause(); replayPlay(); }
@@ -3148,15 +3195,17 @@ function updateReplayCandleInfo() {
 }
 
 function _showReplayOverlay() {
-    var bar = document.getElementById('replay-overlay-bar');
+    var bar   = document.getElementById('replay-overlay-bar');
     var setup = document.getElementById('replay-setup-overlay');
     if(bar)   { bar.style.display   = 'flex'; }
     if(setup) { setup.style.display = 'none'; }
-    /* sync overlay step TF dropdown to current TF */
+
+    /* default step TF = chart TF */
+    _replayStepTF = _replayTF || 'H1';
     var ovTF = document.getElementById('ov-step-tf');
-    if(ovTF) ovTF.value = _replayTF || 'H1';
+    if(ovTF) ovTF.value = _replayStepTF;
     var paTF = document.getElementById('panel-active-tf');
-    if(paTF) paTF.textContent = _replayTF || 'H1';
+    if(paTF) paTF.textContent = _replayStepTF;
 }
 
 function _hideReplayOverlay() {
