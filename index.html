@@ -2802,16 +2802,26 @@ function btStart() {
     var json = bt.cache[sym];
     if(!json) { alert('Load a history file first.'); return; }
 
-    var candles = json.data && json.data[chartTF];
+ var candles = json.data && json.data[chartTF];
     if(!candles || !candles.length) {
         alert('No ' + chartTF + ' data in this file.');
         return;
     }
 
-    bt.sym      = sym;
-    bt.chartTF  = chartTF;
-    bt.stepTF   = chartTF; /* default step = chart TF */
-    bt.candles  = candles;
+    bt.sym     = sym;
+    bt.chartTF = chartTF;
+    bt.stepTF  = chartTF; /* default step = chart TF */
+
+    /* ── Use smallest available TF for SL/TP checking accuracy ──
+       Walk the finest resolution candles internally.
+       The subscriber always pushes from the correct display TF.   */
+    var baseTFs = ['M1','M2','M3','M5','M10','M15','M30','H1','H2','H4','D1'];
+    var baseCandles = null;
+    for(var bi = 0; bi < baseTFs.length; bi++){
+        var bc = json.data[baseTFs[bi]];
+        if(bc && bc.length){ baseCandles = bc; break; }
+    }
+    bt.candles = baseCandles || candles;
     bt.trades   = [];
     bt.trade    = null;
     bt.playing  = false;
@@ -2871,10 +2881,11 @@ function btLaunchChart() {
     };
 
     /* ── DATAFEED — reads bt.candles[0..bt.index] ── */
-   bt._sub = null; /* subscriber callback storage */
+    bt._sub      = null;
+    bt._subRes   = null;
 
     /* ── DATAFEED — subscribeBars push architecture ── */
-    var datafeed = {
+   var datafeed = { 
         onReady: function(cb) {
             setTimeout(function(){
                 cb({ supported_resolutions:['1','2','3','4','5','6','10','12','15','20','30',
@@ -2897,7 +2908,8 @@ function btLaunchChart() {
                 });
             }, 0);
         },
-      getBars: function(si, resolution, pp, onResult) {
+
+       getBars: function(si, resolution, pp, onResult) {
             var tfRev = {'1':'M1','2':'M2','3':'M3','4':'M4','5':'M5','6':'M6',
                 '10':'M10','12':'M12','15':'M15','20':'M20','30':'M30',
                 '60':'H1','120':'H2','180':'H3','240':'H4',
@@ -2905,45 +2917,51 @@ function btLaunchChart() {
             var tf   = tfRev[resolution] || 'H1';
             var json = bt.cache[bt.sym];
             var allC = (json && json.data && json.data[tf]) ? json.data[tf] : [];
-            if(!allC.length) { onResult([], {noData:true}); return; }
+            if(!allC.length){ onResult([], {noData:true}); return; }
 
-            /* start date boundary for this TF */
-            var sd      = document.getElementById('bt-start');
-            var startMs = (sd && sd.value) ? new Date(sd.value).getTime() : allC[0].time;
-            var startIdx = 0;
-            for(var s = 0; s < allC.length; s++) {
-                if(allC[s].time >= startMs) { startIdx = s; break; }
-            }
-
-            /* only reveal candles that have been stepped through */
+            /* use bt.vTime as hard cutoff — nothing after this is revealed */
             var cutTime = bt.vTime;
-            var cutIdx  = -1;
+
+            /* find last candle whose time <= cutTime */
+            var cutIdx = -1;
             for(var k = 0; k < allC.length; k++) {
                 if(allC[k].time <= cutTime) cutIdx = k;
             }
 
-            /* nothing revealed yet OR all before start */
-            if(cutIdx < 0 || cutIdx < startIdx) {
-                onResult([], { noData: false });
-                return;
+            /* find start index for this TF */
+            var sd       = document.getElementById('bt-start');
+            var startMs  = (sd && sd.value) ? new Date(sd.value).getTime() : allC[0].time;
+            var startIdx = 0;
+            for(var s = 0; s < allC.length; s++) {
+                if(allC[s].time >= startMs){ startIdx = s; break; }
+            }
+
+            /* nothing to show yet */
+            if(cutIdx < 0 || cutIdx < startIdx){
+                onResult([], {noData:false}); return;
             }
 
             var bars = allC.slice(startIdx, cutIdx + 1);
-            if(pp.firstDataRequest) {
-                onResult(bars, { noData: false });
+            if(pp.firstDataRequest){
+                onResult(bars, {noData: bars.length === 0});
             } else {
-                var fMs = pp.from * 1000, tMs = pp.to * 1000;
-                onResult(bars.filter(function(b){ return b.time>=fMs && b.time<=tMs; }),
-                    { noData: false });
+                var f = pp.from * 1000, t2 = pp.to * 1000;
+                onResult(bars.filter(function(b){ return b.time>=f && b.time<=t2; }),
+                    {noData:false});
             }
         },
-      subscribeBars: function(si, res, onTick, guid) {
-            bt._sub = { guid: guid, cb: onTick, res: res };
+
+        subscribeBars: function(si, res, onTick, guid) {
+            bt._sub    = onTick;
+            bt._subRes = res;
+            bt._subGuid = guid;
         },
+
         unsubscribeBars: function(guid) {
-            if(bt._sub && bt._sub.guid === guid) bt._sub = null;
+            if(bt._subGuid === guid){ bt._sub = null; bt._subRes = null; }
         },
-        getServerTime:   function(cb) {
+
+        getServerTime: function(cb) {
             cb(Math.floor((bt.vTime || Date.now()) / 1000));
         }
     };
@@ -2994,39 +3012,60 @@ bt.widget.onChartReady(function() {
 }
 
 /* ═══════════ STEP ENGINE ═══════════ */
-function btAdvance() {
-    if(bt.index >= bt.endIdx) { btPause(); return; }
+var BT_TF_REV = {'1':'M1','2':'M2','3':'M3','4':'M4','5':'M5','6':'M6',
+    '10':'M10','12':'M12','15':'M15','20':'M20','30':'M30',
+    '60':'H1','120':'H2','180':'H3','240':'H4',
+    '360':'H6','480':'H8','720':'H12','D':'D1'};
 
-    /* advance virtual time by 1 step-TF unit */
+function btAdvance() {
+    if(bt.index >= bt.endIdx){ btPause(); return; }
+
+    /* 1. Advance virtual time */
     bt.vTime += btMins(bt.stepTF) * 60 * 1000;
 
-    /* reveal chart-TF candles up to vTime — push each via subscriber */
-    while(bt.index < bt.endIdx) {
+    /* 2. Walk chart-TF candles for SL/TP checking */
+    while(bt.index < bt.endIdx){
         var next = bt.candles[bt.index + 1];
         if(!next || next.time > bt.vTime) break;
         bt.index++;
-        var bar = bt.candles[bt.index];
-
-        /* push to TV chart via subscribeBars callback */
-        if(bt._sub && bt._sub.cb) {
-            bt._sub.cb({
-                time:   bar.time,
-                open:   bar.open,
-                high:   bar.high,
-                low:    bar.low,
-                close:  bar.close,
-                volume: bar.volume || 0
-            });
-        }
-
-        if(bt.trade) btCheckHit(bar);
+        if(bt.trade) btCheckHit(bt.candles[bt.index]);
     }
 
     if(bt.index >= bt.endIdx) btPause();
+
+    /* 3. Push correct-resolution bar to TV subscriber
+          subscriber TF may differ from chart TF (e.g. user switched to H4 view)
+          Always push from the cache TF that matches what TV is subscribed to  */
+    if(bt._sub && bt._subRes) {
+        var subTF      = BT_TF_REV[bt._subRes] || 'H1';
+        var json       = bt.cache[bt.sym];
+        var subCandles = (json && json.data && json.data[subTF]) ? json.data[subTF] : bt.candles;
+
+        /* find last candle in subscriber TF whose time <= vTime */
+        var latestBar = null;
+        for(var i = subCandles.length - 1; i >= 0; i--) {
+            if(subCandles[i].time <= bt.vTime){ latestBar = subCandles[i]; break; }
+        }
+        if(latestBar) {
+            bt._sub({
+                time:   latestBar.time,
+                open:   latestBar.open,
+                high:   latestBar.high,
+                low:    latestBar.low,
+                close:  latestBar.close,
+                volume: latestBar.volume || 0
+            });
+        }
+    }
+
+    /* 4. resetData so getBars re-runs for ALL TF switches correctly */
+    if(bt._chartReady && bt.widget){
+        try { bt.widget.activeChart().resetData(); } catch(e) {}
+    }
+
     btUpdateInfo();
     if(bt.trade) btUpdateOpenTrade();
 }
-
 function btStep() {
     btPause();
     btAdvance();
