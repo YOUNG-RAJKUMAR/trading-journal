@@ -2679,9 +2679,26 @@ function replayLoadTF() {
     statusEl.style.color = '#44ff88';
     statusEl.textContent = '✅ ' + sym + ' ' + tf + ' — ' + candles.length.toLocaleString() + ' candles  (' + firstDate + ' → ' + lastDate + ')';
     if(startBtn){ startBtn.disabled = false; startBtn.style.opacity = '1'; }
+
+    /* ── If replay already active, relaunch chart with new TF ── */
+    var controlsVisible = document.getElementById('replay-controls-section').style.display !== 'none';
+    if(controlsVisible) {
+        replayPause();
+        /* reset index to start so new TF shows correctly */
+        var startDate = (document.getElementById('replay-start-date').value) || '';
+        var startMs   = startDate ? new Date(startDate).getTime() : _replayCandles[0].time;
+        _replayStartIdx = 0;
+        for(var i = 0; i < _replayCandles.length; i++) {
+            if(_replayCandles[i].time >= startMs) { _replayStartIdx = i; break; }
+        }
+        _replayIndex = _replayStartIdx;
+        updateReplayCandleInfo();
+        launchReplayChart(); /* rebuild widget with new resolution */
+    }
 }
 
 function replayLoadSymbol() { replayLoadTF(); } /* legacy stub */
+
 
 /* ── START ── */
 function replayStart() {
