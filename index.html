@@ -841,30 +841,7 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
                             </select>
                         </div>
 
-                        <div style="margin-bottom:7px;">
-                            <label style="display:block;font-size:.5rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Timeframe</label>
-                           <select id="replay-tf" onchange="replayLoadTF()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:7px 9px;font-size:.72rem;font-family:inherit;outline:none;border-radius:2px;">
-                                <option value="M1">M1 — 1 min</option>
-                                <option value="M2">M2 — 2 min</option>
-                                <option value="M3">M3 — 3 min</option>
-                                <option value="M4">M4 — 4 min</option>
-                                <option value="M5">M5 — 5 min</option>
-                                <option value="M6">M6 — 6 min</option>
-                                <option value="M10">M10 — 10 min</option>
-                                <option value="M12">M12 — 12 min</option>
-                                <option value="M15">M15 — 15 min</option>
-                                <option value="M20">M20 — 20 min</option>
-                                <option value="M30">M30 — 30 min</option>
-                                <option value="H1" selected>H1 — 1 hour</option>
-                                <option value="H2">H2 — 2 hours</option>
-                                <option value="H3">H3 — 3 hours</option>
-                                <option value="H4">H4 — 4 hours</option>
-                                <option value="H6">H6 — 6 hours</option>
-                                <option value="H8">H8 — 8 hours</option>
-                                <option value="H12">H12 — 12 hours</option>
-                                <option value="D1">D1 — 1 day</option>
-                            </select>
-                        </div>
+                       
 
                         <div style="margin-bottom:7px;">
                             <label style="display:block;font-size:.5rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Start Date</label>
@@ -946,7 +923,35 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
                             </div>
                         </div>
 
+                    <!-- Timeframe switcher — all TFs available, switch anytime -->
+                        <div style="margin-bottom:8px;">
+                            <div style="font-size:.5rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Timeframe</div>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:3px;">
+                                <button onclick="replaySwitchTF('M1')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M1</button>
+                                <button onclick="replaySwitchTF('M2')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M2</button>
+                                <button onclick="replaySwitchTF('M3')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M3</button>
+                                <button onclick="replaySwitchTF('M4')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M4</button>
+                                <button onclick="replaySwitchTF('M5')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M5</button>
+                                <button onclick="replaySwitchTF('M6')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M6</button>
+                                <button onclick="replaySwitchTF('M10')" class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M10</button>
+                                <button onclick="replaySwitchTF('M12')" class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M12</button>
+                                <button onclick="replaySwitchTF('M15')" class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M15</button>
+                                <button onclick="replaySwitchTF('M20')" class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M20</button>
+                                <button onclick="replaySwitchTF('M30')" class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">M30</button>
+                                <button onclick="replaySwitchTF('H1')"  class="tf-btn" style="background:#1a0d00;border:1px solid #ff9944;color:#ff9944;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;font-weight:700;">H1</button>
+                                <button onclick="replaySwitchTF('H2')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">H2</button>
+                                <button onclick="replaySwitchTF('H3')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">H3</button>
+                                <button onclick="replaySwitchTF('H4')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">H4</button>
+                                <button onclick="replaySwitchTF('H6')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">H6</button>
+                                <button onclick="replaySwitchTF('H8')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">H8</button>
+                                <button onclick="replaySwitchTF('H12')" class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">H12</button>
+                                <button onclick="replaySwitchTF('D1')"  class="tf-btn" style="background:#050505;border:1px solid #222;color:#666;padding:5px 0;font-size:.55rem;cursor:pointer;font-family:inherit;border-radius:2px;">D1</button>
+                            </div>
+                        </div>
+
                         <hr style="border:none;border-top:1px solid #1a1a1a;margin:8px 0;">
+
+                      
 
                         <!-- Manual trade entry -->
                         <div style="margin-bottom:8px;">
@@ -2711,6 +2716,58 @@ var firstDate = new Date(candles[0].time).toISOString().split('T')[0];
 }
 
 function replayLoadSymbol() { replayLoadTF(); } /* legacy stub */
+
+/* ── Switch TF instantly during replay ── */
+function replaySwitchTF(tf) {
+    _replayTF = tf;
+
+    /* Highlight active button */
+    document.querySelectorAll('.tf-btn').forEach(function(btn) {
+        var isActive = btn.textContent.trim() === tf;
+        btn.style.background  = isActive ? '#1a0d00'  : '#050505';
+        btn.style.color       = isActive ? '#ff9944'  : '#666';
+        btn.style.border      = isActive ? '1px solid #ff9944' : '1px solid #222';
+        btn.style.fontWeight  = isActive ? '700' : '400';
+    });
+
+    /* Load candles for this TF from cache */
+    var json = _replayCache[_replaySymbol];
+    if(!json) return;
+    var candles = (json.data && json.data[tf]) ? json.data[tf] : [];
+    if(!candles.length) return;
+
+    /* Find equivalent position in new TF by matching closest timestamp */
+    var currentTime = _replayCandles[_replayIndex] ? _replayCandles[_replayIndex].time : 0;
+    _replayCandles  = candles;
+
+    /* Re-find start index by original start date */
+    var startEl   = document.getElementById('replay-start-date');
+    var startMs   = startEl && startEl.value ? new Date(startEl.value).getTime() : candles[0].time;
+    _replayStartIdx = 0;
+    for(var i = 0; i < candles.length; i++) {
+        if(candles[i].time >= startMs) { _replayStartIdx = i; break; }
+    }
+
+    /* Find closest candle to current replay position */
+    _replayIndex = _replayStartIdx;
+    if(currentTime > 0) {
+        for(var j = 0; j < candles.length; j++) {
+            if(candles[j].time >= currentTime) { _replayIndex = j; break; }
+        }
+    }
+
+    /* Recalc end index */
+    var endEl = document.getElementById('replay-end-date');
+    var endMs = endEl && endEl.value ? new Date(endEl.value).getTime() + 86400000 : candles[candles.length-1].time;
+    window._replayEndIdx = candles.length - 1;
+    for(var k = candles.length - 1; k >= 0; k--) {
+        if(candles[k].time <= endMs) { window._replayEndIdx = k; break; }
+    }
+
+    replayPause();
+    updateReplayCandleInfo();
+    launchReplayChart(); /* rebuild chart with new resolution */
+}
 
 
 /* ── START ── */
