@@ -2871,6 +2871,9 @@ function btLaunchChart() {
     };
 
     /* ── DATAFEED — reads bt.candles[0..bt.index] ── */
+   bt._sub = null; /* subscriber callback storage */
+
+    /* ── DATAFEED — subscribeBars push architecture ── */
     var datafeed = {
         onReady: function(cb) {
             setTimeout(function(){
@@ -2901,22 +2904,10 @@ function btLaunchChart() {
                 '360':'H6','480':'H8','720':'H12','D':'D1'};
             var tf   = tfRev[resolution] || 'H1';
             var json = bt.cache[bt.sym];
-            var allC = (json && json.data && json.data[tf]) ? json.data[tf] : bt.candles;
-            if(!allC || !allC.length) { onResult([], {noData:true}); return; }
+            var allC = (json && json.data && json.data[tf]) ? json.data[tf] : [];
+            if(!allC.length) { onResult([], {noData:true}); return; }
 
-            /* current virtual time — what the replay has revealed so far */
-            var curTime = bt.vTime || (bt.candles[bt.index] ? bt.candles[bt.index].time : 0);
-
-           /* ── find cutIdx = last candle whose time <= curTime ──
-               scan ALL — never break early                        */
-            var cutIdx = -1;
-            for(var k = 0; k < allC.length; k++) {
-                if(allC[k].time <= curTime) cutIdx = k;
-            }
-            /* nothing revealed yet — return empty */
-            if(cutIdx < 0) { onResult([], {noData:false}); return; }
-
-           /* find startIdx for this TF matching replay start date */
+            /* start date boundary for this TF */
             var sd      = document.getElementById('bt-start');
             var startMs = (sd && sd.value) ? new Date(sd.value).getTime() : allC[0].time;
             var startIdx = 0;
@@ -2924,26 +2915,34 @@ function btLaunchChart() {
                 if(allC[s].time >= startMs) { startIdx = s; break; }
             }
 
-            /* ── Only reveal candles from startIdx onwards up to curTime ──
-               cutIdx is already found above scanning ALL candles          */
-            if(cutIdx < startIdx) {
-                /* nothing revealed yet */
+            /* only reveal candles that have been stepped through */
+            var cutTime = bt.vTime;
+            var cutIdx  = -1;
+            for(var k = 0; k < allC.length; k++) {
+                if(allC[k].time <= cutTime) cutIdx = k;
+            }
+
+            /* nothing revealed yet OR all before start */
+            if(cutIdx < 0 || cutIdx < startIdx) {
                 onResult([], { noData: false });
                 return;
             }
-            var bars = allC.slice(startIdx, cutIdx + 1);
 
+            var bars = allC.slice(startIdx, cutIdx + 1);
             if(pp.firstDataRequest) {
-                onResult(bars, { noData: bars.length === 0 });
+                onResult(bars, { noData: false });
             } else {
-                var fMs      = pp.from * 1000;
-                var tMs      = pp.to   * 1000;
-                var filtered = bars.filter(function(b){ return b.time >= fMs && b.time <= tMs; });
-                onResult(filtered, { noData: filtered.length === 0 });
+                var fMs = pp.from * 1000, tMs = pp.to * 1000;
+                onResult(bars.filter(function(b){ return b.time>=fMs && b.time<=tMs; }),
+                    { noData: false });
             }
         },
-        subscribeBars:   function(si, res, onTick, guid) { /* no streaming needed */ },
-        unsubscribeBars: function(guid) {},
+      subscribeBars: function(si, res, onTick, guid) {
+            bt._sub = { guid: guid, cb: onTick, res: res };
+        },
+        unsubscribeBars: function(guid) {
+            if(bt._sub && bt._sub.guid === guid) bt._sub = null;
+        },
         getServerTime:   function(cb) {
             cb(Math.floor((bt.vTime || Date.now()) / 1000));
         }
@@ -2998,28 +2997,32 @@ bt.widget.onChartReady(function() {
 function btAdvance() {
     if(bt.index >= bt.endIdx) { btPause(); return; }
 
- /* advance virtual time by 1 step-TF unit */
+    /* advance virtual time by 1 step-TF unit */
     bt.vTime += btMins(bt.stepTF) * 60 * 1000;
 
-    /* reveal all chart-TF candles whose time <= vTime */
-    var prev = bt.index;
+    /* reveal chart-TF candles up to vTime — push each via subscriber */
     while(bt.index < bt.endIdx) {
         var next = bt.candles[bt.index + 1];
         if(!next || next.time > bt.vTime) break;
         bt.index++;
-        if(bt.trade) btCheckHit(bt.candles[bt.index]);
+        var bar = bt.candles[bt.index];
+
+        /* push to TV chart via subscribeBars callback */
+        if(bt._sub && bt._sub.cb) {
+            bt._sub.cb({
+                time:   bar.time,
+                open:   bar.open,
+                high:   bar.high,
+                low:    bar.low,
+                close:  bar.close,
+                volume: bar.volume || 0
+            });
+        }
+
+        if(bt.trade) btCheckHit(bar);
     }
 
     if(bt.index >= bt.endIdx) btPause();
-
- /* force chart to reload — only when ready */
-    if(bt.widget && bt._chartReady) {
-        try {
-            bt.widget.activeChart().resetData();
-        } catch(e) {
-            console.warn('[BT] resetData failed:', e.message);
-        }
-    }
     btUpdateInfo();
     if(bt.trade) btUpdateOpenTrade();
 }
