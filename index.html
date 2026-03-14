@@ -2831,7 +2831,9 @@ function btStart() {
     }
 
     bt.index  = bt.startIdx;
-    /* start vTime just BEFORE the first candle so nothing shows yet */
+    bt._chartReady = false;
+    /* vTime starts exactly AT first candle minus 1ms — blank chart */
+    /* First step() will advance vTime by stepTF and reveal candles  */
     bt.vTime  = candles[bt.startIdx] ? candles[bt.startIdx].time - 1 : 0;
 
     /* sync step TF overlay */
@@ -2925,11 +2927,10 @@ function btLaunchChart() {
             /* ── Only reveal candles from startIdx onwards up to curTime ──
                cutIdx is already found above scanning ALL candles          */
             if(cutIdx < startIdx) {
-                /* nothing revealed yet — blank chart */
+                /* nothing revealed yet */
                 onResult([], { noData: false });
                 return;
             }
-
             var bars = allC.slice(startIdx, cutIdx + 1);
 
             if(pp.firstDataRequest) {
@@ -2948,6 +2949,7 @@ function btLaunchChart() {
         }
     };
 
+  bt._chartReady = false;
     bt.widget = new TradingView.widget({
         library_path:   '/charting_library/',
         datafeed:       datafeed,
@@ -2980,17 +2982,16 @@ function btLaunchChart() {
         loading_screen: { backgroundColor:c.bg, foregroundColor:'#ff9944' },
     });
 
-    /* show overlays after chart loads */
-    setTimeout(function() {
+bt.widget.onChartReady(function() {
+        bt._chartReady = true;
         var bar = document.getElementById('bt-bar');
         var stb = document.getElementById('bt-status-bar');
         if(bar) bar.style.display = 'flex';
         if(stb) stb.style.display = 'flex';
-        /* sync step TF */
         var s = document.getElementById('bt-step-tf');
         if(s) s.value = bt.stepTF;
         btUpdateInfo();
-    }, 800);
+    });
 }
 
 /* ═══════════ STEP ENGINE ═══════════ */
@@ -3011,11 +3012,14 @@ function btAdvance() {
 
     if(bt.index >= bt.endIdx) btPause();
 
-    /* force chart to reload via resetData() */
-    if(bt.widget) {
-        try { bt.widget.activeChart().resetData(); } catch(e) {}
+ /* force chart to reload — only when ready */
+    if(bt.widget && bt._chartReady) {
+        try {
+            bt.widget.activeChart().resetData();
+        } catch(e) {
+            console.warn('[BT] resetData failed:', e.message);
+        }
     }
-
     btUpdateInfo();
     if(bt.trade) btUpdateOpenTrade();
 }
