@@ -2651,8 +2651,10 @@ async function replayLoadFromFile(file) {
 }
 
 function replayLoadTF() {
-    var sym      = document.getElementById('replay-sym').value;
-    var tf       = document.getElementById('replay-tf').value;
+    var symEl    = document.getElementById('replay-sym');
+    var tfEl     = document.getElementById('replay-tf');
+    var sym      = symEl ? symEl.value : _replaySymbol;
+    var tf       = tfEl  ? tfEl.value  : (_replayTF || 'H1');
     var statusEl = document.getElementById('replay-load-status');
     var startBtn = document.getElementById('replay-start-btn');
 
