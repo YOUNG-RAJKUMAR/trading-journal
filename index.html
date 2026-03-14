@@ -2794,11 +2794,15 @@ function replaySpeedSlider(val) {
 /* ── Overlay step TF — ONLY controls step size, chart is untouched ── */
 function replayOverlayTF(tf) {
     _replayStepTF = tf;
+
+    /* re-align virtual time to current candle so first step is clean */
+    var curCandle = _replayCandles[_replayIndex];
+    if(curCandle) _replayVirtualTime = curCandle.time;
+
     var el = document.getElementById('panel-active-tf');
     if(el) el.textContent = tf;
-    console.log('[REPLAY] step TF → ' + tf + '  chart TF = ' + _replayTF + '  candles/step = ' + _candlesPerStep());
+    console.log('[REPLAY] step TF → ' + tf + ' | chart TF = ' + _replayTF + ' | candles/step = ' + _candlesPerStep());
 }
-
     
 /* ── Switch TF instantly during replay ── */
 function replaySwitchTF(tf) {
@@ -3018,7 +3022,10 @@ function launchReplayChart() {
                     }
                 }
                 /* sync virtual time to current candle */
-                _replayVirtualTime = _replayCandles[_replayIndex] ? _replayCandles[_replayIndex].time : 0;
+                var curCandle = _replayCandles[_replayIndex];
+                _replayVirtualTime = curCandle ? curCandle.time : 0;
+                console.log('[REPLAY] chart switched to ' + _replayTF + ' | virtual time synced | step=' + (_replayStepTF||_replayTF));
+                
                 /* recalc end index */
                 var endEl = document.getElementById('replay-end-date');
                 var endMs = endEl && endEl.value ? new Date(endEl.value).getTime() + 86400000 : newCandles[newCandles.length-1].time;
@@ -3097,48 +3104,61 @@ function replayPause() {
     updateReplayBtns();
 }
 
-  function _doStep() {
+function _doStep() {
     var endLimit = window._replayEndIdx !== undefined ? window._replayEndIdx : _replayCandles.length - 1;
     if(_replayIndex >= endLimit){ replayPause(); return; }
 
-    /* ── Advance virtual time by exactly 1 step-TF unit ──
-       e.g. chart=H4, step=H1 → advance 60 mins per click
-       H4 candle appears only after 4 clicks (4×60=240 mins) */
+    /* ── Advance virtual time by 1 step-TF unit ── */
     var stepMs = _tfMinutes(_replayStepTF || _replayTF || 'H1') * 60 * 1000;
     _replayVirtualTime += stepMs;
 
-    /* ── Reveal all chart candles whose time <= virtual time ── */
-    var bar     = null;
-    var pushed  = false;
+    /* ── Advance _replayIndex to cover all candles up to virtual time ── */
+    var prevIndex = _replayIndex;
 
     while(_replayIndex < endLimit) {
         var nextBar = _replayCandles[_replayIndex + 1];
         if(!nextBar || nextBar.time > _replayVirtualTime) break;
-
         _replayIndex++;
-        bar = _replayCandles[_replayIndex];
-        if(!bar) continue;
-
-        /* push candle to TV chart */
-        if(_replaySub && _replaySub.callback) {
-            _replaySub.callback({
-                time:   bar.time,
-                open:   bar.open,
-                high:   bar.high,
-                low:    bar.low,
-                close:  bar.close,
-                volume: bar.volume
-            });
-        }
-
-        /* check SL/TP */
-        if(_replayOpenTrade) _checkTradeHit(bar);
-        pushed = true;
+        if(_replayOpenTrade) _checkTradeHit(_replayCandles[_replayIndex]);
     }
 
-    /* always update info display even if no new candle appeared */
+    /* ── Push new candles to TV chart ── */
+    if(_replayIndex > prevIndex) {
+        /* try subscriber first (fast path) */
+        if(_replaySub && _replaySub.callback) {
+            for(var i = prevIndex + 1; i <= _replayIndex; i++) {
+                var b = _replayCandles[i];
+                if(b) _replaySub.callback({
+                    time: b.time, open: b.open,
+                    high: b.high, low:  b.low,
+                    close: b.close, volume: b.volume
+                });
+            }
+        } else {
+            /* fallback — force chart to re-request bars via getBars */
+            _forceChartRefresh();
+        }
+        updateReplayTradePanel();
+    } else {
+        /* virtual time advanced but no new chart candle yet —
+           still need to refresh so chart shows correct state */
+        _forceChartRefresh();
+    }
+
     updateReplayCandleInfo();
-    if(pushed) updateReplayTradePanel();
+}
+
+/* ── Force TV chart to reload bars (calls getBars which reads _replayIndex) ── */
+var _refreshPending = false;
+function _forceChartRefresh() {
+    if(_refreshPending) return;
+    _refreshPending = true;
+    setTimeout(function() {
+        _refreshPending = false;
+        if(_replayWidget) {
+            try { _replayWidget.activeChart().resetData(); } catch(e) {}
+        }
+    }, 0);
 }
 
 function replayStepOne() {
