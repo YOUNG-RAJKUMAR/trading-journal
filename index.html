@@ -866,11 +866,15 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
                             </select>
                         </div>
 
-                        <div style="margin-bottom:10px;">
-                            <label style="display:block;font-size:.5rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Start From Date</label>
-                            <input type="date" id="replay-start-date" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:7px 9px;font-size:.72rem;font-family:inherit;outline:none;border-radius:2px;">
+                        <div style="margin-bottom:7px;">
+                            <label style="display:block;font-size:.5rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Start Date</label>
+                            <input type="date" id="replay-start-date" style="width:100%;background:#050505;border:1px solid #1a3a1a;color:#44ff88;padding:7px 9px;font-size:.72rem;font-family:inherit;outline:none;border-radius:2px;">
                         </div>
-
+                        <div style="margin-bottom:10px;">
+                            <label style="display:block;font-size:.5rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">End Date</label>
+                            <input type="date" id="replay-end-date" style="width:100%;background:#050505;border:1px solid #3a1a1a;color:#ff6666;padding:7px 9px;font-size:.72rem;font-family:inherit;outline:none;border-radius:2px;">
+                        </div>
+                        
                        <!-- Hidden file input -->
                         <input type="file" id="replay-file-picker" accept=".json"
                             style="display:none;"
@@ -2666,14 +2670,23 @@ function replayLoadTF() {
 
     _replayCandles = candles;
 
-    var firstDate = new Date(candles[0].time).toISOString().split('T')[0];
+var firstDate = new Date(candles[0].time).toISOString().split('T')[0];
     var lastDate  = new Date(candles[candles.length-1].time).toISOString().split('T')[0];
-    var dateEl    = document.getElementById('replay-start-date');
-    if(dateEl) {
-        dateEl.min = firstDate;
-        dateEl.max = lastDate;
-        var defIdx = Math.max(0, candles.length - 200);
-        dateEl.value = new Date(candles[defIdx].time).toISOString().split('T')[0];
+
+    /* ── Auto-fill Start Date = first candle ── */
+    var startEl = document.getElementById('replay-start-date');
+    if(startEl) {
+        startEl.min   = firstDate;
+        startEl.max   = lastDate;
+        startEl.value = firstDate; /* always default to very beginning of file */
+    }
+
+    /* ── Auto-fill End Date = last candle ── */
+    var endEl = document.getElementById('replay-end-date');
+    if(endEl) {
+        endEl.min   = firstDate;
+        endEl.max   = lastDate;
+        endEl.value = lastDate; /* always default to very end of file */
     }
 
     statusEl.style.color = '#44ff88';
@@ -2712,6 +2725,15 @@ function replayStart() {
     for(var i = 0; i < _replayCandles.length; i++) {
         if(_replayCandles[i].time >= startMs) { _replayStartIdx = i; break; }
     }
+
+ /* ── Find end index from end date ── */
+    var endDate = (document.getElementById('replay-end-date').value) || '';
+    var endMs   = endDate ? new Date(endDate).getTime() + 86400000 : _replayCandles[_replayCandles.length-1].time;
+    var _replayEndIdx = _replayCandles.length - 1;
+    for(var j = _replayCandles.length - 1; j >= 0; j--) {
+        if(_replayCandles[j].time <= endMs) { _replayEndIdx = j; break; }
+    }
+    window._replayEndIdx = _replayEndIdx;
 
     _replayIndex    = _replayStartIdx; /* chart shows history UP TO here */
     _replayPlaying  = false;
@@ -2846,7 +2868,8 @@ function replayPause() {
 }
 
 function _doStep() {
-    if(_replayIndex >= _replayCandles.length - 1){ replayPause(); return; }
+    var endLimit = window._replayEndIdx !== undefined ? window._replayEndIdx : _replayCandles.length - 1;
+    if(_replayIndex >= endLimit){ replayPause(); return; }
     _replayIndex++;
     var bar = _replayCandles[_replayIndex];
 
