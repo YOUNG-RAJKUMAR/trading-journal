@@ -2821,30 +2821,33 @@ function btStart() {
         var bc = json.data[baseTFs[bi]];
         if(bc && bc.length){ baseCandles = bc; break; }
     }
-    bt.candles = baseCandles || candles;
+    /* use base (finest) candles for internal stepping */
+    var workCandles = baseCandles || candles;
+    bt.candles  = workCandles;
     bt.trades   = [];
     bt.trade    = null;
     bt.playing  = false;
 
-    /* find start index */
-    var startMs = startD ? new Date(startD).getTime() : candles[0].time;
+    /* recalculate start/end indices on the ACTUAL bt.candles array */
+    var startMs = startD ? new Date(startD).getTime() : workCandles[0].time;
     bt.startIdx = 0;
-    for(var i=0; i<candles.length; i++) {
-        if(candles[i].time >= startMs) { bt.startIdx = i; break; }
+    for(var i = 0; i < workCandles.length; i++) {
+        if(workCandles[i].time >= startMs){ bt.startIdx = i; break; }
     }
 
-    /* find end index */
-    var endMs = endD ? new Date(endD).getTime() + 86400000 : candles[candles.length-1].time;
-    bt.endIdx = candles.length - 1;
-    for(var j=candles.length-1; j>=0; j--) {
-        if(candles[j].time <= endMs) { bt.endIdx = j; break; }
+    var endMs = endD ? new Date(endD).getTime() + 86400000 : workCandles[workCandles.length-1].time;
+    bt.endIdx = workCandles.length - 1;
+    for(var j = workCandles.length-1; j >= 0; j--) {
+        if(workCandles[j].time <= endMs){ bt.endIdx = j; break; }
     }
 
-    bt.index  = bt.startIdx;
+    bt.index       = bt.startIdx;
     bt._chartReady = false;
-    /* vTime starts exactly AT first candle minus 1ms — blank chart */
-    /* First step() will advance vTime by stepTF and reveal candles  */
-    bt.vTime  = candles[bt.startIdx] ? candles[bt.startIdx].time - 1 : 0;
+    bt.vTime       = workCandles[bt.startIdx] ? workCandles[bt.startIdx].time - 1 : 0;
+
+    console.log('[BT] start='+new Date(workCandles[bt.startIdx].time).toISOString()+
+        ' end='+new Date(workCandles[bt.endIdx].time).toISOString()+
+        ' total='+(bt.endIdx-bt.startIdx)+' candles on '+bt.candles[0].time);
 
     /* sync step TF overlay */
     var stepSel = document.getElementById('bt-step-tf');
