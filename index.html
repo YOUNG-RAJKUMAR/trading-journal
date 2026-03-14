@@ -2790,14 +2790,14 @@ function replaySpeedSlider(val) {
     }
 }
 
-/* ── Overlay step TF changed — only sets step size, never touches chart TF ── */
+/* ── Overlay step TF — ONLY controls step size, chart is untouched ── */
 function replayOverlayTF(tf) {
-    _replayStepTF = tf;  /* how much time advances per step */
-    /* update panel indicator */
+    _replayStepTF = tf;
     var el = document.getElementById('panel-active-tf');
     if(el) el.textContent = tf;
-    /* do NOT call replaySwitchTF — that would rebuild the chart */
+    console.log('[REPLAY] step TF → ' + tf + '  chart TF = ' + _replayTF + '  candles/step = ' + _candlesPerStep());
 }
+
     
 /* ── Switch TF instantly during replay ── */
 function replaySwitchTF(tf) {
@@ -2935,8 +2935,7 @@ function launchReplayChart() {
         },
 
         getBars: function(si, resolution, pp, onResult, onErr) {
-            /* ── Always resolve candles directly from cache by resolution ──
-               This ensures correct data even before subscribeBars fires    */
+            /* ── ONLY serve data — never change any state here ── */
             var tfRev = {
                 '1':'M1',  '2':'M2',  '3':'M3',   '4':'M4',
                 '5':'M5',  '6':'M6',  '10':'M10', '12':'M12',
@@ -2944,35 +2943,31 @@ function launchReplayChart() {
                 '60':'H1', '120':'H2','180':'H3', '240':'H4',
                 '360':'H6','480':'H8','720':'H12','D':'D1'
             };
-            var tf   = tfRev[resolution] || 'H1';
-            var json = _replayCache[_replaySymbol];
+            var tf       = tfRev[resolution] || 'H1';
+            var json     = _replayCache[_replaySymbol];
+            var candles  = (json && json.data && json.data[tf]) ? json.data[tf] : [];
 
-            /* get candles for THIS resolution from cache */
-            var allCandles = (json && json.data && json.data[tf]) ? json.data[tf] : _replayCandles;
+            if(!candles.length) { onResult([], { noData: true }); return; }
 
-            /* if TF changed, sync engine state */
-            if(tf !== _replayTF && allCandles.length) {
-                var currentTime = _replayCandles[_replayIndex] ? _replayCandles[_replayIndex].time : 0;
-                _replayTF      = tf;
-                _replayCandles = allCandles;
+            /* find start index for this TF matching the replay start date */
+            var startEl  = document.getElementById('replay-start-date');
+            var startMs  = startEl && startEl.value ? new Date(startEl.value).getTime() : candles[0].time;
+            var startIdx = 0;
+            for(var i = 0; i < candles.length; i++) {
+                if(candles[i].time >= startMs) { startIdx = i; break; }
+            }
 
-                var startEl = document.getElementById('replay-start-date');
-                var startMs = startEl && startEl.value ? new Date(startEl.value).getTime() : allCandles[0].time;
-                _replayStartIdx = 0;
-                for(var si2 = 0; si2 < allCandles.length; si2++) {
-                    if(allCandles[si2].time >= startMs) { _replayStartIdx = si2; break; }
-                }
-                _replayIndex = _replayStartIdx;
-                if(currentTime > 0) {
-                    for(var ci = 0; ci < allCandles.length; ci++) {
-                        if(allCandles[ci].time >= currentTime) { _replayIndex = ci; break; }
-                    }
+            /* find current position in this TF by matching timestamp */
+            var curTime  = _replayCandles[_replayIndex] ? _replayCandles[_replayIndex].time : 0;
+            var curIdx   = startIdx;
+            if(curTime > 0) {
+                for(var j = 0; j < candles.length; j++) {
+                    if(candles[j].time >= curTime) { curIdx = j; break; }
                 }
             }
 
-            /* return candles up to current replay position */
-            var ctxStart = Math.max(0, _replayStartIdx - 500);
-            var bars     = allCandles.slice(ctxStart, _replayIndex + 1);
+            var ctxStart = Math.max(0, startIdx - 500);
+            var bars     = candles.slice(ctxStart, curIdx + 1);
 
             if(pp.firstDataRequest) {
                 onResult(bars, { noData: bars.length === 0 });
@@ -2985,7 +2980,54 @@ function launchReplayChart() {
         },
 
         subscribeBars: function(si, res, onTick, guid) {
-            /* TF sync already handled in getBars — just register subscriber */
+            /* ── Chart TF changed via widget toolbar ──
+               Update _replayTF and _replayCandles so _doStep
+               advances the correct candle array.
+               _replayStepTF is NEVER touched here.           */
+            var tfRev = {
+                '1':'M1',  '2':'M2',  '3':'M3',   '4':'M4',
+                '5':'M5',  '6':'M6',  '10':'M10', '12':'M12',
+                '15':'M15','20':'M20','30':'M30',
+                '60':'H1', '120':'H2','180':'H3', '240':'H4',
+                '360':'H6','480':'H8','720':'H12','D':'D1'
+            };
+            var newChartTF = tfRev[res] || 'H1';
+            var json       = _replayCache[_replaySymbol];
+            var newCandles = (json && json.data && json.data[newChartTF]) ? json.data[newChartTF] : null;
+
+            if(newCandles && newCandles.length) {
+                /* preserve current time position across TF switch */
+                var curTime = _replayCandles[_replayIndex] ? _replayCandles[_replayIndex].time : 0;
+
+                _replayTF      = newChartTF;   /* chart TF — what candles we step through */
+                _replayCandles = newCandles;
+
+                /* re-find start index */
+                var startEl = document.getElementById('replay-start-date');
+                var startMs = startEl && startEl.value ? new Date(startEl.value).getTime() : newCandles[0].time;
+                _replayStartIdx = 0;
+                for(var i = 0; i < newCandles.length; i++) {
+                    if(newCandles[i].time >= startMs) { _replayStartIdx = i; break; }
+                }
+                /* find closest candle to previous position */
+                _replayIndex = _replayStartIdx;
+                if(curTime > 0) {
+                    for(var j = 0; j < newCandles.length; j++) {
+                        if(newCandles[j].time >= curTime) { _replayIndex = j; break; }
+                    }
+                }
+                /* recalc end index */
+                var endEl = document.getElementById('replay-end-date');
+                var endMs = endEl && endEl.value ? new Date(endEl.value).getTime() + 86400000 : newCandles[newCandles.length-1].time;
+                window._replayEndIdx = newCandles.length - 1;
+                for(var k = newCandles.length - 1; k >= 0; k--) {
+                    if(newCandles[k].time <= endMs) { window._replayEndIdx = k; break; }
+                }
+
+                console.log('[REPLAY] chart TF → ' + _replayTF + '  step TF = ' + (_replayStepTF||_replayTF) + '  candles/step = ' + _candlesPerStep());
+            }
+
+            /* register subscriber for live candle pushing */
             _replaySub = { guid: guid, callback: onTick };
         },
         unsubscribeBars: function(guid) { _replaySub = null; },
