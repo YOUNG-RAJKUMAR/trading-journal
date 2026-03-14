@@ -3036,29 +3036,29 @@ function btAdvance() {
 
     if(bt.index >= bt.endIdx) btPause();
 
-     /* 3. Push ALL new bars since last push to TV subscriber */
+  /* 3. Push ONE bar — the latest candle in subscriber TF <= vTime
+          TV uses this to update the current bar on screen.
+          Full history is always served correctly by getBars.        */
     if(bt._sub && bt._subRes) {
         var subTF      = BT_TF_REV[bt._subRes] || 'H1';
-        var json       = bt.cache[bt.sym];
-        var subCandles = (json && json.data && json.data[subTF]) ? json.data[subTF] : bt.candles;
-        var prevVTime  = bt.vTime - (btMins(bt.stepTF) * 60 * 1000);
+        var json3      = bt.cache[bt.sym];
+        var subCandles = (json3 && json3.data && json3.data[subTF]) ? json3.data[subTF] : bt.candles;
 
-        /* push every sub-TF candle that opened in this step window */
-        for(var pi = 0; pi < subCandles.length; pi++) {
-            var sc = subCandles[pi];
-            if(sc.time > prevVTime && sc.time <= bt.vTime) {
-                bt._sub({
-                    time:   sc.time,
-                    open:   sc.open,
-                    high:   sc.high,
-                    low:    sc.low,
-                    close:  sc.close,
-                    volume: sc.volume || 0
-                });
-            }
+        var latestBar = null;
+        for(var pi = subCandles.length - 1; pi >= 0; pi--) {
+            if(subCandles[pi].time <= bt.vTime){ latestBar = subCandles[pi]; break; }
+        }
+        if(latestBar) {
+            bt._sub({
+                time:   latestBar.time,
+                open:   latestBar.open,
+                high:   latestBar.high,
+                low:    latestBar.low,
+                close:  latestBar.close,
+                volume: latestBar.volume || 0
+            });
         }
     }
-
     btUpdateInfo();
     if(bt.trade) btUpdateOpenTrade();
 }
