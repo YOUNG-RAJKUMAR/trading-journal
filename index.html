@@ -1028,7 +1028,7 @@ var MT5Feed = (function() {
                     description:  symbolName + ' — MT5 Live',
                     type:         isCrypto ? 'crypto' : isIndex ? 'index' : 'forex',
                     session:      '24x7',
-                    timezone:     'Asia/Kathmandu',
+                    timezone: 'Etc/UTC',
                     minmov:       1,
                     pricescale:   isGold ? 100 : isIndex ? 1 : isCrypto ? 100 : 100000,
                     has_intraday: true,
