@@ -911,29 +911,47 @@ var MT5Feed = (function() {
                     return;
                 }
 
-                if(msg.type === 'tick_update') {
-                    Object.keys(msg.data).forEach(function(sym) {
-                        if(!lastData[sym]) return;
-                        lastData[sym].bid    = msg.data[sym].bid;
-                        lastData[sym].ask    = msg.data[sym].ask;
-                        lastData[sym].spread = msg.data[sym].spread;
-                        lastData[sym].time   = msg.data[sym].time;
+             if(msg.type === 'tick_update') {
+    Object.keys(msg.data).forEach(function(sym) {
+        if(!lastData[sym]) return;
+        lastData[sym].bid    = msg.data[sym].bid;
+        lastData[sym].ask    = msg.data[sym].ask;
+        lastData[sym].spread = msg.data[sym].spread;
+        lastData[sym].time   = msg.data[sym].time;
 
-                        /* Merge latest candle into history */
-                        Object.keys(msg.data[sym].candles).forEach(function(tf) {
-                            var incoming = msg.data[sym].candles[tf];
-                            if(!incoming.length) return;
-                            var hist = lastData[sym].candles[tf];
-                            if(!hist || !hist.length) return;
-                            var latest = incoming[incoming.length-1];
-                            var last   = hist[hist.length-1];
-                            if(latest.time === last.time) {
-                                hist[hist.length-1] = latest;
-                            } else if(latest.time > last.time) {
-                                hist.push(latest);
-                            }
-                        });
+        /* Merge latest candle into history + fire subscriber callbacks */
+        Object.keys(msg.data[sym].candles).forEach(function(tf) {
+            var incoming = msg.data[sym].candles[tf];
+            if(!incoming.length) return;
+            var hist = lastData[sym].candles[tf];
+            if(!hist || !hist.length) return;
+            var latest = incoming[incoming.length-1];
+            var last   = hist[hist.length-1];
+
+            if(latest.time === last.time) {
+                hist[hist.length-1] = latest;   // update current bar
+            } else if(latest.time > last.time) {
+                hist.push(latest);               // new bar opened
+            } else {
+                return; // older than history — skip entirely
+            }
+
+            // ── Fire subscriber callbacks so TV chart redraws ──
+            Object.keys(subscribers).forEach(function(guid) {
+                var sub = subscribers[guid];
+                if(sub.symbol === sym && sub.resolution === tf) {
+                    sub.callback({
+                        time:   latest.time,
+                        open:   latest.open,
+                        high:   latest.high,
+                        low:    latest.low,
+                        close:  latest.close,
+                        volume: latest.volume
                     });
+                }
+            });
+        });
+    });
 
              /* ── Update calculator live on every tick ── */
                     var _activeSym = window._calcSymbol || 'EURUSD';
