@@ -1063,19 +1063,19 @@ var MT5Feed = (function() {
             var toMs   = periodParams.to   * 1000;
             var tries  = 0;
 
-            function tryGet() {
-                var d = lastData[symbol];
-                if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
-                    var allBars = d.candles[tf];
-                    if(periodParams.firstDataRequest) {
-                        onResult(allBars, { noData: false });
-                    } else {
-                        var bars = allBars.filter(function(b) {
-                            return b.time >= fromMs && b.time <= toMs;
-                        });
-                        onResult(bars, { noData: bars.length === 0 });
-                    }
-                } else if(tries < 40) {
+           function tryGet() {
+    var d = lastData[symbol];
+    if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
+        var allBars = d.candles[tf].slice().sort((a, b) => a.time - b.time); // ← sort copy
+        if(periodParams.firstDataRequest) {
+            onResult(allBars, { noData: false });
+        } else {
+            var bars = allBars.filter(function(b) {
+                return b.time >= fromMs && b.time <= toMs;
+            });
+            onResult(bars, { noData: bars.length === 0 });
+        }
+    } else if(tries < 40) {
                     tries++;
                     setTimeout(tryGet, 500);
                 } else {
