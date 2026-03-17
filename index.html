@@ -997,7 +997,12 @@ var MT5Feed = (function() {
         onReady: function(callback) {
             setTimeout(function() {
                 callback({
-                    supported_resolutions: [  '1','2','3','4','5','6','10','12','15','20','30', '60','120','180','240','360','480','720', 'D','W','M' ],
+                   supported_resolutions: [
+    '10S','15S','30S','45S',
+    '1','2','3','4','5','6','10','12','15','20','30',
+    '60','120','180','240','360','480','720',
+    'D','W','M'
+    ],
                     supports_time:         true,
                     supports_marks:        false,
                     supports_timescale_marks: false,
@@ -1031,10 +1036,12 @@ var MT5Feed = (function() {
                     timezone: 'Etc/UTC',
                     minmov:       1,
                     pricescale:   isGold ? 100 : isIndex ? 1 : isCrypto ? 100 : 100000,
-                    has_intraday: true,
-                    has_daily:    true,
+                    has_intraday:  true,
+                    has_seconds:   true,
+                    has_daily:     true,,
                     has_weekly_and_monthly: true,
                     supported_resolutions: [
+    '10S','15S','30S','45S',
     '1','2','3','4','5','6','10','12',
     '15','20','30','60','120','180','240',
     '360','480','720','D','W','M'
@@ -1049,7 +1056,8 @@ var MT5Feed = (function() {
         },
 
         getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
-     var resMap = {
+   var resMap = {
+    '10S':'S10', '15S':'S15', '30S':'S30', '45S':'S45',
     '1':'M1',   '2':'M2',   '3':'M3',   '4':'M4',
     '5':'M5',   '6':'M6',   '10':'M10', '12':'M12',
     '15':'M15', '20':'M20', '30':'M30',
@@ -1160,12 +1168,19 @@ function startCustomCountdown() {
             var remaining = barClose - now;
 
             // Format
-            var h = Math.floor(remaining / 3600);
-            var m = Math.floor((remaining % 3600) / 60);
-            var s = remaining % 60;
-            val.textContent = h > 0
-                ? pad(h)+':'+pad(m)+':'+pad(s)
-                : pad(m)+':'+pad(s);
+            // Replace the format block with this:
+var h = Math.floor(remaining / 3600);
+var m = Math.floor((remaining % 3600) / 60);
+var s = remaining % 60;
+
+// For second-based TFs, show only seconds
+if(tfMins < 1) {
+    val.textContent = s + 's';
+} else {
+    val.textContent = h > 0
+        ? pad(h)+':'+pad(m)+':'+pad(s)
+        : pad(m)+':'+pad(s);
+}
 
             // Color urgency
             if(remaining <= 30) {
@@ -1204,17 +1219,21 @@ function startCustomCountdown() {
 }
 
 function getTFMinutes(tf) {
+    // Handle second resolutions like '10S', '30S'
+    if(tf && tf.toString().endsWith('S')) {
+        var secs = parseInt(tf);
+        return secs / 60; // convert seconds to fractional minutes
+    }
     var map = {
-        '1':1,    '2':2,    '3':3,    '4':4,
-        '5':5,    '6':6,    '10':10,  '12':12,
-        '15':15,  '20':20,  '30':30,
-        '60':60,  '120':120,'180':180,'240':240,
+        '1':1, '2':2, '3':3, '4':4,
+        '5':5, '6':6, '10':10, '12':12,
+        '15':15, '20':20, '30':30,
+        '60':60, '120':120,'180':180,'240':240,
         '360':360,'480':480,'720':720,
         'D':1440, 'W':10080,'M':43200
     };
     return map[tf] || 1;
 }
-
 function pad(n) {
     return n < 10 ? '0'+n : ''+n;
 }
@@ -1842,11 +1861,12 @@ function launchPanel(num) {
             'header_saveload',
             'countdown',
         ],
-        enabled_features: [
-            'side_toolbar_in_fullscreen_mode',
-            'hide_last_na_study_output',
-            'move_logo_to_main_pane',
-        ],
+      enabled_features: [
+    'seconds_resolution',          // ← ADD THIS
+    'side_toolbar_in_fullscreen_mode',
+    'hide_last_na_study_output',
+    'move_logo_to_main_pane',
+],
         overrides: {
             'paneProperties.background':                   c.bg,
             'paneProperties.backgroundType':               'solid',
