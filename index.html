@@ -847,24 +847,18 @@ var MT5Feed = (function() {
     /* ── Start countdown ticker — fires every second ── */
 function startCountdown() {
     if(_countdownTimer) clearInterval(_countdownTimer);
-
     _countdownTimer = setInterval(function() {
         Object.keys(subscribers).forEach(function(guid) {
             var sub = subscribers[guid];
-            
-            // ── Skip second TFs — they update via tick_update callback instead ──
+            // Skip second TFs — they update via tick callback directly
             if(sub.resolution && sub.resolution.charAt(0) === 'S') return;
-
             var d = lastData[sub.symbol];
             if(!d || !d.candles || !d.candles[sub.resolution]) return;
             var candles = d.candles[sub.resolution];
             if(!candles.length) return;
             var bar = candles[candles.length - 1];
-
-            // ── Also guard here for minute+ TFs ──
             if(bar.time < sub.lastBarTime) return;
             sub.lastBarTime = bar.time;
-
             sub.callback({
                 time:   bar.time,
                 open:   bar.open,
@@ -891,121 +885,112 @@ function startCountdown() {
             clearTimeout(_retryTimer);
         };
 
-        ws.onmessage = function(event) {
-            try {
-                var msg = JSON.parse(event.data);
+       ws.onmessage = function(event) {
+    try {
+        var msg = JSON.parse(event.data);
 
-                if(msg.type === 'loading_start') {
-                    var txt = document.getElementById('mt5-status-text');
-                    if(txt) txt.textContent = 'LOADING 0%';
-                    return;
-                }
+        if(msg.type === 'loading_start') {
+            var txt = document.getElementById('mt5-status-text');
+            if(txt) txt.textContent = 'LOADING 0%';
+            return;
+        }
 
-                if(msg.type === 'symbol_history') {
-                    if(!lastData) lastData = {};
-                    lastData[msg.symbol] = msg.data;
-                    var pct = Math.round(((msg.index+1)/msg.total)*100);
-                    var txt = document.getElementById('mt5-status-text');
-                    if(txt) txt.textContent = 'LOADING ' + pct + '%';
-                    return;
-                }
+        if(msg.type === 'symbol_history') {
+            if(!lastData) lastData = {};
+            lastData[msg.symbol] = msg.data;
+            var pct = Math.round(((msg.index+1)/msg.total)*100);
+            var txt = document.getElementById('mt5-status-text');
+            if(txt) txt.textContent = 'LOADING ' + pct + '%';
+            return;
+        }
 
-       if(msg.type === 'loading_done') {
-                    setStatus('connected','● MT5 LIVE');
-                    startCountdown();
-                    if(window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
-                    setTimeout(function(){
-                        if(typeof deskBuildPills==='function') deskBuildPills();
-                    }, 600);
-                    return;
-                }
+        if(msg.type === 'loading_done') {
+            setStatus('connected','● MT5 LIVE');
+            startCountdown();
+            if(window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
+            setTimeout(function(){
+                if(typeof deskBuildPills==='function') deskBuildPills();
+            }, 600);
+            return;
+        }
 
-             if(msg.type === 'tick_update') {
-    Object.keys(msg.data).forEach(function(sym) {
-        if(!lastData[sym]) return;
-        lastData[sym].bid    = msg.data[sym].bid;
-        lastData[sym].ask    = msg.data[sym].ask;
-        lastData[sym].spread = msg.data[sym].spread;
-        lastData[sym].time   = msg.data[sym].time;
+        if(msg.type === 'tick_update') {
+            Object.keys(msg.data).forEach(function(sym) {
+                if(!lastData[sym]) return;
+                lastData[sym].bid    = msg.data[sym].bid;
+                lastData[sym].ask    = msg.data[sym].ask;
+                lastData[sym].spread = msg.data[sym].spread;
+                lastData[sym].time   = msg.data[sym].time;
 
-   /* Merge latest candle into history + fire subscriber callbacks */
-Object.keys(msg.data[sym].candles).forEach(function(tf) {
-    var incoming = msg.data[sym].candles[tf];
-    if(!incoming.length) return;
-    var hist = lastData[sym].candles[tf];
-    if(!hist || !hist.length) return;
-    var latest = incoming[incoming.length-1];
-    var last   = hist[hist.length-1];
+                Object.keys(msg.data[sym].candles).forEach(function(tf) {
+                    var incoming = msg.data[sym].candles[tf];
+                    if(!incoming || !incoming.length) return;
+                    if(!lastData[sym].candles[tf]) return;
+                    var hist   = lastData[sym].candles[tf];
+                    var latest = incoming[incoming.length - 1];
+                    var last   = hist[hist.length - 1];
 
-    if(latest.time === last.time) {
-        hist[hist.length-1] = latest;   // update current bar in place
-    } else if(latest.time > last.time) {
-        hist.push(latest);              // new bar opened
-    } else {
-        return; // older than history — skip entirely, don't touch subscribers
-    }
-
-    // ── Fire subscriber callbacks — only if bar goes forward ──
-    Object.keys(subscribers).forEach(function(guid) {
-        var sub = subscribers[guid];
-        if(sub.symbol !== sym || sub.resolution !== tf) return;
-        // Never go backwards — TV will reject it and break the chart
-        if(latest.time < sub.lastBarTime) return;
-        sub.lastBarTime = latest.time;
-        sub.callback({
-            time:   latest.time,
-            open:   latest.open,
-            high:   latest.high,
-            low:    latest.low,
-            close:  latest.close,
-            volume: latest.volume
-        });
-    });
-});
-
-             /* ── Update calculator live on every tick ── */
-                    var _activeSym = window._calcSymbol || 'EURUSD';
-                    if(lastData[_activeSym]) {
-                        var d   = lastData[_activeSym];
-                        var dec = (d.bid.toString().split('.')[1]||'').length;
-
-                        /* 1. Store live values FIRST */
-                        window._calcLiveBid   = d.bid;
-                        window._calcLiveAsk   = d.ask;
-                        window._calcSpreadPts = d.spread || 0;
-
-                    
-                 /* 2. Update price display — use rAF for smooth rendering */
-                        requestAnimationFrame(function() {
-                            var pe = document.getElementById('calc-live-price');
-                            var se = document.getElementById('calc-spread');
-                            var ed = document.getElementById('d-entry-display');
-                            if(pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
-                            if(se) {
-                                var inst = document.getElementById('d-inst');
-                                var spreadDisplay = (inst && inst.value === 'forex')
-                                    ? (d.spread / 10).toFixed(1) + ' pips'
-                                    : d.spread + ' pts';
-                                se.textContent = 'spread: ' + spreadDisplay;
-                                se.style.color = '#44ff88';
-                                clearTimeout(se._fadeTimer);
-                                se._fadeTimer = setTimeout(function(){ se.style.color = '#777'; }, 200);
-                            }
-
-                            /* 3. Update entry price display */
-                            var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
-                            if(ed) {
-                                ed.textContent = entryPrice.toFixed(dec);
-                                ed.style.color = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
-                            }
-                        }); /* end requestAnimationFrame */
-
-                        /* 4. Recalculate lot size with updated spread */
-                        if(typeof deskCl === 'function') deskCl();
+                    if(latest.time === last.time) {
+                        hist[hist.length - 1] = latest;
+                    } else if(latest.time > last.time) {
+                        hist.push(latest);
+                    } else {
+                        return; // older than history — skip
                     }
-                }
-            } catch(e) { console.log('WS parse error:', e); }
-        };
+
+                    // Fire subscriber callbacks — guarded by lastBarTime
+                    Object.keys(subscribers).forEach(function(guid) {
+                        var sub = subscribers[guid];
+                        if(sub.symbol !== sym || sub.resolution !== tf) return;
+                        if(latest.time < sub.lastBarTime) return;
+                        sub.lastBarTime = latest.time;
+                        sub.callback({
+                            time:   latest.time,
+                            open:   latest.open,
+                            high:   latest.high,
+                            low:    latest.low,
+                            close:  latest.close,
+                            volume: latest.volume
+                        });
+                    });
+                });
+            });
+
+            // Update calculator live price
+            var _activeSym = window._calcSymbol || 'EURUSD';
+            if(lastData[_activeSym]) {
+                var d   = lastData[_activeSym];
+                var dec = (d.bid.toString().split('.')[1]||'').length;
+                window._calcLiveBid   = d.bid;
+                window._calcLiveAsk   = d.ask;
+                window._calcSpreadPts = d.spread || 0;
+                requestAnimationFrame(function() {
+                    var pe = document.getElementById('calc-live-price');
+                    var se = document.getElementById('calc-spread');
+                    var ed = document.getElementById('d-entry-display');
+                    if(pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
+                    if(se) {
+                        var inst = document.getElementById('d-inst');
+                        var spreadDisplay = (inst && inst.value === 'forex')
+                            ? (d.spread / 10).toFixed(1) + ' pips'
+                            : d.spread + ' pts';
+                        se.textContent = 'spread: ' + spreadDisplay;
+                        se.style.color = '#44ff88';
+                        clearTimeout(se._fadeTimer);
+                        se._fadeTimer = setTimeout(function(){ se.style.color = '#777'; }, 200);
+                    }
+                    var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
+                    if(ed) {
+                        ed.textContent = entryPrice.toFixed(dec);
+                        ed.style.color = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
+                    }
+                });
+                if(typeof deskCl === 'function') deskCl();
+            }
+        }
+
+    } catch(e) { console.log('WS parse error:', e); }
+};
 
         ws.onerror = function() {};
 
@@ -1135,7 +1120,7 @@ subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
         symbol:      symbolInfo.name,
         resolution:  resMap[resolution] || 'H1',
         callback:    onTick,
-        lastBarTime: 0   // ← tracks last callback time, prevents going backwards
+        lastBarTime: 0
     };
 },
         unsubscribeBars: function(listenerGuid) {
