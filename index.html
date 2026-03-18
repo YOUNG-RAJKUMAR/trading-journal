@@ -818,9 +818,8 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
      Auto-reconnects every 3s if disconnected
 ══════════════════════════════════════════════════════ -->
 <script>
-var _feedMode = 'mt5'; // 'mt5' or 'tv'
+var _feedMode = 'mt5';
 
-/* ── MT5 WebSocket Datafeed ── */
 var MT5Feed = (function() {
     var ws = null;
     var subscribers = {};
@@ -844,32 +843,30 @@ var MT5Feed = (function() {
         }
     }
 
-    /* ── Start countdown ticker — fires every second ── */
-function startCountdown() {
-    if(_countdownTimer) clearInterval(_countdownTimer);
-    _countdownTimer = setInterval(function() {
-        Object.keys(subscribers).forEach(function(guid) {
-            var sub = subscribers[guid];
-            // Skip second TFs — they update via tick callback directly
-            if(sub.resolution && sub.resolution.charAt(0) === 'S') return;
-            var d = lastData[sub.symbol];
-            if(!d || !d.candles || !d.candles[sub.resolution]) return;
-            var candles = d.candles[sub.resolution];
-            if(!candles.length) return;
-            var bar = candles[candles.length - 1];
-            if(bar.time < sub.lastBarTime) return;
-            sub.lastBarTime = bar.time;
-            sub.callback({
-                time:   bar.time,
-                open:   bar.open,
-                high:   bar.high,
-                low:    bar.low,
-                close:  bar.close,
-                volume: bar.volume
+    function startCountdown() {
+        if(_countdownTimer) clearInterval(_countdownTimer);
+        _countdownTimer = setInterval(function() {
+            Object.keys(subscribers).forEach(function(guid) {
+                var sub = subscribers[guid];
+                if(sub.resolution && sub.resolution.charAt(0) === 'S') return;
+                var d = lastData[sub.symbol];
+                if(!d || !d.candles || !d.candles[sub.resolution]) return;
+                var candles = d.candles[sub.resolution];
+                if(!candles.length) return;
+                var bar = candles[candles.length - 1];
+                if(bar.time < sub.lastBarTime) return;
+                sub.lastBarTime = bar.time;
+                sub.callback({
+                    time:   bar.time,
+                    open:   bar.open,
+                    high:   bar.high,
+                    low:    bar.low,
+                    close:  bar.close,
+                    volume: bar.volume
+                });
             });
-        });
-    }, 1000);
-}
+        }, 1000);
+    }
 
     function connect() {
         try {
@@ -878,122 +875,115 @@ function startCountdown() {
             setStatus('disconnected','MT5 OFFLINE');
             scheduleRetry(); return;
         }
-
         setStatus('connecting','MT5 CONNECTING...');
+        ws.onopen = function() { clearTimeout(_retryTimer); };
 
-        ws.onopen = function() {
-            clearTimeout(_retryTimer);
-        };
+        ws.onmessage = function(event) {
+            try {
+                var msg = JSON.parse(event.data);
 
-       ws.onmessage = function(event) {
-    try {
-        var msg = JSON.parse(event.data);
+                if(msg.type === 'loading_start') {
+                    var txt = document.getElementById('mt5-status-text');
+                    if(txt) txt.textContent = 'LOADING 0%';
+                    return;
+                }
 
-        if(msg.type === 'loading_start') {
-            var txt = document.getElementById('mt5-status-text');
-            if(txt) txt.textContent = 'LOADING 0%';
-            return;
-        }
+                if(msg.type === 'symbol_history') {
+                    if(!lastData) lastData = {};
+                    lastData[msg.symbol] = msg.data;
+                    var pct = Math.round(((msg.index+1)/msg.total)*100);
+                    var txt = document.getElementById('mt5-status-text');
+                    if(txt) txt.textContent = 'LOADING ' + pct + '%';
+                    return;
+                }
 
-        if(msg.type === 'symbol_history') {
-            if(!lastData) lastData = {};
-            lastData[msg.symbol] = msg.data;
-            var pct = Math.round(((msg.index+1)/msg.total)*100);
-            var txt = document.getElementById('mt5-status-text');
-            if(txt) txt.textContent = 'LOADING ' + pct + '%';
-            return;
-        }
+                if(msg.type === 'loading_done') {
+                    setStatus('connected','● MT5 LIVE');
+                    startCountdown();
+                    if(window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
+                    setTimeout(function(){
+                        if(typeof deskBuildPills==='function') deskBuildPills();
+                    }, 600);
+                    return;
+                }
 
-        if(msg.type === 'loading_done') {
-            setStatus('connected','● MT5 LIVE');
-            startCountdown();
-            if(window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
-            setTimeout(function(){
-                if(typeof deskBuildPills==='function') deskBuildPills();
-            }, 600);
-            return;
-        }
+                if(msg.type === 'tick_update') {
+                    Object.keys(msg.data).forEach(function(sym) {
+                        if(!lastData[sym]) return;
+                        lastData[sym].bid    = msg.data[sym].bid;
+                        lastData[sym].ask    = msg.data[sym].ask;
+                        lastData[sym].spread = msg.data[sym].spread;
+                        lastData[sym].time   = msg.data[sym].time;
 
-        if(msg.type === 'tick_update') {
-            Object.keys(msg.data).forEach(function(sym) {
-                if(!lastData[sym]) return;
-                lastData[sym].bid    = msg.data[sym].bid;
-                lastData[sym].ask    = msg.data[sym].ask;
-                lastData[sym].spread = msg.data[sym].spread;
-                lastData[sym].time   = msg.data[sym].time;
+                        Object.keys(msg.data[sym].candles).forEach(function(tf) {
+                            var incoming = msg.data[sym].candles[tf];
+                            if(!incoming || !incoming.length) return;
+                            if(!lastData[sym].candles[tf]) return;
+                            var hist   = lastData[sym].candles[tf];
+                            var latest = incoming[incoming.length - 1];
+                            var last   = hist[hist.length - 1];
 
-                Object.keys(msg.data[sym].candles).forEach(function(tf) {
-                    var incoming = msg.data[sym].candles[tf];
-                    if(!incoming || !incoming.length) return;
-                    if(!lastData[sym].candles[tf]) return;
-                    var hist   = lastData[sym].candles[tf];
-                    var latest = incoming[incoming.length - 1];
-                    var last   = hist[hist.length - 1];
+                            if(latest.time === last.time) {
+                                hist[hist.length - 1] = latest;
+                            } else if(latest.time > last.time) {
+                                hist.push(latest);
+                            } else {
+                                return;
+                            }
 
-                    if(latest.time === last.time) {
-                        hist[hist.length - 1] = latest;
-                    } else if(latest.time > last.time) {
-                        hist.push(latest);
-                    } else {
-                        return; // older than history — skip
-                    }
-
-                    // Fire subscriber callbacks — guarded by lastBarTime
-                    Object.keys(subscribers).forEach(function(guid) {
-                        var sub = subscribers[guid];
-                        if(sub.symbol !== sym || sub.resolution !== tf) return;
-                        if(latest.time < sub.lastBarTime) return;
-                        sub.lastBarTime = latest.time;
-                        sub.callback({
-                            time:   latest.time,
-                            open:   latest.open,
-                            high:   latest.high,
-                            low:    latest.low,
-                            close:  latest.close,
-                            volume: latest.volume
+                            Object.keys(subscribers).forEach(function(guid) {
+                                var sub = subscribers[guid];
+                                if(sub.symbol !== sym || sub.resolution !== tf) return;
+                                if(latest.time < sub.lastBarTime) return;
+                                sub.lastBarTime = latest.time;
+                                sub.callback({
+                                    time:   latest.time,
+                                    open:   latest.open,
+                                    high:   latest.high,
+                                    low:    latest.low,
+                                    close:  latest.close,
+                                    volume: latest.volume
+                                });
+                            });
                         });
                     });
-                });
-            });
 
-            // Update calculator live price
-            var _activeSym = window._calcSymbol || 'EURUSD';
-            if(lastData[_activeSym]) {
-                var d   = lastData[_activeSym];
-                var dec = (d.bid.toString().split('.')[1]||'').length;
-                window._calcLiveBid   = d.bid;
-                window._calcLiveAsk   = d.ask;
-                window._calcSpreadPts = d.spread || 0;
-                requestAnimationFrame(function() {
-                    var pe = document.getElementById('calc-live-price');
-                    var se = document.getElementById('calc-spread');
-                    var ed = document.getElementById('d-entry-display');
-                    if(pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
-                    if(se) {
-                        var inst = document.getElementById('d-inst');
-                        var spreadDisplay = (inst && inst.value === 'forex')
-                            ? (d.spread / 10).toFixed(1) + ' pips'
-                            : d.spread + ' pts';
-                        se.textContent = 'spread: ' + spreadDisplay;
-                        se.style.color = '#44ff88';
-                        clearTimeout(se._fadeTimer);
-                        se._fadeTimer = setTimeout(function(){ se.style.color = '#777'; }, 200);
+                    var _activeSym = window._calcSymbol || 'EURUSD';
+                    if(lastData[_activeSym]) {
+                        var d   = lastData[_activeSym];
+                        var dec = (d.bid.toString().split('.')[1]||'').length;
+                        window._calcLiveBid   = d.bid;
+                        window._calcLiveAsk   = d.ask;
+                        window._calcSpreadPts = d.spread || 0;
+                        requestAnimationFrame(function() {
+                            var pe = document.getElementById('calc-live-price');
+                            var se = document.getElementById('calc-spread');
+                            var ed = document.getElementById('d-entry-display');
+                            if(pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
+                            if(se) {
+                                var inst = document.getElementById('d-inst');
+                                var spreadDisplay = (inst && inst.value === 'forex')
+                                    ? (d.spread / 10).toFixed(1) + ' pips'
+                                    : d.spread + ' pts';
+                                se.textContent = 'spread: ' + spreadDisplay;
+                                se.style.color = '#44ff88';
+                                clearTimeout(se._fadeTimer);
+                                se._fadeTimer = setTimeout(function(){ se.style.color = '#777'; }, 200);
+                            }
+                            var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
+                            if(ed) {
+                                ed.textContent = entryPrice.toFixed(dec);
+                                ed.style.color = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
+                            }
+                        });
+                        if(typeof deskCl === 'function') deskCl();
                     }
-                    var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
-                    if(ed) {
-                        ed.textContent = entryPrice.toFixed(dec);
-                        ed.style.color = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
-                    }
-                });
-                if(typeof deskCl === 'function') deskCl();
-            }
-        }
+                }
 
-    } catch(e) { console.log('WS parse error:', e); }
-};
+            } catch(e) { console.log('WS parse error:', e); }
+        };
 
         ws.onerror = function() {};
-
         ws.onclose = function() {
             setStatus('disconnected','MT5 OFFLINE');
             if(_countdownTimer) clearInterval(_countdownTimer);
@@ -1010,14 +1000,14 @@ function startCountdown() {
         onReady: function(callback) {
             setTimeout(function() {
                 callback({
-                   supported_resolutions: [
-    '10S','15S','30S','45S',
-    '1','2','3','4','5','6','10','12','15','20','30',
-    '60','120','180','240','360','480','720',
-    'D','W','M'
-    ],
-                    supports_time:         true,
-                    supports_marks:        false,
+                    supported_resolutions: [
+                        '10S','15S','30S','45S',
+                        '1','2','3','4','5','6','10','12','15','20','30',
+                        '60','120','180','240','360','480','720',
+                        'D','W','M'
+                    ],
+                    supports_time: true,
+                    supports_marks: false,
                     supports_timescale_marks: false,
                 });
             }, 0);
@@ -1035,9 +1025,9 @@ function startCountdown() {
         },
 
         resolveSymbol: function(symbolName, onResolve, onError) {
-            var isGold  = symbolName.indexOf('XAU') !== -1 || symbolName.indexOf('XAG') !== -1;
-            var isIndex = symbolName.indexOf('US30') !== -1 || symbolName.indexOf('US500') !== -1
-                       || symbolName.indexOf('US100') !== -1 || symbolName.indexOf('GER') !== -1;
+            var isGold   = symbolName.indexOf('XAU') !== -1 || symbolName.indexOf('XAG') !== -1;
+            var isIndex  = symbolName.indexOf('US30') !== -1 || symbolName.indexOf('US500') !== -1
+                        || symbolName.indexOf('US100') !== -1 || symbolName.indexOf('GER') !== -1;
             var isCrypto = symbolName.indexOf('BTC') !== -1 || symbolName.indexOf('ETH') !== -1;
             setTimeout(function() {
                 onResolve({
@@ -1046,57 +1036,52 @@ function startCountdown() {
                     description:  symbolName + ' — MT5 Live',
                     type:         isCrypto ? 'crypto' : isIndex ? 'index' : 'forex',
                     session:      '24x7',
-                    timezone: 'Etc/UTC',
+                    timezone:     'Etc/UTC',
                     minmov:       1,
                     pricescale:   isGold ? 100 : isIndex ? 1 : isCrypto ? 100 : 100000,
-                    has_intraday:  true,
-                    has_seconds:   true,
-                    has_daily:     true,
+                    has_intraday: true,
+                    has_seconds:  true,
+                    has_daily:    true,
                     has_weekly_and_monthly: true,
                     supported_resolutions: [
-    '10S','15S','30S','45S',
-    '1','2','3','4','5','6','10','12',
-    '15','20','30','60','120','180','240',
-    '360','480','720','D','W','M'
-],
+                        '10S','15S','30S','45S',
+                        '1','2','3','4','5','6','10','12',
+                        '15','20','30','60','120','180','240',
+                        '360','480','720','D','W','M'
+                    ],
                     volume_precision: 2,
                     data_status: 'streaming',
-                    /* ── This is KEY for countdown ── */
-                    has_seconds: true,
                     force_session_rebuild: false,
                 });
             }, 0);
         },
 
         getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
-   var resMap = {
-    '10S':'S10', '15S':'S15', '30S':'S30', '45S':'S45',
-    '1':'M1',   '2':'M2',   '3':'M3',   '4':'M4',
-    '5':'M5',   '6':'M6',   '10':'M10', '12':'M12',
-    '15':'M15', '20':'M20', '30':'M30',
-    '60':'H1',  '120':'H2', '180':'H3', '240':'H4',
-    '360':'H6', '480':'H8', '720':'H12',
-    'D':'D1',   'W':'W1',   'M':'MN1'
-};
+            var resMap = {
+                '10S':'S10','15S':'S15','30S':'S30','45S':'S45',
+                '1':'M1',  '2':'M2',  '3':'M3',  '4':'M4',
+                '5':'M5',  '6':'M6',  '10':'M10','12':'M12',
+                '15':'M15','20':'M20','30':'M30',
+                '60':'H1', '120':'H2','180':'H3','240':'H4',
+                '360':'H6','480':'H8','720':'H12',
+                'D':'D1',  'W':'W1',  'M':'MN1'
+            };
             var tf     = resMap[resolution] || 'H1';
             var symbol = symbolInfo.name;
             var fromMs = periodParams.from * 1000;
             var toMs   = periodParams.to   * 1000;
             var tries  = 0;
-
-           function tryGet() {
-    var d = lastData[symbol];
-    if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
-        var allBars = d.candles[tf].slice().sort((a, b) => a.time - b.time); // ← sort copy
-        if(periodParams.firstDataRequest) {
-            onResult(allBars, { noData: false });
-        } else {
-            var bars = allBars.filter(function(b) {
-                return b.time >= fromMs && b.time <= toMs;
-            });
-            onResult(bars, { noData: bars.length === 0 });
-        }
-    } else if(tries < 40) {
+            function tryGet() {
+                var d = lastData[symbol];
+                if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
+                    var allBars = d.candles[tf].slice().sort(function(a,b){ return a.time - b.time; });
+                    if(periodParams.firstDataRequest) {
+                        onResult(allBars, { noData: false });
+                    } else {
+                        var bars = allBars.filter(function(b){ return b.time >= fromMs && b.time <= toMs; });
+                        onResult(bars, { noData: bars.length === 0 });
+                    }
+                } else if(tries < 40) {
                     tries++;
                     setTimeout(tryGet, 500);
                 } else {
@@ -1106,32 +1091,33 @@ function startCountdown() {
             tryGet();
         },
 
-subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
-    var resMap = {
-        '10S':'S10', '15S':'S15', '30S':'S30', '45S':'S45',
-        '1':'M1',   '2':'M2',   '3':'M3',   '4':'M4',
-        '5':'M5',   '6':'M6',   '10':'M10', '12':'M12',
-        '15':'M15', '20':'M20', '30':'M30',
-        '60':'H1',  '120':'H2', '180':'H3', '240':'H4',
-        '360':'H6', '480':'H8', '720':'H12',
-        'D':'D1',   'W':'W1',   'M':'MN1'
-    };
-    subscribers[listenerGuid] = {
-        symbol:      symbolInfo.name,
-        resolution:  resMap[resolution] || 'H1',
-        callback:    onTick,
-        lastBarTime: 0
-    };
-},
+        subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
+            var resMap = {
+                '10S':'S10','15S':'S15','30S':'S30','45S':'S45',
+                '1':'M1',  '2':'M2',  '3':'M3',  '4':'M4',
+                '5':'M5',  '6':'M6',  '10':'M10','12':'M12',
+                '15':'M15','20':'M20','30':'M30',
+                '60':'H1', '120':'H2','180':'H3','240':'H4',
+                '360':'H6','480':'H8','720':'H12',
+                'D':'D1',  'W':'W1',  'M':'MN1'
+            };
+            subscribers[listenerGuid] = {
+                symbol:      symbolInfo.name,
+                resolution:  resMap[resolution] || 'H1',
+                callback:    onTick,
+                lastBarTime: 0
+            };
+        },
+
         unsubscribeBars: function(listenerGuid) {
             delete subscribers[listenerGuid];
         },
 
-    getServerTime: function(callback) {
-           
-           callback(Math.floor(Date.now() / 1000));
+        getServerTime: function(callback) {
+            callback(Math.floor(Date.now() / 1000));
         }
     };
+
     connect();
 
     return {
@@ -1141,62 +1127,43 @@ subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
     };
 })();
 
-/* ── Feed mode switcher ── */
 function switchFeed(mode) {
     _feedMode = mode;
     document.getElementById('feed-btn-mt5').classList.toggle('active', mode === 'mt5');
     document.getElementById('feed-btn-tv').classList.toggle('active',  mode === 'tv');
-
     var overlay = document.getElementById('mt5-offline-overlay');
     if(overlay) overlay.classList.remove('show');
-
     if(window.ui) window.ui.launchTradingDesk();
 }
 
-/* ══════════════════════════════════
-   CUSTOM CHART COUNTDOWN TIMER
-   Works independently of TV library
-══════════════════════════════════ */
 var _countdownInterval = null;
-var _currentTF = ['60', '60']; // per-panel TF — index 0 = panel 1, index 1 = panel 2
+var _currentTF = ['60', '60'];
 
 function startCustomCountdown() {
     if(_countdownInterval) clearInterval(_countdownInterval);
-
     _countdownInterval = setInterval(function() {
         var activePanels = _chartLayout === 'single' ? [1] : [1, 2];
-
         activePanels.forEach(function(num) {
             var el  = document.getElementById('chart-countdown-' + num);
             var val = document.getElementById('countdown-val-' + num);
             if(!el || !val) return;
-
             var tf     = _currentTF[num-1] || '60';
             var tfMins = getTFMinutes(tf);
             if(!tfMins) { el.style.display = 'none'; return; }
-
-            // Nepal time offset
             var now       = Math.floor(Date.now() / 1000) + 20700;
             var barSize   = tfMins * 60;
             var barClose  = (Math.floor(now / barSize) + 1) * barSize;
             var remaining = barClose - now;
-
-            // Format
-            // Replace the format block with this:
-var h = Math.floor(remaining / 3600);
-var m = Math.floor((remaining % 3600) / 60);
-var s = remaining % 60;
-
-// For second-based TFs, show only seconds
-if(tfMins < 1) {
-    val.textContent = s + 's';
-} else {
-    val.textContent = h > 0
-        ? pad(h)+':'+pad(m)+':'+pad(s)
-        : pad(m)+':'+pad(s);
-}
-
-            // Color urgency
+            var h = Math.floor(remaining / 3600);
+            var m = Math.floor((remaining % 3600) / 60);
+            var s = remaining % 60;
+            if(tfMins < 1) {
+                val.textContent = s + 's';
+            } else {
+                val.textContent = h > 0
+                    ? pad(h)+':'+pad(m)+':'+pad(s)
+                    : pad(m)+':'+pad(s);
+            }
             if(remaining <= 30) {
                 val.style.color           = '#ff4444';
                 el.style.borderRightColor = '#ff4444';
@@ -1210,52 +1177,37 @@ if(tfMins < 1) {
                 el.style.borderRightColor = '#44ff88';
                 el.style.boxShadow        = '-2px 0 8px rgba(68,255,136,0.15)';
             }
-
-            // Vertical positioning
             var container = document.getElementById('tv-container-' + num);
             if(container) {
                 el.style.top       = (container.offsetHeight * 0.42) + 'px';
                 el.style.transform = 'none';
             }
-
             el.style.display = 'block';
         });
-
-        // Hide inactive panels
         [1, 2].forEach(function(num) {
             if(activePanels.indexOf(num) === -1) {
                 var el = document.getElementById('chart-countdown-' + num);
                 if(el) el.style.display = 'none';
             }
         });
-
     }, 1000);
 }
 
 function getTFMinutes(tf) {
-    // Handle second resolutions like '10S', '30S'
-    if(tf && tf.toString().endsWith('S')) {
-        var secs = parseInt(tf);
-        return secs / 60; // convert seconds to fractional minutes
+    if(tf && tf.toString().indexOf('S') !== -1 && tf.toString().charAt(tf.toString().length-1) === 'S') {
+        return parseInt(tf) / 60;
     }
     var map = {
-        '1':1, '2':2, '3':3, '4':4,
-        '5':5, '6':6, '10':10, '12':12,
-        '15':15, '20':20, '30':30,
-        '60':60, '120':120,'180':180,'240':240,
-        '360':360,'480':480,'720':720,
-        'D':1440, 'W':10080,'M':43200
+        '1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'10':10,'12':12,
+        '15':15,'20':20,'30':30,'60':60,'120':120,'180':180,'240':240,
+        '360':360,'480':480,'720':720,'D':1440,'W':10080,'M':43200
     };
     return map[tf] || 1;
 }
-function pad(n) {
-    return n < 10 ? '0'+n : ''+n;
-}
 
-// Legacy single-panel call — kept for safety
-function updateCountdownTF(tf) {
-    _currentTF[0] = tf;
-}
+function pad(n) { return n < 10 ? '0'+n : ''+n; }
+
+function updateCountdownTF(tf) { _currentTF[0] = tf; }
 </script>
 
 <!-- ══ FIREBASE + MAIN APP LOGIC ══ -->
