@@ -845,28 +845,37 @@ var MT5Feed = (function() {
     }
 
     /* ── Start countdown ticker — fires every second ── */
-    function startCountdown() {
-        if(_countdownTimer) clearInterval(_countdownTimer);
-        _countdownTimer = setInterval(function() {
-            Object.keys(subscribers).forEach(function(guid) {
-                var sub = subscribers[guid];
-                var d   = lastData[sub.symbol];
-                if(!d || !d.candles || !d.candles[sub.resolution]) return;
-                var candles = d.candles[sub.resolution];
-                if(!candles.length) return;
-                /* Send latest bar every second so TV recalculates countdown */
-                var bar = candles[candles.length - 1];
-                sub.callback({
-                    time:   bar.time,
-                    open:   bar.open,
-                    high:   bar.high,
-                    low:    bar.low,
-                    close:  bar.close,
-                    volume: bar.volume
-                });
+function startCountdown() {
+    if(_countdownTimer) clearInterval(_countdownTimer);
+
+    _countdownTimer = setInterval(function() {
+        Object.keys(subscribers).forEach(function(guid) {
+            var sub = subscribers[guid];
+            
+            // ── Skip second TFs — they update via tick_update callback instead ──
+            if(sub.resolution && sub.resolution.charAt(0) === 'S') return;
+
+            var d = lastData[sub.symbol];
+            if(!d || !d.candles || !d.candles[sub.resolution]) return;
+            var candles = d.candles[sub.resolution];
+            if(!candles.length) return;
+            var bar = candles[candles.length - 1];
+
+            // ── Also guard here for minute+ TFs ──
+            if(bar.time < sub.lastBarTime) return;
+            sub.lastBarTime = bar.time;
+
+            sub.callback({
+                time:   bar.time,
+                open:   bar.open,
+                high:   bar.high,
+                low:    bar.low,
+                close:  bar.close,
+                volume: bar.volume
             });
-        }, 1000);
-    }
+        });
+    }, 1000);
+}
 
     function connect() {
         try {
@@ -919,39 +928,40 @@ var MT5Feed = (function() {
         lastData[sym].spread = msg.data[sym].spread;
         lastData[sym].time   = msg.data[sym].time;
 
-        /* Merge latest candle into history + fire subscriber callbacks */
-        Object.keys(msg.data[sym].candles).forEach(function(tf) {
-            var incoming = msg.data[sym].candles[tf];
-            if(!incoming.length) return;
-            var hist = lastData[sym].candles[tf];
-            if(!hist || !hist.length) return;
-            var latest = incoming[incoming.length-1];
-            var last   = hist[hist.length-1];
+   /* Merge latest candle into history + fire subscriber callbacks */
+Object.keys(msg.data[sym].candles).forEach(function(tf) {
+    var incoming = msg.data[sym].candles[tf];
+    if(!incoming.length) return;
+    var hist = lastData[sym].candles[tf];
+    if(!hist || !hist.length) return;
+    var latest = incoming[incoming.length-1];
+    var last   = hist[hist.length-1];
 
-            if(latest.time === last.time) {
-                hist[hist.length-1] = latest;   // update current bar
-            } else if(latest.time > last.time) {
-                hist.push(latest);               // new bar opened
-            } else {
-                return; // older than history — skip entirely
-            }
+    if(latest.time === last.time) {
+        hist[hist.length-1] = latest;   // update current bar in place
+    } else if(latest.time > last.time) {
+        hist.push(latest);              // new bar opened
+    } else {
+        return; // older than history — skip entirely, don't touch subscribers
+    }
 
-            // ── Fire subscriber callbacks so TV chart redraws ──
-            Object.keys(subscribers).forEach(function(guid) {
-                var sub = subscribers[guid];
-                if(sub.symbol === sym && sub.resolution === tf) {
-                    sub.callback({
-                        time:   latest.time,
-                        open:   latest.open,
-                        high:   latest.high,
-                        low:    latest.low,
-                        close:  latest.close,
-                        volume: latest.volume
-                    });
-                }
-            });
+    // ── Fire subscriber callbacks — only if bar goes forward ──
+    Object.keys(subscribers).forEach(function(guid) {
+        var sub = subscribers[guid];
+        if(sub.symbol !== sym || sub.resolution !== tf) return;
+        // Never go backwards — TV will reject it and break the chart
+        if(latest.time < sub.lastBarTime) return;
+        sub.lastBarTime = latest.time;
+        sub.callback({
+            time:   latest.time,
+            open:   latest.open,
+            high:   latest.high,
+            low:    latest.low,
+            close:  latest.close,
+            volume: latest.volume
         });
     });
+});
 
              /* ── Update calculator live on every tick ── */
                     var _activeSym = window._calcSymbol || 'EURUSD';
@@ -1111,22 +1121,23 @@ var MT5Feed = (function() {
             tryGet();
         },
 
-        subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
-            var resMap = {
-    '1':'M1',   '2':'M2',   '3':'M3',   '4':'M4',
-    '5':'M5',   '6':'M6',   '10':'M10', '12':'M12',
-    '15':'M15', '20':'M20', '30':'M30',
-    '60':'H1',  '120':'H2', '180':'H3', '240':'H4',
-    '360':'H6', '480':'H8', '720':'H12',
-    'D':'D1',   'W':'W1',   'M':'MN1'
-};
-            subscribers[listenerGuid] = {
-                symbol:     symbolInfo.name,
-                resolution: resMap[resolution] || 'H1',
-                callback:   onTick
-            };
-        },
-
+subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
+    var resMap = {
+        '10S':'S10', '15S':'S15', '30S':'S30', '45S':'S45',
+        '1':'M1',   '2':'M2',   '3':'M3',   '4':'M4',
+        '5':'M5',   '6':'M6',   '10':'M10', '12':'M12',
+        '15':'M15', '20':'M20', '30':'M30',
+        '60':'H1',  '120':'H2', '180':'H3', '240':'H4',
+        '360':'H6', '480':'H8', '720':'H12',
+        'D':'D1',   'W':'W1',   'M':'MN1'
+    };
+    subscribers[listenerGuid] = {
+        symbol:      symbolInfo.name,
+        resolution:  resMap[resolution] || 'H1',
+        callback:    onTick,
+        lastBarTime: 0   // ← tracks last callback time, prevents going backwards
+    };
+},
         unsubscribeBars: function(listenerGuid) {
             delete subscribers[listenerGuid];
         },
