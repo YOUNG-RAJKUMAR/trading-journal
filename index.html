@@ -22,109 +22,221 @@
 
     <style>
 
-
-
-        /* ══ FF NEWS BAR ══ */
+        /* ══ FF NEWS BAR — CALENDAR STYLE ══ */
 #ff-news-bar {
-    height: 28px;
-    display: flex;
-    align-items: center;
-    background: #060606;
-    border-bottom: 1px solid #1a1a1a;
+    width: 100%;
     flex-shrink: 0;
+    background: #060606;
+    border-bottom: 2px solid #1a1a1a;
+    font-family: 'Inter', sans-serif;
     overflow: hidden;
-    font-family: 'Courier New', monospace;
-    position: relative;
 }
-#ff-news-bar .ff-label {
-    font-size: .5rem;
-    color: #333;
+#ff-news-bar .ff-cal-header {
+    display: grid;
+    grid-template-columns: 110px 90px 90px 60px 1fr 120px;
+    background: #0d0d0d;
+    border-bottom: 1px solid #222;
+    padding: 0 12px;
+    height: 28px;
+    align-items: center;
+    gap: 0;
+}
+#ff-news-bar .ff-cal-header span {
+    font-size: .58rem;
+    color: #444;
     text-transform: uppercase;
     letter-spacing: 2px;
-    padding: 0 10px;
-    flex-shrink: 0;
-    border-right: 1px solid #1a1a1a;
-    height: 100%;
+    font-weight: 600;
+}
+#ff-news-bar .ff-cal-header span:first-child {
+    color: #ff4444;
+    font-size: .54rem;
+    letter-spacing: 1px;
+}
+#ff-news-bar .ff-cal-rows {
     display: flex;
-    align-items: center;
-    white-space: nowrap;
+    flex-direction: column;
+    max-height: 220px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #1a1a1a #000;
 }
-#ff-news-bar .ff-scroll {
-    display: flex;
+#ff-news-bar .ff-cal-rows::-webkit-scrollbar { width: 4px; }
+#ff-news-bar .ff-cal-rows::-webkit-scrollbar-track { background: #000; }
+#ff-news-bar .ff-cal-rows::-webkit-scrollbar-thumb { background: #222; }
+
+.ff-cal-row {
+    display: grid;
+    grid-template-columns: 110px 90px 90px 60px 1fr 120px;
+    padding: 0 12px;
+    min-height: 38px;
     align-items: center;
-    gap: 6px;
-    overflow-x: auto;
-    padding: 0 8px;
-    flex: 1;
-    scrollbar-width: none;
-    height: 100%;
+    border-bottom: 1px solid #0f0f0f;
+    transition: background .15s;
+    gap: 0;
 }
-#ff-news-bar .ff-scroll::-webkit-scrollbar { display: none; }
-.ff-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    border-left: 2px solid #ff4444;
-    padding: 2px 8px 2px 6px;
-    background: rgba(255,40,40,0.07);
-    white-space: nowrap;
-    flex-shrink: 0;
+.ff-cal-row:hover { background: #0d0d0d; }
+.ff-cal-row.ff-row-past { opacity: 0.38; }
+.ff-cal-row.ff-row-soon { background: rgba(255,68,68,0.04); }
+.ff-cal-row.ff-row-now  { background: rgba(255,68,68,0.10); animation: ff-now-pulse 2s infinite; }
+@keyframes ff-now-pulse {
+    0%,100% { background: rgba(255,68,68,0.10); }
+    50%      { background: rgba(255,68,68,0.18); }
 }
-.ff-pill-country {
-    font-size: .52rem;
-    color: #ff6666;
+
+.ff-col-date {
+    font-size: .78rem;
+    color: #555;
+    font-weight: 600;
+    letter-spacing: .5px;
+    line-height: 1.3;
+}
+.ff-col-date b { display: block; color: #888; font-size: .82rem; }
+.ff-col-date span { font-size: .65rem; color: #3a3a3a; }
+
+.ff-col-time {
+    font-size: .88rem;
+    color: #888;
+    font-weight: 500;
+    letter-spacing: .5px;
+    font-family: 'Courier New', monospace;
+}
+.ff-col-time.ff-soon-time { color: #ffaa44; font-weight: 700; }
+.ff-col-time.ff-now-time  { color: #ff4444; font-weight: 700; animation: blink 1s step-end infinite; }
+.ff-col-time.ff-past-time { color: #2a2a2a; }
+
+.ff-col-currency {
+    font-size: .82rem;
     font-weight: 700;
+    color: #aaa;
+    letter-spacing: 1px;
+    font-family: 'Courier New', monospace;
+}
+
+.ff-col-impact {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.ff-folder {
+    width: 22px;
+    height: 17px;
+    border-radius: 2px 3px 3px 3px;
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.ff-folder::before {
+    content: '';
+    position: absolute;
+    top: -4px; left: 0;
+    width: 10px; height: 4px;
+    border-radius: 2px 2px 0 0;
+    background: inherit;
+    filter: brightness(1.3);
+}
+.ff-folder.red    { background: #cc2222; }
+.ff-folder.orange { background: #cc7700; }
+.ff-folder.yellow { background: #aaaa00; }
+.ff-folder.gray   { background: #2a2a2a; }
+
+.ff-col-event {
+    font-size: .88rem;
+    color: #ccc;
+    font-weight: 400;
+    letter-spacing: .2px;
+    padding-right: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ff-col-event.ff-event-high { color: #fff; font-weight: 600; }
+.ff-col-event.ff-past-event { color: #333; }
+
+.ff-col-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+}
+.ff-meta-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-family: 'Courier New', monospace;
+    font-size: .68rem;
+}
+.ff-meta-lbl { color: #333; font-size: .55rem; text-transform: uppercase; letter-spacing: 1px; }
+.ff-meta-val { color: #666; font-size: .72rem; }
+.ff-meta-val.forecast { color: #888; }
+.ff-meta-val.actual   { color: #44cc88; font-weight: 700; }
+.ff-meta-val.actual.bad { color: #ff5555; }
+
+.ff-status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #ff4444; animation: pulse 1s infinite;
+    display: inline-block; flex-shrink: 0;
+}
+
+.ff-no-news-row {
+    padding: 14px 16px;
+    font-size: .78rem;
+    color: #1e4a1e;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ff-no-news-row span { color: #2a6a2a; font-weight: 600; }
+
+.ff-bar-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #080808;
+    border-bottom: 1px solid #1a1a1a;
+    padding: 0 12px;
+    height: 26px;
+    flex-shrink: 0;
+}
+.ff-bar-title {
+    font-size: .52rem;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ff-bar-title b { color: #ff4444; }
+.ff-bar-counts {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.ff-count-pill {
+    font-size: .48rem;
+    padding: 1px 7px;
+    border-radius: 2px;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-.ff-pill-title {
-    font-size: .56rem;
-    color: #ffcccc;
-    letter-spacing: 0.3px;
-}
-.ff-pill-time {
-    font-size: .5rem;
-    color: #ff8888;
-    background: rgba(255,0,0,0.12);
-    border: 1px solid rgba(255,80,80,0.25);
-    padding: 1px 5px;
-}
-.ff-pill-past .ff-pill-title { color: #664444; }
-.ff-pill-past .ff-pill-time  { color: #553333; border-color: #331111; background: transparent; }
-.ff-pill-past .ff-pill-country { color: #553333; }
-.ff-pill-past { border-left-color: #441111; background: transparent; }
-.ff-dot-live {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: #ff4444;
-    animation: pulse 1s infinite;
-    flex-shrink: 0;
-}
-.ff-no-news {
-    font-size: .55rem;
-    color: #1e4a1e;
-    letter-spacing: 1px;
-    padding: 0 6px;
-}
-.ff-refresh {
-    font-size: .5rem;
+.ff-count-pill.upcoming { background: rgba(255,100,0,.12); border: 1px solid rgba(255,100,0,.25); color: #ff8844; }
+.ff-count-pill.done     { background: transparent; border: 1px solid #1a1a1a; color: #333; }
+.ff-count-pill.total    { background: rgba(255,40,40,.10); border: 1px solid rgba(255,40,40,.25); color: #ff4444; }
+.ff-refresh-btn {
+    font-size: .48rem;
     color: #2a2a2a;
     cursor: pointer;
-    padding: 0 10px;
-    flex-shrink: 0;
-    border-left: 1px solid #1a1a1a;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    transition: color .2s;
-}
-.ff-refresh:hover { color: #888; }
-.ff-loading {
-    font-size: .5rem;
-    color: #2a2a2a;
     letter-spacing: 1px;
-    padding: 0 10px;
-    animation: pulse 1.5s infinite;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid #1a1a1a;
+    background: transparent;
+    transition: all .2s;
 }
+.ff-refresh-btn:hover { color: #888; border-color: #444; }
+
         
        :root,
 body.theme-void {
@@ -653,16 +765,11 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
                     </button>
                 </div>
 
-               <!-- PANELS WRAPPER -->
-  <!-- ══ FOREX FACTORY NEWS BAR ══ -->
+<!-- ══ FOREX FACTORY NEWS BAR ══ -->
 <div id="ff-news-bar">
-    <div class="ff-label">
-        <span style="color:#ff4444;margin-right:5px;">📰</span> FF HIGH IMPACT
+    <div style="padding:10px 16px;font-size:.6rem;color:#2a2a2a;letter-spacing:2px;">
+        LOADING FF CALENDAR...
     </div>
-    <div class="ff-scroll" id="ff-news-scroll">
-        <span class="ff-loading">LOADING NEWS...</span>
-    </div>
-    <div class="ff-refresh" onclick="ffFetchNews()" title="Refresh news">↺ REFRESH</div>
 </div>
 
     <!-- PANEL 1 -->
@@ -2445,6 +2552,9 @@ var _ffNews        = [];
 var _ffNewsLoaded  = false;
 var _ffLastFetch   = 0;
 
+/* ── Must match ALL_SYMBOLS in your MT5 bridge ── */
+var ALL_SITE_SYMBOLS = ["EURUSD", "GBPUSD", "XAUUSD"];
+
 /* ── Extract the two currency codes from a symbol ── */
 function ffGetCurrencies(symbol) {
     symbol = (symbol || '').toUpperCase().replace(/[^A-Z]/g, '');
@@ -2499,52 +2609,50 @@ async function ffFetchNews() {
     if(el) el.innerHTML = '<span class="ff-loading">LOADING NEWS...</span>';
 
     /* ── Proxy chain — ordered by reliability ── */
-    var strategies = [
+var strategies = [
 
-        /* 1. allorigins JSON wrapper — returns { contents: "..." } */
-        async function() {
-            var url  = 'https://api.allorigins.win/get?url=' + encodeURIComponent(base);
-            var resp = await fetch(url, { cache: 'no-store' });
-            if(!resp.ok) throw new Error('allorigins /get ' + resp.status);
-            var json = await resp.json();
-            return JSON.parse(json.contents);
-        },
-
-        /* 2. codetabs proxy */
+        /* 1. codetabs — confirmed working */
         async function() {
             var url  = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(base);
             var resp = await fetch(url, { cache: 'no-store' });
             if(!resp.ok) throw new Error('codetabs ' + resp.status);
-            return await resp.json();
+            var data = await resp.json();
+            if(!Array.isArray(data)) throw new Error('codetabs non-array');
+            return data;
         },
 
-        /* 3. corsproxy.io with url= param format */
+        /* 2. allorigins /get — returns { contents: "json string" } */
         async function() {
-            var url  = 'https://corsproxy.io/?url=' + encodeURIComponent(base);
+            var url  = 'https://api.allorigins.win/get?url=' + encodeURIComponent(base);
             var resp = await fetch(url, { cache: 'no-store' });
-            if(!resp.ok) throw new Error('corsproxy.io ' + resp.status);
-            return await resp.json();
+            if(!resp.ok) throw new Error('allorigins ' + resp.status);
+            var wrapper = await resp.json();
+            if(!wrapper.contents) throw new Error('allorigins empty contents');
+            /* contents may be HTML if the target returned an error page */
+            if(wrapper.contents.trim().startsWith('<'))
+                throw new Error('allorigins returned HTML, not JSON');
+            return JSON.parse(wrapper.contents);
         },
 
-        /* 4. thingproxy */
+        /* 3. jsonp.su — another reliable public CORS proxy */
         async function() {
-            var url  = 'https://thingproxy.freeboard.io/fetch/' + base;
+            var url  = 'https://jsonp.su/?url=' + encodeURIComponent(base);
             var resp = await fetch(url, { cache: 'no-store' });
-            if(!resp.ok) throw new Error('thingproxy ' + resp.status);
+            if(!resp.ok) throw new Error('jsonp.su ' + resp.status);
+            var data = await resp.json();
+            if(!Array.isArray(data)) throw new Error('jsonp.su non-array');
+            return data;
+        },
+
+        /* 4. crossorigin.me */
+        async function() {
+            var url  = 'https://crossorigin.me/' + base;
+            var resp = await fetch(url, { cache: 'no-store' });
+            if(!resp.ok) throw new Error('crossorigin.me ' + resp.status);
             return await resp.json();
         },
 
-        /* 5. cors.sh */
-        async function() {
-            var resp = await fetch(base, {
-                cache: 'no-store',
-                headers: { 'x-cors-api-key': 'temp_' + Math.random().toString(36).slice(2) }
-            });
-            if(!resp.ok) throw new Error('cors.sh ' + resp.status);
-            return await resp.json();
-        },
     ];
-
     for(var i = 0; i < strategies.length; i++) {
         try {
             var data = await strategies[i]();
@@ -2568,13 +2676,13 @@ async function ffFetchNews() {
 }
 
 /* ── Build and inject the news bar content ── */
+/* ── Build and inject the news bar content ── */
 function ffRenderNews() {
-    var el = document.getElementById('ff-news-scroll');
-    if(!el) return;
+    var bar = document.getElementById('ff-news-bar');
+    if(!bar) return;
 
     var now = new Date();
 
-    /* Collect ALL currencies relevant to ALL site symbols */
     var siteCurrencies = [];
     ALL_SITE_SYMBOLS.forEach(function(sym) {
         ffGetCurrencies(sym).forEach(function(cur) {
@@ -2582,87 +2690,99 @@ function ffRenderNews() {
         });
     });
 
-    /* Filter: High impact + today + any currency used by site symbols */
     var todayNews = _ffNews.filter(function(ev) {
         return ev.impact === 'High'
             && ffIsToday(ev.date)
             && siteCurrencies.indexOf(ev.country) !== -1;
     });
 
-    /* Sort ascending by event time */
     todayNews.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
 
-    if(todayNews.length === 0) {
-        el.innerHTML =
-            '<span style="font-size:.52rem;color:#333;letter-spacing:1px;padding:0 4px;">—</span>'
-          + '<span class="ff-no-news">✓ NO RED FOLDER NEWS FOR ANY SYMBOL TODAY</span>';
-        return;
-    }
-
-    /* Group events by NPT time so same-time events cluster visually */
-    var byTime = {};
-    todayNews.forEach(function(ev) {
-        var key = ffToKathmandu(ev.date);
-        if(!byTime[key]) byTime[key] = [];
-        byTime[key].push(ev);
-    });
-
-    var html = todayNews.map(function(ev) {
-        var evTime   = new Date(ev.date);
-        var isPast   = evTime < now;
-        var isMins15 = !isPast && ((evTime - now) < 15 * 60 * 1000);
-        var isNow    = !isPast && ((evTime - now) < 2  * 60 * 1000);
-        var nptTime  = ffToKathmandu(ev.date);
-
-        /* Which of the site's symbols does this currency belong to? */
-        var affectedSyms = ALL_SITE_SYMBOLS.filter(function(sym) {
-            return ffGetCurrencies(sym).indexOf(ev.country) !== -1;
-        });
-        var symTags = affectedSyms.map(function(s) {
-            return '<span style="font-size:.42rem;color:#555;background:#111;'
-                 + 'border:1px solid #222;padding:0 4px;border-radius:1px;">'
-                 + s + '</span>';
-        }).join(' ');
-
-        var pillClass = 'ff-pill' + (isPast ? ' ff-pill-past' : '');
-        var statusDot = isNow
-            ? '<span class="ff-dot-live" style="background:#ff0000;" title="HAPPENING NOW"></span>'
-            : isMins15
-            ? '<span class="ff-dot-live" title="< 15 min away"></span>'
-            : isPast
-            ? '<span style="font-size:.42rem;color:#442222;flex-shrink:0;">◉</span>'
-            : '';
-
-        return '<div class="' + pillClass + '">'
-            + statusDot
-            + '<span class="ff-pill-country">' + ev.country + '</span>'
-            + symTags
-            + '<span class="ff-pill-title">' + ev.title + '</span>'
-            + '<span class="ff-pill-time">⏰ ' + nptTime + '</span>'
-            + (ev.forecast
-                ? '<span style="font-size:.44rem;color:#666;flex-shrink:0;">F:<b style="color:#888;">'
-                  + ev.forecast + '</b></span>' : '')
-            + (ev.previous
-                ? '<span style="font-size:.44rem;color:#444;flex-shrink:0;">P:'
-                  + ev.previous + '</span>' : '')
-            + '</div>';
-    }).join('<span style="color:#1a1a1a;padding:0 6px;flex-shrink:0;font-size:.6rem;">·</span>');
-
-    /* Upcoming count vs done count */
     var upcoming = todayNews.filter(function(ev) { return new Date(ev.date) >= now; }).length;
     var done     = todayNews.length - upcoming;
 
-    var countBadge =
-        '<span style="font-size:.44rem;background:#ff000022;border:1px solid #ff444433;'
-      + 'color:#ff4444;padding:1px 8px;margin-right:8px;flex-shrink:0;letter-spacing:1px;white-space:nowrap;">'
-      + '🔴 ' + todayNews.length + ' HIGH IMPACT'
-      + (upcoming > 0 ? ' · <span style="color:#ffaa44;">' + upcoming + ' UPCOMING</span>' : '')
-      + (done     > 0 ? ' · <span style="color:#444;">'    + done     + ' DONE</span>'     : '')
-      + '</span>';
+    var headerHtml =
+        '<div class="ff-bar-header-row">'
+      +   '<div class="ff-bar-title"><b>🔴 FF HIGH IMPACT NEWS</b><span>— TODAY</span></div>'
+      +   '<div class="ff-bar-counts">'
+      +     (upcoming > 0 ? '<span class="ff-count-pill upcoming">▲ ' + upcoming + ' UPCOMING</span>' : '')
+      +     (done     > 0 ? '<span class="ff-count-pill done">✓ '     + done     + ' DONE</span>'     : '')
+      +     (todayNews.length > 0 ? '<span class="ff-count-pill total">🔴 ' + todayNews.length + ' TOTAL</span>' : '')
+      +     '<button class="ff-refresh-btn" onclick="ffFetchNews()">↺ REFRESH</button>'
+      +   '</div>'
+      + '</div>';
 
-    el.innerHTML = countBadge + html;
+    var colHeaderHtml =
+        '<div class="ff-cal-header">'
+      +   '<span>📅 FF CALENDAR</span>'
+      +   '<span>TIME (NPT)</span>'
+      +   '<span>CURRENCY</span>'
+      +   '<span>IMPACT</span>'
+      +   '<span>EVENT</span>'
+      +   '<span style="text-align:right;">FORECAST / PREV</span>'
+      + '</div>';
+
+    var rowsHtml = '';
+
+    if(todayNews.length === 0) {
+        rowsHtml =
+            '<div class="ff-no-news-row">✓ NO RED FOLDER NEWS TODAY FOR <span>'
+          + ALL_SITE_SYMBOLS.join(', ') + '</span></div>';
+    } else {
+        var prevDate = '';
+        rowsHtml = todayNews.map(function(ev) {
+            var evTime  = new Date(ev.date);
+            var isPast  = evTime < now;
+            var isSoon  = !isPast && (evTime - now) < 15 * 60 * 1000;
+            var isNow   = !isPast && (evTime - now) <  2 * 60 * 1000;
+            var nptTime = ffToKathmandu(ev.date);
+
+            var evDateStr = evTime.toDateString();
+            var dateHtml  = '';
+            if(evDateStr !== prevDate) {
+                var days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                dateHtml = '<b>' + days[evTime.getDay()] + '</b>'
+                         + '<span>' + months[evTime.getMonth()] + ' ' + evTime.getDate() + '</span>';
+                prevDate = evDateStr;
+            }
+
+            var rowClass  = 'ff-cal-row' + (isNow ? ' ff-row-now' : isSoon ? ' ff-row-soon' : isPast ? ' ff-row-past' : '');
+            var timeClass = 'ff-col-time' + (isNow ? ' ff-now-time' : isSoon ? ' ff-soon-time' : isPast ? ' ff-past-time' : '');
+            var dotHtml   = isNow  ? '<span class="ff-status-dot" style="background:#ff0000;"></span>'
+                          : isSoon ? '<span class="ff-status-dot" style="background:#ffaa44;"></span>'
+                          : '';
+
+            var affSyms   = ALL_SITE_SYMBOLS.filter(function(sym) {
+                return ffGetCurrencies(sym).indexOf(ev.country) !== -1;
+            });
+            var symBadges = affSyms.map(function(s) {
+                return '<span style="font-size:.52rem;color:#3a3a3a;background:#0d0d0d;'
+                     + 'border:1px solid #1a1a1a;padding:0 4px;margin-left:3px;'
+                     + 'border-radius:1px;font-family:Courier New,monospace;">' + s + '</span>';
+            }).join('');
+
+            var eventClass = 'ff-col-event' + (!isPast ? ' ff-event-high' : ' ff-past-event');
+
+            var metaHtml = '<div class="ff-col-meta">';
+            if(ev.forecast) metaHtml += '<div class="ff-meta-row"><span class="ff-meta-lbl">F</span><span class="ff-meta-val forecast">' + ev.forecast + '</span></div>';
+            if(ev.previous) metaHtml += '<div class="ff-meta-row"><span class="ff-meta-lbl">P</span><span class="ff-meta-val">'          + ev.previous + '</span></div>';
+            metaHtml += '</div>';
+
+            return '<div class="' + rowClass + '">'
+                + '<div class="ff-col-date">'    + dateHtml + '</div>'
+                + '<div class="' + timeClass + '">' + dotHtml + ' ' + nptTime + '</div>'
+                + '<div class="ff-col-currency">' + ev.country + symBadges + '</div>'
+                + '<div class="ff-col-impact"><span class="ff-folder red"></span></div>'
+                + '<div class="' + eventClass + '">' + ev.title + '</div>'
+                + metaHtml
+                + '</div>';
+        }).join('');
+    }
+
+    bar.innerHTML = headerHtml + colHeaderHtml
+        + '<div class="ff-cal-rows">' + rowsHtml + '</div>';
 }
-
 /* ── Call ffRenderNews when the active symbol changes ── */
 /* Hook into deskSelectSymbol (already defined in your code) */
 var _origDeskSelectSymbol = window.deskSelectSymbol;
