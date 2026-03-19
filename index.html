@@ -22,221 +22,246 @@
 
     <style>
 
-        /* ══ FF NEWS BAR — CALENDAR STYLE ══ */
-#ff-news-bar {
-    width: 100%;
-    flex-shrink: 0;
-    background: #060606;
-    border-bottom: 2px solid #1a1a1a;
-    font-family: 'Inter', sans-serif;
-    overflow: hidden;
-}
-#ff-news-bar .ff-cal-header {
-    display: grid;
-    grid-template-columns: 110px 90px 90px 60px 1fr 120px;
-    background: #0d0d0d;
-    border-bottom: 1px solid #222;
-    padding: 0 12px;
-    height: 28px;
-    align-items: center;
-    gap: 0;
-}
-#ff-news-bar .ff-cal-header span {
-    font-size: .58rem;
-    color: #444;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-weight: 600;
-}
-#ff-news-bar .ff-cal-header span:first-child {
-    color: #ff4444;
-    font-size: .54rem;
-    letter-spacing: 1px;
-}
-#ff-news-bar .ff-cal-rows {
+      /* ══ FF NEWS BUTTON ══ */
+#ff-news-toggle-btn {
     display: flex;
-    flex-direction: column;
-    max-height: 220px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #1a1a1a #000;
-}
-#ff-news-bar .ff-cal-rows::-webkit-scrollbar { width: 4px; }
-#ff-news-bar .ff-cal-rows::-webkit-scrollbar-track { background: #000; }
-#ff-news-bar .ff-cal-rows::-webkit-scrollbar-thumb { background: #222; }
-
-.ff-cal-row {
-    display: grid;
-    grid-template-columns: 110px 90px 90px 60px 1fr 120px;
-    padding: 0 12px;
-    min-height: 38px;
     align-items: center;
-    border-bottom: 1px solid #0f0f0f;
-    transition: background .15s;
-    gap: 0;
-}
-.ff-cal-row:hover { background: #0d0d0d; }
-.ff-cal-row.ff-row-past { opacity: 0.38; }
-.ff-cal-row.ff-row-soon { background: rgba(255,68,68,0.04); }
-.ff-cal-row.ff-row-now  { background: rgba(255,68,68,0.10); animation: ff-now-pulse 2s infinite; }
-@keyframes ff-now-pulse {
-    0%,100% { background: rgba(255,68,68,0.10); }
-    50%      { background: rgba(255,68,68,0.18); }
-}
-
-.ff-col-date {
-    font-size: .78rem;
-    color: #555;
-    font-weight: 600;
-    letter-spacing: .5px;
-    line-height: 1.3;
-}
-.ff-col-date b { display: block; color: #888; font-size: .82rem; }
-.ff-col-date span { font-size: .65rem; color: #3a3a3a; }
-
-.ff-col-time {
-    font-size: .88rem;
-    color: #888;
-    font-weight: 500;
-    letter-spacing: .5px;
-    font-family: 'Courier New', monospace;
-}
-.ff-col-time.ff-soon-time { color: #ffaa44; font-weight: 700; }
-.ff-col-time.ff-now-time  { color: #ff4444; font-weight: 700; animation: blink 1s step-end infinite; }
-.ff-col-time.ff-past-time { color: #2a2a2a; }
-
-.ff-col-currency {
-    font-size: .82rem;
+    gap: 5px;
+    padding: 3px 10px;
+    font-size: .52rem;
     font-weight: 700;
-    color: #aaa;
     letter-spacing: 1px;
-    font-family: 'Courier New', monospace;
-}
-
-.ff-col-impact {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.ff-folder {
-    width: 22px;
-    height: 17px;
-    border-radius: 2px 3px 3px 3px;
-    position: relative;
-    display: inline-block;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    background: #1b2a3a;
+    border: 1px solid #2d5a8e;
+    color: #7ab3e0;
     flex-shrink: 0;
+    transition: all .15s;
 }
-.ff-folder::before {
-    content: '';
-    position: absolute;
-    top: -4px; left: 0;
-    width: 10px; height: 4px;
-    border-radius: 2px 2px 0 0;
-    background: inherit;
-    filter: brightness(1.3);
+#ff-news-toggle-btn:hover { background: #243850; color: #aad4f5; }
+#ff-news-toggle-btn .ff-btn-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #ff4444; animation: pulse 1s infinite; flex-shrink: 0;
 }
-.ff-folder.red    { background: #cc2222; }
-.ff-folder.orange { background: #cc7700; }
-.ff-folder.yellow { background: #aaaa00; }
-.ff-folder.gray   { background: #2a2a2a; }
 
-.ff-col-event {
-    font-size: .88rem;
-    color: #ccc;
-    font-weight: 400;
-    letter-spacing: .2px;
-    padding-right: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+/* ══ FF NEWS OVERLAY ══ */
+#ff-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 60px;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(3px);
 }
-.ff-col-event.ff-event-high { color: #fff; font-weight: 600; }
-.ff-col-event.ff-past-event { color: #333; }
+#ff-overlay.show { display: flex; }
 
-.ff-col-meta {
+#ff-overlay-panel {
+    width: 820px;
+    max-width: 96vw;
+    max-height: 80vh;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    align-items: flex-end;
+    background: #0e1928;
+    border: 1px solid #2d5a8e;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    overflow: hidden;
 }
-.ff-meta-row {
+
+#ff-overlay-titlebar {
     display: flex;
-    gap: 6px;
     align-items: center;
-    font-family: 'Courier New', monospace;
+    justify-content: space-between;
+    background: #162438;
+    border-bottom: 1px solid #2d5a8e;
+    padding: 0 16px;
+    height: 38px;
+    flex-shrink: 0;
+}
+#ff-overlay-titlebar .ff-ov-title {
     font-size: .68rem;
-}
-.ff-meta-lbl { color: #333; font-size: .55rem; text-transform: uppercase; letter-spacing: 1px; }
-.ff-meta-val { color: #666; font-size: .72rem; }
-.ff-meta-val.forecast { color: #888; }
-.ff-meta-val.actual   { color: #44cc88; font-weight: 700; }
-.ff-meta-val.actual.bad { color: #ff5555; }
-
-.ff-status-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #ff4444; animation: pulse 1s infinite;
-    display: inline-block; flex-shrink: 0;
-}
-
-.ff-no-news-row {
-    padding: 14px 16px;
-    font-size: .78rem;
-    color: #1e4a1e;
-    letter-spacing: 1px;
+    font-weight: 700;
+    color: #7ab3e0;
+    letter-spacing: 3px;
+    text-transform: uppercase;
     display: flex;
     align-items: center;
     gap: 8px;
 }
-.ff-no-news-row span { color: #2a6a2a; font-weight: 600; }
+#ff-overlay-titlebar .ff-ov-date {
+    font-size: .58rem;
+    color: #4a7aa8;
+    letter-spacing: 1px;
+}
+#ff-overlay-close {
+    background: transparent;
+    border: 1px solid #2d3a4a;
+    color: #4a7aa8;
+    width: 24px; height: 24px;
+    cursor: pointer;
+    font-size: .8rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+}
+#ff-overlay-close:hover { border-color: #ff4444; color: #ff4444; }
 
-.ff-bar-header-row {
+/* TABLE HEADER */
+#ff-overlay-panel .ff-ov-col-header {
+    display: grid;
+    grid-template-columns: 100px 90px 90px 60px 1fr 110px;
+    background: #1a3a5c;
+    border-bottom: 2px solid #2d5a8e;
+    padding: 0 14px;
+    height: 30px;
+    align-items: center;
+    flex-shrink: 0;
+}
+#ff-overlay-panel .ff-ov-col-header span {
+    font-size: .52rem;
+    color: #7ab3e0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+/* ROWS CONTAINER */
+#ff-overlay-rows {
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: #2d5a8e #0e1928;
+}
+#ff-overlay-rows::-webkit-scrollbar { width: 5px; }
+#ff-overlay-rows::-webkit-scrollbar-track { background: #0e1928; }
+#ff-overlay-rows::-webkit-scrollbar-thumb { background: #2d5a8e; }
+
+/* INDIVIDUAL ROWS */
+.ff-ov-row {
+    display: grid;
+    grid-template-columns: 100px 90px 90px 60px 1fr 110px;
+    padding: 0 14px;
+    min-height: 36px;
+    align-items: center;
+    border-bottom: 1px solid #162438;
+    transition: background .1s;
+}
+.ff-ov-row:nth-child(even) { background: #101e2e; }
+.ff-ov-row:hover { background: #1a3050; }
+.ff-ov-row.ff-ov-past { opacity: 0.4; }
+.ff-ov-row.ff-ov-soon { background: rgba(255,160,0,0.06); border-left: 2px solid #ffaa44; }
+.ff-ov-row.ff-ov-now  { background: rgba(255,60,60,0.10); border-left: 2px solid #ff4444; animation: ff-now-pulse 2s infinite; }
+
+.ff-ov-date {
+    font-size: .72rem;
+    color: #4a7aa8;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.ff-ov-date b { display: block; color: #6a9ac8; font-size: .75rem; }
+.ff-ov-date span { font-size: .6rem; color: #2d5a8e; }
+
+.ff-ov-time {
+    font-size: .82rem;
+    color: #7ab3e0;
+    font-weight: 500;
+    font-family: 'Courier New', monospace;
+    letter-spacing: .5px;
+}
+.ff-ov-time.soon { color: #ffaa44; font-weight: 700; }
+.ff-ov-time.now  { color: #ff6666; font-weight: 700; animation: blink 1s step-end infinite; }
+.ff-ov-time.past { color: #2d4a6a; }
+
+.ff-ov-currency {
+    font-size: .8rem;
+    font-weight: 700;
+    color: #aad4f5;
+    letter-spacing: 1px;
+    font-family: 'Courier New', monospace;
+}
+
+.ff-ov-impact { display: flex; align-items: center; }
+
+/* FF-STYLE FOLDER ICON */
+.ff-ov-folder {
+    position: relative;
+    display: inline-block;
+    width: 20px; height: 15px;
+    border-radius: 1px 2px 2px 2px;
+    flex-shrink: 0;
+}
+.ff-ov-folder::before {
+    content: '';
+    position: absolute;
+    top: -4px; left: 0;
+    width: 9px; height: 4px;
+    border-radius: 2px 2px 0 0;
+    background: inherit;
+    filter: brightness(1.4);
+}
+.ff-ov-folder.red    { background: #cc2222; }
+.ff-ov-folder.orange { background: #cc7700; }
+.ff-ov-folder.yellow { background: #aaaa00; }
+
+.ff-ov-event {
+    font-size: .82rem;
+    color: #c8dff0;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+}
+.ff-ov-event.high { color: #e8f4ff; font-weight: 600; }
+.ff-ov-event.past { color: #2d4a6a; }
+
+.ff-ov-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    align-items: flex-end;
+}
+.ff-ov-meta-row {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    font-family: 'Courier New', monospace;
+}
+.ff-ov-meta-lbl { font-size: .48rem; color: #2d5a8e; text-transform: uppercase; letter-spacing: 1px; }
+.ff-ov-meta-val { font-size: .68rem; color: #4a7aa8; }
+
+.ff-ov-no-news {
+    padding: 30px;
+    text-align: center;
+    font-size: .78rem;
+    color: #2d5a8e;
+    letter-spacing: 1px;
+}
+.ff-ov-no-news span { color: #4a9a4a; font-weight: 600; }
+
+/* Footer */
+#ff-overlay-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #080808;
-    border-bottom: 1px solid #1a1a1a;
-    padding: 0 12px;
-    height: 26px;
+    background: #0a1520;
+    border-top: 1px solid #162438;
+    padding: 0 14px;
+    height: 28px;
     flex-shrink: 0;
 }
-.ff-bar-title {
-    font-size: .52rem;
-    color: #333;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+#ff-overlay-footer span { font-size: .5rem; color: #2d4a6a; letter-spacing: 1px; }
+#ff-overlay-footer .ff-ov-counts { display: flex; gap: 10px; }
+.ff-ov-cpill {
+    font-size: .48rem; padding: 1px 7px; letter-spacing: 1px;
+    text-transform: uppercase; border-radius: 2px;
 }
-.ff-bar-title b { color: #ff4444; }
-.ff-bar-counts {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-.ff-count-pill {
-    font-size: .48rem;
-    padding: 1px 7px;
-    border-radius: 2px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-.ff-count-pill.upcoming { background: rgba(255,100,0,.12); border: 1px solid rgba(255,100,0,.25); color: #ff8844; }
-.ff-count-pill.done     { background: transparent; border: 1px solid #1a1a1a; color: #333; }
-.ff-count-pill.total    { background: rgba(255,40,40,.10); border: 1px solid rgba(255,40,40,.25); color: #ff4444; }
-.ff-refresh-btn {
-    font-size: .48rem;
-    color: #2a2a2a;
-    cursor: pointer;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 2px 6px;
-    border: 1px solid #1a1a1a;
-    background: transparent;
-    transition: all .2s;
-}
-.ff-refresh-btn:hover { color: #888; border-color: #444; }
-
+.ff-ov-cpill.up   { background: rgba(255,100,0,.12); border: 1px solid rgba(255,100,0,.3); color: #ff8844; }
+.ff-ov-cpill.done { background: transparent; border: 1px solid #1a3a5c; color: #2d5a8e; }
+.ff-ov-cpill.tot  { background: rgba(255,40,40,.08); border: 1px solid rgba(255,40,40,.2); color: #cc4444; }
         
        :root,
 body.theme-void {
@@ -749,21 +774,32 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
             <div style="flex:1;min-width:0;height:100%;position:relative;zoom:0.75;display:flex;flex-direction:column;">
 
                 <!-- LAYOUT TOGGLE BUTTONS -->
-                <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;padding:4px 8px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
-                    <span style="font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-right:4px;">Layout</span>
-                    <button id="layout-btn-single" onclick="setChartLayout('single')"
-                        style="padding:3px 10px;font-size:.52rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #fff;background:#fff;color:#000;font-weight:700;font-family:inherit;border-radius:2px;">
-                        ▣ Single
-                    </button>
-                    <button id="layout-btn-horizontal" onclick="setChartLayout('horizontal')"
-                        style="padding:3px 10px;font-size:.52rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">
-                        ◫ Side by Side
-                    </button>
-                    <button id="layout-btn-vertical" onclick="setChartLayout('vertical')"
-                        style="padding:3px 10px;font-size:.52rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">
-                        ⬒ Top / Bottom
-                    </button>
-                </div>
+               <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;padding:4px 8px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
+
+    <!-- NEWS BUTTON -->
+    <button id="ff-news-toggle-btn" onclick="ffToggleOverlay()">
+        <span class="ff-btn-dot"></span>
+        📅 NEWS CALENDAR
+        <span id="ff-btn-count" style="background:#cc222233;border:1px solid #cc444455;color:#ff6666;padding:0 5px;font-size:.48rem;border-radius:2px;display:none;"></span>
+    </button>
+
+    <div style="display:flex;align-items:center;gap:4px;">
+        <span style="font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-right:4px;">Layout</span>
+        <button id="layout-btn-single" onclick="setChartLayout('single')"
+            style="padding:3px 10px;font-size:.52rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #fff;background:#fff;color:#000;font-weight:700;font-family:inherit;border-radius:2px;">
+            ▣ Single
+        </button>
+        <button id="layout-btn-horizontal" onclick="setChartLayout('horizontal')"
+            style="padding:3px 10px;font-size:.52rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">
+            ◫ Side by Side
+        </button>
+        <button id="layout-btn-vertical" onclick="setChartLayout('vertical')"
+            style="padding:3px 10px;font-size:.52rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">
+            ⬒ Top / Bottom
+        </button>
+    </div>
+</div>
+                  
 
 <!-- ══ FOREX FACTORY NEWS BAR ══ -->
 <div id="ff-news-bar">
@@ -2763,7 +2799,183 @@ setInterval(function() { ffFetchNews(); }, 5 * 60 * 1000);
 
 /* ── Initial load ── */
 ffFetchNews();
+
+    /* ── Toggle overlay ── */
+function ffToggleOverlay() {
+    var ov = document.getElementById('ff-overlay');
+    if(!ov) return;
+    var isOpen = ov.classList.contains('show');
+    if(isOpen) {
+        ov.classList.remove('show');
+    } else {
+        ov.classList.add('show');
+        ffRenderOverlay();
+    }
+}
+
+/* ── Render the overlay table ── */
+function ffRenderOverlay() {
+    var rowsEl   = document.getElementById('ff-overlay-rows');
+    var footerEl = document.getElementById('ff-ov-footer-counts');
+    var labelEl  = document.getElementById('ff-ov-today-label');
+    if(!rowsEl) return;
+
+    var now  = new Date();
+    var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    if(labelEl) {
+        labelEl.textContent = days[now.getDay()] + ' ' + mons[now.getMonth()] + ' ' + now.getDate();
+    }
+
+    var siteCurrencies = [];
+    ALL_SITE_SYMBOLS.forEach(function(sym) {
+        ffGetCurrencies(sym).forEach(function(cur) {
+            if(siteCurrencies.indexOf(cur) === -1) siteCurrencies.push(cur);
+        });
+    });
+
+    var todayNews = _ffNews.filter(function(ev) {
+        return ev.impact === 'High'
+            && ffIsToday(ev.date)
+            && siteCurrencies.indexOf(ev.country) !== -1;
+    });
+    todayNews.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+
+    var upcoming = todayNews.filter(function(ev) { return new Date(ev.date) >= now; }).length;
+    var done     = todayNews.length - upcoming;
+
+    /* Footer counts */
+    if(footerEl) {
+        footerEl.innerHTML =
+            (upcoming > 0 ? '<span class="ff-ov-cpill up">▲ ' + upcoming + ' UPCOMING</span>' : '')
+          + (done > 0     ? '<span class="ff-ov-cpill done">✓ ' + done + ' DONE</span>' : '')
+          + (todayNews.length > 0 ? '<span class="ff-ov-cpill tot">🔴 ' + todayNews.length + ' HIGH IMPACT</span>' : '');
+    }
+
+    if(todayNews.length === 0) {
+        rowsEl.innerHTML =
+            '<div class="ff-ov-no-news">✓ NO RED FOLDER NEWS TODAY FOR <span>'
+          + ALL_SITE_SYMBOLS.join(', ') + '</span></div>';
+        return;
+    }
+
+    var prevDate = '';
+    rowsEl.innerHTML = todayNews.map(function(ev) {
+        var evTime  = new Date(ev.date);
+        var isPast  = evTime < now;
+        var isSoon  = !isPast && (evTime - now) < 15 * 60 * 1000;
+        var isNow   = !isPast && (evTime - now) <  2 * 60 * 1000;
+        var nptTime = ffToKathmandu(ev.date);
+
+        var evDateStr = evTime.toDateString();
+        var dateHtml  = '';
+        if(evDateStr !== prevDate) {
+            dateHtml = '<b>' + days[evTime.getDay()] + '</b>'
+                     + '<span>' + mons[evTime.getMonth()] + ' ' + evTime.getDate() + '</span>';
+            prevDate = evDateStr;
+        }
+
+        var rowCls  = 'ff-ov-row' + (isNow ? ' ff-ov-now' : isSoon ? ' ff-ov-soon' : isPast ? ' ff-ov-past' : '');
+        var timeCls = 'ff-ov-time' + (isNow ? ' now' : isSoon ? ' soon' : isPast ? ' past' : '');
+        var dotHtml = isNow  ? '<span style="width:5px;height:5px;border-radius:50%;background:#ff4444;display:inline-block;animation:pulse 1s infinite;margin-right:4px;"></span>'
+                    : isSoon ? '<span style="width:5px;height:5px;border-radius:50%;background:#ffaa44;display:inline-block;animation:pulse 1s infinite;margin-right:4px;"></span>'
+                    : '';
+
+        var evCls = 'ff-ov-event' + (!isPast ? ' high' : ' past');
+
+        var metaHtml = '<div class="ff-ov-meta">';
+        if(ev.forecast) metaHtml += '<div class="ff-ov-meta-row"><span class="ff-ov-meta-lbl">F</span><span class="ff-ov-meta-val">' + ev.forecast + '</span></div>';
+        if(ev.previous) metaHtml += '<div class="ff-ov-meta-row"><span class="ff-ov-meta-lbl">P</span><span class="ff-ov-meta-val">' + ev.previous + '</span></div>';
+        metaHtml += '</div>';
+
+        return '<div class="' + rowCls + '">'
+            + '<div class="ff-ov-date">'      + dateHtml + '</div>'
+            + '<div class="' + timeCls + '">' + dotHtml + nptTime + '</div>'
+            + '<div class="ff-ov-currency">'  + ev.country + '</div>'
+            + '<div class="ff-ov-impact"><span class="ff-ov-folder red"></span></div>'
+            + '<div class="' + evCls + '">'   + ev.title + '</div>'
+            + metaHtml
+            + '</div>';
+    }).join('');
+}
+
+/* ── Update button count badge when news loads ── */
+var _origFfRenderNews = ffRenderNews;
+ffRenderNews = function() {
+    _origFfRenderNews();
+    /* Update button badge */
+    var now = new Date();
+    var siteCurrencies = [];
+    ALL_SITE_SYMBOLS.forEach(function(sym) {
+        ffGetCurrencies(sym).forEach(function(cur) {
+            if(siteCurrencies.indexOf(cur) === -1) siteCurrencies.push(cur);
+        });
+    });
+    var upcoming = _ffNews.filter(function(ev) {
+        return ev.impact === 'High'
+            && ffIsToday(ev.date)
+            && siteCurrencies.indexOf(ev.country) !== -1
+            && new Date(ev.date) >= now;
+    }).length;
+    var badge = document.getElementById('ff-btn-count');
+    if(badge) {
+        if(upcoming > 0) {
+            badge.textContent = upcoming + ' UPCOMING';
+            badge.style.display = 'inline';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    /* If overlay is open, refresh it too */
+    var ov = document.getElementById('ff-overlay');
+    if(ov && ov.classList.contains('show')) ffRenderOverlay();
+};
+
+/* Close overlay on Escape key */
+document.addEventListener('keydown', function(e) {
+    if(e.key === 'Escape') {
+        var ov = document.getElementById('ff-overlay');
+        if(ov) ov.classList.remove('show');
+    }
+});
 </script>
+
+    <!-- ══ FF NEWS OVERLAY ══ -->
+<div id="ff-overlay" onclick="if(event.target===this) ffToggleOverlay()">
+    <div id="ff-overlay-panel">
+
+        <div id="ff-overlay-titlebar">
+            <div class="ff-ov-title">
+                <span class="ff-btn-dot" style="width:7px;height:7px;border-radius:50%;background:#ff4444;animation:pulse 1s infinite;display:inline-block;"></span>
+                📅 FOREX FACTORY — HIGH IMPACT NEWS
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span class="ff-ov-date" id="ff-ov-today-label">TODAY</span>
+                <button id="ff-overlay-close" onclick="ffToggleOverlay()">✕</button>
+            </div>
+        </div>
+
+        <div class="ff-ov-col-header">
+            <span>DATE</span>
+            <span>TIME (NPT)</span>
+            <span>CURRENCY</span>
+            <span>IMPACT</span>
+            <span>EVENT</span>
+            <span style="text-align:right;">FORECAST / PREV</span>
+        </div>
+
+        <div id="ff-overlay-rows">
+            <div class="ff-ov-no-news">LOADING...</div>
+        </div>
+
+        <div id="ff-overlay-footer">
+            <span>SOURCE: FOREXFACTORY.COM · AUTO-REFRESH EVERY 5 MIN</span>
+            <div class="ff-ov-counts" id="ff-ov-footer-counts"></div>
+        </div>
+
+    </div>
+</div>
 
 </body>
 </html>
