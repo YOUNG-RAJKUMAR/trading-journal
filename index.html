@@ -2597,102 +2597,49 @@ function ffIsToday(dateStr) {
 }
 
 /* ── Fetch with CORS proxy fallback chain ── */
+/* ── Fetch via YOUR Cloudflare Worker (no CORS issues) ── */
 async function ffFetchNews() {
-    var base = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
-    var bar  = document.getElementById('ff-news-bar');
+
+    /* ▶▶ PASTE YOUR WORKER URL HERE — e.g. https://ff-news-proxy.raj.workers.dev */
+    var WORKER_URL = 'https://wispy-boat-7dae.realrajkumarbitalu.workers.dev';
+
+    var bar = document.getElementById('ff-news-bar');
     if(bar) bar.innerHTML =
         '<div style="padding:10px 16px;font-size:.6rem;color:#2a2a2a;letter-spacing:2px;">'
       + 'LOADING FF CALENDAR...</div>';
 
-    /* Each strategy is a self-contained async function.
-       They are tried in order — first success wins.        */
-    var strategies = [
+    try {
+        var r = await fetch(WORKER_URL, { cache: 'no-store' });
 
-        /* 1. codetabs — most reliable free CORS proxy */
-        async function() {
-            var r = await fetch(
-                'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(base),
-                { cache: 'no-store' }
-            );
-            if(!r.ok) throw new Error('codetabs HTTP ' + r.status);
-            var txt = await r.text();
-            if(txt.trim().charAt(0) !== '[') throw new Error('codetabs returned non-JSON');
-            return JSON.parse(txt);
-        },
+        if(!r.ok) throw new Error('Worker responded with HTTP ' + r.status);
 
-        /* 2. allorigins /get wrapper — returns { contents: "..." } */
-        async function() {
-            var r = await fetch(
-                'https://api.allorigins.win/get?url=' + encodeURIComponent(base),
-                { cache: 'no-store' }
-            );
-            if(!r.ok) throw new Error('allorigins HTTP ' + r.status);
-            var j = await r.json();
-            if(!j.contents) throw new Error('allorigins: empty contents');
-            if(j.contents.trim().charAt(0) !== '[') throw new Error('allorigins returned non-JSON');
-            return JSON.parse(j.contents);
-        },
+        var txt = await r.text();
 
-        /* 3. corsproxy.io new format */
-        async function() {
-            var r = await fetch(
-                'https://corsproxy.io/?url=' + encodeURIComponent(base),
-                { cache: 'no-store' }
-            );
-            if(!r.ok) throw new Error('corsproxy.io HTTP ' + r.status);
-            var txt = await r.text();
-            if(txt.trim().charAt(0) !== '[') throw new Error('corsproxy.io non-JSON');
-            return JSON.parse(txt);
-        },
+        if(!txt || txt.trim().charAt(0) !== '[')
+            throw new Error('Worker returned non-JSON: ' + txt.slice(0, 120));
 
-        /* 4. allorigins /raw — sometimes works when /get is blocked */
-        async function() {
-            var r = await fetch(
-                'https://api.allorigins.win/raw?url=' + encodeURIComponent(base),
-                { cache: 'no-store' }
-            );
-            if(!r.ok) throw new Error('allorigins/raw HTTP ' + r.status);
-            var txt = await r.text();
-            if(txt.trim().charAt(0) !== '[') throw new Error('allorigins/raw non-JSON');
-            return JSON.parse(txt);
-        },
+        var data = JSON.parse(txt);
 
-        /* 5. htmldriven cors-anywhere (public demo — slow but works) */
-        async function() {
-            var r = await fetch(
-                'https://cors-anywhere.herokuapp.com/' + base,
-                { cache: 'no-store',
-                  headers: { 'X-Requested-With': 'XMLHttpRequest' } }
-            );
-            if(!r.ok) throw new Error('cors-anywhere HTTP ' + r.status);
-            return await r.json();
-        },
-    ];
+        if(!Array.isArray(data) || data.length === 0)
+            throw new Error('Worker returned empty array');
 
-    for(var i = 0; i < strategies.length; i++) {
-        try {
-            var data = await strategies[i]();
-            if(!Array.isArray(data) || data.length === 0)
-                throw new Error('empty or non-array response');
-            _ffNews       = data;
-            _ffNewsLoaded = true;
-            _ffLastFetch  = Date.now();
-            console.log('[FF News] OK via strategy ' + (i+1) + ' — ' + data.length + ' events');
-            ffRenderNews();
-            return;
-        } catch(e) {
-            console.log('[FF News] Strategy ' + (i+1) + ' failed: ' + e.message);
-        }
+        _ffNews       = data;
+        _ffNewsLoaded = true;
+        _ffLastFetch  = Date.now();
+        console.log('[FF News] OK — ' + data.length + ' events loaded');
+        ffRenderNews();
+
+    } catch(e) {
+        console.error('[FF News] Failed:', e.message);
+        if(bar) bar.innerHTML =
+            '<div style="padding:8px 16px;display:flex;align-items:center;gap:10px;">'
+          + '<span style="font-size:.55rem;color:#332222;letter-spacing:1px;">'
+          + '⚠ FF NEWS FAILED: ' + e.message + '</span>'
+          + '<button onclick="ffFetchNews()" style="font-size:.48rem;color:#555;'
+          + 'background:transparent;border:1px solid #222;padding:2px 8px;'
+          + 'cursor:pointer;letter-spacing:1px;">↺ RETRY</button>'
+          + '</div>';
     }
-
-    /* All failed */
-    console.warn('[FF News] All proxies failed');
-    if(bar) bar.innerHTML =
-        '<div style="padding:8px 16px;display:flex;align-items:center;gap:10px;">'
-      + '<span style="font-size:.55rem;color:#332222;letter-spacing:1px;">⚠ FF NEWS UNAVAILABLE</span>'
-      + '<button onclick="ffFetchNews()" style="font-size:.48rem;color:#555;background:transparent;'
-      + 'border:1px solid #222;padding:2px 8px;cursor:pointer;letter-spacing:1px;">↺ RETRY</button>'
-      + '</div>';
 }
 
     
