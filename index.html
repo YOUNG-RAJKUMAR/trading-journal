@@ -2512,59 +2512,99 @@ async function ffFetchNews() {
     if(el) el.innerHTML = '<span style="font-size:.5rem;color:#333;letter-spacing:1px;">⚠ NEWS FEED UNAVAILABLE</span>';
 }
 
+
 /* ── Build and inject the news bar content ── */
 function ffRenderNews() {
     var el = document.getElementById('ff-news-scroll');
     if(!el) return;
 
-    var sym        = (window._calcSymbol || 'EURUSD').toUpperCase();
-    var currencies = ffGetCurrencies(sym);
-    var now        = new Date();
+    var now = new Date();
 
-    /* Filter: High impact + today + matching currency */
+    /* Collect ALL currencies relevant to ALL site symbols */
+    var siteCurrencies = [];
+    ALL_SITE_SYMBOLS.forEach(function(sym) {
+        ffGetCurrencies(sym).forEach(function(cur) {
+            if(siteCurrencies.indexOf(cur) === -1) siteCurrencies.push(cur);
+        });
+    });
+
+    /* Filter: High impact + today + any currency used by site symbols */
     var todayNews = _ffNews.filter(function(ev) {
         return ev.impact === 'High'
             && ffIsToday(ev.date)
-            && currencies.indexOf(ev.country) !== -1;
+            && siteCurrencies.indexOf(ev.country) !== -1;
     });
 
-    /* Sort ascending by time */
+    /* Sort ascending by event time */
     todayNews.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
 
     if(todayNews.length === 0) {
         el.innerHTML =
             '<span style="font-size:.52rem;color:#333;letter-spacing:1px;padding:0 4px;">—</span>'
-          + '<span class="ff-no-news">✓ NO RED FOLDER NEWS FOR <b style="color:#2a6a2a;">'
-          + sym + '</b> TODAY</span>';
+          + '<span class="ff-no-news">✓ NO RED FOLDER NEWS FOR ANY SYMBOL TODAY</span>';
         return;
     }
+
+    /* Group events by NPT time so same-time events cluster visually */
+    var byTime = {};
+    todayNews.forEach(function(ev) {
+        var key = ffToKathmandu(ev.date);
+        if(!byTime[key]) byTime[key] = [];
+        byTime[key].push(ev);
+    });
 
     var html = todayNews.map(function(ev) {
         var evTime   = new Date(ev.date);
         var isPast   = evTime < now;
         var isMins15 = !isPast && ((evTime - now) < 15 * 60 * 1000);
+        var isNow    = !isPast && ((evTime - now) < 2  * 60 * 1000);
         var nptTime  = ffToKathmandu(ev.date);
 
+        /* Which of the site's symbols does this currency belong to? */
+        var affectedSyms = ALL_SITE_SYMBOLS.filter(function(sym) {
+            return ffGetCurrencies(sym).indexOf(ev.country) !== -1;
+        });
+        var symTags = affectedSyms.map(function(s) {
+            return '<span style="font-size:.42rem;color:#555;background:#111;'
+                 + 'border:1px solid #222;padding:0 4px;border-radius:1px;">'
+                 + s + '</span>';
+        }).join(' ');
+
         var pillClass = 'ff-pill' + (isPast ? ' ff-pill-past' : '');
-        var dot = isMins15
+        var statusDot = isNow
+            ? '<span class="ff-dot-live" style="background:#ff0000;" title="HAPPENING NOW"></span>'
+            : isMins15
             ? '<span class="ff-dot-live" title="< 15 min away"></span>'
             : isPast
-            ? '<span style="font-size:.42rem;color:#442222;">◉ DONE</span>'
+            ? '<span style="font-size:.42rem;color:#442222;flex-shrink:0;">◉</span>'
             : '';
 
         return '<div class="' + pillClass + '">'
-            + dot
+            + statusDot
             + '<span class="ff-pill-country">' + ev.country + '</span>'
+            + symTags
             + '<span class="ff-pill-title">' + ev.title + '</span>'
             + '<span class="ff-pill-time">⏰ ' + nptTime + '</span>'
-            + (ev.forecast ? '<span style="font-size:.45rem;color:#888;">F: ' + ev.forecast + '</span>' : '')
-            + (ev.previous ? '<span style="font-size:.45rem;color:#555;">P: ' + ev.previous + '</span>' : '')
+            + (ev.forecast
+                ? '<span style="font-size:.44rem;color:#666;flex-shrink:0;">F:<b style="color:#888;">'
+                  + ev.forecast + '</b></span>' : '')
+            + (ev.previous
+                ? '<span style="font-size:.44rem;color:#444;flex-shrink:0;">P:'
+                  + ev.previous + '</span>' : '')
             + '</div>';
-    }).join('<span style="color:#1a1a1a;padding:0 4px;flex-shrink:0;">|</span>');
+    }).join('<span style="color:#1a1a1a;padding:0 6px;flex-shrink:0;font-size:.6rem;">·</span>');
 
-    var countBadge = '<span style="font-size:.45rem;background:#ff000022;border:1px solid #ff444433;'
-        + 'color:#ff4444;padding:1px 7px;margin-right:8px;flex-shrink:0;letter-spacing:1px;">'
-        + todayNews.length + ' ALERT' + (todayNews.length > 1 ? 'S' : '') + '</span>';
+    /* Upcoming count vs done count */
+    var upcoming = todayNews.filter(function(ev) { return new Date(ev.date) >= now; }).length;
+    var done     = todayNews.length - upcoming;
+
+    var countBadge =
+        '<span style="font-size:.44rem;background:#ff000022;border:1px solid #ff444433;'
+      + 'color:#ff4444;padding:1px 8px;margin-right:8px;flex-shrink:0;letter-spacing:1px;white-space:nowrap;">'
+      + '🔴 ' + todayNews.length + ' HIGH IMPACT'
+      + (upcoming > 0 ? ' · <span style="color:#ffaa44;">' + upcoming + ' UPCOMING</span>' : '')
+      + (done     > 0 ? ' · <span style="color:#444;">'    + done     + ' DONE</span>'     : '')
+      + '</span>';
 
     el.innerHTML = countBadge + html;
 }
