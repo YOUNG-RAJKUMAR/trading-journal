@@ -1826,31 +1826,42 @@ var _currentTF = ['60', '60']; // per-panel TF tracking
 
 function setChartLayout(layout) {
     _chartLayout = layout;
-    var wrap  = document.getElementById('charts-panels-wrap');
-    var p1    = document.getElementById('chart-panel-1');
-    var p2    = document.getElementById('chart-panel-2');
 
+    var wrap = document.getElementById('charts-panels-wrap');
+    var p1   = document.getElementById('chart-panel-1');
+    var p2   = document.getElementById('chart-panel-2');
+
+    /* ── Null guard — elements may not exist yet ── */
+    if(!wrap || !p1 || !p2) {
+        console.warn('[Layout] panels not ready yet, retrying in 300ms');
+        setTimeout(function() { setChartLayout(layout); }, 300);
+        return;
+    }
+
+    /* ── Style the toggle buttons ── */
     ['single','horizontal','vertical'].forEach(function(l) {
         var btn = document.getElementById('layout-btn-' + l);
         if(!btn) return;
-        btn.style.background  = l === layout ? '#fff' : '#111';
-        btn.style.color       = l === layout ? '#000' : '#666';
-        btn.style.border      = l === layout ? '1px solid #fff' : '1px solid #333';
-        btn.style.fontWeight  = l === layout ? '700' : '400';
+        var active        = (l === layout);
+        btn.style.background  = active ? '#fff' : '#111';
+        btn.style.color       = active ? '#000' : '#666';
+        btn.style.border      = active ? '1px solid #fff' : '1px solid #333';
+        btn.style.fontWeight  = active ? '700' : '400';
     });
 
+    /* ── Show / hide panels ── */
     if(layout === 'single') {
         wrap.style.flexDirection = 'row';
-        p1.style.display = 'flex'; p1.style.flex = '1';
+        p1.style.display = 'flex';  p1.style.flex = '1';
         p2.style.display = 'none';
     } else if(layout === 'horizontal') {
         wrap.style.flexDirection = 'row';
-        p1.style.display = 'flex'; p1.style.flex = '1';
-        p2.style.display = 'flex'; p2.style.flex = '1';
+        p1.style.display = 'flex';  p1.style.flex = '1';
+        p2.style.display = 'flex';  p2.style.flex = '1';
     } else if(layout === 'vertical') {
         wrap.style.flexDirection = 'column';
-        p1.style.display = 'flex'; p1.style.flex = '1';
-        p2.style.display = 'flex'; p2.style.flex = '1';
+        p1.style.display = 'flex';  p1.style.flex = '1';
+        p2.style.display = 'flex';  p2.style.flex = '1';
     }
 
     setTimeout(function() { launchAllPanels(); }, 50);
@@ -2484,34 +2495,77 @@ function ffIsToday(dateStr) {
 /* ── Fetch with CORS proxy fallback chain ── */
 async function ffFetchNews() {
     var base = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
-    var proxies = [
-        base,
-        'https://corsproxy.io/?' + encodeURIComponent(base),
-        'https://api.allorigins.win/raw?url=' + encodeURIComponent(base),
+    var el   = document.getElementById('ff-news-scroll');
+    if(el) el.innerHTML = '<span class="ff-loading">LOADING NEWS...</span>';
+
+    /* ── Proxy chain — ordered by reliability ── */
+    var strategies = [
+
+        /* 1. allorigins JSON wrapper — returns { contents: "..." } */
+        async function() {
+            var url  = 'https://api.allorigins.win/get?url=' + encodeURIComponent(base);
+            var resp = await fetch(url, { cache: 'no-store' });
+            if(!resp.ok) throw new Error('allorigins /get ' + resp.status);
+            var json = await resp.json();
+            return JSON.parse(json.contents);
+        },
+
+        /* 2. codetabs proxy */
+        async function() {
+            var url  = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(base);
+            var resp = await fetch(url, { cache: 'no-store' });
+            if(!resp.ok) throw new Error('codetabs ' + resp.status);
+            return await resp.json();
+        },
+
+        /* 3. corsproxy.io with url= param format */
+        async function() {
+            var url  = 'https://corsproxy.io/?url=' + encodeURIComponent(base);
+            var resp = await fetch(url, { cache: 'no-store' });
+            if(!resp.ok) throw new Error('corsproxy.io ' + resp.status);
+            return await resp.json();
+        },
+
+        /* 4. thingproxy */
+        async function() {
+            var url  = 'https://thingproxy.freeboard.io/fetch/' + base;
+            var resp = await fetch(url, { cache: 'no-store' });
+            if(!resp.ok) throw new Error('thingproxy ' + resp.status);
+            return await resp.json();
+        },
+
+        /* 5. cors.sh */
+        async function() {
+            var resp = await fetch(base, {
+                cache: 'no-store',
+                headers: { 'x-cors-api-key': 'temp_' + Math.random().toString(36).slice(2) }
+            });
+            if(!resp.ok) throw new Error('cors.sh ' + resp.status);
+            return await resp.json();
+        },
     ];
 
-    var el = document.getElementById('ff-news-scroll');
-    if(el) el.innerHTML = '<span class="ff-loading">LOADING...</span>';
-
-    for(var i = 0; i < proxies.length; i++) {
+    for(var i = 0; i < strategies.length; i++) {
         try {
-            var resp = await fetch(proxies[i], { cache: 'no-store' });
-            if(!resp.ok) continue;
-            _ffNews       = await resp.json();
+            var data = await strategies[i]();
+            if(!Array.isArray(data) || data.length === 0) throw new Error('empty or invalid response');
+            _ffNews       = data;
             _ffNewsLoaded = true;
             _ffLastFetch  = Date.now();
-            console.log('[FF News] Loaded', _ffNews.length, 'events via', proxies[i]);
+            console.log('[FF News] Loaded', _ffNews.length, 'events via strategy', i + 1);
             ffRenderNews();
             return;
         } catch(e) {
-            console.log('[FF News] Proxy failed:', proxies[i], e.message);
+            console.log('[FF News] Strategy', i + 1, 'failed:', e.message);
         }
     }
 
-    /* All proxies failed */
-    if(el) el.innerHTML = '<span style="font-size:.5rem;color:#333;letter-spacing:1px;">⚠ NEWS FEED UNAVAILABLE</span>';
+    /* All strategies failed */
+    console.warn('[FF News] All proxies exhausted — news unavailable');
+    if(el) el.innerHTML =
+        '<span style="font-size:.5rem;color:#2a2a2a;letter-spacing:1px;padding:0 8px;">'
+      + '⚠ FF NEWS UNAVAILABLE — CORS BLOCKED BY ALL PROXIES</span>';
 }
-
 
 /* ── Build and inject the news bar content ── */
 function ffRenderNews() {
