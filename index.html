@@ -1938,25 +1938,19 @@ function setChartLayout(layout) {
     var p1   = document.getElementById('chart-panel-1');
     var p2   = document.getElementById('chart-panel-2');
 
-    /* ── Null guard — elements may not exist yet ── */
-    if(!wrap || !p1 || !p2) {
-        console.warn('[Layout] panels not ready yet, retrying in 300ms');
-        setTimeout(function() { setChartLayout(layout); }, 300);
-        return;
-    }
+    /* Silently abort — tab not visible yet, no retry */
+    if(!wrap || !p1 || !p2) return;
 
-    /* ── Style the toggle buttons ── */
     ['single','horizontal','vertical'].forEach(function(l) {
         var btn = document.getElementById('layout-btn-' + l);
         if(!btn) return;
         var active        = (l === layout);
-        btn.style.background  = active ? '#fff' : '#111';
-        btn.style.color       = active ? '#000' : '#666';
-        btn.style.border      = active ? '1px solid #fff' : '1px solid #333';
-        btn.style.fontWeight  = active ? '700' : '400';
+        btn.style.background = active ? '#fff' : '#111';
+        btn.style.color      = active ? '#000' : '#666';
+        btn.style.border     = active ? '1px solid #fff' : '1px solid #333';
+        btn.style.fontWeight = active ? '700' : '400';
     });
 
-    /* ── Show / hide panels ── */
     if(layout === 'single') {
         wrap.style.flexDirection = 'row';
         p1.style.display = 'flex';  p1.style.flex = '1';
@@ -2605,77 +2599,103 @@ function ffIsToday(dateStr) {
 /* ── Fetch with CORS proxy fallback chain ── */
 async function ffFetchNews() {
     var base = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
-    var el   = document.getElementById('ff-news-scroll');
-    if(el) el.innerHTML = '<span class="ff-loading">LOADING NEWS...</span>';
+    var bar  = document.getElementById('ff-news-bar');
+    if(bar) bar.innerHTML =
+        '<div style="padding:10px 16px;font-size:.6rem;color:#2a2a2a;letter-spacing:2px;">'
+      + 'LOADING FF CALENDAR...</div>';
 
-    /* ── Proxy chain — ordered by reliability ── */
-var strategies = [
+    /* Each strategy is a self-contained async function.
+       They are tried in order — first success wins.        */
+    var strategies = [
 
-        /* 1. codetabs — confirmed working */
+        /* 1. codetabs — most reliable free CORS proxy */
         async function() {
-            var url  = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(base);
-            var resp = await fetch(url, { cache: 'no-store' });
-            if(!resp.ok) throw new Error('codetabs ' + resp.status);
-            var data = await resp.json();
-            if(!Array.isArray(data)) throw new Error('codetabs non-array');
-            return data;
+            var r = await fetch(
+                'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(base),
+                { cache: 'no-store' }
+            );
+            if(!r.ok) throw new Error('codetabs HTTP ' + r.status);
+            var txt = await r.text();
+            if(txt.trim().charAt(0) !== '[') throw new Error('codetabs returned non-JSON');
+            return JSON.parse(txt);
         },
 
-        /* 2. allorigins /get — returns { contents: "json string" } */
+        /* 2. allorigins /get wrapper — returns { contents: "..." } */
         async function() {
-            var url  = 'https://api.allorigins.win/get?url=' + encodeURIComponent(base);
-            var resp = await fetch(url, { cache: 'no-store' });
-            if(!resp.ok) throw new Error('allorigins ' + resp.status);
-            var wrapper = await resp.json();
-            if(!wrapper.contents) throw new Error('allorigins empty contents');
-            /* contents may be HTML if the target returned an error page */
-            if(wrapper.contents.trim().startsWith('<'))
-                throw new Error('allorigins returned HTML, not JSON');
-            return JSON.parse(wrapper.contents);
+            var r = await fetch(
+                'https://api.allorigins.win/get?url=' + encodeURIComponent(base),
+                { cache: 'no-store' }
+            );
+            if(!r.ok) throw new Error('allorigins HTTP ' + r.status);
+            var j = await r.json();
+            if(!j.contents) throw new Error('allorigins: empty contents');
+            if(j.contents.trim().charAt(0) !== '[') throw new Error('allorigins returned non-JSON');
+            return JSON.parse(j.contents);
         },
 
-        /* 3. jsonp.su — another reliable public CORS proxy */
+        /* 3. corsproxy.io new format */
         async function() {
-            var url  = 'https://jsonp.su/?url=' + encodeURIComponent(base);
-            var resp = await fetch(url, { cache: 'no-store' });
-            if(!resp.ok) throw new Error('jsonp.su ' + resp.status);
-            var data = await resp.json();
-            if(!Array.isArray(data)) throw new Error('jsonp.su non-array');
-            return data;
+            var r = await fetch(
+                'https://corsproxy.io/?url=' + encodeURIComponent(base),
+                { cache: 'no-store' }
+            );
+            if(!r.ok) throw new Error('corsproxy.io HTTP ' + r.status);
+            var txt = await r.text();
+            if(txt.trim().charAt(0) !== '[') throw new Error('corsproxy.io non-JSON');
+            return JSON.parse(txt);
         },
 
-        /* 4. crossorigin.me */
+        /* 4. allorigins /raw — sometimes works when /get is blocked */
         async function() {
-            var url  = 'https://crossorigin.me/' + base;
-            var resp = await fetch(url, { cache: 'no-store' });
-            if(!resp.ok) throw new Error('crossorigin.me ' + resp.status);
-            return await resp.json();
+            var r = await fetch(
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(base),
+                { cache: 'no-store' }
+            );
+            if(!r.ok) throw new Error('allorigins/raw HTTP ' + r.status);
+            var txt = await r.text();
+            if(txt.trim().charAt(0) !== '[') throw new Error('allorigins/raw non-JSON');
+            return JSON.parse(txt);
         },
 
+        /* 5. htmldriven cors-anywhere (public demo — slow but works) */
+        async function() {
+            var r = await fetch(
+                'https://cors-anywhere.herokuapp.com/' + base,
+                { cache: 'no-store',
+                  headers: { 'X-Requested-With': 'XMLHttpRequest' } }
+            );
+            if(!r.ok) throw new Error('cors-anywhere HTTP ' + r.status);
+            return await r.json();
+        },
     ];
+
     for(var i = 0; i < strategies.length; i++) {
         try {
             var data = await strategies[i]();
-            if(!Array.isArray(data) || data.length === 0) throw new Error('empty or invalid response');
+            if(!Array.isArray(data) || data.length === 0)
+                throw new Error('empty or non-array response');
             _ffNews       = data;
             _ffNewsLoaded = true;
             _ffLastFetch  = Date.now();
-            console.log('[FF News] Loaded', _ffNews.length, 'events via strategy', i + 1);
+            console.log('[FF News] OK via strategy ' + (i+1) + ' — ' + data.length + ' events');
             ffRenderNews();
             return;
         } catch(e) {
-            console.log('[FF News] Strategy', i + 1, 'failed:', e.message);
+            console.log('[FF News] Strategy ' + (i+1) + ' failed: ' + e.message);
         }
     }
 
-    /* All strategies failed */
-    console.warn('[FF News] All proxies exhausted — news unavailable');
-    if(el) el.innerHTML =
-        '<span style="font-size:.5rem;color:#2a2a2a;letter-spacing:1px;padding:0 8px;">'
-      + '⚠ FF NEWS UNAVAILABLE — CORS BLOCKED BY ALL PROXIES</span>';
+    /* All failed */
+    console.warn('[FF News] All proxies failed');
+    if(bar) bar.innerHTML =
+        '<div style="padding:8px 16px;display:flex;align-items:center;gap:10px;">'
+      + '<span style="font-size:.55rem;color:#332222;letter-spacing:1px;">⚠ FF NEWS UNAVAILABLE</span>'
+      + '<button onclick="ffFetchNews()" style="font-size:.48rem;color:#555;background:transparent;'
+      + 'border:1px solid #222;padding:2px 8px;cursor:pointer;letter-spacing:1px;">↺ RETRY</button>'
+      + '</div>';
 }
 
-/* ── Build and inject the news bar content ── */
+    
 /* ── Build and inject the news bar content ── */
 function ffRenderNews() {
     var bar = document.getElementById('ff-news-bar');
