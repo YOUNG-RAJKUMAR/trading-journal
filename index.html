@@ -801,12 +801,8 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
 </div>
                   
 
-<!-- ══ FOREX FACTORY NEWS BAR ══ -->
-<div id="ff-news-bar">
-    <div style="padding:10px 16px;font-size:.6rem;color:#2a2a2a;letter-spacing:2px;">
-        LOADING FF CALENDAR...
-    </div>
-</div>
+<!-- PANELS WRAPPER -->
+<div id="charts-panels-wrap" style="flex:1;display:flex;flex-direction:row;min-height:0;">
 
     <!-- PANEL 1 -->
     <div id="chart-panel-1" style="flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid #1a1a1a;">
@@ -819,7 +815,6 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
     </div>
 
 </div><!-- /panels-wrap -->
-                
 
        <!-- MT5 offline overlay -->
                 <div id="mt5-offline-overlay">
@@ -2679,13 +2674,9 @@ async function ffFetchNews() {
 }
 
     
-/* ── Build and inject the news bar content ── */
+/* ── Badge only — news renders in overlay popup ── */
 function ffRenderNews() {
-    var bar = document.getElementById('ff-news-bar');
-    if(!bar) return;
-
     var now = new Date();
-
     var siteCurrencies = [];
     ALL_SITE_SYMBOLS.forEach(function(sym) {
         ffGetCurrencies(sym).forEach(function(cur) {
@@ -2693,98 +2684,35 @@ function ffRenderNews() {
         });
     });
 
-    var todayNews = _ffNews.filter(function(ev) {
+    var total = _ffNews.filter(function(ev) {
         return ev.impact === 'High'
             && ffIsToday(ev.date)
             && siteCurrencies.indexOf(ev.country) !== -1;
-    });
+    }).length;
 
-    todayNews.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+    var upcoming = _ffNews.filter(function(ev) {
+        return ev.impact === 'High'
+            && ffIsToday(ev.date)
+            && siteCurrencies.indexOf(ev.country) !== -1
+            && new Date(ev.date) >= now;
+    }).length;
 
-    var upcoming = todayNews.filter(function(ev) { return new Date(ev.date) >= now; }).length;
-    var done     = todayNews.length - upcoming;
-
-    var headerHtml =
-        '<div class="ff-bar-header-row">'
-      +   '<div class="ff-bar-title"><b>🔴 FF HIGH IMPACT NEWS</b><span>— TODAY</span></div>'
-      +   '<div class="ff-bar-counts">'
-      +     (upcoming > 0 ? '<span class="ff-count-pill upcoming">▲ ' + upcoming + ' UPCOMING</span>' : '')
-      +     (done     > 0 ? '<span class="ff-count-pill done">✓ '     + done     + ' DONE</span>'     : '')
-      +     (todayNews.length > 0 ? '<span class="ff-count-pill total">🔴 ' + todayNews.length + ' TOTAL</span>' : '')
-      +     '<button class="ff-refresh-btn" onclick="ffFetchNews()">↺ REFRESH</button>'
-      +   '</div>'
-      + '</div>';
-
-    var colHeaderHtml =
-        '<div class="ff-cal-header">'
-      +   '<span>📅 FF CALENDAR</span>'
-      +   '<span>TIME (NPT)</span>'
-      +   '<span>CURRENCY</span>'
-      +   '<span>IMPACT</span>'
-      +   '<span>EVENT</span>'
-      +   '<span style="text-align:right;">FORECAST / PREV</span>'
-      + '</div>';
-
-    var rowsHtml = '';
-
-    if(todayNews.length === 0) {
-        rowsHtml =
-            '<div class="ff-no-news-row">✓ NO RED FOLDER NEWS TODAY FOR <span>'
-          + ALL_SITE_SYMBOLS.join(', ') + '</span></div>';
-    } else {
-        var prevDate = '';
-        rowsHtml = todayNews.map(function(ev) {
-            var evTime  = new Date(ev.date);
-            var isPast  = evTime < now;
-            var isSoon  = !isPast && (evTime - now) < 15 * 60 * 1000;
-            var isNow   = !isPast && (evTime - now) <  2 * 60 * 1000;
-            var nptTime = ffToKathmandu(ev.date);
-
-            var evDateStr = evTime.toDateString();
-            var dateHtml  = '';
-            if(evDateStr !== prevDate) {
-                var days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-                var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                dateHtml = '<b>' + days[evTime.getDay()] + '</b>'
-                         + '<span>' + months[evTime.getMonth()] + ' ' + evTime.getDate() + '</span>';
-                prevDate = evDateStr;
-            }
-
-            var rowClass  = 'ff-cal-row' + (isNow ? ' ff-row-now' : isSoon ? ' ff-row-soon' : isPast ? ' ff-row-past' : '');
-            var timeClass = 'ff-col-time' + (isNow ? ' ff-now-time' : isSoon ? ' ff-soon-time' : isPast ? ' ff-past-time' : '');
-            var dotHtml   = isNow  ? '<span class="ff-status-dot" style="background:#ff0000;"></span>'
-                          : isSoon ? '<span class="ff-status-dot" style="background:#ffaa44;"></span>'
-                          : '';
-
-            var affSyms   = ALL_SITE_SYMBOLS.filter(function(sym) {
-                return ffGetCurrencies(sym).indexOf(ev.country) !== -1;
-            });
-            var symBadges = affSyms.map(function(s) {
-                return '<span style="font-size:.52rem;color:#3a3a3a;background:#0d0d0d;'
-                     + 'border:1px solid #1a1a1a;padding:0 4px;margin-left:3px;'
-                     + 'border-radius:1px;font-family:Courier New,monospace;">' + s + '</span>';
-            }).join('');
-
-            var eventClass = 'ff-col-event' + (!isPast ? ' ff-event-high' : ' ff-past-event');
-
-            var metaHtml = '<div class="ff-col-meta">';
-            if(ev.forecast) metaHtml += '<div class="ff-meta-row"><span class="ff-meta-lbl">F</span><span class="ff-meta-val forecast">' + ev.forecast + '</span></div>';
-            if(ev.previous) metaHtml += '<div class="ff-meta-row"><span class="ff-meta-lbl">P</span><span class="ff-meta-val">'          + ev.previous + '</span></div>';
-            metaHtml += '</div>';
-
-            return '<div class="' + rowClass + '">'
-                + '<div class="ff-col-date">'    + dateHtml + '</div>'
-                + '<div class="' + timeClass + '">' + dotHtml + ' ' + nptTime + '</div>'
-                + '<div class="ff-col-currency">' + ev.country + symBadges + '</div>'
-                + '<div class="ff-col-impact"><span class="ff-folder red"></span></div>'
-                + '<div class="' + eventClass + '">' + ev.title + '</div>'
-                + metaHtml
-                + '</div>';
-        }).join('');
+    var badge = document.getElementById('ff-btn-count');
+    if(badge) {
+        if(total > 0) {
+            badge.textContent = upcoming > 0 ? upcoming + ' UPCOMING' : '✓ ' + total + ' DONE';
+            badge.style.display      = 'inline';
+            badge.style.background   = upcoming > 0 ? '#cc222233' : '#1a3a1a33';
+            badge.style.borderColor  = upcoming > 0 ? '#cc444455' : '#2a6a2a55';
+            badge.style.color        = upcoming > 0 ? '#ff6666'   : '#44aa44';
+        } else {
+            badge.style.display = 'none';
+        }
     }
 
-    bar.innerHTML = headerHtml + colHeaderHtml
-        + '<div class="ff-cal-rows">' + rowsHtml + '</div>';
+    /* If overlay is already open, refresh it live */
+    var ov = document.getElementById('ff-overlay');
+    if(ov && ov.classList.contains('show')) ffRenderOverlay();
 }
 /* ── Call ffRenderNews when the active symbol changes ── */
 /* Hook into deskSelectSymbol (already defined in your code) */
@@ -2900,37 +2828,6 @@ function ffRenderOverlay() {
     }).join('');
 }
 
-/* ── Update button count badge when news loads ── */
-var _origFfRenderNews = ffRenderNews;
-ffRenderNews = function() {
-    _origFfRenderNews();
-    /* Update button badge */
-    var now = new Date();
-    var siteCurrencies = [];
-    ALL_SITE_SYMBOLS.forEach(function(sym) {
-        ffGetCurrencies(sym).forEach(function(cur) {
-            if(siteCurrencies.indexOf(cur) === -1) siteCurrencies.push(cur);
-        });
-    });
-    var upcoming = _ffNews.filter(function(ev) {
-        return ev.impact === 'High'
-            && ffIsToday(ev.date)
-            && siteCurrencies.indexOf(ev.country) !== -1
-            && new Date(ev.date) >= now;
-    }).length;
-    var badge = document.getElementById('ff-btn-count');
-    if(badge) {
-        if(upcoming > 0) {
-            badge.textContent = upcoming + ' UPCOMING';
-            badge.style.display = 'inline';
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-    /* If overlay is open, refresh it too */
-    var ov = document.getElementById('ff-overlay');
-    if(ov && ov.classList.contains('show')) ffRenderOverlay();
-};
 
 /* Close overlay on Escape key */
 document.addEventListener('keydown', function(e) {
