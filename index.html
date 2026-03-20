@@ -22,6 +22,168 @@
 
     <style>
 
+        /* ══ CURRENCY STRENGTH OVERLAY ══ */
+#cs-overlay {
+    display:none;position:fixed;inset:0;z-index:9001;
+    align-items:flex-start;justify-content:center;padding-top:50px;
+    background:rgba(0,0,0,0.82);backdrop-filter:blur(3px);
+}
+#cs-overlay.show { display:flex; }
+#cs-panel {
+    width:960px;max-width:97vw;display:flex;flex-direction:column;
+    background:#0e1928;border:1px solid #2d5a8e;
+    box-shadow:0 20px 60px rgba(0,0,0,0.85);overflow:hidden;max-height:92vh;
+}
+#cs-titlebar {
+    display:flex;align-items:center;justify-content:space-between;
+    background:#162438;border-bottom:1px solid #2d5a8e;
+    padding:0 16px;height:40px;flex-shrink:0;
+}
+#cs-titlebar .cs-title {
+    font-size:.68rem;font-weight:700;color:#6ab36a;
+    letter-spacing:3px;text-transform:uppercase;
+    display:flex;align-items:center;gap:8px;
+}
+#cs-titlebar .cs-dot {
+    width:7px;height:7px;border-radius:50%;
+    background:#6ab36a;animation:pulse 1s infinite;display:inline-block;
+}
+#cs-close-btn {
+    background:transparent;border:1px solid #2d3a4a;color:#4a7aa8;
+    width:26px;height:26px;cursor:pointer;font-size:.85rem;
+    display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+#cs-close-btn:hover { border-color:#ff4444;color:#ff4444; }
+#cs-toolbar {
+    display:flex;align-items:center;gap:10px;
+    background:#0f1e30;border-bottom:1px solid #162438;
+    padding:8px 16px;flex-shrink:0;flex-wrap:wrap;
+}
+.cs-sort-label {
+    display:flex;align-items:center;gap:5px;font-size:.58rem;
+    color:#7ab3e0;letter-spacing:1px;text-transform:uppercase;
+    cursor:pointer;user-select:none;
+}
+.cs-sort-label input[type=checkbox] {
+    width:13px;height:13px;accent-color:#2d5a8e;
+    margin:0;padding:0;background:transparent;border:1px solid #2d5a8e;
+}
+.cs-presets {
+    display:flex;gap:0;background:#0a1520;
+    border:1px solid #1a3a5c;overflow:hidden;border-radius:2px;
+}
+.cs-preset-btn {
+    padding:4px 10px;font-size:.55rem;font-weight:600;letter-spacing:1px;
+    text-transform:uppercase;cursor:pointer;font-family:inherit;
+    border:none;background:transparent;color:#4a7aa8;transition:all .15s;
+    border-right:1px solid #1a3a5c;
+}
+.cs-preset-btn:last-child { border-right:none; }
+.cs-preset-btn.active { background:#1a3a5c;color:#aad4f5;font-weight:700; }
+.cs-preset-btn:hover:not(.active) { background:#0f2030;color:#7ab3e0; }
+#cs-gear-btn {
+    margin-left:auto;background:transparent;border:1px solid #2d3a4a;
+    color:#4a7aa8;padding:4px 10px;font-size:.75rem;cursor:pointer;transition:all .15s;
+}
+#cs-gear-btn:hover { border-color:#7ab3e0;color:#aad4f5; }
+#cs-settings-panel {
+    display:none;background:#ffffff;border-bottom:1px solid #2d5a8e;
+    padding:18px 22px;flex-shrink:0;
+}
+#cs-settings-panel.show { display:block; }
+.cs-settings-title {
+    font-size:.85rem;font-weight:600;color:#333;margin-bottom:14px;
+    display:flex;align-items:center;justify-content:space-between;
+}
+.cs-settings-row {
+    display:flex;align-items:center;gap:12px;margin-bottom:10px;
+    font-size:.78rem;color:#444;
+}
+.cs-settings-row label {
+    min-width:100px;color:#444;font-size:.78rem;
+    background:transparent;border:none;padding:0;
+}
+.cs-settings-row select {
+    padding:4px 8px;font-size:.75rem;background:#fff;
+    border:1px solid #ccc;color:#333;border-radius:3px;
+    min-width:70px;cursor:pointer;
+}
+.cs-settings-row select option { background:#fff;color:#333; }
+.cs-save-btn {
+    background:#4caf50;color:#fff;border:none;padding:6px 18px;
+    font-size:.72rem;font-weight:700;cursor:pointer;
+    border-radius:3px;letter-spacing:1px;text-transform:uppercase;
+}
+.cs-cancel-btn {
+    background:#2196f3;color:#fff;border:none;padding:6px 18px;
+    font-size:.72rem;font-weight:700;cursor:pointer;
+    border-radius:3px;letter-spacing:1px;text-transform:uppercase;
+}
+#cs-chart-area {
+    padding:20px 24px 16px;overflow-x:auto;overflow-y:hidden;flex:1;
+}
+#cs-currency-row {
+    display:flex;gap:10px;align-items:flex-end;min-width:max-content;
+}
+.cs-currency-col {
+    display:flex;flex-direction:column;align-items:center;gap:5px;min-width:68px;
+}
+.cs-currency-label {
+    font-size:.65rem;font-weight:700;color:#7ab3e0;letter-spacing:2px;
+    text-transform:uppercase;font-family:'Courier New',monospace;
+}
+.cs-bar-wrap { width:56px;height:130px;position:relative;background:transparent; }
+.cs-bar-wrap::after {
+    content:'';position:absolute;left:0;right:0;top:50%;
+    height:1px;background:#2d5a8e;z-index:1;
+}
+.cs-tf-bars {
+    display:flex;gap:3px;align-items:flex-end;
+    height:130px;position:relative;
+}
+.cs-tf-bars::after {
+    content:'';position:absolute;left:0;right:0;top:50%;
+    height:1px;background:#2d5a8e44;pointer-events:none;
+}
+.cs-tf-bar-wrap { width:18px;height:130px;position:relative;flex-shrink:0; }
+.cs-tf-bar-inner-upper {
+    position:absolute;bottom:50%;left:0;right:0;
+    border-radius:1px 1px 0 0;transition:height .4s ease;
+}
+.cs-tf-bar-inner-lower {
+    position:absolute;top:50%;left:0;right:0;
+    border-radius:0 0 1px 1px;transition:height .4s ease;
+}
+.cs-tf-bg-upper {
+    position:absolute;top:0;bottom:50%;left:0;right:0;
+    background:#dde8f2;border-radius:1px 1px 0 0;
+}
+.cs-tf-bg-lower {
+    position:absolute;top:50%;bottom:0;left:0;right:0;
+    background:#f2e2da;border-radius:0 0 1px 1px;
+}
+.cs-tf-labels { display:flex;gap:3px;margin-top:3px; }
+.cs-tf-lbl {
+    width:18px;font-size:.42rem;color:#4a7aa8;text-align:center;
+    letter-spacing:.3px;font-family:'Courier New',monospace;
+}
+.cs-score {
+    font-size:.75rem;font-family:'Courier New',monospace;
+    font-weight:600;letter-spacing:.5px;
+}
+.cs-score.pos { color:#4a90d9; }
+.cs-score.neg { color:#e07030; }
+.cs-score.neu { color:#888; }
+#cs-footer {
+    display:flex;align-items:center;justify-content:space-between;
+    background:#0a1520;border-top:1px solid #162438;
+    padding:0 16px;height:28px;flex-shrink:0;
+}
+#cs-footer span { font-size:.48rem;color:#2d4a6a;letter-spacing:1px; }
+#cs-last-update { color:#4a7aa8 !important; }
+@keyframes cs-spin { to { transform:rotate(360deg); } }
+#cs-toggle-btn:hover { background:#243824 !important;color:#8ad38a !important; }
+
       /* ══ FF NEWS BUTTON ══ */
 #ff-news-toggle-btn {
     display: flex;
@@ -783,22 +945,37 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
         <span id="ff-btn-count" style="background:#cc222233;border:1px solid #cc444455;color:#ff6666;padding:0 5px;font-size:.48rem;border-radius:2px;display:none;"></span>
     </button>
 
-    <div style="display:flex;align-items:center;gap:4px;">
+                   <!-- CURRENCY STRENGTH BUTTON -->
+    <button id="cs-toggle-btn" onclick="csToggleOverlay()"
+        style="display:flex;align-items:center;gap:6px;padding:7px 16px;
+               font-size:.72rem;font-weight:700;letter-spacing:1px;
+               text-transform:uppercase;cursor:pointer;font-family:inherit;
+               background:#1a2a1a;border:1px solid #2d6a2d;color:#6ab36a;
+               flex-shrink:0;transition:all .15s;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#6ab36a;
+                     animation:pulse 1s infinite;display:inline-block;"></span>
+        📊 CURRENCY STRENGTH
+        <span id="cs-btn-badge"
+            style="display:none;font-size:.48rem;background:#1a3a5c33;
+                   border:1px solid #2d5a8e55;color:#7ab3e0;
+                   padding:0 5px;border-radius:2px;"></span>
+    </button>
+
+ <div style="display:flex;align-items:center;gap:4px;">
         <span style="font-size:.45rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-right:4px;">Layout</span>
         <button id="layout-btn-single" onclick="setChartLayout('single')"
-           style="padding:7px 16px;font-size:.102rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #fff;background:#fff;color:#000;font-weight:700;font-family:inherit;border-radius:2px;"
+            style="padding:7px 16px;font-size:.72rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #fff;background:#fff;color:#000;font-weight:700;font-family:inherit;border-radius:2px;">
             ▣ Single
         </button>
         <button id="layout-btn-horizontal" onclick="setChartLayout('horizontal')"
-            style="padding:7px 16px;font-size:.102rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;"
+            style="padding:7px 16px;font-size:.72rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">
             ◫ Side by Side
         </button>
         <button id="layout-btn-vertical" onclick="setChartLayout('vertical')"
-           style="padding:7px 16px;font-size:.102rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;"
+            style="padding:7px 16px;font-size:.72rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">
             ⬒ Top / Bottom
         </button>
     </div>
-</div>
                   
 
 <!-- PANELS WRAPPER -->
@@ -2578,8 +2755,12 @@ var _ffNewsLoaded  = false;
 var _ffLastFetch   = 0;
 
 /* ── Must match ALL_SYMBOLS in your MT5 bridge ── */
-var ALL_SITE_SYMBOLS = ["EURUSD", "GBPUSD", "XAUUSD"];
-
+var ALL_SITE_SYMBOLS = [
+    "EURUSD","GBPUSD","AUDUSD","NZDUSD",
+    "USDCAD","USDCHF","USDJPY",
+    "EURGBP","EURJPY","EURCHF",
+    "GBPJPY","GBPCHF","XAUUSD"
+];
 /* ── Extract the two currency codes from a symbol ── */
 function ffGetCurrencies(symbol) {
     symbol = (symbol || '').toUpperCase().replace(/[^A-Z]/g, '');
@@ -2837,6 +3018,458 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
+
+        <script>
+/* ═══════════════════════════════════════════════════════
+   CURRENCY STRENGTH — COMPOSITE SCORER
+   RSI(40%) + Z-score(35%) + %change(15%) + ATR-momentum(10%)
+   All normalised to −50..+50 before combining
+═══════════════════════════════════════════════════════ */
+
+var CS_PAIRS = {
+    'EURUSD':{'base':'EUR','quote':'USD'},
+    'GBPUSD':{'base':'GBP','quote':'USD'},
+    'AUDUSD':{'base':'AUD','quote':'USD'},
+    'NZDUSD':{'base':'NZD','quote':'USD'},
+    'USDCAD':{'base':'USD','quote':'CAD'},
+    'USDCHF':{'base':'USD','quote':'CHF'},
+    'USDJPY':{'base':'USD','quote':'JPY'},
+    'EURGBP':{'base':'EUR','quote':'GBP'},
+    'EURJPY':{'base':'EUR','quote':'JPY'},
+    'EURCHF':{'base':'EUR','quote':'CHF'},
+    'GBPJPY':{'base':'GBP','quote':'JPY'},
+    'GBPCHF':{'base':'GBP','quote':'CHF'},
+    'XAUUSD':{'base':'XAU','quote':'USD'},
+};
+
+var _csOpen   = false;
+var _csPreset = 'custom';
+var _csRefreshTimer = null;
+
+var _csConfig = { bars:14, tf1:'M30', tf2:'H1', tf3:'H4' };
+
+var CS_PRESETS = {
+    short:  { bars:10, tf1:'M5',  tf2:'M15', tf3:'M30' },
+    medium: { bars:14, tf1:'M30', tf2:'H1',  tf3:'H4'  },
+    long:   { bars:14, tf1:'H4',  tf2:'D1',  tf3:'W1'  },
+    custom: null,
+};
+
+/* ── TF key mapper: JS config key → lastData candles key ── */
+var CS_TF_MAP = {
+    'M5':'M5','M15':'M15','M30':'M30',
+    'H1':'H1','H4':'H4','D1':'D1','W1':'W1'
+};
+
+function csToggleOverlay() {
+    var ov = document.getElementById('cs-overlay');
+    if(!ov) return;
+    _csOpen = !_csOpen;
+    if(_csOpen) {
+        ov.classList.add('show');
+        csRender();
+        _csRefreshTimer = setInterval(csRender, 10000);
+    } else {
+        ov.classList.remove('show');
+        clearInterval(_csRefreshTimer);
+        var sp = document.getElementById('cs-settings-panel');
+        if(sp) sp.classList.remove('show');
+    }
+}
+
+function csToggleSettings() {
+    var sp = document.getElementById('cs-settings-panel');
+    if(!sp) return;
+    sp.classList.toggle('show');
+    if(sp.classList.contains('show')) {
+        document.getElementById('cs-bars').value = _csConfig.bars;
+        document.getElementById('cs-tf1').value  = _csConfig.tf1;
+        document.getElementById('cs-tf2').value  = _csConfig.tf2;
+        document.getElementById('cs-tf3').value  = _csConfig.tf3;
+    }
+}
+
+function csSetPreset(name) {
+    _csPreset = name;
+    ['short','medium','long','custom'].forEach(function(p) {
+        var btn = document.getElementById('csp-' + p);
+        if(btn) btn.classList.toggle('active', p === name);
+    });
+    if(name !== 'custom') {
+        var pre = CS_PRESETS[name];
+        _csConfig.bars = pre.bars;
+        _csConfig.tf1  = pre.tf1;
+        _csConfig.tf2  = pre.tf2;
+        _csConfig.tf3  = pre.tf3;
+        var sp = document.getElementById('cs-settings-panel');
+        if(sp) sp.classList.remove('show');
+    } else {
+        csToggleSettings();
+    }
+    csRender();
+}
+
+function csSaveSettings() {
+    _csConfig.bars = parseInt(document.getElementById('cs-bars').value);
+    _csConfig.tf1  = document.getElementById('cs-tf1').value;
+    _csConfig.tf2  = document.getElementById('cs-tf2').value;
+    _csConfig.tf3  = document.getElementById('cs-tf3').value;
+    _csPreset = 'custom';
+    ['short','medium','long'].forEach(function(p) {
+        var btn = document.getElementById('csp-' + p);
+        if(btn) btn.classList.remove('active');
+    });
+    var cb = document.getElementById('csp-custom');
+    if(cb) cb.classList.add('active');
+    var sp = document.getElementById('cs-settings-panel');
+    if(sp) sp.classList.remove('show');
+    csRender();
+}
+
+/* ═══════════════ COMPOSITE CALC ═══════════════ */
+function csCalcTF(tf, bars) {
+    var data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
+
+    function calcRSI(candles, period) {
+        if(!candles || candles.length < period + 2) return null;
+        var sorted = candles.slice().sort(function(a,b){ return a.time - b.time; });
+        var take   = Math.min(sorted.length, period * 3);
+        var closes = sorted.slice(sorted.length - take).map(function(c){ return c.close; });
+        if(closes.length < period + 1) return null;
+        var gains = 0, losses = 0;
+        for(var i = 1; i <= period; i++) {
+            var ch = closes[i] - closes[i-1];
+            if(ch > 0) gains += ch; else losses -= ch;
+        }
+        var avgGain = gains / period;
+        var avgLoss = losses / period;
+        for(var j = period + 1; j < closes.length; j++) {
+            var c = closes[j] - closes[j-1];
+            if(c > 0) { avgGain=(avgGain*(period-1)+c)/period; avgLoss=(avgLoss*(period-1))/period; }
+            else       { avgGain=(avgGain*(period-1))/period;   avgLoss=(avgLoss*(period-1)-c)/period; }
+        }
+        if(avgLoss === 0) return 100;
+        return 100 - (100 / (1 + avgGain / avgLoss));
+    }
+
+    function calcZScore(candles, period) {
+        if(!candles || candles.length < period + 1) return null;
+        var sorted = candles.slice().sort(function(a,b){ return a.time - b.time; });
+        var closes = sorted.slice(sorted.length - period).map(function(c){ return c.close; });
+        var mean   = closes.reduce(function(s,v){ return s+v; }, 0) / closes.length;
+        var variance = closes.reduce(function(s,v){ return s+(v-mean)*(v-mean); }, 0) / closes.length;
+        var stdev  = Math.sqrt(variance);
+        if(stdev === 0) return 0;
+        return (closes[closes.length-1] - mean) / stdev;
+    }
+
+    function calcPctChange(candles, period) {
+        if(!candles || candles.length < period + 2) return null;
+        var sorted = candles.slice().sort(function(a,b){ return a.time - b.time; });
+        var past   = sorted[sorted.length - 1 - period].close;
+        var now    = sorted[sorted.length - 1].close;
+        if(!past) return null;
+        return (now - past) / past;
+    }
+
+    function calcMomentum(candles, period) {
+        if(!candles || candles.length < period + 2) return null;
+        var sorted = candles.slice().sort(function(a,b){ return a.time - b.time; });
+        var take   = sorted.slice(sorted.length - (period + 1));
+        var trSum = 0;
+        for(var i = 1; i < take.length; i++) {
+            var hl  = take[i].high - take[i].low;
+            var hpc = Math.abs(take[i].high - take[i-1].close);
+            var lpc = Math.abs(take[i].low  - take[i-1].close);
+            trSum  += Math.max(hl, hpc, lpc);
+        }
+        var atr = trSum / period;
+        if(atr === 0) return null;
+        return (take[take.length-1].close - take[0].close) / atr;
+    }
+
+    /* ── raw pass ── */
+    var rawRSI={}, rawZ={}, rawPct={}, rawMom={};
+    var allPctVals=[], allMomVals=[];
+
+    Object.keys(CS_PAIRS).forEach(function(sym) {
+        if(!data[sym]) return;
+        var candles = data[sym].candles && data[sym].candles[tf];
+        if(!candles) return;
+        var rsi = calcRSI(candles, bars);
+        var z   = calcZScore(candles, bars);
+        var pct = calcPctChange(candles, bars);
+        var mom = calcMomentum(candles, bars);
+        if(rsi !== null) rawRSI[sym] = rsi;
+        if(z   !== null) rawZ[sym]   = z;
+        if(pct !== null){ rawPct[sym]=pct; allPctVals.push(pct); }
+        if(mom !== null){ rawMom[sym]=mom; allMomVals.push(mom); }
+    });
+
+    function normRSI(v){ return v - 50; }
+    function normZ(v){ return Math.max(-50, Math.min(50, v*(50/3))); }
+    function normRelative(v, arr) {
+        var absVals = arr.map(Math.abs).filter(function(x){ return x>0; });
+        if(!absVals.length) return 0;
+        var mx = Math.max.apply(null, absVals);
+        return mx === 0 ? 0 : (v/mx)*50;
+    }
+
+    /* ── distribute to currencies ── */
+    var scores = {};
+    function ensureCur(c){ if(!scores[c]) scores[c]={rsi:[],z:[],pct:[],mom:[]}; }
+
+    Object.keys(CS_PAIRS).forEach(function(sym) {
+        var base = CS_PAIRS[sym].base, quote = CS_PAIRS[sym].quote;
+        ensureCur(base); ensureCur(quote);
+        if(rawRSI[sym] !== undefined){
+            var n = normRSI(rawRSI[sym]);
+            scores[base].rsi.push(n); scores[quote].rsi.push(-n);
+        }
+        if(rawZ[sym] !== undefined){
+            var n = normZ(rawZ[sym]);
+            scores[base].z.push(n); scores[quote].z.push(-n);
+        }
+        if(rawPct[sym] !== undefined){
+            var n = normRelative(rawPct[sym], allPctVals);
+            scores[base].pct.push(n); scores[quote].pct.push(-n);
+        }
+        if(rawMom[sym] !== undefined){
+            var n = normRelative(rawMom[sym], allMomVals);
+            scores[base].mom.push(n); scores[quote].mom.push(-n);
+        }
+    });
+
+    var W={rsi:0.40, z:0.35, pct:0.15, mom:0.10};
+    var avg = function(arr){ return arr&&arr.length ? arr.reduce(function(s,v){return s+v;},0)/arr.length : null; };
+
+    var result = {};
+    Object.keys(scores).forEach(function(cur) {
+        var s = scores[cur];
+        var composite=0, totalW=0;
+        var rA=avg(s.rsi), zA=avg(s.z), pA=avg(s.pct), mA=avg(s.mom);
+        if(rA!==null){composite+=W.rsi*rA; totalW+=W.rsi;}
+        if(zA!==null){composite+=W.z*zA;   totalW+=W.z;}
+        if(pA!==null){composite+=W.pct*pA; totalW+=W.pct;}
+        if(mA!==null){composite+=W.mom*mA; totalW+=W.mom;}
+        result[cur] = totalW > 0 ? composite/totalW : 0;
+    });
+    return result;
+}
+
+/* ═══════════════ RENDER ═══════════════ */
+function csRender() {
+    var row     = document.getElementById('cs-currency-row');
+    var loadMsg = document.getElementById('cs-loading-msg');
+    if(!row) return;
+
+    var data    = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
+    var hasPairs = Object.keys(CS_PAIRS).some(function(sym){ return !!data[sym]; });
+    if(!hasPairs) {
+        if(loadMsg) loadMsg.style.display = 'block';
+        row.style.display = 'none'; return;
+    }
+    if(loadMsg) loadMsg.style.display = 'none';
+    row.style.display = 'flex';
+
+    var tf1=_csConfig.tf1, tf2=_csConfig.tf2, tf3=_csConfig.tf3, bars=_csConfig.bars;
+    var s1=csCalcTF(tf1,bars), s2=csCalcTF(tf2,bars), s3=csCalcTF(tf3,bars);
+
+    var allCurs = {};
+    [s1,s2,s3].forEach(function(s){ Object.keys(s).forEach(function(c){ allCurs[c]=true; }); });
+    var currencies = Object.keys(allCurs);
+
+    var avgScores = {};
+    currencies.forEach(function(c) {
+        var vals=[];
+        if(s1[c]!==undefined) vals.push(s1[c]);
+        if(s2[c]!==undefined) vals.push(s2[c]);
+        if(s3[c]!==undefined) vals.push(s3[c]);
+        avgScores[c] = vals.length ? vals.reduce(function(a,b){return a+b;},0)/vals.length : 0;
+    });
+
+    var sortCheck = document.getElementById('cs-sort-check');
+    if(sortCheck && sortCheck.checked) {
+        currencies.sort(function(a,b){ return avgScores[b]-avgScores[a]; });
+    }
+
+    var maxVal = 0.001;
+    currencies.forEach(function(c) {
+        [s1,s2,s3].forEach(function(s){
+            if(s[c]!==undefined) maxVal=Math.max(maxVal,Math.abs(s[c]));
+        });
+    });
+    maxVal *= 1.2;
+
+    row.innerHTML = currencies.map(function(cur) {
+        var scores = [
+            s1[cur]!==undefined?s1[cur]:null,
+            s2[cur]!==undefined?s2[cur]:null,
+            s3[cur]!==undefined?s3[cur]:null,
+        ];
+        var avg = avgScores[cur];
+        var sign = avg > 0.01 ? '+' : '';
+
+        var tfBarsHtml = scores.map(function(sc) {
+            if(sc===null) return '<div class="cs-tf-bar-wrap"><div class="cs-tf-bg-upper"></div><div class="cs-tf-bg-lower"></div></div>';
+            var isPos = sc>=0;
+            var pct   = Math.min(Math.abs(sc)/maxVal,1)*50;
+            var color = isPos ? '#4a8fd4' : '#e07030';
+            var uH    = isPos ? pct+'%' : '0%';
+            var lH    = isPos ? '0%' : pct+'%';
+            return '<div class="cs-tf-bar-wrap">'
+                +'<div class="cs-tf-bg-upper"></div>'
+                +'<div class="cs-tf-bg-lower"></div>'
+                +'<div class="cs-tf-bar-inner-upper" style="height:'+uH+';background:'+color+';"></div>'
+                +'<div class="cs-tf-bar-inner-lower" style="height:'+lH+';background:'+color+';"></div>'
+                +'</div>';
+        }).join('');
+
+        var tfLabels = [tf1,tf2,tf3].map(function(tf){
+            return '<span class="cs-tf-lbl">'+tf.replace('M','').replace('H','H').replace('D1','D')+'</span>';
+        }).join('');
+
+        var cls = avg>0.01?'pos':avg<-0.01?'neg':'neu';
+
+        return '<div class="cs-currency-col">'
+            +'<span class="cs-currency-label">'+cur+'</span>'
+            +'<div>'
+            +  '<div class="cs-tf-bars">'+tfBarsHtml+'</div>'
+            +  '<div class="cs-tf-labels">'+tfLabels+'</div>'
+            +'</div>'
+            +'<span class="cs-score '+cls+'">'+sign+avg.toFixed(1)+'</span>'
+            +'</div>';
+    }).join('');
+
+    /* Update footer timestamp */
+    var now = new Date();
+    var upd = document.getElementById('cs-last-update');
+    if(upd) upd.textContent = 'UPDATED '+now.getHours().toString().padStart(2,'0')
+        +':'+now.getMinutes().toString().padStart(2,'0')
+        +':'+now.getSeconds().toString().padStart(2,'0');
+
+    /* Update button badge */
+    var badge = document.getElementById('cs-btn-badge');
+    if(badge && currencies.length > 1) {
+        badge.textContent = '↑'+currencies[0]+' ↓'+currencies[currencies.length-1];
+        badge.style.display = 'inline';
+    }
+}
+
+/* Close on Escape */
+document.addEventListener('keydown', function(e) {
+    if(e.key === 'Escape' && _csOpen) csToggleOverlay();
+});
+
+/* Auto-render badge when MT5 connects */
+var _csPoll = setInterval(function() {
+    var d = window.MT5Feed && MT5Feed.lastData;
+    if(d && Object.keys(d).length > 0) {
+        clearInterval(_csPoll);
+        csRender();
+    }
+}, 2000);
+</script>
+
+<!-- ══ CURRENCY STRENGTH OVERLAY ══ -->
+<div id="cs-overlay" onclick="if(event.target===this) csToggleOverlay()">
+    <div id="cs-panel">
+        <div id="cs-titlebar">
+            <div class="cs-title">
+                <span class="cs-dot"></span>
+                📊 CURRENCY STRENGTH — MT5 LIVE · COMPOSITE SCORE
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:.5rem;color:#4a7aa8;letter-spacing:1px;">
+                    RSI · Z-SCORE · PCT · MOMENTUM
+                </span>
+                <button id="cs-close-btn" onclick="csToggleOverlay()">✕</button>
+            </div>
+        </div>
+        <div id="cs-toolbar">
+            <label class="cs-sort-label">
+                <input type="checkbox" id="cs-sort-check" checked onchange="csRender()">
+                Sort by strength
+            </label>
+            <div class="cs-presets">
+                <button class="cs-preset-btn" id="csp-short"  onclick="csSetPreset('short')">Short-term</button>
+                <button class="cs-preset-btn" id="csp-medium" onclick="csSetPreset('medium')">Medium-term</button>
+                <button class="cs-preset-btn" id="csp-long"   onclick="csSetPreset('long')">Long-term</button>
+                <button class="cs-preset-btn active" id="csp-custom" onclick="csSetPreset('custom')">Custom</button>
+            </div>
+            <button id="cs-gear-btn" onclick="csToggleSettings()" title="Settings">⚙</button>
+        </div>
+        <div id="cs-settings-panel">
+            <div class="cs-settings-title">
+                Settings
+                <span onclick="csToggleSettings()"
+                      style="cursor:pointer;color:#999;font-size:.9rem;font-weight:400;">✕</span>
+            </div>
+            <div class="cs-settings-row">
+                <label>Bar history (RSI period)</label>
+                <select id="cs-bars">
+                    <option value="10">10</option>
+                    <option value="14" selected>14</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+            <div class="cs-settings-row">
+                <label>Timeframe #1</label>
+                <select id="cs-tf1">
+                    <option value="M5">M5</option>
+                    <option value="M15">M15</option>
+                    <option value="M30" selected>M30</option>
+                    <option value="H1">H1</option>
+                    <option value="H4">H4</option>
+                    <option value="D1">D1</option>
+                </select>
+            </div>
+            <div class="cs-settings-row">
+                <label>Timeframe #2</label>
+                <select id="cs-tf2">
+                    <option value="M5">M5</option>
+                    <option value="M15">M15</option>
+                    <option value="M30">M30</option>
+                    <option value="H1" selected>H1</option>
+                    <option value="H4">H4</option>
+                    <option value="D1">D1</option>
+                </select>
+            </div>
+            <div class="cs-settings-row">
+                <label>Timeframe #3</label>
+                <select id="cs-tf3">
+                    <option value="M5">M5</option>
+                    <option value="M15">M15</option>
+                    <option value="M30">M30</option>
+                    <option value="H1">H1</option>
+                    <option value="H4" selected>H4</option>
+                    <option value="D1">D1</option>
+                </select>
+            </div>
+            <div class="cs-settings-row" style="margin-top:14px;gap:8px;">
+                <button class="cs-save-btn"   onclick="csSaveSettings()">SAVE</button>
+                <button class="cs-cancel-btn" onclick="csToggleSettings()">CANCEL</button>
+            </div>
+        </div>
+        <div id="cs-chart-area">
+            <div id="cs-loading-msg"
+                style="text-align:center;padding:40px;font-size:.65rem;
+                       color:#4a7aa8;letter-spacing:2px;text-transform:uppercase;">
+                <div style="width:28px;height:28px;border:2px solid #2d5a8e;
+                            border-top-color:#6ab36a;border-radius:50%;
+                            animation:cs-spin .8s linear infinite;
+                            margin:0 auto 12px;"></div>
+                WAITING FOR MT5 DATA...
+            </div>
+            <div id="cs-currency-row" style="display:none;"></div>
+        </div>
+        <div id="cs-footer">
+            <span>COMPOSITE = 40% RSI + 35% Z-SCORE + 15% PCT-CHANGE + 10% ATR-MOMENTUM</span>
+            <span id="cs-last-update">—</span>
+        </div>
+    </div>
+</div> 
 
     <!-- ══ FF NEWS OVERLAY ══ -->
 <div id="ff-overlay" onclick="if(event.target===this) ffToggleOverlay()">
