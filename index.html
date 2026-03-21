@@ -1336,7 +1336,8 @@ var MT5Feed = (function() {
                     return;
                 }
 
-                if(msg.type === 'tick_update') {
+               if(msg.type === 'tick_update') {
+                 window._lastTickReceived = Date.now();   // ← ADD THIS LINE
                     Object.keys(msg.data).forEach(function(sym) {
                         if(!lastData[sym]) return;
                         lastData[sym].bid    = msg.data[sym].bid;
@@ -1602,21 +1603,41 @@ var _currentTF = ['60', '60'];
 function startCustomCountdown() {
     if(_countdownInterval) clearInterval(_countdownInterval);
     _countdownInterval = setInterval(function() {
+
+        /* Market closed if no tick in last 3 minutes */
+        var marketOpen = window._lastTickReceived
+            && (Date.now() - window._lastTickReceived) < 3 * 60 * 1000;
+
         var activePanels = _chartLayout === 'single' ? [1] : [1, 2];
+
         activePanels.forEach(function(num) {
             var el  = document.getElementById('chart-countdown-' + num);
             var val = document.getElementById('countdown-val-' + num);
             if(!el || !val) return;
+
+            /* Market closed → show CLOSED label, stop counting */
+            if(!marketOpen) {
+                val.textContent           = 'CLOSED';
+                val.style.color           = '#555';
+                el.style.borderRightColor = '#333';
+                el.style.boxShadow        = 'none';
+                el.style.display          = 'block';
+                return;
+            }
+
             var tf     = _currentTF[num-1] || '60';
             var tfMins = getTFMinutes(tf);
             if(!tfMins) { el.style.display = 'none'; return; }
+
             var now       = Math.floor(Date.now() / 1000) + 20700;
             var barSize   = tfMins * 60;
             var barClose  = (Math.floor(now / barSize) + 1) * barSize;
             var remaining = barClose - now;
+
             var h = Math.floor(remaining / 3600);
             var m = Math.floor((remaining % 3600) / 60);
             var s = remaining % 60;
+
             if(tfMins < 1) {
                 val.textContent = s + 's';
             } else {
@@ -1624,6 +1645,7 @@ function startCustomCountdown() {
                     ? pad(h)+':'+pad(m)+':'+pad(s)
                     : pad(m)+':'+pad(s);
             }
+
             if(remaining <= 30) {
                 val.style.color           = '#ff4444';
                 el.style.borderRightColor = '#ff4444';
@@ -1637,22 +1659,21 @@ function startCustomCountdown() {
                 el.style.borderRightColor = '#44ff88';
                 el.style.boxShadow        = '-2px 0 8px rgba(68,255,136,0.15)';
             }
+
             var container = document.getElementById('tv-container-' + num);
-            if(container) {
-                el.style.top       = (container.offsetHeight * 0.42) + 'px';
-                el.style.transform = 'none';
-            }
+            if(container) el.style.top = (container.offsetHeight * 0.42) + 'px';
             el.style.display = 'block';
         });
+
         [1, 2].forEach(function(num) {
             if(activePanels.indexOf(num) === -1) {
                 var el = document.getElementById('chart-countdown-' + num);
                 if(el) el.style.display = 'none';
             }
         });
+
     }, 1000);
 }
-
 function getTFMinutes(tf) {
     if(tf && tf.toString().indexOf('S') !== -1 && tf.toString().charAt(tf.toString().length-1) === 'S') {
         return parseInt(tf) / 60;
