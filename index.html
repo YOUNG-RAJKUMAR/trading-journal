@@ -1600,13 +1600,24 @@ function switchFeed(mode) {
 var _countdownInterval = null;
 var _currentTF = ['60', '60'];
 
+    function isForexMarketOpen() {
+    var now  = new Date();
+    var day  = now.getUTCDay();    // 0 = Sun … 6 = Sat
+    var hour = now.getUTCHours();
+    if (day === 6)                  return false;  // Saturday — always closed
+    if (day === 0 && hour < 22)     return false;  // Sunday before 22:00 UTC
+    if (day === 5 && hour >= 22)    return false;  // Friday after 22:00 UTC
+    return true;
+}
+
 function startCustomCountdown() {
     if(_countdownInterval) clearInterval(_countdownInterval);
     _countdownInterval = setInterval(function() {
 
         /* Market closed if no tick in last 3 minutes */
-        var marketOpen = window._lastTickReceived
-            && (Date.now() - window._lastTickReceived) < 3 * 60 * 1000;
+     var marketOpen = isForexMarketOpen()
+    && window._lastTickReceived
+    && (Date.now() - window._lastTickReceived) < 3 * 60 * 1000;
 
         var activePanels = _chartLayout === 'single' ? [1] : [1, 2];
 
