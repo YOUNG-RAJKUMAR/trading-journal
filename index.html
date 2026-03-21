@@ -1340,8 +1340,8 @@ var MT5Feed = (function() {
                  window._lastTickReceived = Date.now();   // ← ADD THIS LINE
                     Object.keys(msg.data).forEach(function(sym) {
                         if(!lastData[sym]) return;
-                        lastData[sym].bid    = msg.data[sym].bid;
-                        lastData[sym].ask    = msg.data[sym].ask;
+                       lastData[sym].bid    = parseFloat(msg.data[sym].bid.toFixed(8));
+                    lastData[sym].ask    = parseFloat(msg.data[sym].ask.toFixed(8));
                         lastData[sym].spread = msg.data[sym].spread;
                         lastData[sym].time   = msg.data[sym].time;
 
@@ -1381,7 +1381,7 @@ var MT5Feed = (function() {
                     var _activeSym = window._calcSymbol || 'EURUSD';
                     if(lastData[_activeSym]) {
                         var d   = lastData[_activeSym];
-                        var dec = (d.bid.toString().split('.')[1]||'').length;
+                        var dec = Math.min((d.bid.toString().split('.')[1]||'').length, 8);
                         window._calcLiveBid   = d.bid;
                         window._calcLiveAsk   = d.ask;
                         window._calcSpreadPts = d.spread || 0;
@@ -2597,7 +2597,7 @@ function deskAtp(){
         (ent.toString().split('.')[1]||'').length,
         (sl.toString().split('.')[1]||'').length
     );
-    te.value=tp.toFixed(Math.max(dec,5));
+   te.value = parseFloat(tp.toFixed(Math.max(dec,5))).toFixed(Math.max(dec,5));
     te.readOnly=true; te.style.borderColor='#44ff88'; te.style.color='#44ff88';
     if(tg) tg.style.display='inline';
     deskCl();
@@ -2746,7 +2746,7 @@ function deskRefreshPrice() {
         window._calcLiveBid = data.bid;
         window._calcLiveAsk = data.ask;
         var entryPrice = (_calcSide === 'BUY') ? data.ask : data.bid;
-        var dec = (data.bid.toString().split('.')[1]||'').length;
+        var dec = Math.min((data.bid.toString().split('.')[1]||'').length, 8);
         if(pe)  pe.textContent  = data.bid.toFixed(dec) + ' / ' + data.ask.toFixed(dec);
         if(se)  se.textContent  = 'spread: ' + (data.spread || '---');
         window._calcSpreadPts = data.spread || 0;
