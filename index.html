@@ -1485,41 +1485,72 @@ var MT5Feed = (function() {
             }, 0);
         },
 
-        getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
-            var resMap = {
-                '10S':'S10','15S':'S15','30S':'S30','45S':'S45',
-                '1':'M1',  '2':'M2',  '3':'M3',  '4':'M4',
-                '5':'M5',  '6':'M6',  '10':'M10','12':'M12',
-                '15':'M15','20':'M20','30':'M30',
-                '60':'H1', '120':'H2','180':'H3','240':'H4',
-                '360':'H6','480':'H8','720':'H12',
-                'D':'D1',  'W':'W1',  'M':'MN1'
-            };
-            var tf     = resMap[resolution] || 'H1';
-            var symbol = symbolInfo.name;
-            var fromMs = periodParams.from * 1000;
-            var toMs   = periodParams.to   * 1000;
-            var tries  = 0;
-            function tryGet() {
-                var d = lastData[symbol];
-                if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
-                    var allBars = d.candles[tf].slice().sort(function(a,b){ return a.time - b.time; });
-                    if(periodParams.firstDataRequest) {
-                        onResult(allBars, { noData: false });
-                    } else {
-                        var bars = allBars.filter(function(b){ return b.time >= fromMs && b.time <= toMs; });
-                        onResult(bars, { noData: bars.length === 0 });
-                    }
-                } else if(tries < 40) {
-                    tries++;
-                    setTimeout(tryGet, 500);
-                } else {
-                    onResult([], { noData: true });
-                }
-            }
-            tryGet();
-        },
+   getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
+    var resMap = {
+        '10S':'S10','15S':'S15','30S':'S30','45S':'S45',
+        '1':'M1',  '2':'M2',  '3':'M3',  '4':'M4',
+        '5':'M5',  '6':'M6',  '10':'M10','12':'M12',
+        '15':'M15','20':'M20','30':'M30',
+        '60':'H1', '120':'H2','180':'H3','240':'H4',
+        '360':'H6','480':'H8','720':'H12',
+        'D':'D1',  'W':'W1',  'M':'MN1'
+    };
 
+    var tf     = resMap[resolution] || 'H1';
+    var symbol = symbolInfo.name;
+
+    /* ── Second TFs: still use WebSocket cache (no HTTP history available) ── */
+    var isSecondTF = tf.charAt(0) === 'S';
+    if(isSecondTF) {
+        var d = lastData[symbol];
+        if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
+            onResult(d.candles[tf].slice(), { noData: false });
+        } else {
+            onResult([], { noData: true });
+        }
+        return;
+    }
+
+    /* ── Build HTTP URL ── */
+    var url;
+    if(periodParams.firstDataRequest) {
+        /* Initial chart load — fetch max bars */
+        url = 'http://localhost:8766/api/history'
+            + '?symbol=' + encodeURIComponent(symbol)
+            + '&tf='     + encodeURIComponent(tf)
+            + '&count=10000';
+    } else {
+        /* User scrolled back — fetch specific range */
+        url = 'http://localhost:8766/api/history'
+            + '?symbol=' + encodeURIComponent(symbol)
+            + '&tf='     + encodeURIComponent(tf)
+            + '&from='   + periodParams.from
+            + '&to='     + periodParams.to;
+    }
+
+    fetch(url)
+        .then(function(r) {
+            if(!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(function(data) {
+            var bars = data.bars || [];
+            console.log('[HTTP getBars]', symbol, tf,
+                        '→', bars.length, 'bars',
+                        periodParams.firstDataRequest ? '(initial)' : '(scroll-back)');
+            onResult(bars, { noData: data.no_data || bars.length === 0 });
+        })
+        .catch(function(err) {
+            /* Fallback to WebSocket cache if HTTP server is down */
+            console.warn('[HTTP getBars] Failed, using WS cache:', err.message);
+            var d = lastData[symbol];
+            if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
+                onResult(d.candles[tf].slice(), { noData: false });
+            } else {
+                onResult([], { noData: true });
+            }
+        });
+},
         subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
             var resMap = {
                 '10S':'S10','15S':'S15','30S':'S30','45S':'S45',
