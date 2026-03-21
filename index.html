@@ -1350,8 +1350,10 @@ var MT5Feed = (function() {
                             if(!incoming || !incoming.length) return;
                             if(!lastData[sym].candles[tf]) return;
                             var hist   = lastData[sym].candles[tf];
-                            var latest = incoming[incoming.length - 1];
-                            var last   = hist[hist.length - 1];
+                         var latest = incoming[incoming.length - 1];
+                         var last   = hist[hist.length - 1];
+
+                        if(!last) { hist.push(latest); return; }  // ← ADD THIS LINE
 
                             if(latest.time === last.time) {
                                 hist[hist.length - 1] = latest;
