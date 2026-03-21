@@ -1346,8 +1346,8 @@ body.theme-light .lot-badge{background:#f2f2f7 !important;border:0.5px solid #d1
         <span id="theme-label">Classic</span>
         <span style="opacity:.4;font-size:.55rem;">▾</span>
     </button>
-    <div id="theme-picker-panel"
-        style="display:none;position:absolute;top:40px;right:0;z-index:9999;
+ <div id="theme-picker-panel"
+    style="display:none;position:fixed;top:50px;right:16px;z-index:9999;
                background:rgba(18,18,22,0.97);
                border:0.5px solid rgba(255,255,255,0.1);
                border-radius:20px;padding:14px;width:310px;
@@ -3386,6 +3386,13 @@ function toggleThemePicker() {
         panel.style.display = 'none';
     } else {
         buildThemePicker();
+        /* Position relative to the button */
+        var btn = document.getElementById('theme-picker-btn');
+        if(btn) {
+            var rect = btn.getBoundingClientRect();
+            panel.style.top   = (rect.bottom + 6) + 'px';
+            panel.style.right = (window.innerWidth - rect.right) + 'px';
+        }
         panel.style.display = 'block';
     }
 }
