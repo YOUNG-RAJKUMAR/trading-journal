@@ -443,188 +443,285 @@ body.theme-void {
 @keyframes fadeIn  { from{opacity:0;transform:translateY(4px)} to{opacity:1} }
 
 
-/* ══════════════════════════════════════════════════════════════
-   1. VOID — Black minimalist default
-══════════════════════════════════════════════════════════════ */
+/* ══ TRADINGVIEW DARK (default) ══ */
 :root,
-body.theme-void {
-    --bg:#0a0a0a;
-    --surface:#111111;
-    --border:#222222;
-    --primary:#ffffff;
-    --accent:#cccccc;
-    --text:#aaaaaa;
-    --text-light:#ffffff;
-    --negative:#ff4444;
-    --positive:#44cc44;
-    --glow:none;
-    --card-radius:0px;
+body.theme-tv-dark {
+    --bg:       #131722;
+    --surface:  #1e222d;
+    --border:   #2a2e39;
+    --primary:  #d1d4dc;
+    --accent:   #2962ff;
+    --text:     #787b86;
+    --text-light:#d1d4dc;
+    --negative: #ef5350;
+    --positive: #26a69a;
+    --glow:     none;
+    --card-radius: 6px;
 }
-body.theme-void {
-    background:#0a0a0a;
-    color:#aaaaaa;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+body.theme-tv-dark {
+    background: #131722;
+    color: #787b86;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
-body.theme-void .card,
-body.theme-void .stat-card,
-body.theme-void .table-wrap {
-    background:#111;
-    border:1px solid #222;
-    border-radius:0;
+body.theme-tv-dark .card,
+body.theme-tv-dark .stat-card,
+body.theme-tv-dark .table-wrap {
+    background: #1e222d;
+    border: 1px solid #2a2e39;
+    border-radius: 6px;
 }
-body.theme-void .header-top { background:#0a0a0a; border-bottom:1px solid #222; }
-body.theme-void .header-title { color:#fff; letter-spacing:3px; font-weight:700; font-size:.65rem; }
-body.theme-void .tab-nav { border-bottom:1px solid #222; background:#0a0a0a; }
-body.theme-void .tab-btn { color:#666; font-size:.62rem; padding:6px 14px; background:transparent; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; font-weight:400; letter-spacing:1px; }
-body.theme-void .tab-btn:hover { color:#ccc; }
-body.theme-void .tab-btn.active { color:#fff; border-bottom:2px solid #fff; font-weight:600; }
-body.theme-void .save-btn { background:#fff; color:#000; border:none; padding:6px 18px; font-weight:700; border-radius:0; font-size:.72rem; letter-spacing:2px; }
-body.theme-void .save-btn:hover { background:#ccc; }
-body.theme-void .btn-action { border:1px solid #333; color:#888; background:transparent; border-radius:0; font-size:.68rem; }
-body.theme-void .btn-action:hover { border-color:#888; color:#ccc; }
-
-body.theme-void th { color:#666; background:#0a0a0a; border-bottom:1px solid #222; letter-spacing:2px; font-size:.52rem; font-weight:600; padding:10px 14px; text-transform:uppercase; }
-body.theme-void td { border-bottom:1px solid #1a1a1a; color:#aaa; font-size:.8rem; }
-body.theme-void tr:hover td { background:#161616; color:#ddd; }
-body.theme-void .month-header td { background:#0a0a0a; color:#fff; letter-spacing:4px; font-weight:700; border-top:1px solid #222; border-bottom:1px solid #222; font-size:.72rem; text-transform:uppercase; }
-
-body.theme-void .section-title { color:#888; border-bottom:1px solid #222; font-size:.58rem; font-weight:600; padding-bottom:8px; margin-bottom:14px; letter-spacing:2px; text-transform:uppercase; }
-body.theme-void .stat-val { color:#fff; font-weight:700; font-size:1.6rem; }
-body.theme-void .stat-label { color:#666; font-size:.58rem; font-weight:500; text-transform:uppercase; letter-spacing:3px; }
-body.theme-void .stat-meta { color:#555; font-size:.65rem; }
-
-body.theme-void .rr-badge.good { background:transparent; border:1px solid #44cc4455; color:#44cc44; border-radius:0; font-weight:600; }
-body.theme-void .rr-badge.bad  { background:transparent; border:1px solid #ff444455; color:#ff4444; border-radius:0; font-weight:600; }
-body.theme-void .rr-badge.na   { background:transparent; border:1px solid #333; color:#666; border-radius:0; }
-body.theme-void .outcome-badge.tp-hit  { background:transparent; border:1px solid #44cc4455; color:#44cc44; border-radius:0; font-weight:600; }
-body.theme-void .outcome-badge.sl-hit  { background:transparent; border:1px solid #ff444455; color:#ff4444; border-radius:0; font-weight:600; }
-body.theme-void .outcome-badge.partial { background:transparent; border:1px solid #ccaa0055; color:#ccaa00; border-radius:0; }
-body.theme-void .outcome-badge.be      { background:transparent; border:1px solid #333; color:#777; border-radius:0; }
-
-body.theme-void .lot-badge { background:#111; border:1px solid #333; color:#ccc; border-radius:0; font-weight:600; }
-body.theme-void .price-lbl { color:#555; }
-body.theme-void .price-val { color:#999; }
-
-body.theme-void input, body.theme-void select, body.theme-void textarea { background:#0a0a0a; border:1px solid #2a2a2a; color:#ccc; border-radius:0; }
-body.theme-void input:focus, body.theme-void select:focus { border-color:#555; outline:none; }
-body.theme-void input::placeholder { color:#444; }
-body.theme-void select option { background:#111; color:#ccc; }
-body.theme-void .search-bar { background:#0a0a0a; border:1px solid #2a2a2a; color:#ccc; border-radius:0; }
-
-body.theme-void .login-card { background:#111; border:1px solid #333; border-radius:0; }
-body.theme-void .cal-day { background:#111; border:1px solid #1a1a1a; }
-body.theme-void .cal-day b { color:#aaa; }
-body.theme-void .cal-day.profit { border-top:2px solid #44cc4466; }
-body.theme-void .cal-day.loss   { border-top:2px solid #ff444466; }
-
-body.theme-void .scan-zone { background:#0a0a0a; border:1px dashed #2a2a2a; }
-body.theme-void .scan-zone-label { color:#555; }
-body.theme-void .scan-zone-label span { color:#aaa; }
-
-
-/* ══════════════════════════════════════════════════════════════
-   2. MATRIX — Green terminal (NO moving scan beam)
-══════════════════════════════════════════════════════════════ */
-body.theme-matrix {
-    --bg:#000000;
-    --surface:#010a01;
-    --border:#0d3a0d;
-    --primary:#00ff41;
-    --accent:#39ff14;
-    --text:#55cc55;
-    --text-light:#00ff41;
-    --negative:#ff4444;
-    --positive:#00ff41;
-    --glow:0 0 12px rgba(0,255,65,0.5);
-    --card-radius:0px;
+body.theme-tv-dark .header-top {
+    background: #1e222d;
+    border-bottom: 1px solid #2a2e39;
 }
-body.theme-matrix {
-    background:#000;
-    color:#55cc55;
-    font-family:'Share Tech Mono','Courier New',monospace !important;
+body.theme-tv-dark .header-title {
+    color: #d1d4dc;
+    letter-spacing: 2px;
+    font-weight: 600;
+    font-size: .65rem;
 }
-
-/* body.theme-matrix::after intentionally removed — no top-down scan beam */
-
-/* Window chrome cards */
-body.theme-matrix .card,
-body.theme-matrix .stat-card,
-body.theme-matrix .table-wrap {
-    background:#010a01;
-    border:1px solid #1a5a1a;
-    border-top:2px solid #00ff41;
-    border-radius:0;
-    box-shadow:none;
-    position:relative;
-    padding-top:28px;
+body.theme-tv-dark .tab-nav {
+    background: #1e222d;
+    border-bottom: 1px solid #2a2e39;
 }
-
-body.theme-matrix .card::before,
-body.theme-matrix .stat-card::before {
-    content:'● ● ● TERMINAL';
-    display:block; position:absolute;
-    top:0; left:0; right:0; height:24px; line-height:24px;
-    padding:0 10px;
-   background:#000;
-    border-bottom:1px solid #1a5a1a;
-    font-size:.44rem; letter-spacing:4px; color:#00ff4177;
-    font-family:'Share Tech Mono',monospace;
+body.theme-tv-dark .tab-btn {
+    color: #787b86;
+    font-size: .7rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    letter-spacing: .5px;
 }
-body.theme-matrix .table-wrap { padding-top:0; }
-body.theme-matrix .table-wrap::before { display:none; }
+body.theme-tv-dark .tab-btn:hover  { color: #d1d4dc; }
+body.theme-tv-dark .tab-btn.active { color: #d1d4dc; border-bottom: 2px solid #2962ff; font-weight: 600; }
+body.theme-tv-dark .save-btn {
+    background: #2962ff;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    font-weight: 600;
+    border-radius: 4px;
+    font-size: .72rem;
+    letter-spacing: 1px;
+}
+body.theme-tv-dark .save-btn:hover { background: #1e53e5; }
+body.theme-tv-dark .btn-action {
+    border: 1px solid #2a2e39;
+    color: #787b86;
+    background: #1e222d;
+    border-radius: 4px;
+    font-size: .68rem;
+}
+body.theme-tv-dark .btn-action:hover { border-color: #787b86; color: #d1d4dc; }
 
-body.theme-matrix .header-title { color:#00ff41; letter-spacing:4px; font-weight:700; font-size:.65rem; text-shadow:0 0 10px rgba(0,255,65,.6); animation:glitch 8s infinite; }
-body.theme-matrix .header-title::before { content:'root@sys:~$ '; color:#00ff4166; }
-body.theme-matrix .header-title::after  { content:'█'; animation:blink 1s step-end infinite; }
-body.theme-matrix .header-top { border-bottom:2px solid #0d3a0d; background:#000; }
-body.theme-matrix .tab-nav { border-bottom:1px solid #0d3a0d; }
-body.theme-matrix .tab-btn { color:#55aa55; letter-spacing:2px; font-size:.62rem; padding:5px 10px; border:1px solid transparent; margin-bottom:-1px; }
-body.theme-matrix .tab-btn:hover { color:#00ff41; }
-body.theme-matrix .tab-btn.active { color:#00ff41; border:1px solid #1a5a1a; border-bottom-color:#010a01; background:#010a01; text-shadow:0 0 8px rgba(0,255,65,.5); }
-body.theme-matrix .save-btn { background:linear-gradient(180deg,#00ff41,#00cc33); color:#000; border:none; letter-spacing:3px; font-weight:900; font-size:.75rem; border-radius:0; text-transform:uppercase; }
-body.theme-matrix .save-btn:hover { box-shadow:0 0 30px rgba(0,255,65,.5); }
-body.theme-matrix .btn-action { border:1px solid #1a5a1a; color:#00cc33; background:#000; border-radius:0; }
-body.theme-matrix .btn-action:hover { border-color:#00ff41; color:#00ff41; }
+body.theme-tv-dark th {
+    color: #787b86;
+    background: #131722;
+    border-bottom: 1px solid #2a2e39;
+    letter-spacing: 1px;
+    font-size: .52rem;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-transform: uppercase;
+}
+body.theme-tv-dark td { border-bottom: 1px solid #2a2e39; color: #d1d4dc; font-size: .8rem; }
+body.theme-tv-dark tr:hover td { background: #2a2e39; }
+body.theme-tv-dark .month-header td {
+    background: #131722;
+    color: #d1d4dc;
+    letter-spacing: 4px;
+    font-weight: 700;
+    border-top: 1px solid #2a2e39;
+    border-bottom: 1px solid #2a2e39;
+    font-size: .72rem;
+    text-transform: uppercase;
+}
+body.theme-tv-dark .section-title {
+    color: #787b86;
+    border-bottom: 1px solid #2a2e39;
+    font-size: .58rem;
+    font-weight: 600;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+body.theme-tv-dark .stat-val   { color: #d1d4dc; font-weight: 700; font-size: 1.6rem; }
+body.theme-tv-dark .stat-label { color: #787b86; font-size: .58rem; text-transform: uppercase; letter-spacing: 2px; }
+body.theme-tv-dark .stat-meta  { color: #4c525e; font-size: .65rem; }
 
-body.theme-matrix th { color:#00aa33; background:#000; border-bottom:1px solid #0d3a0d; letter-spacing:4px; font-size:.52rem; font-weight:700; padding:10px 14px; }
-body.theme-matrix td { border-bottom:1px solid #040f04; color:#55cc55; font-size:.78rem; }
-body.theme-matrix tr:hover td { background:#010a01; color:#00ff41; }
-body.theme-matrix .month-header td { background:#000; color:#00ff41; letter-spacing:8px; font-weight:700; border-top:1px solid #0d3a0d; border-bottom:1px solid #0d3a0d; text-shadow:0 0 8px rgba(0,255,65,.3); font-size:.72rem; }
+body.theme-tv-dark .rr-badge.good { background: rgba(38,166,154,.12); border: 1px solid rgba(38,166,154,.3); color: #26a69a; border-radius: 4px; }
+body.theme-tv-dark .rr-badge.bad  { background: rgba(239,83,80,.12);  border: 1px solid rgba(239,83,80,.3);  color: #ef5350; border-radius: 4px; }
+body.theme-tv-dark .rr-badge.na   { background: transparent; border: 1px solid #2a2e39; color: #4c525e; border-radius: 4px; }
+body.theme-tv-dark .outcome-badge.tp-hit  { background: rgba(38,166,154,.12); border: 1px solid rgba(38,166,154,.3); color: #26a69a; border-radius: 4px; font-weight: 600; }
+body.theme-tv-dark .outcome-badge.sl-hit  { background: rgba(239,83,80,.12);  border: 1px solid rgba(239,83,80,.3);  color: #ef5350; border-radius: 4px; }
+body.theme-tv-dark .outcome-badge.partial { background: rgba(255,152,0,.1);   border: 1px solid rgba(255,152,0,.3);  color: #ff9800; border-radius: 4px; }
+body.theme-tv-dark .outcome-badge.be      { background: rgba(41,98,255,.1);   border: 1px solid rgba(41,98,255,.3);  color: #2962ff; border-radius: 4px; }
+body.theme-tv-dark .lot-badge { background: #2a2e39; border: 1px solid #363a45; color: #d1d4dc; border-radius: 4px; font-weight: 600; }
+body.theme-tv-dark .price-lbl { color: #4c525e; }
+body.theme-tv-dark .price-val { color: #787b86; }
 
-body.theme-matrix .section-title { color:#00aa33; border-bottom:1px solid #0d3a0d; letter-spacing:4px; font-size:.58rem; padding-bottom:8px; margin-bottom:14px; }
-body.theme-matrix .section-title::before { content:'// '; color:#00ff4155; }
-body.theme-matrix .stat-val { color:#00ff41; font-weight:700; font-size:1.5rem; text-shadow:0 0 10px rgba(0,255,65,.4); }
-body.theme-matrix .stat-label { color:#5cc75c; letter-spacing:4px; font-size:.58rem; }
-body.theme-matrix .stat-meta { color:#4daa4d; font-size:.65rem; }
+body.theme-tv-dark input,
+body.theme-tv-dark select,
+body.theme-tv-dark textarea {
+    background: #2a2e39;
+    border: 1px solid #363a45;
+    color: #d1d4dc;
+    border-radius: 4px;
+}
+body.theme-tv-dark input:focus,
+body.theme-tv-dark select:focus { border-color: #2962ff; outline: none; box-shadow: 0 0 0 2px rgba(41,98,255,.2); }
+body.theme-tv-dark input::placeholder { color: #4c525e; }
+body.theme-tv-dark select option { background: #1e222d; color: #d1d4dc; }
+body.theme-tv-dark .search-bar { background: #2a2e39; border: 1px solid #363a45; color: #d1d4dc; border-radius: 4px; }
 
-body.theme-matrix .rr-badge.good { background:#010a01; border:1px solid #00ff4155; color:#00ff41; border-radius:0; font-weight:700; }
-body.theme-matrix .rr-badge.bad  { background:#0a0000; border:1px solid #ff444455; color:#ff4444; border-radius:0; }
-body.theme-matrix .rr-badge.na   { background:transparent; border:1px solid #1a5a1a; color:#55aa55; border-radius:0; }
-body.theme-matrix .outcome-badge.tp-hit  { background:#010a01; border:1px solid #00ff4155; color:#00ff41; border-radius:0; font-weight:700; }
-body.theme-matrix .outcome-badge.sl-hit  { background:#0a0000; border:1px solid #ff444455; color:#ff4444; border-radius:0; }
-body.theme-matrix .outcome-badge.partial { background:#050a00; border:1px solid #ccff0055; color:#ccff00; border-radius:0; }
-body.theme-matrix .outcome-badge.be      { background:#010a01; border:1px solid #1a5a1a; color:#55cc55; border-radius:0; }
+body.theme-tv-dark .login-card { background: #1e222d; border: 1px solid #2a2e39; border-radius: 8px; box-shadow: 0 8px 40px rgba(0,0,0,.4); }
+body.theme-tv-dark .cal-day { background: #1e222d; border: 1px solid #2a2e39; border-radius: 4px; }
+body.theme-tv-dark .cal-day b { color: #787b86; }
+body.theme-tv-dark .cal-day.profit { border-top: 2px solid #26a69a; }
+body.theme-tv-dark .cal-day.loss   { border-top: 2px solid #ef5350; }
+body.theme-tv-dark .scan-zone { background: #131722; border: 1px dashed #2a2e39; border-radius: 4px; }
+body.theme-tv-dark .scan-zone-label { color: #4c525e; }
+body.theme-tv-dark .scan-zone-label span { color: #d1d4dc; }
 
-body.theme-matrix .lot-badge { background:#000; border:1px solid #1a5a1a; color:#00ff41; border-radius:0; font-weight:700; }
-body.theme-matrix .price-lbl { color:#4daa4d; }
-body.theme-matrix .price-val { color:#55cc55; }
 
-body.theme-matrix input, body.theme-matrix select, body.theme-matrix textarea { background:#000; border:1px solid #0d3a0d; color:#00ff41; border-radius:0; }
-body.theme-matrix input:focus, body.theme-matrix select:focus { border-color:#00ff41; box-shadow:0 0 8px rgba(0,255,65,.2); outline:none; }
-body.theme-matrix input::placeholder { color:#2a5a2a; }
-body.theme-matrix select option { background:#000; color:#00ff41; }
-body.theme-matrix .search-bar { background:#000; border:1px solid #0d3a0d; color:#00ff41; border-radius:0; }
+/* ══ TRADINGVIEW LIGHT ══ */
+body.theme-tv-light {
+    --bg:        #ffffff;
+    --surface:   #f0f3fa;
+    --border:    #e0e3eb;
+    --primary:   #131722;
+    --accent:    #2962ff;
+    --text:      #787b86;
+    --text-light:#131722;
+    --negative:  #ef5350;
+    --positive:  #26a69a;
+    --glow:      none;
+    --card-radius: 6px;
+    background: #ffffff;
+    color: #787b86;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+body.theme-tv-light .card,
+body.theme-tv-light .stat-card,
+body.theme-tv-light .table-wrap {
+    background: #fff;
+    border: 1px solid #e0e3eb;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+body.theme-tv-light .header-top {
+    background: #fff;
+    border-bottom: 1px solid #e0e3eb;
+}
+body.theme-tv-light .header-title {
+    color: #131722;
+    letter-spacing: 2px;
+    font-weight: 600;
+    font-size: .65rem;
+}
+body.theme-tv-light .tab-nav {
+    background: #fff;
+    border-bottom: 1px solid #e0e3eb;
+}
+body.theme-tv-light .tab-btn {
+    color: #787b86;
+    font-size: .7rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    letter-spacing: .5px;
+}
+body.theme-tv-light .tab-btn:hover  { color: #131722; }
+body.theme-tv-light .tab-btn.active { color: #131722; border-bottom: 2px solid #2962ff; font-weight: 600; }
+body.theme-tv-light .save-btn {
+    background: #2962ff;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    font-weight: 600;
+    border-radius: 4px;
+    font-size: .72rem;
+}
+body.theme-tv-light .save-btn:hover { background: #1e53e5; }
+body.theme-tv-light .btn-action {
+    border: 1px solid #e0e3eb;
+    color: #787b86;
+    background: #fff;
+    border-radius: 4px;
+    font-size: .68rem;
+}
+body.theme-tv-light .btn-action:hover { border-color: #787b86; color: #131722; }
 
-body.theme-matrix .login-card { background:#000; border:1px solid #00ff41; box-shadow:0 0 60px rgba(0,255,65,.15); border-radius:0; }
-body.theme-matrix .cal-day { background:#010a01; border:1px solid #040f04; }
-body.theme-matrix .cal-day b { color:#55cc55; }
-body.theme-matrix .cal-day.profit { border-top:2px solid #00ff4177; }
-body.theme-matrix .cal-day.loss   { border-top:2px solid #ff444477; }
+body.theme-tv-light th {
+    color: #787b86;
+    background: #f8f9fd;
+    border-bottom: 1px solid #e0e3eb;
+    letter-spacing: 1px;
+    font-size: .52rem;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-transform: uppercase;
+}
+body.theme-tv-light td { border-bottom: 1px solid #f0f3fa; color: #131722; font-size: .8rem; }
+body.theme-tv-light tr:hover td { background: #f8f9fd; }
+body.theme-tv-light .month-header td {
+    background: #f0f3fa;
+    color: #131722;
+    letter-spacing: 4px;
+    font-weight: 700;
+    border-top: 1px solid #e0e3eb;
+    font-size: .72rem;
+    text-transform: uppercase;
+}
+body.theme-tv-light .section-title {
+    color: #787b86;
+    border-bottom: 1px solid #e0e3eb;
+    font-size: .58rem;
+    font-weight: 600;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    letter-spacing: 2px;
+}
+body.theme-tv-light .stat-val   { color: #131722; font-weight: 700; font-size: 1.6rem; }
+body.theme-tv-light .stat-label { color: #787b86; font-size: .58rem; text-transform: uppercase; letter-spacing: 2px; }
+body.theme-tv-light .stat-meta  { color: #adb2bd; font-size: .65rem; }
 
-body.theme-matrix .scan-zone { background:#000; border:1px dashed #0d3a0d; }
-body.theme-matrix .scan-zone-label { color:#4daa4d; }
-body.theme-matrix .scan-zone-label span { color:#00ff41; }
+body.theme-tv-light .rr-badge.good { background: rgba(38,166,154,.1); border: 1px solid rgba(38,166,154,.4); color: #1a9b8f; border-radius: 4px; }
+body.theme-tv-light .rr-badge.bad  { background: rgba(239,83,80,.08); border: 1px solid rgba(239,83,80,.4);  color: #d32f2f; border-radius: 4px; }
+body.theme-tv-light .rr-badge.na   { background: #f0f3fa; border: 1px solid #e0e3eb; color: #adb2bd; border-radius: 4px; }
+body.theme-tv-light .outcome-badge.tp-hit  { background: rgba(38,166,154,.1); border: 1px solid rgba(38,166,154,.4); color: #1a9b8f; border-radius: 4px; font-weight: 600; }
+body.theme-tv-light .outcome-badge.sl-hit  { background: rgba(239,83,80,.08); border: 1px solid rgba(239,83,80,.4);  color: #d32f2f; border-radius: 4px; }
+body.theme-tv-light .outcome-badge.partial { background: rgba(255,152,0,.08); border: 1px solid rgba(255,152,0,.4);  color: #e65100; border-radius: 4px; }
+body.theme-tv-light .outcome-badge.be      { background: rgba(41,98,255,.06); border: 1px solid rgba(41,98,255,.3);  color: #2962ff; border-radius: 4px; }
+body.theme-tv-light .lot-badge { background: #f0f3fa; border: 1px solid #e0e3eb; color: #131722; border-radius: 4px; font-weight: 600; }
+body.theme-tv-light .price-lbl { color: #adb2bd; }
+body.theme-tv-light .price-val { color: #787b86; }
 
+body.theme-tv-light input,
+body.theme-tv-light select,
+body.theme-tv-light textarea {
+    background: #fff;
+    border: 1px solid #e0e3eb;
+    color: #131722;
+    border-radius: 4px;
+}
+body.theme-tv-light input:focus,
+body.theme-tv-light select:focus { border-color: #2962ff; outline: none; box-shadow: 0 0 0 2px rgba(41,98,255,.15); }
+body.theme-tv-light input::placeholder { color: #adb2bd; }
+body.theme-tv-light select option { background: #fff; color: #131722; }
+body.theme-tv-light .search-bar { background: #fff; border: 1px solid #e0e3eb; color: #131722; border-radius: 4px; }
+
+body.theme-tv-light .login-card { background: #fff; border: 1px solid #e0e3eb; border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+body.theme-tv-light .cal-day { background: #fff; border: 1px solid #e0e3eb; border-radius: 4px; }
+body.theme-tv-light .cal-day b { color: #787b86; }
+body.theme-tv-light .cal-day.profit { border-top: 2px solid #26a69a; }
+body.theme-tv-light .cal-day.loss   { border-top: 2px solid #ef5350; }
+body.theme-tv-light .scan-zone { background: #f8f9fd; border: 1px dashed #e0e3eb; border-radius: 4px; }
+body.theme-tv-light .scan-zone-label { color: #adb2bd; }
+body.theme-tv-light .scan-zone-label span { color: #131722; }
 
         body,.card,.stat-card,.table-wrap,.btn-action,.tab-btn,.header-title,.stat-val {
             transition:background 0.3s,color 0.3s,border-color 0.3s,box-shadow 0.3s;
@@ -810,20 +907,16 @@ body.theme-matrix .scan-zone-label span { color:#00ff41; }
 
           
 <!-- Theme strip -->
-<div style="display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);padding:2px 8px;">
-    <button onclick="setTheme('void')"
-        style="padding:3px 10px;font-size:.5rem;cursor:pointer;border:1px solid #333;background:#0a0a0a;color:#ccc;border-radius:0;font-weight:600;letter-spacing:1px;">
-        ○ VOID
+<!-- Theme toggle -->
+<div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;padding:2px;">
+    <button id="theme-dark-btn" onclick="setTheme('tv-dark')"
+        style="display:flex;align-items:center;gap:5px;padding:4px 12px;font-size:.65rem;cursor:pointer;border:none;border-radius:4px;font-family:inherit;font-weight:600;background:#2962ff;color:#fff;transition:all .15s;">
+        🌙 Dark
     </button>
-    <button onclick="setTheme('matrix')"
-        style="padding:3px 10px;font-size:.5rem;cursor:pointer;border:1px solid #1a5a1a;background:#000;color:#00ff41;border-radius:0;font-family:'Share Tech Mono',monospace;font-weight:700;text-shadow:0 0 6px #00ff41;letter-spacing:1px;">
-        ◉ MATRIX
+    <button id="theme-light-btn" onclick="setTheme('tv-light')"
+        style="display:flex;align-items:center;gap:5px;padding:4px 12px;font-size:.65rem;cursor:pointer;border:none;border-radius:4px;font-family:inherit;font-weight:600;background:transparent;color:#787b86;transition:all .15s;">
+        ☀️ Light
     </button>
-    <span style="font-size:.4rem;color:#444;margin-left:4px;font-family:'Share Tech Mono',monospace;">BG:</span>
-    <input type="color" id="custom-bg" value="#000000" oninput="syncHex('custom-bg','custom-bg-hex');setCustomBg(this.value)"
-        style="width:18px;height:18px;padding:1px;border:1px solid #222;background:transparent;cursor:pointer;">
-    <input type="text" id="custom-bg-hex" placeholder="#000000" maxlength="7" oninput="onCustomBgHex(this.value)"
-        style="width:54px;background:#0a0a0a;border:1px solid #222;color:#666;padding:2px 4px;font-size:.5rem;outline:none;">
 </div>
 
          <!-- PDF strip -->
@@ -2779,29 +2872,31 @@ function syncPicker(hexId, pickerId) { var h=document.getElementById(hexId),p=do
 
 <!-- Theme System -->
 <script>
-var _currentTheme = localStorage.getItem('rk_theme') || 'void';
-var _allThemes = ['void','matrix'];
+var _currentTheme = localStorage.getItem('rk_theme') || 'tv-dark';
+var _allThemes = ['tv-dark', 'tv-light', 'void', 'matrix'];
+
 function setTheme(name) {
-    _currentTheme = name; localStorage.setItem('rk_theme', name); localStorage.removeItem('rk_custom_bg');
-    document.body.classList.remove.apply(document.body.classList, _allThemes.map(function(t){return 'theme-'+t;}));
+    _currentTheme = name;
+    localStorage.setItem('rk_theme', name);
+    document.body.classList.remove.apply(
+        document.body.classList,
+        _allThemes.map(function(t){ return 'theme-' + t; })
+    );
     document.body.classList.add('theme-' + name);
-    document.body.style.removeProperty('--bg');
-    setTimeout(function() {
-        var computed=getComputedStyle(document.body).getPropertyValue('--bg').trim();
-        var bgEl=document.getElementById('custom-bg'),bgHexEl=document.getElementById('custom-bg-hex');
-        if(bgEl&&computed){try{bgEl.value=computed;}catch(e){}} if(bgHexEl&&computed)bgHexEl.value=computed;
-    }, 50);
+
+    var darkBtn  = document.getElementById('theme-dark-btn');
+    var lightBtn = document.getElementById('theme-light-btn');
+    if(darkBtn && lightBtn) {
+        var isDark = (name === 'tv-dark');
+        darkBtn.style.background  = isDark  ? '#2962ff' : 'transparent';
+        darkBtn.style.color       = isDark  ? '#fff'    : '#787b86';
+        lightBtn.style.background = !isDark ? '#2962ff' : 'transparent';
+        lightBtn.style.color      = !isDark ? '#fff'    : '#787b86';
+    }
 }
-function setCustomBg(hex) {
-    document.body.style.setProperty('--bg', hex);
-    var hexEl=document.getElementById('custom-bg-hex'); if(hexEl) hexEl.value=hex;
-    localStorage.setItem('rk_custom_bg', hex);
-}
-function onCustomBgHex(val) { val=val.trim(); var picker=document.getElementById('custom-bg'); if(/^#[0-9a-fA-F]{6}$/.test(val)){if(picker)picker.value=val;setCustomBg(val);} }
+
 (function initTheme() {
-    var saved = localStorage.getItem('rk_theme') || 'void', savedBg=localStorage.getItem('rk_custom_bg');
-    setTheme(saved);
-    if(savedBg) setTimeout(function(){setCustomBg(savedBg);},80);
+    setTheme(localStorage.getItem('rk_theme') || 'tv-dark');
 })();
 </script>
 <script>
