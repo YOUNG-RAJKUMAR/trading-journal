@@ -1600,7 +1600,7 @@ function switchFeed(mode) {
 }
 
 var _countdownInterval = null;
-var _currentTF = ['60', '60'];
+var _currentTF = ['W', 'W'];
 
     function isForexMarketOpen() {
     var now  = new Date();
@@ -2255,7 +2255,7 @@ function launchPanel(num) {
     var containerId = 'tv-container-' + num;
     var symbols = { 1: 'EURUSD', 2: 'GBPUSD' };
     var symbol  = symbols[num] || 'EURUSD';
-    var tf      = _currentTF[num-1] || '60';
+    var tf = _currentTF[num-1] || 'W';
 
     // Destroy existing widget
     if(_tvWidgets[num-1]) {
