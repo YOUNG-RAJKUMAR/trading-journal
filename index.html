@@ -1516,12 +1516,12 @@ var MT5Feed = (function() {
 
     /* ── Build HTTP URL ── */
     var url;
-    if(periodParams.firstDataRequest) {
-        /* Initial chart load — fetch max bars */
-        url = 'http://localhost:8766/api/history'
-            + '?symbol=' + encodeURIComponent(symbol)
-            + '&tf='     + encodeURIComponent(tf)
-            + '&count=10000';
+  if(periodParams.firstDataRequest) {
+    var initCount = (tf === 'W1' || tf === 'MN1') ? 300 : 10000;
+    url = 'http://localhost:8766/api/history'
+        + '?symbol=' + encodeURIComponent(symbol)
+        + '&tf='     + encodeURIComponent(tf)
+        + '&count=' + initCount;
     } else {
         /* User scrolled back — fetch specific range */
         url = 'http://localhost:8766/api/history'
