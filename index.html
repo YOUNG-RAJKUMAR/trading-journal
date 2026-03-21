@@ -445,135 +445,143 @@ body.theme-void {
 
 /* ══ TRADINGVIEW DARK (default) ══ */
 :root,
-/* ══ FUNDEDNEXT "SABOARD" LIGHT ══ */
-body.theme-tv-light {
-    --bg:        #f0f2f5;
-    --surface:   #ffffff;
-    --border:    #e2e8f0;
-    --primary:   #1e293b;
-    --accent:    #6c47ff;
-    --text:      #64748b;
-    --text-light:#1e293b;
-    --negative:  #ef4444;
-    --positive:  #10b981;
+/* ══ FXIFY DARK TEAL THEME ══ */
+body.theme-fxify {
+    --bg:        #0a1628;
+    --surface:   #0f1f33;
+    --border:    #1a3a4a;
+    --primary:   #ffffff;
+    --accent:    #00d4aa;
+    --text:      #8baab8;
+    --text-light:#ffffff;
+    --negative:  #ff4d6a;
+    --positive:  #00d4aa;
     --glow:      none;
-    --card-radius: 12px;
-    background: #f0f2f5;
-    color: #64748b;
+    --card-radius: 14px;
+    background: #0a1628;
+    color: #8baab8;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* ── CARDS ── */
-body.theme-tv-light .card,
-body.theme-tv-light .stat-card,
-body.theme-tv-light .table-wrap {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+body.theme-fxify .card,
+body.theme-fxify .stat-card,
+body.theme-fxify .table-wrap {
+    background: #0f1f33;
+    border: 1px solid #1a3a4a;
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
 }
 
 /* ── HEADER ── */
-body.theme-tv-light .header-top {
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+body.theme-fxify .header-top {
+    background: #0f1f33;
+    border-bottom: 1px solid #1a3a4a;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
 }
-body.theme-tv-light .header-title {
-    color: #1e293b;
-    letter-spacing: 2px;
+body.theme-fxify .header-title {
+    color: #ffffff;
+    letter-spacing: 3px;
     font-weight: 700;
     font-size: .65rem;
 }
 
 /* ── TABS ── */
-body.theme-tv-light .tab-nav {
-    background: #ffffff;
-    border-bottom: 2px solid #e2e8f0;
+body.theme-fxify .tab-nav {
+    background: #0f1f33;
+    border-bottom: 1px solid #1a3a4a;
 }
-body.theme-tv-light .tab-btn {
-    color: #94a3b8;
+body.theme-fxify .tab-btn {
+    color: #4a7a8a;
     font-size: .7rem;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    margin-bottom: -2px;
-    letter-spacing: .5px;
+    margin-bottom: -1px;
+    letter-spacing: 1px;
     font-weight: 500;
     padding: 8px 4px;
+    text-transform: uppercase;
 }
-body.theme-tv-light .tab-btn:hover  { color: #1e293b; }
-body.theme-tv-light .tab-btn.active {
-    color: #6c47ff;
-    border-bottom: 2px solid #6c47ff;
+body.theme-fxify .tab-btn:hover  { color: #00d4aa; }
+body.theme-fxify .tab-btn.active {
+    color: #00d4aa;
+    border-bottom: 2px solid #00d4aa;
     font-weight: 700;
+    text-shadow: 0 0 12px rgba(0,212,170,0.4);
 }
 
-/* ── BUTTONS ── */
-body.theme-tv-light .save-btn {
-    background: linear-gradient(135deg, #6c47ff, #8b5cf6);
-    color: #fff;
+/* ── SAVE BUTTON ── */
+body.theme-fxify .save-btn {
+    background: linear-gradient(135deg, #00d4aa, #00b894);
+    color: #0a1628;
     border: none;
-    padding: 10px 20px;
-    font-weight: 700;
-    border-radius: 8px;
+    padding: 12px 20px;
+    font-weight: 800;
+    border-radius: 10px;
     font-size: .75rem;
-    letter-spacing: .5px;
-    box-shadow: 0 4px 14px rgba(108,71,255,0.35);
+    letter-spacing: 1px;
+    box-shadow: 0 4px 20px rgba(0,212,170,0.3);
+    text-transform: uppercase;
 }
-body.theme-tv-light .save-btn:hover {
-    background: linear-gradient(135deg, #5b38e8, #7c3aed);
-    box-shadow: 0 6px 20px rgba(108,71,255,0.45);
+body.theme-fxify .save-btn:hover {
+    background: linear-gradient(135deg, #00f5c4, #00d4aa);
+    box-shadow: 0 6px 28px rgba(0,212,170,0.5);
 }
-body.theme-tv-light .btn-action {
-    border: 1px solid #e2e8f0;
-    color: #475569;
-    background: #ffffff;
-    border-radius: 6px;
+
+/* ── ACTION BUTTONS ── */
+body.theme-fxify .btn-action {
+    border: 1px solid #1a3a4a;
+    color: #8baab8;
+    background: #0f1f33;
+    border-radius: 8px;
     font-size: .68rem;
     font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: all .15s;
 }
-body.theme-tv-light .btn-action:hover {
-    border-color: #6c47ff;
-    color: #6c47ff;
-    background: #f5f3ff;
+body.theme-fxify .btn-action:hover {
+    border-color: #00d4aa;
+    color: #00d4aa;
+    background: rgba(0,212,170,0.08);
+    box-shadow: 0 0 12px rgba(0,212,170,0.15);
 }
 
 /* ── TABLE ── */
-body.theme-tv-light th {
-    color: #94a3b8;
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
-    letter-spacing: 1.5px;
+body.theme-fxify th {
+    color: #4a7a8a;
+    background: #0a1628;
+    border-bottom: 1px solid #1a3a4a;
+    letter-spacing: 2px;
     font-size: .52rem;
     font-weight: 700;
     padding: 12px 14px;
     text-transform: uppercase;
 }
-body.theme-tv-light td {
-    border-bottom: 1px solid #f1f5f9;
-    color: #1e293b;
+body.theme-fxify td {
+    border-bottom: 1px solid #0f2030;
+    color: #c8dde8;
     font-size: .8rem;
-    font-weight: 400;
 }
-body.theme-tv-light tr:hover td {
-    background: #f8f7ff;
+body.theme-fxify tr:hover td {
+    background: rgba(0,212,170,0.04);
+    color: #ffffff;
 }
-body.theme-tv-light .month-header td {
-    background: linear-gradient(90deg, #f5f3ff, #faf5ff);
-    color: #6c47ff;
-    letter-spacing: 4px;
+body.theme-fxify .month-header td {
+    background: #0a1628;
+    color: #00d4aa;
+    letter-spacing: 5px;
     font-weight: 700;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #1a3a4a;
+    border-bottom: 1px solid #1a3a4a;
     font-size: .72rem;
     text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0,212,170,0.3);
 }
 
-/* ── SECTION TITLES ── */
-body.theme-tv-light .section-title {
-    color: #94a3b8;
-    border-bottom: 1px solid #e2e8f0;
+/* ── SECTION TITLE ── */
+body.theme-fxify .section-title {
+    color: #4a7a8a;
+    border-bottom: 1px solid #1a3a4a;
     font-size: .58rem;
     font-weight: 700;
     padding-bottom: 10px;
@@ -583,116 +591,133 @@ body.theme-tv-light .section-title {
 }
 
 /* ── STAT CARDS ── */
-body.theme-tv-light .stat-val {
-    color: #1e293b;
+body.theme-fxify .stat-val {
+    color: #ffffff;
     font-weight: 700;
     font-size: 1.6rem;
 }
-body.theme-tv-light .stat-label {
-    color: #94a3b8;
+body.theme-fxify .stat-label {
+    color: #4a7a8a;
     font-size: .58rem;
     text-transform: uppercase;
     letter-spacing: 2px;
     font-weight: 600;
 }
-body.theme-tv-light .stat-meta  { color: #cbd5e1; font-size: .65rem; }
+body.theme-fxify .stat-meta { color: #2a4a5a; font-size: .65rem; }
 
 /* ── BADGES ── */
-body.theme-tv-light .rr-badge.good {
-    background: #ecfdf5; border: 1px solid #6ee7b7;
-    color: #059669; border-radius: 6px; font-weight: 700;
+body.theme-fxify .rr-badge.good {
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.35);
+    color: #00d4aa; border-radius: 6px; font-weight: 700;
 }
-body.theme-tv-light .rr-badge.bad {
-    background: #fef2f2; border: 1px solid #fca5a5;
-    color: #dc2626; border-radius: 6px; font-weight: 700;
+body.theme-fxify .rr-badge.bad {
+    background: rgba(255,77,106,0.1);
+    border: 1px solid rgba(255,77,106,0.35);
+    color: #ff4d6a; border-radius: 6px; font-weight: 700;
 }
-body.theme-tv-light .rr-badge.na {
-    background: #f8fafc; border: 1px solid #e2e8f0;
-    color: #94a3b8; border-radius: 6px;
+body.theme-fxify .rr-badge.na {
+    background: transparent;
+    border: 1px solid #1a3a4a;
+    color: #2a5a6a; border-radius: 6px;
 }
-body.theme-tv-light .outcome-badge.tp-hit {
-    background: #ecfdf5; border: 1px solid #6ee7b7;
-    color: #059669; border-radius: 6px; font-weight: 700;
+body.theme-fxify .outcome-badge.tp-hit {
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.35);
+    color: #00d4aa; border-radius: 6px; font-weight: 700;
 }
-body.theme-tv-light .outcome-badge.sl-hit {
-    background: #fef2f2; border: 1px solid #fca5a5;
-    color: #dc2626; border-radius: 6px; font-weight: 700;
+body.theme-fxify .outcome-badge.sl-hit {
+    background: rgba(255,77,106,0.1);
+    border: 1px solid rgba(255,77,106,0.35);
+    color: #ff4d6a; border-radius: 6px; font-weight: 700;
 }
-body.theme-tv-light .outcome-badge.partial {
-    background: #fffbeb; border: 1px solid #fcd34d;
-    color: #d97706; border-radius: 6px;
+body.theme-fxify .outcome-badge.partial {
+    background: rgba(255,193,7,0.08);
+    border: 1px solid rgba(255,193,7,0.3);
+    color: #ffc107; border-radius: 6px;
 }
-body.theme-tv-light .outcome-badge.be {
-    background: #f5f3ff; border: 1px solid #c4b5fd;
-    color: #7c3aed; border-radius: 6px;
+body.theme-fxify .outcome-badge.be {
+    background: rgba(0,212,170,0.05);
+    border: 1px solid #1a3a4a;
+    color: #4a9a8a; border-radius: 6px;
 }
-body.theme-tv-light .lot-badge {
-    background: #f5f3ff; border: 1px solid #c4b5fd;
-    color: #6c47ff; border-radius: 6px; font-weight: 700;
+body.theme-fxify .lot-badge {
+    background: rgba(0,212,170,0.08);
+    border: 1px solid rgba(0,212,170,0.25);
+    color: #00d4aa; border-radius: 6px; font-weight: 700;
 }
 
-/* ── PRICE LABELS ── */
-body.theme-tv-light .price-lbl { color: #cbd5e1; font-weight: 600; }
-body.theme-tv-light .price-val { color: #475569; font-weight: 500; }
+/* ── PRICE ── */
+body.theme-fxify .price-lbl { color: #2a5a6a; }
+body.theme-fxify .price-val { color: #6a9aaa; }
 
 /* ── INPUTS ── */
-body.theme-tv-light input,
-body.theme-tv-light select,
-body.theme-tv-light textarea {
-    background: #f8fafc;
-    border: 1.5px solid #e2e8f0;
-    color: #1e293b;
+body.theme-fxify input,
+body.theme-fxify select,
+body.theme-fxify textarea {
+    background: #0a1628;
+    border: 1px solid #1a3a4a;
+    color: #c8dde8;
     border-radius: 8px;
-    font-weight: 500;
+    font-weight: 400;
 }
-body.theme-tv-light input:focus,
-body.theme-tv-light select:focus {
-    border-color: #6c47ff;
+body.theme-fxify input:focus,
+body.theme-fxify select:focus {
+    border-color: #00d4aa;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(108,71,255,0.12);
-    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0,212,170,0.12);
 }
-body.theme-tv-light input::placeholder { color: #cbd5e1; }
-body.theme-tv-light select option { background: #fff; color: #1e293b; }
-body.theme-tv-light .search-bar {
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    color: #1e293b;
+body.theme-fxify input::placeholder { color: #2a4a5a; }
+body.theme-fxify select option { background: #0f1f33; color: #c8dde8; }
+
+body.theme-fxify .search-bar {
+    background: #0f1f33;
+    border: 1px solid #1a3a4a;
+    color: #c8dde8;
     border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
-body.theme-tv-light .search-bar:focus {
-    border-color: #6c47ff;
-    box-shadow: 0 0 0 3px rgba(108,71,255,0.12);
+body.theme-fxify .search-bar:focus {
+    border-color: #00d4aa;
+    box-shadow: 0 0 0 3px rgba(0,212,170,0.1);
 }
 
-/* ── LOGIN CARD ── */
-body.theme-tv-light .login-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
+/* ── LOGIN ── */
+body.theme-fxify .login-card {
+    background: #0f1f33;
+    border: 1px solid #1a3a4a;
     border-radius: 16px;
-    box-shadow: 0 8px 40px rgba(108,71,255,0.12);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5),
+                0 0 40px rgba(0,212,170,0.08);
 }
 
 /* ── CALENDAR ── */
-body.theme-tv-light .cal-day {
-    background: #fff;
-    border: 1px solid #e2e8f0;
+body.theme-fxify .cal-day {
+    background: #0f1f33;
+    border: 1px solid #1a3a4a;
     border-radius: 8px;
 }
-body.theme-tv-light .cal-day b { color: #475569; font-weight: 600; }
-body.theme-tv-light .cal-day.profit { border-top: 3px solid #10b981; }
-body.theme-tv-light .cal-day.loss   { border-top: 3px solid #ef4444; }
+body.theme-fxify .cal-day b { color: #6a9aaa; }
+body.theme-fxify .cal-day.profit {
+    border-top: 3px solid #00d4aa;
+    box-shadow: 0 -1px 8px rgba(0,212,170,0.15);
+}
+body.theme-fxify .cal-day.loss {
+    border-top: 3px solid #ff4d6a;
+    box-shadow: 0 -1px 8px rgba(255,77,106,0.15);
+}
 
-/* ── SCAN / MEDIA ZONES ── */
-body.theme-tv-light .scan-zone {
-    background: #f8f7ff;
-    border: 2px dashed #c4b5fd;
+/* ── SCAN ZONE ── */
+body.theme-fxify .scan-zone {
+    background: rgba(0,212,170,0.03);
+    border: 2px dashed #1a4a5a;
     border-radius: 10px;
 }
-body.theme-tv-light .scan-zone:hover { border-color: #6c47ff; }
-body.theme-tv-light .scan-zone-label { color: #94a3b8; font-weight: 500; }
-body.theme-tv-light .scan-zone-label span { color: #6c47ff; font-weight: 600; }
+body.theme-fxify .scan-zone:hover {
+    border-color: #00d4aa;
+    box-shadow: 0 0 20px rgba(0,212,170,0.1);
+}
+body.theme-fxify .scan-zone-label { color: #2a5a6a; }
+body.theme-fxify .scan-zone-label span { color: #00d4aa; font-weight: 600; }
         
         body,.card,.stat-card,.table-wrap,.btn-action,.tab-btn,.header-title,.stat-val {
             transition:background 0.3s,color 0.3s,border-color 0.3s,box-shadow 0.3s;
@@ -878,18 +903,15 @@ body.theme-tv-light .scan-zone-label span { color: #6c47ff; font-weight: 600; }
 
           
 <!-- Theme strip -->
-<!-- Theme toggle -->
-<div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;padding:2px;">
-    <button id="theme-dark-btn" onclick="setTheme('tv-dark')"
-        style="display:flex;align-items:center;gap:5px;padding:4px 12px;font-size:.65rem;cursor:pointer;border:none;border-radius:4px;font-family:inherit;font-weight:600;background:#2962ff;color:#fff;transition:all .15s;">
-        🌙 Dark
-    </button>
-    <button id="theme-light-btn" onclick="setTheme('tv-light')"
+<button id="theme-light-btn" onclick="setTheme('tv-light')"
         style="display:flex;align-items:center;gap:5px;padding:4px 12px;font-size:.65rem;cursor:pointer;border:none;border-radius:4px;font-family:inherit;font-weight:600;background:transparent;color:#787b86;transition:all .15s;">
         ☀️ Light
     </button>
+    <button id="theme-fxify-btn" onclick="setTheme('fxify')"
+        style="display:flex;align-items:center;gap:5px;padding:4px 12px;font-size:.65rem;cursor:pointer;border:none;border-radius:4px;font-family:inherit;font-weight:600;background:transparent;color:#00d4aa;transition:all .15s;">
+        ◈ FXIFY
+    </button>
 </div>
-
          <!-- PDF strip -->
             <div style="background:var(--surface);padding:2px 6px;border:1px solid var(--border);display:flex;gap:4px;align-items:center;">
                 <span style="font-size:.48rem;color:#666;">PDF:</span>
@@ -2844,7 +2866,7 @@ function syncPicker(hexId, pickerId) { var h=document.getElementById(hexId),p=do
 <!-- Theme System -->
 <script>
 var _currentTheme = localStorage.getItem('rk_theme') || 'tv-dark';
-var _allThemes = ['tv-dark', 'tv-light', 'void', 'matrix'];
+var _allThemes = ['tv-dark', 'tv-light', 'fxify', 'void', 'matrix'];
 
 function setTheme(name) {
     _currentTheme = name;
@@ -2857,13 +2879,11 @@ function setTheme(name) {
 
     var darkBtn  = document.getElementById('theme-dark-btn');
     var lightBtn = document.getElementById('theme-light-btn');
-    if(darkBtn && lightBtn) {
-        var isDark = (name === 'tv-dark');
-        darkBtn.style.background  = isDark  ? '#2962ff' : 'transparent';
-        darkBtn.style.color       = isDark  ? '#fff'    : '#787b86';
-        lightBtn.style.background = !isDark ? '#2962ff' : 'transparent';
-        lightBtn.style.color      = !isDark ? '#fff'    : '#787b86';
-    }
+    var fxifyBtn = document.getElementById('theme-fxify-btn');
+
+    if(darkBtn)  { darkBtn.style.background  = name==='tv-dark'  ? '#2962ff'  : 'transparent'; darkBtn.style.color  = name==='tv-dark'  ? '#fff' : '#787b86'; }
+    if(lightBtn) { lightBtn.style.background = name==='tv-light' ? '#2962ff'  : 'transparent'; lightBtn.style.color = name==='tv-light' ? '#fff' : '#787b86'; }
+    if(fxifyBtn) { fxifyBtn.style.background = name==='fxify'    ? '#00d4aa'  : 'transparent'; fxifyBtn.style.color = name==='fxify'    ? '#0a1628' : '#00d4aa'; fxifyBtn.style.borderRadius = '4px'; }
 }
 
 (function initTheme() {
