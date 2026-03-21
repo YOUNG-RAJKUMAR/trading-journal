@@ -1517,7 +1517,7 @@ var MT5Feed = (function() {
     /* ── Build HTTP URL ── */
     var url;
   if(periodParams.firstDataRequest) {
-   var initCount = tf === 'MN1' ? 60 : tf === 'W1' ? 100 : 10000;
+  var initCount = tf === 'MN1' ? 24 : tf === 'W1' ? 30 : 10000;
     url = 'http://localhost:8766/api/history'
         + '?symbol=' + encodeURIComponent(symbol)
         + '&tf='     + encodeURIComponent(tf)
