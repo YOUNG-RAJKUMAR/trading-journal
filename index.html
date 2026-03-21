@@ -1341,7 +1341,7 @@ var MT5Feed = (function() {
                     Object.keys(msg.data).forEach(function(sym) {
                         if(!lastData[sym]) return;
                        lastData[sym].bid    = parseFloat(msg.data[sym].bid.toFixed(8));
-                    lastData[sym].ask    = parseFloat(msg.data[sym].ask.toFixed(8));
+                       lastData[sym].ask    = parseFloat(msg.data[sym].ask.toFixed(8));
                         lastData[sym].spread = msg.data[sym].spread;
                         lastData[sym].time   = msg.data[sym].time;
 
@@ -1350,10 +1350,8 @@ var MT5Feed = (function() {
                             if(!incoming || !incoming.length) return;
                             if(!lastData[sym].candles[tf]) return;
                             var hist   = lastData[sym].candles[tf];
-                         var latest = incoming[incoming.length - 1];
-                         var last   = hist[hist.length - 1];
-
-                        if(!last) { hist.push(latest); return; }  // ← ADD THIS LINE
+                            var latest = incoming[incoming.length - 1];
+                            var last   = hist[hist.length - 1];
 
                             if(latest.time === last.time) {
                                 hist[hist.length - 1] = latest;
@@ -1516,12 +1514,12 @@ var MT5Feed = (function() {
 
     /* ── Build HTTP URL ── */
     var url;
-  if(periodParams.firstDataRequest) {
-  var initCount = tf === 'MN1' ? 24 : tf === 'W1' ? 30 : 10000;
-    url = 'http://localhost:8766/api/history'
-        + '?symbol=' + encodeURIComponent(symbol)
-        + '&tf='     + encodeURIComponent(tf)
-        + '&count=' + initCount;
+    if(periodParams.firstDataRequest) {
+        /* Initial chart load — fetch max bars */
+        url = 'http://localhost:8766/api/history'
+            + '?symbol=' + encodeURIComponent(symbol)
+            + '&tf='     + encodeURIComponent(tf)
+            + '&count=10000';
     } else {
         /* User scrolled back — fetch specific range */
         url = 'http://localhost:8766/api/history'
@@ -1600,7 +1598,7 @@ function switchFeed(mode) {
 }
 
 var _countdownInterval = null;
-var _currentTF = ['W', 'W'];
+var _currentTF = ['60', '60'];
 
     function isForexMarketOpen() {
     var now  = new Date();
@@ -2202,7 +2200,7 @@ if('serviceWorker' in navigator) {
 <script>
 var _chartLayout = 'single';
 var _tvWidgets = [null, null];
-var _currentTF = ['W', 'W']; // per-panel TF tracking
+var _currentTF = ['60', '60']; // per-panel TF tracking
 
 function setChartLayout(layout) {
     _chartLayout = layout;
@@ -2255,7 +2253,7 @@ function launchPanel(num) {
     var containerId = 'tv-container-' + num;
     var symbols = { 1: 'EURUSD', 2: 'GBPUSD' };
     var symbol  = symbols[num] || 'EURUSD';
-    var tf = _currentTF[num-1] || 'W';
+    var tf      = _currentTF[num-1] || '60';
 
     // Destroy existing widget
     if(_tvWidgets[num-1]) {
@@ -2599,7 +2597,7 @@ function deskAtp(){
         (ent.toString().split('.')[1]||'').length,
         (sl.toString().split('.')[1]||'').length
     );
-   te.value = parseFloat(tp.toFixed(Math.max(dec,5))).toFixed(Math.max(dec,5));
+    te.value = parseFloat(tp.toFixed(Math.max(dec,5))).toFixed(Math.max(dec,5));
     te.readOnly=true; te.style.borderColor='#44ff88'; te.style.color='#44ff88';
     if(tg) tg.style.display='inline';
     deskCl();
@@ -3574,5 +3572,4 @@ var _csPoll = setInterval(function() {
 
 </body>
 </html>
-
 
