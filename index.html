@@ -2458,6 +2458,11 @@ function launchPanel(num) {
         autosize:     true,
         fullscreen:   false,
         debug:        false,
+    
+         // ── ADD THIS ──
+         time_scale: {
+        min_bar_spacing: 6,
+    },
         disabled_features: [
             'volume_force_overlay',
             'create_volume_indicator_by_default',
@@ -2492,52 +2497,38 @@ function launchPanel(num) {
     });
 
     // ── Sync countdown TF with chart interval (MT5 mode) ──
-  _tvWidgets[num-1].onChartReady(function() {
+_tvWidgets[num-1].onChartReady(function() {
     var chart = _tvWidgets[num-1].activeChart();
-    
-    // ── Set D1 default visible range to ~90 bars (like MT5 default) ──
-    var resolution = chart.resolution();
-    var now = Math.floor(Date.now() / 1000);
-    var from;
-    
-    if(resolution === 'D' || resolution === '1D') {
-        from = now - (90 * 24 * 3600);  // 90 days
-    } else if(resolution === '240') {
-        from = now - (60 * 24 * 3600);  // 60 days of H4
-    } else if(resolution === '60') {
-        from = now - (20 * 24 * 3600);  // 20 days of H1
-    } else {
-        from = now - (3 * 24 * 3600);   // 3 days for lower TFs
-    }
-    
-    chart.setVisibleRange(
-        { from: from, to: now + 3600 },
-        { percentRightMargin: 10 }
-    );
 
-    // ── Sync TF tracking ──
+    function applyRange(interval) {
+        var now  = Math.floor(Date.now() / 1000);
+        var from;
+        if     (interval === 'D')   from = now - (45  * 86400);  // 45 D1 bars  ← MT5 default
+        else if(interval === '240') from = now - (30  * 86400);  // 30 days H4
+        else if(interval === '60')  from = now - (10  * 86400);  // 10 days H1
+        else if(interval === '30')  from = now - (5   * 86400);  // 5 days M30
+        else if(interval === '15')  from = now - (3   * 86400);  // 3 days M15
+        else if(interval === '5')   from = now - (2   * 86400);  // 2 days M5
+        else if(interval === '1')   from = now - (0.5 * 86400);  // 12hrs M1
+        else                        from = now - (5   * 86400);
+
+        chart.setVisibleRange(
+            { from: from, to: now + (2 * 86400) },
+            { percentRightMargin: 8 }
+        );
+    }
+
+    // Apply on initial load
+    applyRange(chart.resolution());
     _currentTF[num-1] = chart.resolution();
+
+    // Re-apply whenever TF changes
     chart.onIntervalChanged().subscribe(null, function(interval) {
         _currentTF[num-1] = interval;
-        
-        // Re-apply visible range when TF changes
-        var n = Math.floor(Date.now() / 1000);
-        var f;
-        if(interval === 'D')        f = n - (90 * 24 * 3600);
-        else if(interval === '240') f = n - (60 * 24 * 3600);
-        else if(interval === '60')  f = n - (20 * 24 * 3600);
-        else if(interval === '30')  f = n - (10 * 24 * 3600);
-        else if(interval === '15')  f = n - (5  * 24 * 3600);
-        else if(interval === '5')   f = n - (2  * 24 * 3600);
-        else                        f = n - (1  * 24 * 3600);
-        
-        _tvWidgets[num-1].activeChart().setVisibleRange(
-            { from: f, to: n + 3600 },
-            { percentRightMargin: 10 }
-        );
+        applyRange(interval);
     });
 
-    // ── Symbol sync for panel 1 ──
+    // Sync calc symbol when panel 1 symbol changes
     if(num === 1) {
         _tvWidgets[0].activeChart().onSymbolChanged().subscribe(null, function() {
             var newSym = _tvWidgets[0].activeChart().symbol();
