@@ -1485,11 +1485,15 @@ var MT5Feed = (function() {
                             var incoming = msg.data[sym].candles[tf];
                             if(!incoming || !incoming.length) return;
                             if(!lastData[sym].candles[tf]) return;
-                            var hist   = lastData[sym].candles[tf];
-                            var latest = incoming[incoming.length - 1];
-                            var last   = hist[hist.length - 1];
+                           var hist   = lastData[sym].candles[tf];
+if(!hist.length) {
+    hist.push(incoming[incoming.length - 1]);
+    return;
+}
+var latest = incoming[incoming.length - 1];
+var last   = hist[hist.length - 1];
 
-                            if(latest.time === last.time) {
+if(latest.time === last.time) {
                                 hist[hist.length - 1] = latest;
                             } else if(latest.time > last.time) {
                                 hist.push(latest);
