@@ -1327,49 +1327,10 @@ body.theme-light .lot-badge{background:#f2f2f7 !important;border:0.5px solid #d1
 
           
 
-<!-- Theme Picker -->
-<!-- Theme Picker -->
-<div id="theme-picker-wrap" style="position:relative;">
-    <button id="theme-picker-btn" onclick="toggleThemePicker()"
-        style="display:flex;align-items:center;gap:8px;padding:6px 14px;
-               font-size:.62rem;font-weight:500;cursor:pointer;
-               font-family:-apple-system,'Inter',sans-serif;
-               background:rgba(255,255,255,0.07);
-               border:0.5px solid rgba(255,255,255,0.12);
-               color:rgba(255,255,255,0.85);border-radius:10px;
-               letter-spacing:-0.1px;transition:all .2s;white-space:nowrap;
-               backdrop-filter:blur(10px);">
-        <span id="theme-swatch-preview"
-            style="width:12px;height:12px;border-radius:3px;
-                   background:#0a84ff;display:inline-block;flex-shrink:0;
-                   box-shadow:0 0 6px rgba(10,132,255,0.6);"></span>
-        <span id="theme-label">Classic</span>
-        <span style="opacity:.4;font-size:.55rem;">▾</span>
-    </button>
- <div id="theme-picker-panel"
-    style="display:none;position:fixed;top:50px;right:16px;z-index:9999;
-               background:rgba(18,18,22,0.97);
-               border:0.5px solid rgba(255,255,255,0.1);
-               border-radius:20px;padding:14px;width:310px;
-               box-shadow:0 28px 80px rgba(0,0,0,0.95);
-               backdrop-filter:saturate(180%) blur(40px);
-               -webkit-backdrop-filter:saturate(180%) blur(40px);">
-        <div style="font-size:.4rem;color:rgba(255,255,255,0.28);
-                    letter-spacing:2px;text-transform:uppercase;
-                    margin-bottom:12px;padding:0 2px;
-                    font-family:-apple-system,sans-serif;">
-            DASHBOARD THEME
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px;" id="theme-grid"></div>
-        <div style="margin-top:12px;padding-top:10px;
-                    border-top:0.5px solid rgba(255,255,255,0.07);
-                    font-size:.4rem;color:rgba(255,255,255,0.18);
-                    letter-spacing:1px;text-align:center;">
-            JOURNAL // ULTIMATE PRO
-        </div>
-    </div>
-</div>
-            
+<div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(96,168,255,.12);border:0.5px solid rgba(96,168,255,.25);border-radius:100px;backdrop-filter:blur(10px);font-size:.6rem;color:rgba(221,234,255,.7);letter-spacing:.3px;white-space:nowrap;">
+    <span style="width:8px;height:8px;border-radius:50%;background:#60a8ff;box-shadow:0 0 6px rgba(96,168,255,.6);display:inline-block;"></span>
+    Frosted
+</div>     
          <!-- PDF strip -->
             <div style="background:var(--surface);padding:2px 6px;border:1px solid var(--border);display:flex;gap:4px;align-items:center;">
                 <span style="font-size:.48rem;color:#666;">PDF:</span>
@@ -3432,7 +3393,7 @@ function setTheme(name) {
 }
 
 (function initTheme() {
-    setTheme(localStorage.getItem('rk_theme') || 'classic');
+    setTheme('frosted');
 })();
 </script>
 <script>
