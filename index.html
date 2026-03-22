@@ -897,7 +897,7 @@ body.theme-frosted .stat-val {
         .analytics-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:25px; }
 
         /* CHARTS TAB */
-        #tab-charts { }
+        #tab-charts { zoom:0.8; }
 
         /* PDF */
         .pdf-export-mode #main-content { padding:0;max-width:100%; }
@@ -1069,7 +1069,7 @@ body.theme-frosted .stat-val {
       <div style="display:flex;height:calc(136vh - 80px);">
 
         <!-- ══ CHART CONTAINER WITH OFFLINE OVERLAY ══ -->
-          <div style="flex:1;min-width:0;height:100%;position:relative;display:flex;flex-direction:column;">
+           <div style="flex:1;min-width:0;height:100%;position:relative;zoom:0.75;display:flex;flex-direction:column;">
 
                 <!-- LAYOUT TOGGLE BUTTONS -->
                <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;padding:4px 8px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
@@ -1485,15 +1485,11 @@ var MT5Feed = (function() {
                             var incoming = msg.data[sym].candles[tf];
                             if(!incoming || !incoming.length) return;
                             if(!lastData[sym].candles[tf]) return;
-                           var hist   = lastData[sym].candles[tf];
-if(!hist.length) {
-    hist.push(incoming[incoming.length - 1]);
-    return;
-}
-var latest = incoming[incoming.length - 1];
-var last   = hist[hist.length - 1];
+                            var hist   = lastData[sym].candles[tf];
+                            var latest = incoming[incoming.length - 1];
+                            var last   = hist[hist.length - 1];
 
-if(latest.time === last.time) {
+                            if(latest.time === last.time) {
                                 hist[hist.length - 1] = latest;
                             } else if(latest.time > last.time) {
                                 hist.push(latest);
@@ -2458,11 +2454,6 @@ function launchPanel(num) {
         autosize:     true,
         fullscreen:   false,
         debug:        false,
-    
-         // ── ADD THIS ──
-         time_scale: {
-        min_bar_spacing: 6,
-    },
         disabled_features: [
             'volume_force_overlay',
             'create_volume_indicator_by_default',
@@ -2497,48 +2488,31 @@ function launchPanel(num) {
     });
 
     // ── Sync countdown TF with chart interval (MT5 mode) ──
-_tvWidgets[num-1].onChartReady(function() {
-    var chart = _tvWidgets[num-1].activeChart();
+   _tvWidgets[num-1].onChartReady(function() {
+        _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
 
-    function applyRange(interval) {
-        var now  = Math.floor(Date.now() / 1000);
-        var from;
-        if     (interval === 'D')   from = now - (45  * 86400);  // 45 D1 bars  ← MT5 default
-        else if(interval === '240') from = now - (30  * 86400);  // 30 days H4
-        else if(interval === '60')  from = now - (10  * 86400);  // 10 days H1
-        else if(interval === '30')  from = now - (5   * 86400);  // 5 days M30
-        else if(interval === '15')  from = now - (3   * 86400);  // 3 days M15
-        else if(interval === '5')   from = now - (2   * 86400);  // 2 days M5
-        else if(interval === '1')   from = now - (0.5 * 86400);  // 12hrs M1
-        else                        from = now - (5   * 86400);
-
-        chart.setVisibleRange(
-            { from: from, to: now + (2 * 86400) },
-            { percentRightMargin: 8 }
+        _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(
+            null,
+            function(interval) {
+                _currentTF[num-1] = interval;
+            }
         );
-    }
 
-    // Apply on initial load
-    applyRange(chart.resolution());
-    _currentTF[num-1] = chart.resolution();
-
-    // Re-apply whenever TF changes
-    chart.onIntervalChanged().subscribe(null, function(interval) {
-        _currentTF[num-1] = interval;
-        applyRange(interval);
+        /* ── Sync calc symbol when user changes symbol on panel 1 ── */
+        if(num === 1) {
+            _tvWidgets[0].activeChart().onSymbolChanged().subscribe(
+                null,
+                function() {
+                    var newSym = _tvWidgets[0].activeChart().symbol();
+                    var cs = document.getElementById('calc-symbol');
+                    if(cs) cs.textContent = newSym;
+                    /* reset entry display until next tick arrives */
+                    var ed = document.getElementById('d-entry-display');
+                    if(ed) ed.textContent = 'waiting…';
+                }
+            );
+        }
     });
-
-    // Sync calc symbol when panel 1 symbol changes
-    if(num === 1) {
-        _tvWidgets[0].activeChart().onSymbolChanged().subscribe(null, function() {
-            var newSym = _tvWidgets[0].activeChart().symbol();
-            var cs = document.getElementById('calc-symbol');
-            if(cs) cs.textContent = newSym;
-            var ed = document.getElementById('d-entry-display');
-            if(ed) ed.textContent = 'waiting…';
-        });
-    }
-});
 }
 
 function _launchPanelFree(num, containerId, symbol, tf, c) {
@@ -3821,4 +3795,3 @@ var _csPoll = setInterval(function() {
 
 </body>
 </html>
-
