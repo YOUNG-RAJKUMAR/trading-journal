@@ -1069,7 +1069,7 @@ body.theme-frosted .stat-val {
       <div style="display:flex;height:calc(136vh - 80px);">
 
         <!-- ══ CHART CONTAINER WITH OFFLINE OVERLAY ══ -->
-           <div style="flex:1;min-width:0;height:100%;position:relative;zoom:0.75;display:flex;flex-direction:column;">
+          <div style="flex:1;min-width:0;height:100%;position:relative;display:flex;flex-direction:column;">
 
                 <!-- LAYOUT TOGGLE BUTTONS -->
                <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;padding:4px 8px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
@@ -2492,31 +2492,62 @@ function launchPanel(num) {
     });
 
     // ── Sync countdown TF with chart interval (MT5 mode) ──
-   _tvWidgets[num-1].onChartReady(function() {
-        _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
+  _tvWidgets[num-1].onChartReady(function() {
+    var chart = _tvWidgets[num-1].activeChart();
+    
+    // ── Set D1 default visible range to ~90 bars (like MT5 default) ──
+    var resolution = chart.resolution();
+    var now = Math.floor(Date.now() / 1000);
+    var from;
+    
+    if(resolution === 'D' || resolution === '1D') {
+        from = now - (90 * 24 * 3600);  // 90 days
+    } else if(resolution === '240') {
+        from = now - (60 * 24 * 3600);  // 60 days of H4
+    } else if(resolution === '60') {
+        from = now - (20 * 24 * 3600);  // 20 days of H1
+    } else {
+        from = now - (3 * 24 * 3600);   // 3 days for lower TFs
+    }
+    
+    chart.setVisibleRange(
+        { from: from, to: now + 3600 },
+        { percentRightMargin: 10 }
+    );
 
-        _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(
-            null,
-            function(interval) {
-                _currentTF[num-1] = interval;
-            }
+    // ── Sync TF tracking ──
+    _currentTF[num-1] = chart.resolution();
+    chart.onIntervalChanged().subscribe(null, function(interval) {
+        _currentTF[num-1] = interval;
+        
+        // Re-apply visible range when TF changes
+        var n = Math.floor(Date.now() / 1000);
+        var f;
+        if(interval === 'D')        f = n - (90 * 24 * 3600);
+        else if(interval === '240') f = n - (60 * 24 * 3600);
+        else if(interval === '60')  f = n - (20 * 24 * 3600);
+        else if(interval === '30')  f = n - (10 * 24 * 3600);
+        else if(interval === '15')  f = n - (5  * 24 * 3600);
+        else if(interval === '5')   f = n - (2  * 24 * 3600);
+        else                        f = n - (1  * 24 * 3600);
+        
+        _tvWidgets[num-1].activeChart().setVisibleRange(
+            { from: f, to: n + 3600 },
+            { percentRightMargin: 10 }
         );
-
-        /* ── Sync calc symbol when user changes symbol on panel 1 ── */
-        if(num === 1) {
-            _tvWidgets[0].activeChart().onSymbolChanged().subscribe(
-                null,
-                function() {
-                    var newSym = _tvWidgets[0].activeChart().symbol();
-                    var cs = document.getElementById('calc-symbol');
-                    if(cs) cs.textContent = newSym;
-                    /* reset entry display until next tick arrives */
-                    var ed = document.getElementById('d-entry-display');
-                    if(ed) ed.textContent = 'waiting…';
-                }
-            );
-        }
     });
+
+    // ── Symbol sync for panel 1 ──
+    if(num === 1) {
+        _tvWidgets[0].activeChart().onSymbolChanged().subscribe(null, function() {
+            var newSym = _tvWidgets[0].activeChart().symbol();
+            var cs = document.getElementById('calc-symbol');
+            if(cs) cs.textContent = newSym;
+            var ed = document.getElementById('d-entry-display');
+            if(ed) ed.textContent = 'waiting…';
+        });
+    }
+});
 }
 
 function _launchPanelFree(num, containerId, symbol, tf, c) {
