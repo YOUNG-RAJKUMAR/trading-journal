@@ -1391,7 +1391,17 @@ _tvColors() {
         }).forEach(t => {
             const d = new Date(t.date), ms = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
             if(ms !== curMonth) { body.insertAdjacentHTML('beforeend', `<tr class="month-header"><td colspan="11">${ms.toUpperCase()}</td></tr>`); curMonth = ms; }
-            const rr = this.calcRR(t), oc = this.getOutcome(t), fmt = v => v ? parseFloat(v).toFixed(5) : '---';
+            cconst rr = this.calcRR(t), oc = this.getOutcome(t);
+const fmt = v => {
+    if(!v) return '---';
+    const s = (t.symbol||'').toUpperCase();
+    const isGold  = s.includes('XAU') || s.includes('XAG') || s.includes('GOLD') || s.includes('SILVER');
+    const isIndex = s.includes('US30') || s.includes('US500') || s.includes('US100') ||
+                    s.includes('NAS')  || s.includes('GER')   || s.includes('UK100') ||
+                    s.includes('JP225')|| s.includes('AUS200') || s.includes('VIX');
+    const dec = isGold ? 2 : isIndex ? 1 : 5;
+    return parseFloat(parseFloat(v).toFixed(dec)).toString();
+};
             const pc = `<div class="price-cell">
                 <div class="price-row"><span class="price-dot entry"></span><span class="price-lbl">ENTRY</span><span class="price-val">${fmt(t.entry)}</span></div>
                 <div class="price-row"><span class="price-dot sl"></span><span class="price-lbl">SL</span><span class="price-val" style="color:#ff7777;">${fmt(t.sl)}</span></div>
@@ -1462,7 +1472,16 @@ _tvColors() {
         const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
         const totalPL = dt.reduce((s,t)=>s+t.profit,0), wins = dt.filter(t=>t.profit>0).length;
         titleEl.innerHTML = `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} &nbsp;&middot;&nbsp; ${dt.length} Trade${dt.length>1?'s':''} &nbsp;&middot;&nbsp; WR: ${Math.round(wins/dt.length*100)}% &nbsp;&middot;&nbsp; <span style="color:${totalPL>=0?'var(--positive)':'var(--negative)'};">$${totalPL.toFixed(2)}</span>`;
-        const fmt = v => v ? parseFloat(v).toFixed(5) : '---';
+        const fmt = v => {
+    if(!v) return '---';
+    const s = (t.symbol||'').toUpperCase();
+    const isGold  = s.includes('XAU') || s.includes('XAG') || s.includes('GOLD') || s.includes('SILVER');
+    const isIndex = s.includes('US30') || s.includes('US500') || s.includes('US100') ||
+                    s.includes('NAS')  || s.includes('GER')   || s.includes('UK100') ||
+                    s.includes('JP225')|| s.includes('AUS200') || s.includes('VIX');
+    const dec = isGold ? 2 : isIndex ? 1 : 5;
+    return parseFloat(parseFloat(v).toFixed(dec)).toString();
+};
         tbody.innerHTML = '';
         dt.forEach(t => {
             const rr = this.calcRR(t), oc = this.getOutcome(t);
