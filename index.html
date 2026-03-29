@@ -2334,26 +2334,27 @@ if('serviceWorker' in navigator) {
 
 
 <script>
- var _chartLayout  = 'single';
-    var _tvWidgets    = [null, null];
-    var _currentTF    = ['60', '60'];
-    var _feedMode     = 'mt5';
+var _chartLayout = 'single';
+var _tvWidgets   = [null, null];
+var _currentTF   = ['60', '60'];
+var _feedMode    = 'mt5';
 
-    function launchAllPanels() {
-        launchPanel(1);
-        if(_chartLayout !== 'single') launchPanel(2);
-    }
+function launchAllPanels() {
+    launchPanel(1);
+    if(_chartLayout !== 'single') launchPanel(2);
+}
+
+function setChartLayout(layout) {
+    _chartLayout = layout;
     var wrap = document.getElementById('charts-panels-wrap');
     var p1   = document.getElementById('chart-panel-1');
     var p2   = document.getElementById('chart-panel-2');
-
-    /* Silently abort — tab not visible yet, no retry */
     if(!wrap || !p1 || !p2) return;
 
     ['single','horizontal','vertical'].forEach(function(l) {
         var btn = document.getElementById('layout-btn-' + l);
         if(!btn) return;
-        var active        = (l === layout);
+        var active = (l === layout);
         btn.style.background = active ? '#fff' : '#111';
         btn.style.color      = active ? '#000' : '#666';
         btn.style.border     = active ? '1px solid #fff' : '1px solid #333';
@@ -2362,18 +2363,17 @@ if('serviceWorker' in navigator) {
 
     if(layout === 'single') {
         wrap.style.flexDirection = 'row';
-        p1.style.display = 'flex';  p1.style.flex = '1';
+        p1.style.display = 'flex'; p1.style.flex = '1';
         p2.style.display = 'none';
     } else if(layout === 'horizontal') {
         wrap.style.flexDirection = 'row';
-        p1.style.display = 'flex';  p1.style.flex = '1';
-        p2.style.display = 'flex';  p2.style.flex = '1';
+        p1.style.display = 'flex'; p1.style.flex = '1';
+        p2.style.display = 'flex'; p2.style.flex = '1';
     } else if(layout === 'vertical') {
         wrap.style.flexDirection = 'column';
-        p1.style.display = 'flex';  p1.style.flex = '1';
-        p2.style.display = 'flex';  p2.style.flex = '1';
+        p1.style.display = 'flex'; p1.style.flex = '1';
+        p2.style.display = 'flex'; p2.style.flex = '1';
     }
-
     setTimeout(function() { launchAllPanels(); }, 50);
 }
 
@@ -2381,19 +2381,13 @@ function refreshPanel(num) {
     launchPanel(num);
 }
 
-function launchAllPanels() {
-    launchPanel(1);
-    if(_chartLayout !== 'single') launchPanel(2);
-}
-
 function launchPanel(num) {
     var c = window.ui._tvColors();
     var containerId = 'tv-container-' + num;
-    var symbols = { 1: 'US30', 2: 'US30' };
+    var symbols = { 1: 'US30', 2: 'EURUSD' };
     var symbol  = symbols[num] || 'EURUSD';
     var tf      = _currentTF[num-1] || '60';
 
-    // Destroy existing widget
     if(_tvWidgets[num-1]) {
         try { _tvWidgets[num-1].remove(); } catch(e) {}
         _tvWidgets[num-1] = null;
@@ -2403,13 +2397,11 @@ function launchPanel(num) {
     if(!con) return;
     con.innerHTML = '';
 
-    // ── Per-panel countdown injection ──
     var panel = document.getElementById('chart-panel-' + num);
     if(panel) {
         panel.style.position = 'relative';
         var oldCd = document.getElementById('chart-countdown-' + num);
         if(oldCd) oldCd.remove();
-
         var cd = document.createElement('div');
         cd.id = 'chart-countdown-' + num;
         cd.style.cssText = 'position:absolute;right:62px;top:50%;transform:translateY(-50%);'
@@ -2417,12 +2409,10 @@ function launchPanel(num) {
             + 'padding:5px 10px 5px 8px;font-family:Courier New,monospace;font-size:.8rem;'
             + 'color:#44ff88;z-index:5;pointer-events:none;display:none;'
             + 'letter-spacing:1px;white-space:nowrap;box-shadow:-2px 0 8px rgba(68,255,136,0.15);';
-        cd.innerHTML = '<span id="countdown-val-' + num
-            + '" style="font-size:.85rem;font-weight:700;">--:--</span>';
+        cd.innerHTML = '<span id="countdown-val-' + num + '" style="font-size:.85rem;font-weight:700;">--:--</span>';
         panel.appendChild(cd);
     }
 
-    // TV Free fallback
     if(window._feedMode === 'tv') {
         if(!window._tvFreeLoaded) {
             var s = document.createElement('script');
@@ -2438,7 +2428,6 @@ function launchPanel(num) {
         return;
     }
 
-    // MT5 Advanced Library
     if(typeof TradingView === 'undefined' || !TradingView.widget) {
         con.innerHTML = '<div style="padding:40px;text-align:center;color:#ff4444;font-size:.75rem;letter-spacing:2px;">CHARTING LIBRARY NOT FOUND</div>';
         return;
@@ -2456,18 +2445,8 @@ function launchPanel(num) {
         autosize:     true,
         fullscreen:   false,
         debug:        false,
-        disabled_features: [
-            'volume_force_overlay',
-            'create_volume_indicator_by_default',
-            'header_saveload',
-            'countdown',
-        ],
-      enabled_features: [
-    'seconds_resolution',          // ← ADD THIS
-    'side_toolbar_in_fullscreen_mode',
-    'hide_last_na_study_output',
-    'move_logo_to_main_pane',
-],
+        disabled_features: ['volume_force_overlay','create_volume_indicator_by_default','header_saveload','countdown'],
+        enabled_features:  ['seconds_resolution','side_toolbar_in_fullscreen_mode','hide_last_na_study_output','move_logo_to_main_pane'],
         overrides: {
             'paneProperties.background':                   c.bg,
             'paneProperties.backgroundType':               'solid',
@@ -2489,32 +2468,25 @@ function launchPanel(num) {
         loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
     });
 
-    // ── Sync countdown TF with chart interval (MT5 mode) ──
-   _tvWidgets[num-1].onChartReady(function() {
+    _tvWidgets[num-1].onChartReady(function() {
         _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
 
-        _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(
-            null,
-            function(interval) {
-                _currentTF[num-1] = interval;
-            }
-        );
+        _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(null, function(interval) {
+            _currentTF[num-1] = interval;
+        });
 
-   /* ── Sync calc symbol when user changes symbol on panel 1 ── */
         if(num === 1) {
-            /* Sync on initial load */
             var initSym = _tvWidgets[0].activeChart().symbol();
             if(initSym) deskSelectSymbol(initSym);
 
-            /* Sync on every subsequent symbol change */
-            _tvWidgets[0].activeChart().onSymbolChanged().subscribe(
-                null,
-                function() {
-                    var newSym = _tvWidgets[0].activeChart().symbol();
-                    if(newSym) deskSelectSymbol(newSym);
-                }
-            );
+            _tvWidgets[0].activeChart().onSymbolChanged().subscribe(null, function() {
+                var newSym = _tvWidgets[0].activeChart().symbol();
+                if(newSym) deskSelectSymbol(newSym);
+            });
         }
+    });
+}
+
 function _launchPanelFree(num, containerId, symbol, tf, c) {
     _tvWidgets[num-1] = new TradingView.widget({
         container_id:        containerId,
@@ -2545,16 +2517,11 @@ function _launchPanelFree(num, containerId, symbol, tf, c) {
         }
     });
 
-    // ── Sync countdown TF with chart interval (TV free mode) ──
     _tvWidgets[num-1].onChartReady(function() {
         _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
-
-        _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(
-            null,
-            function(interval) {
-                _currentTF[num-1] = interval;
-            }
-        );
+        _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(null, function(interval) {
+            _currentTF[num-1] = interval;
+        });
     });
 }
 </script>
