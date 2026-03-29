@@ -2334,13 +2334,15 @@ if('serviceWorker' in navigator) {
 
 
 <script>
-var _chartLayout = 'single';
-var _tvWidgets = [null, null];
-var _currentTF = ['60', '60']; // per-panel TF tracking
+ var _chartLayout  = 'single';
+    var _tvWidgets    = [null, null];
+    var _currentTF    = ['60', '60'];
+    var _feedMode     = 'mt5';
 
-function setChartLayout(layout) {
-    _chartLayout = layout;
-
+    function launchAllPanels() {
+        launchPanel(1);
+        if(_chartLayout !== 'single') launchPanel(2);
+    }
     var wrap = document.getElementById('charts-panels-wrap');
     var p1   = document.getElementById('chart-panel-1');
     var p2   = document.getElementById('chart-panel-2');
