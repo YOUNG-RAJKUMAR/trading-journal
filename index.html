@@ -2387,7 +2387,7 @@ function launchAllPanels() {
 function launchPanel(num) {
     var c = window.ui._tvColors();
     var containerId = 'tv-container-' + num;
-    var symbols = { 1: 'EURUSD', 2: 'GBPUSD' };
+    var symbols = { 1: 'US30', 2: 'US30' };
     var symbol  = symbols[num] || 'EURUSD';
     var tf      = _currentTF[num-1] || '60';
 
@@ -2498,23 +2498,21 @@ function launchPanel(num) {
             }
         );
 
-        /* ── Sync calc symbol when user changes symbol on panel 1 ── */
+   /* ── Sync calc symbol when user changes symbol on panel 1 ── */
         if(num === 1) {
+            /* Sync on initial load */
+            var initSym = _tvWidgets[0].activeChart().symbol();
+            if(initSym) deskSelectSymbol(initSym);
+
+            /* Sync on every subsequent symbol change */
             _tvWidgets[0].activeChart().onSymbolChanged().subscribe(
                 null,
                 function() {
                     var newSym = _tvWidgets[0].activeChart().symbol();
-                    var cs = document.getElementById('calc-symbol');
-                    if(cs) cs.textContent = newSym;
-                    /* reset entry display until next tick arrives */
-                    var ed = document.getElementById('d-entry-display');
-                    if(ed) ed.textContent = 'waiting…';
+                    if(newSym) deskSelectSymbol(newSym);
                 }
             );
         }
-    });
-}
-
 function _launchPanelFree(num, containerId, symbol, tf, c) {
     _tvWidgets[num-1] = new TradingView.widget({
         container_id:        containerId,
@@ -3042,7 +3040,7 @@ var _ffLastFetch   = 0;
 
 /* ── Must match ALL_SYMBOLS in your MT5 bridge ── */
 var ALL_SITE_SYMBOLS = [
-    "EURUSD","GBPUSD","XAUUSD"
+    "EURUSD","GBPUSD","XAUUSD","US30"
 ];
 /* ── Extract the two currency codes from a symbol ── */
 function ffGetCurrencies(symbol) {
