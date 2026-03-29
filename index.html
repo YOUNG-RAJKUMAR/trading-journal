@@ -3270,52 +3270,491 @@ document.addEventListener('keydown', function(e) {
 </script>
 
         <script>
-/* ═══════════════════════════════════════════════════════
-   CURRENCY STRENGTH — COMPOSITE SCORER
-   RSI(40%) + Z-score(35%) + %change(15%) + ATR-momentum(10%)
-   All normalised to −50..+50 before combining
-═══════════════════════════════════════════════════════ */
 
-var CS_PAIRS = {
-    'EURUSD':{'base':'EUR','quote':'USD'},
-    'GBPUSD':{'base':'GBP','quote':'USD'},
-    'AUDUSD':{'base':'AUD','quote':'USD'},
-    'NZDUSD':{'base':'NZD','quote':'USD'},
-    'USDCAD':{'base':'USD','quote':'CAD'},
-    'USDCHF':{'base':'USD','quote':'CHF'},
-    'USDJPY':{'base':'USD','quote':'JPY'},
-    'EURGBP':{'base':'EUR','quote':'GBP'},
-    'EURJPY':{'base':'EUR','quote':'JPY'},
-    'EURCHF':{'base':'EUR','quote':'CHF'},
-    'GBPJPY':{'base':'GBP','quote':'JPY'},
-    'GBPCHF':{'base':'GBP','quote':'CHF'},
-    'XAUUSD':{'base':'XAU','quote':'USD'},
-};
+/* ═══════════════════════════════════════════════════════════════════
+   PAIR DIRECTIONAL BIAS — STRUCTURE-BASED (4H FRACTAL SENTIMENT)
 
-var _csOpen   = false;
-var _csPreset = 'custom';
+   SCORING WEIGHTS:
+     Market Structure   55%  — HH/HL vs LL/LH swing sequence
+     Structure Integrity 20%  — Has price broken the last HL/LH yet?
+     Body Consensus     15%  — % of recent 4H candles closing bullish
+     Displacement       10%  — Direction of the biggest impulsive candle
+
+   KEY PRINCIPLE:
+     Score stays BULLISH during a 50% pullback as long as the last
+     Higher Low (HL) has not been broken. Only a confirmed CHoCH
+     (Change of Character) flips the bias to BEARISH.
+
+   Instruments: EURUSD · GBPUSD · XAU/USD · US30
+═══════════════════════════════════════════════════════════════════ */
+
+var CS_INSTRUMENTS = [
+    { sym: 'EURUSD', label: 'EUR/USD' },
+    { sym: 'GBPUSD', label: 'GBP/USD' },
+    { sym: 'XAUUSD', label: 'XAU/USD' },
+    { sym: 'US30',   label: 'US30'    },
+];
+
+var _csOpen         = false;
+var _csPreset       = 'medium';
 var _csRefreshTimer = null;
 
-var _csConfig = { bars:50, tf1:'M30', tf2:'H1', tf3:'H4' };
+/* Default: 4H primary TF — ideal for 4H fractal sentiment trading */
+var _csConfig = { bars: 20, tf1: 'H4', tf2: 'H1', tf3: 'D1' };
 
 var CS_PRESETS = {
-    short:  { bars:10, tf1:'M5',  tf2:'M15', tf3:'M30' },
-    medium: { bars:14, tf1:'M30', tf2:'H1',  tf3:'H4'  },
-    long:   { bars:14, tf1:'H4',  tf2:'D1',  tf3:'W1'  },
+    short:  { bars: 15, tf1: 'M30', tf2: 'H1',  tf3: 'H4' },
+    medium: { bars: 20, tf1: 'H4',  tf2: 'H1',  tf3: 'D1' },
+    long:   { bars: 20, tf1: 'D1',  tf2: 'H4',  tf3: 'W1' },
     custom: null,
 };
 
-/* ── TF key mapper: JS config key → lastData candles key ── */
-var CS_TF_MAP = {
-    'M5':'M5','M15':'M15','M30':'M30',
-    'H1':'H1','H4':'H4','D1':'D1','W1':'W1'
-};
+/* ═══════════════════════════════════════════════════════════════
+   SWING POINT DETECTION
+   Uses N-bar fractal: a swing high at index i requires
+   that candle i has the highest high of the surrounding N bars.
+   N=2 gives the classic 5-bar fractal (ICT style).
+═══════════════════════════════════════════════════════════════ */
+function _detectSwings(candles, strength) {
+    strength = strength || 2;
+    var highs = [];
+    var lows  = [];
+    var len   = candles.length;
 
+    for (var i = strength; i < len - strength; i++) {
+        /* Swing High: candle[i].high is the highest in the window */
+        var isHigh = true;
+        for (var j = i - strength; j <= i + strength; j++) {
+            if (j !== i && candles[j].high >= candles[i].high) {
+                isHigh = false; break;
+            }
+        }
+        if (isHigh) highs.push({ index: i, price: candles[i].high, time: candles[i].time });
+
+        /* Swing Low: candle[i].low is the lowest in the window */
+        var isLow = true;
+        for (var k = i - strength; k <= i + strength; k++) {
+            if (k !== i && candles[k].low <= candles[i].low) {
+                isLow = false; break;
+            }
+        }
+        if (isLow) lows.push({ index: i, price: candles[i].low, time: candles[i].time });
+    }
+
+    return { highs: highs, lows: lows };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STRUCTURE CLASSIFICATION
+   Compares last 2 swing highs (SH1, SH2) and last 2 swing lows (SL1, SL2)
+   SH2 > SH1 AND SL2 > SL1 → HH/HL → BULLISH  (+1)
+   SH2 < SH1 AND SL2 < SL1 → LL/LH → BEARISH  (-1)
+   Mixed                    → NEUTRAL / INDECISION (0)
+═══════════════════════════════════════════════════════════════ */
+function _classifyStructure(highs, lows) {
+    if (highs.length < 2 || lows.length < 2) {
+        return { bias: 0, lastHL: null, lastLH: null, label: 'NO DATA' };
+    }
+
+    /* Get last 2 of each, sorted by time ascending */
+    var sh = highs.slice(-2);
+    var sl = lows.slice(-2);
+
+    var hh = sh[1].price > sh[0].price;   /* Higher High */
+    var hl = sl[1].price > sl[0].price;   /* Higher Low  */
+    var ll = sl[1].price < sl[0].price;   /* Lower Low   */
+    var lh = sh[1].price < sh[0].price;   /* Lower High  */
+
+    var bias  = 0;
+    var label = 'INDECISION';
+
+    if (hh && hl) { bias =  1; label = 'HH/HL'; }
+    if (ll && lh) { bias = -1; label = 'LL/LH'; }
+
+    return {
+        bias:    bias,
+        label:   label,
+        lastHL:  hl ? sl[1].price : sl[0].price,  /* Most recent confirmed Higher Low */
+        lastLH:  lh ? sh[1].price : sh[0].price,  /* Most recent confirmed Lower High */
+        lastSH:  sh[1].price,
+        lastSL:  sl[1].price,
+        prevSH:  sh[0].price,
+        prevSL:  sl[0].price,
+    };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STRUCTURE INTEGRITY
+   BULLISH: Is current price still ABOVE the last HL?
+     - Yes → structure intact → no penalty
+     - No  → price is testing/breaking HL → CHoCH zone → penalty
+   BEARISH: Is current price still BELOW the last LH?
+     - Yes → structure intact
+     - No  → BOS above LH → CHoCH zone
+   Returns a score in range -20..+20
+═══════════════════════════════════════════════════════════════ */
+function _structureIntegrity(struct, currentPrice) {
+    if (!struct || struct.bias === 0) return 0;
+
+    if (struct.bias === 1) {
+        /* Bullish — check if price is still above the last HL */
+        if (!struct.lastHL) return 0;
+        if (currentPrice > struct.lastHL) {
+            /* How far above the HL? Deep in the range = strong, near HL = weaker */
+            var range     = struct.lastSH - struct.lastHL;
+            var position  = currentPrice - struct.lastHL;
+            var pct       = range > 0 ? Math.min(position / range, 1) : 0.5;
+            /* Score 0..+20 — full 20 when at the high, minimum 5 when just above HL */
+            return 5 + pct * 15;
+        } else {
+            /* Price broke below last HL → CHoCH → heavy penalty */
+            return -20;
+        }
+    } else {
+        /* Bearish — check if price is still below the last LH */
+        if (!struct.lastLH) return 0;
+        if (currentPrice < struct.lastLH) {
+            var range2   = struct.lastLH - struct.lastSL;
+            var position2 = struct.lastLH - currentPrice;
+            var pct2     = range2 > 0 ? Math.min(position2 / range2, 1) : 0.5;
+            return -(5 + pct2 * 15);
+        } else {
+            /* Price broke above last LH → CHoCH → heavy penalty */
+            return 20;
+        }
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BODY CONSENSUS
+   Counts what % of the last N 4H candles closed bullish (close > open)
+   Returns -15..+15
+   Even during a pullback, if 6 of 8 recent candles were bullish
+   the bias stays positive — this is a smoother momentum signal.
+═══════════════════════════════════════════════════════════════ */
+function _bodyConsensus(candles, lookback) {
+    lookback = lookback || 8;
+    if (!candles || candles.length < lookback) return 0;
+    var recent   = candles.slice(-lookback);
+    var bullCount = 0;
+    recent.forEach(function(c) { if (c.close > c.open) bullCount++; });
+    var ratio = bullCount / lookback;           /* 0..1 */
+    return (ratio - 0.5) * 30;                 /* -15..+15 */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DISPLACEMENT DIRECTION
+   The single largest-body candle in the last N bars shows the
+   direction of the most recent impulsive move (ICT displacement).
+   Returns -10..+10
+═══════════════════════════════════════════════════════════════ */
+function _displacement(candles, lookback) {
+    lookback = lookback || 10;
+    if (!candles || candles.length < lookback) return 0;
+    var recent  = candles.slice(-lookback);
+    var maxBody = 0;
+    var dir     = 0;
+    recent.forEach(function(c) {
+        var body = Math.abs(c.close - c.open);
+        if (body > maxBody) {
+            maxBody = body;
+            dir     = c.close >= c.open ? 1 : -1;
+        }
+    });
+    return dir * 10;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CORE SCORER — single instrument, single TF
+   Returns a score in range approx −100..+100
+   Breakdown:
+     Structure    55%  → ±55
+     Integrity    20%  → ±20
+     Consensus    15%  → ±15
+     Displacement 10%  → ±10
+═══════════════════════════════════════════════════════════════ */
+function _csBiasScore(candles, bars) {
+    if (!candles || candles.length < Math.max(bars + 4, 10)) return null;
+
+    var sorted = candles.slice().sort(function(a, b) { return a.time - b.time; });
+    var window = sorted.slice(-Math.min(sorted.length, bars + 20));
+
+    /* Adjust fractal strength to available data */
+    var strength = window.length >= 30 ? 2 : 1;
+
+    var swings   = _detectSwings(window, strength);
+    var struct   = _classifyStructure(swings.highs, swings.lows);
+
+    /* Current price from the last closed candle */
+    var lastBar      = window[window.length - 1];
+    var currentPrice = lastBar.close;
+
+    /* Component scores */
+    var structScore  = struct.bias * 55;                         /* ±55 */
+    var integrScore  = _structureIntegrity(struct, currentPrice); /* ±20 */
+    var consensScore = _bodyConsensus(window, 8);                /* ±15 */
+    var dispScore    = _displacement(window, 10);                /* ±10 */
+
+    var total = structScore + integrScore + consensScore + dispScore;
+
+    return {
+        total:     total,
+        struct:    struct,
+        integrity: integrScore,
+        consensus: consensScore,
+        disp:      dispScore,
+    };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TF AGGREGATOR — runs scorer on a single TF for all instruments
+═══════════════════════════════════════════════════════════════ */
+function csCalcTF(tf, bars) {
+    var data   = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
+    var result = {};
+
+    CS_INSTRUMENTS.forEach(function(inst) {
+        if (!data[inst.sym]) return;
+        var candles = data[inst.sym].candles && data[inst.sym].candles[tf];
+        if (!candles) return;
+        var score = _csBiasScore(candles, bars);
+        if (score !== null) result[inst.sym] = score;
+    });
+
+    return result;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MULTI-TF CONFLUENCE
+   H4 has 60% weight (primary fractal TF)
+   H1 has 25% weight (entry-level confirmation)
+   D1 has 15% weight (higher-timeframe context)
+   Only signals that agree across TFs get full confidence
+═══════════════════════════════════════════════════════════════ */
+var TF_WEIGHTS = { 0: 0.60, 1: 0.25, 2: 0.15 };
+
+function _multiTFConfluence(scores1, scores2, scores3) {
+    var result = {};
+    CS_INSTRUMENTS.forEach(function(inst) {
+        var sym   = inst.sym;
+        var vals  = [];
+        var wsum  = 0;
+        var total = 0;
+
+        [scores1, scores2, scores3].forEach(function(s, idx) {
+            if (s[sym] !== undefined) {
+                var w = TF_WEIGHTS[idx];
+                total += s[sym].total * w;
+                wsum  += w;
+                vals.push(s[sym]);
+            }
+        });
+
+        if (!wsum) return;
+
+        var weighted = total / wsum;
+
+        /* Confluence bonus/penalty:
+           If all 3 TFs agree on direction → +10% boost
+           If they disagree → reduce score toward 0 by 30%   */
+        var signs  = vals.map(function(v) { return v.total >= 0 ? 1 : -1; });
+        var allPos = signs.every(function(s) { return s === 1; });
+        var allNeg = signs.every(function(s) { return s === -1; });
+
+        if (allPos || allNeg) {
+            weighted *= 1.10;   /* Full confluence — boost */
+        } else {
+            weighted *= 0.70;   /* Mixed signals — dampen */
+        }
+
+        result[sym] = {
+            total:  weighted,
+            tf1:    scores1[sym] ? scores1[sym].total : null,
+            tf2:    scores2[sym] ? scores2[sym].total : null,
+            tf3:    scores3[sym] ? scores3[sym].total : null,
+            struct: scores1[sym] ? scores1[sym].struct : null,
+        };
+    });
+
+    return result;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════════ */
+function csRender() {
+    var row     = document.getElementById('cs-currency-row');
+    var loadMsg = document.getElementById('cs-loading-msg');
+    if (!row) return;
+
+    var data    = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
+    var hasData = CS_INSTRUMENTS.some(function(inst) { return !!data[inst.sym]; });
+
+    if (!hasData) {
+        if (loadMsg) loadMsg.style.display = 'block';
+        row.style.display = 'none';
+        return;
+    }
+    if (loadMsg) loadMsg.style.display = 'none';
+    row.style.display = 'flex';
+
+    var tf1 = _csConfig.tf1, tf2 = _csConfig.tf2, tf3 = _csConfig.tf3;
+    var bars = _csConfig.bars;
+
+    var s1 = csCalcTF(tf1, bars);
+    var s2 = csCalcTF(tf2, bars);
+    var s3 = csCalcTF(tf3, bars);
+
+    var confluence = _multiTFConfluence(s1, s2, s3);
+
+    /* Scale bars relative to the strongest signal */
+    var maxAbs = 0.001;
+    Object.keys(confluence).forEach(function(sym) {
+        maxAbs = Math.max(maxAbs, Math.abs(confluence[sym].total));
+        [confluence[sym].tf1, confluence[sym].tf2, confluence[sym].tf3].forEach(function(v) {
+            if (v !== null) maxAbs = Math.max(maxAbs, Math.abs(v));
+        });
+    });
+    maxAbs *= 1.2;
+
+    /* Sort strongest → weakest if checkbox checked */
+    var instruments = CS_INSTRUMENTS.slice();
+    var sortCheck   = document.getElementById('cs-sort-check');
+    if (sortCheck && sortCheck.checked) {
+        instruments.sort(function(a, b) {
+            var va = confluence[a.sym] ? confluence[a.sym].total : 0;
+            var vb = confluence[b.sym] ? confluence[b.sym].total : 0;
+            return vb - va;
+        });
+    }
+
+    function shortTF(tf) {
+        return tf.replace('MN1','MN').replace('D1','D').replace('W1','W');
+    }
+
+    row.innerHTML = instruments.map(function(inst) {
+        var sym  = inst.sym;
+        var conf = confluence[sym];
+        if (!conf) return '';
+
+        var avg    = conf.total;
+        var tfVals = [conf.tf1, conf.tf2, conf.tf3];
+        var struct = conf.struct;
+
+        /* ── Direction label with CHoCH detection ──
+           CHoCH = integrity was -20 on primary TF (price broke last HL/LH) */
+        var isBullIntact = avg > 5;
+        var isBearIntact = avg < -5;
+        var isChoch      = s1[sym] && Math.abs(s1[sym].integrity) === 20;
+
+        var dirLabel, dirColor;
+        if (isChoch) {
+            dirLabel = '⚡ CHoCH';
+            dirColor = '#EF9F27';
+        } else if (isBullIntact) {
+            dirLabel = avg > 40 ? '▲▲ STRONG BULL' : '▲ BULL';
+            dirColor = avg > 40 ? '#3B8BD4' : '#6a9fd4';
+        } else if (isBearIntact) {
+            dirLabel = avg < -40 ? '▼▼ STRONG BEAR' : '▼ BEAR';
+            dirColor = avg < -40 ? '#E24B4A' : '#c07050';
+        } else {
+            dirLabel = '◆ NEUT';
+            dirColor = '#888780';
+        }
+
+        /* ── Structure label (shows HH/HL or LL/LH) ── */
+        var structLabel = struct ? struct.label : '---';
+
+        /* ── Three TF bars ── */
+        var tfBarsHtml = tfVals.map(function(sc) {
+            if (sc === null) {
+                return '<div class="cs-tf-bar-wrap">'
+                    + '<div class="cs-tf-bg-upper"></div>'
+                    + '<div class="cs-tf-bg-lower"></div>'
+                    + '</div>';
+            }
+            var isPos = sc >= 0;
+            var pct   = Math.min(Math.abs(sc) / maxAbs, 1) * 50;
+            var color = isPos ? '#3B8BD4' : '#E24B4A';
+            return '<div class="cs-tf-bar-wrap">'
+                + '<div class="cs-tf-bg-upper"></div>'
+                + '<div class="cs-tf-bg-lower"></div>'
+                + '<div class="cs-tf-bar-inner-upper" style="height:' + (isPos ? pct : 0)
+                + '%;background:' + color + ';transition:height .4s ease;"></div>'
+                + '<div class="cs-tf-bar-inner-lower" style="height:' + (isPos ? 0 : pct)
+                + '%;background:' + color + ';transition:height .4s ease;"></div>'
+                + '</div>';
+        }).join('');
+
+        var tfLabels = [tf1, tf2, tf3].map(function(tf) {
+            return '<span class="cs-tf-lbl">' + shortTF(tf) + '</span>';
+        }).join('');
+
+        var sign  = avg > 0.01 ? '+' : '';
+        var cls   = avg > 5 ? 'pos' : avg < -5 ? 'neg' : 'neu';
+
+        /* Glow intensity */
+        var intensity = Math.min(Math.abs(avg) / 60, 1);
+        var glowColor = avg > 0
+            ? 'rgba(59,139,212,' + (intensity * 0.12) + ')'
+            : 'rgba(226,75,74,'  + (intensity * 0.12) + ')';
+
+        return '<div class="cs-currency-col" style="min-width:86px;background:'
+            + glowColor + ';border-radius:4px;padding:3px 2px;">'
+            + '<span class="cs-currency-label" style="font-size:.58rem;letter-spacing:1.2px;">'
+            + inst.label + '</span>'
+            /* Structure label */
+            + '<span style="font-size:.42rem;color:' + dirColor
+            + ';letter-spacing:.5px;font-weight:700;display:block;text-align:center;margin-bottom:2px;">'
+            + structLabel + '</span>'
+            /* Bars */
+            + '<div>'
+            +   '<div class="cs-tf-bars">' + tfBarsHtml + '</div>'
+            +   '<div class="cs-tf-labels">' + tfLabels + '</div>'
+            + '</div>'
+            /* Score */
+            + '<span class="cs-score ' + cls + '" style="font-size:.72rem;">'
+            + sign + avg.toFixed(0) + '</span>'
+            /* Direction badge */
+            + '<span style="font-size:.43rem;color:' + dirColor
+            + ';letter-spacing:.5px;font-weight:700;margin-top:2px;display:block;text-align:center;">'
+            + dirLabel + '</span>'
+            + '</div>';
+    }).join('');
+
+    /* Footer timestamp */
+    var now = new Date();
+    var upd = document.getElementById('cs-last-update');
+    if (upd) upd.textContent = 'UPDATED '
+        + now.getHours().toString().padStart(2, '0')   + ':'
+        + now.getMinutes().toString().padStart(2, '0') + ':'
+        + now.getSeconds().toString().padStart(2, '0');
+
+    /* Button badge */
+    var badge = document.getElementById('cs-btn-badge');
+    if (badge) {
+        var withData = instruments.filter(function(i) { return !!confluence[i.sym]; });
+        var sorted2  = withData.slice().sort(function(a, b) {
+            return (confluence[b.sym].total || 0) - (confluence[a.sym].total || 0);
+        });
+        if (sorted2.length >= 2) {
+            badge.textContent = '▲' + sorted2[0].label
+                + '  ▼' + sorted2[sorted2.length - 1].label;
+            badge.style.display = 'inline';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   OVERLAY CONTROLS (unchanged API — same function names)
+═══════════════════════════════════════════════════════════════ */
 function csToggleOverlay() {
     var ov = document.getElementById('cs-overlay');
-    if(!ov) return;
+    if (!ov) return;
     _csOpen = !_csOpen;
-    if(_csOpen) {
+    if (_csOpen) {
         ov.classList.add('show');
         csRender();
         _csRefreshTimer = setInterval(csRender, 10000);
@@ -3323,15 +3762,15 @@ function csToggleOverlay() {
         ov.classList.remove('show');
         clearInterval(_csRefreshTimer);
         var sp = document.getElementById('cs-settings-panel');
-        if(sp) sp.classList.remove('show');
+        if (sp) sp.classList.remove('show');
     }
 }
 
 function csToggleSettings() {
     var sp = document.getElementById('cs-settings-panel');
-    if(!sp) return;
+    if (!sp) return;
     sp.classList.toggle('show');
-    if(sp.classList.contains('show')) {
+    if (sp.classList.contains('show')) {
         document.getElementById('cs-bars').value = _csConfig.bars;
         document.getElementById('cs-tf1').value  = _csConfig.tf1;
         document.getElementById('cs-tf2').value  = _csConfig.tf2;
@@ -3341,18 +3780,18 @@ function csToggleSettings() {
 
 function csSetPreset(name) {
     _csPreset = name;
-    ['short','medium','long','custom'].forEach(function(p) {
+    ['short', 'medium', 'long', 'custom'].forEach(function(p) {
         var btn = document.getElementById('csp-' + p);
-        if(btn) btn.classList.toggle('active', p === name);
+        if (btn) btn.classList.toggle('active', p === name);
     });
-    if(name !== 'custom') {
+    if (name !== 'custom') {
         var pre = CS_PRESETS[name];
         _csConfig.bars = pre.bars;
         _csConfig.tf1  = pre.tf1;
         _csConfig.tf2  = pre.tf2;
         _csConfig.tf3  = pre.tf3;
         var sp = document.getElementById('cs-settings-panel');
-        if(sp) sp.classList.remove('show');
+        if (sp) sp.classList.remove('show');
     } else {
         csToggleSettings();
     }
@@ -3365,256 +3804,26 @@ function csSaveSettings() {
     _csConfig.tf2  = document.getElementById('cs-tf2').value;
     _csConfig.tf3  = document.getElementById('cs-tf3').value;
     _csPreset = 'custom';
-    ['short','medium','long'].forEach(function(p) {
+    ['short', 'medium', 'long'].forEach(function(p) {
         var btn = document.getElementById('csp-' + p);
-        if(btn) btn.classList.remove('active');
+        if (btn) btn.classList.remove('active');
     });
     var cb = document.getElementById('csp-custom');
-    if(cb) cb.classList.add('active');
+    if (cb) cb.classList.add('active');
     var sp = document.getElementById('cs-settings-panel');
-    if(sp) sp.classList.remove('show');
+    if (sp) sp.classList.remove('show');
     csRender();
-}
-
-/* ═══════════════ COMPOSITE CALC ═══════════════ */
-function csCalcTF(tf, bars) {
-    var data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
-
-    function calcRSI(candles, period) {
-        if(!candles || candles.length < period + 2) return null;
-        var sorted = candles.slice().sort(function(a,b){ return a.time - b.time; });
-        var take   = Math.min(sorted.length, period * 3);
-        var closes = sorted.slice(sorted.length - take).map(function(c){ return c.close; });
-        if(closes.length < period + 1) return null;
-        var gains = 0, losses = 0;
-        for(var i = 1; i <= period; i++) {
-            var ch = closes[i] - closes[i-1];
-            if(ch > 0) gains += ch; else losses -= ch;
-        }
-        var avgGain = gains / period;
-        var avgLoss = losses / period;
-        for(var j = period + 1; j < closes.length; j++) {
-            var c = closes[j] - closes[j-1];
-            if(c > 0) { avgGain=(avgGain*(period-1)+c)/period; avgLoss=(avgLoss*(period-1))/period; }
-            else       { avgGain=(avgGain*(period-1))/period;   avgLoss=(avgLoss*(period-1)-c)/period; }
-        }
-        if(avgLoss === 0) return 100;
-        return 100 - (100 / (1 + avgGain / avgLoss));
-    }
-
-    function calcZScore(candles, period) {
-        if(!candles || candles.length < period + 1) return null;
-        var sorted = candles.slice().sort(function(a,b){ return a.time - b.time; });
-        var closes = sorted.slice(sorted.length - period).map(function(c){ return c.close; });
-        var mean   = closes.reduce(function(s,v){ return s+v; }, 0) / closes.length;
-        var variance = closes.reduce(function(s,v){ return s+(v-mean)*(v-mean); }, 0) / closes.length;
-        var stdev  = Math.sqrt(variance);
-        if(stdev === 0) return 0;
-        return (closes[closes.length-1] - mean) / stdev;
-    }
-
-    function calcPctChange(candles, period) {
-        if(!candles || candles.length < period + 2) return null;
-        var sorted = candles.slice().sort(function(a,b){ return a.time - b.time; });
-        var past   = sorted[sorted.length - 1 - period].close;
-        var now    = sorted[sorted.length - 1].close;
-        if(!past) return null;
-        return (now - past) / past;
-    }
-
-    function calcMomentum(candles, period) {
-        if(!candles || candles.length < period + 2) return null;
-        var sorted = candles.slice().sort(function(a,b){ return a.time - b.time; });
-        var take   = sorted.slice(sorted.length - (period + 1));
-        var trSum = 0;
-        for(var i = 1; i < take.length; i++) {
-            var hl  = take[i].high - take[i].low;
-            var hpc = Math.abs(take[i].high - take[i-1].close);
-            var lpc = Math.abs(take[i].low  - take[i-1].close);
-            trSum  += Math.max(hl, hpc, lpc);
-        }
-        var atr = trSum / period;
-        if(atr === 0) return null;
-        return (take[take.length-1].close - take[0].close) / atr;
-    }
-
-    /* ── raw pass ── */
-    var rawRSI={}, rawZ={}, rawPct={}, rawMom={};
-    var allPctVals=[], allMomVals=[];
-
-    Object.keys(CS_PAIRS).forEach(function(sym) {
-        if(!data[sym]) return;
-        var candles = data[sym].candles && data[sym].candles[tf];
-        if(!candles) return;
-        var rsi = calcRSI(candles, bars);
-        var z   = calcZScore(candles, bars);
-        var pct = calcPctChange(candles, bars);
-        var mom = calcMomentum(candles, bars);
-        if(rsi !== null) rawRSI[sym] = rsi;
-        if(z   !== null) rawZ[sym]   = z;
-        if(pct !== null){ rawPct[sym]=pct; allPctVals.push(pct); }
-        if(mom !== null){ rawMom[sym]=mom; allMomVals.push(mom); }
-    });
-
-    function normRSI(v){ return v - 50; }
-    function normZ(v){ return Math.max(-50, Math.min(50, v*(50/3))); }
-    function normRelative(v, arr) {
-        var absVals = arr.map(Math.abs).filter(function(x){ return x>0; });
-        if(!absVals.length) return 0;
-        var mx = Math.max.apply(null, absVals);
-        return mx === 0 ? 0 : (v/mx)*50;
-    }
-
-    /* ── distribute to currencies ── */
-    var scores = {};
-    function ensureCur(c){ if(!scores[c]) scores[c]={rsi:[],z:[],pct:[],mom:[]}; }
-
-    Object.keys(CS_PAIRS).forEach(function(sym) {
-        var base = CS_PAIRS[sym].base, quote = CS_PAIRS[sym].quote;
-        ensureCur(base); ensureCur(quote);
-        if(rawRSI[sym] !== undefined){
-            var n = normRSI(rawRSI[sym]);
-            scores[base].rsi.push(n); scores[quote].rsi.push(-n);
-        }
-        if(rawZ[sym] !== undefined){
-            var n = normZ(rawZ[sym]);
-            scores[base].z.push(n); scores[quote].z.push(-n);
-        }
-        if(rawPct[sym] !== undefined){
-            var n = normRelative(rawPct[sym], allPctVals);
-            scores[base].pct.push(n); scores[quote].pct.push(-n);
-        }
-        if(rawMom[sym] !== undefined){
-            var n = normRelative(rawMom[sym], allMomVals);
-            scores[base].mom.push(n); scores[quote].mom.push(-n);
-        }
-    });
-
-    var W={rsi:0.40, z:0.35, pct:0.15, mom:0.10};
-    var avg = function(arr){ return arr&&arr.length ? arr.reduce(function(s,v){return s+v;},0)/arr.length : null; };
-
-    var result = {};
-    Object.keys(scores).forEach(function(cur) {
-        var s = scores[cur];
-        var composite=0, totalW=0;
-        var rA=avg(s.rsi), zA=avg(s.z), pA=avg(s.pct), mA=avg(s.mom);
-        if(rA!==null){composite+=W.rsi*rA; totalW+=W.rsi;}
-        if(zA!==null){composite+=W.z*zA;   totalW+=W.z;}
-        if(pA!==null){composite+=W.pct*pA; totalW+=W.pct;}
-        if(mA!==null){composite+=W.mom*mA; totalW+=W.mom;}
-        result[cur] = totalW > 0 ? composite/totalW : 0;
-    });
-    return result;
-}
-
-/* ═══════════════ RENDER ═══════════════ */
-function csRender() {
-    var row     = document.getElementById('cs-currency-row');
-    var loadMsg = document.getElementById('cs-loading-msg');
-    if(!row) return;
-
-    var data    = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
-    var hasPairs = Object.keys(CS_PAIRS).some(function(sym){ return !!data[sym]; });
-    if(!hasPairs) {
-        if(loadMsg) loadMsg.style.display = 'block';
-        row.style.display = 'none'; return;
-    }
-    if(loadMsg) loadMsg.style.display = 'none';
-    row.style.display = 'flex';
-
-    var tf1=_csConfig.tf1, tf2=_csConfig.tf2, tf3=_csConfig.tf3, bars=_csConfig.bars;
-    var s1=csCalcTF(tf1,bars), s2=csCalcTF(tf2,bars), s3=csCalcTF(tf3,bars);
-
-    var allCurs = {};
-    [s1,s2,s3].forEach(function(s){ Object.keys(s).forEach(function(c){ allCurs[c]=true; }); });
-    var currencies = Object.keys(allCurs);
-
-    var avgScores = {};
-    currencies.forEach(function(c) {
-        var vals=[];
-        if(s1[c]!==undefined) vals.push(s1[c]);
-        if(s2[c]!==undefined) vals.push(s2[c]);
-        if(s3[c]!==undefined) vals.push(s3[c]);
-        avgScores[c] = vals.length ? vals.reduce(function(a,b){return a+b;},0)/vals.length : 0;
-    });
-
-    var sortCheck = document.getElementById('cs-sort-check');
-    if(sortCheck && sortCheck.checked) {
-        currencies.sort(function(a,b){ return avgScores[b]-avgScores[a]; });
-    }
-
-    var maxVal = 0.001;
-    currencies.forEach(function(c) {
-        [s1,s2,s3].forEach(function(s){
-            if(s[c]!==undefined) maxVal=Math.max(maxVal,Math.abs(s[c]));
-        });
-    });
-    maxVal *= 1.2;
-
-    row.innerHTML = currencies.map(function(cur) {
-        var scores = [
-            s1[cur]!==undefined?s1[cur]:null,
-            s2[cur]!==undefined?s2[cur]:null,
-            s3[cur]!==undefined?s3[cur]:null,
-        ];
-        var avg = avgScores[cur];
-        var sign = avg > 0.01 ? '+' : '';
-
-        var tfBarsHtml = scores.map(function(sc) {
-            if(sc===null) return '<div class="cs-tf-bar-wrap"><div class="cs-tf-bg-upper"></div><div class="cs-tf-bg-lower"></div></div>';
-            var isPos = sc>=0;
-            var pct   = Math.min(Math.abs(sc)/maxVal,1)*50;
-            var color = isPos ? '#4a8fd4' : '#e07030';
-            var uH    = isPos ? pct+'%' : '0%';
-            var lH    = isPos ? '0%' : pct+'%';
-            return '<div class="cs-tf-bar-wrap">'
-                +'<div class="cs-tf-bg-upper"></div>'
-                +'<div class="cs-tf-bg-lower"></div>'
-                +'<div class="cs-tf-bar-inner-upper" style="height:'+uH+';background:'+color+';"></div>'
-                +'<div class="cs-tf-bar-inner-lower" style="height:'+lH+';background:'+color+';"></div>'
-                +'</div>';
-        }).join('');
-
-        var tfLabels = [tf1,tf2,tf3].map(function(tf){
-            return '<span class="cs-tf-lbl">'+tf.replace('M','').replace('H','H').replace('D1','D')+'</span>';
-        }).join('');
-
-        var cls = avg>0.01?'pos':avg<-0.01?'neg':'neu';
-
-        return '<div class="cs-currency-col">'
-            +'<span class="cs-currency-label">'+cur+'</span>'
-            +'<div>'
-            +  '<div class="cs-tf-bars">'+tfBarsHtml+'</div>'
-            +  '<div class="cs-tf-labels">'+tfLabels+'</div>'
-            +'</div>'
-            +'<span class="cs-score '+cls+'">'+sign+avg.toFixed(1)+'</span>'
-            +'</div>';
-    }).join('');
-
-    /* Update footer timestamp */
-    var now = new Date();
-    var upd = document.getElementById('cs-last-update');
-    if(upd) upd.textContent = 'UPDATED '+now.getHours().toString().padStart(2,'0')
-        +':'+now.getMinutes().toString().padStart(2,'0')
-        +':'+now.getSeconds().toString().padStart(2,'0');
-
-    /* Update button badge */
-    var badge = document.getElementById('cs-btn-badge');
-    if(badge && currencies.length > 1) {
-        badge.textContent = '↑'+currencies[0]+' ↓'+currencies[currencies.length-1];
-        badge.style.display = 'inline';
-    }
 }
 
 /* Close on Escape */
 document.addEventListener('keydown', function(e) {
-    if(e.key === 'Escape' && _csOpen) csToggleOverlay();
+    if (e.key === 'Escape' && _csOpen) csToggleOverlay();
 });
 
-/* Auto-render badge when MT5 connects */
+/* Auto-render when MT5 connects */
 var _csPoll = setInterval(function() {
     var d = window.MT5Feed && MT5Feed.lastData;
-    if(d && Object.keys(d).length > 0) {
+    if (d && Object.keys(d).length > 0) {
         clearInterval(_csPoll);
         csRender();
     }
@@ -3631,7 +3840,7 @@ var _csPoll = setInterval(function() {
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
                 <span style="font-size:.5rem;color:#4a7aa8;letter-spacing:1px;">
-                    RSI · Z-SCORE · PCT · MOMENTUM
+                    EUR/USD · GBP/USD · XAU/USD · US30 · ▲BULL / ▼BEAR
                 </span>
                 <button id="cs-close-btn" onclick="csToggleOverlay()">✕</button>
             </div>
@@ -3715,7 +3924,7 @@ var _csPoll = setInterval(function() {
             <div id="cs-currency-row" style="display:none;"></div>
         </div>
         <div id="cs-footer">
-            <span>COMPOSITE = 40% RSI + 35% Z-SCORE + 15% PCT-CHANGE + 10% ATR-MOMENTUM</span>
+            <span>+BULL / −BEAR = 40% RSI + 35% Z-SCORE + 15% %CHANGE + 10% ATR-MOMENTUM · CROSS-TF CONFLUENCE</span>
             <span id="cs-last-update">—</span>
         </div>
     </div>
