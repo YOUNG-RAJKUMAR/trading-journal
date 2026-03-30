@@ -4967,10 +4967,9 @@ function pmDrawOrUpdateLines(chart, pos) {
                 .setLineColor('rgba(200,200,200,0.1)')
                 .setLineStyle(1)
                 .setLineLength(45)
-                .onModify(function() {
-                    // Clicking the P&L badge opens close dialog
-                    pmOpenClose(ticket);
-                });
+             .onModify(function() {
+    pmCloseTicketDirect(ticket);
+});
         } catch(e) { console.warn('[PM] pnl line:', e); }
 
     } else {
@@ -5023,6 +5022,99 @@ function pmRemoveLines(ticket) {
 
 function pmClearAllLines() {
     Object.keys(_pmChartLines).forEach(function(t) { pmRemoveLines(parseInt(t)); });
+}
+    /* ── DIRECT CLOSE FROM CHART — no panel needed ── */
+function pmCloseTicketDirect(ticket) {
+    var pos = _pmPositions.find(function(p) { return p.ticket === ticket; });
+    if (!pos) return;
+
+    /* Show a tiny floating toast on the chart */
+    var toastId = 'pm-chart-toast-' + ticket;
+    var existing = document.getElementById(toastId);
+    if (existing) existing.remove();
+
+    var pnl    = pos.profit + pos.swap;
+    var pnlStr = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
+    var toast  = document.createElement('div');
+    toast.id   = toastId;
+    toast.style.cssText = [
+        'position:fixed',
+        'top:80px',
+        'left:50%',
+        'transform:translateX(-50%)',
+        'z-index:9999',
+        'background:#0a0e1a',
+        'border:1px solid #ff4444',
+        'padding:12px 20px',
+        'display:flex',
+        'align-items:center',
+        'gap:12px',
+        'box-shadow:0 4px 30px rgba(255,68,68,0.25)',
+        'font-family:Courier New,monospace',
+        'font-size:.72rem',
+        'white-space:nowrap',
+    ].join(';');
+
+    toast.innerHTML =
+        '<span style="color:#888;">#' + ticket + ' ' + pos.symbol
+        + ' ' + pos.type + ' ' + pos.volume + 'L</span>'
+        + '<span style="color:' + (pnl >= 0 ? '#44ff88' : '#ff4444') + ';font-weight:700;">'
+        + pnlStr + '</span>'
+        + '<button id="pm-ct-confirm-' + ticket + '"'
+        + ' style="background:#330000;border:1px solid #ff4444;color:#ff6666;'
+        + 'padding:5px 14px;font-size:.68rem;cursor:pointer;font-family:inherit;'
+        + 'letter-spacing:1px;font-weight:700;">'
+        + '✕ CLOSE NOW</button>'
+        + '<button onclick="document.getElementById(\'' + toastId + '\').remove()"'
+        + ' style="background:transparent;border:1px solid #333;color:#555;'
+        + 'padding:5px 10px;font-size:.68rem;cursor:pointer;font-family:inherit;">'
+        + 'CANCEL</button>'
+        + '<span id="pm-ct-fb-' + ticket + '" style="font-size:.6rem;color:#555;min-width:80px;"></span>';
+
+    document.body.appendChild(toast);
+
+    /* Auto-dismiss after 8s */
+    var autoClose = setTimeout(function() {
+        if (document.getElementById(toastId)) document.getElementById(toastId).remove();
+    }, 8000);
+
+    /* Wire confirm button */
+    var confirmBtn = document.getElementById('pm-ct-confirm-' + ticket);
+    if (confirmBtn) {
+        confirmBtn.onclick = function() {
+            confirmBtn.disabled    = true;
+            confirmBtn.textContent = '⟳ CLOSING...';
+            var fb = document.getElementById('pm-ct-fb-' + ticket);
+
+            fetch('http://localhost:8766/api/close', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ ticket: ticket, volume: 0 })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                clearTimeout(autoClose);
+                if (result.success) {
+                    if (fb) { fb.textContent = '✓ Closed @ ' + result.close_price; fb.style.color = '#44ff88'; }
+                    pmRemoveLines(ticket);
+                    setTimeout(function() {
+                        if (document.getElementById(toastId)) document.getElementById(toastId).remove();
+                        pmRefresh();
+                    }, 1500);
+                } else {
+                    if (fb) { fb.textContent = '✗ ' + (result.error || 'Failed'); fb.style.color = '#ff4444'; }
+                    confirmBtn.disabled    = false;
+                    confirmBtn.textContent = 'RETRY';
+                }
+            })
+            .catch(function(err) {
+                clearTimeout(autoClose);
+                if (fb) { fb.textContent = '✗ ' + err.message; fb.style.color = '#ff4444'; }
+                confirmBtn.disabled    = false;
+                confirmBtn.textContent = 'RETRY';
+            });
+        };
+    }
 }
 
 /* ─────────────────────────────────────────────────────
