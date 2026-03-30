@@ -3054,12 +3054,44 @@ function posDrawPosition() {
     tpIn.style.cursor  = 'not-allowed';
     tpIn.title = 'Auto-set to 1:1 RR — move SL line to adjust';
 
-    _posActive = true;
-    _posSending = false;
+    _posActive  = true;
+_posSending = false;
 
-    _posDrawLines(ent, slDef, tpDef, side);
+_posDrawLines(ent, slDef, tpDef, side);
+_posUpdateCalc();
+_posEnableConfirm();
+
+/* ── Live entry tracker — keeps entry line + TP chasing the live price ── */
+if (_posEntryLiveInterval) clearInterval(_posEntryLiveInterval);
+_posEntryLiveInterval = setInterval(function() {
+    if (!_posActive) return;
+    var newEntry = _liveEntry();
+    if (!newEntry || newEntry <= 0) return;
+
+    _posEntrySnap = newEntry;
+
+    /* Update entry display */
+    var ed = document.getElementById('pos-entry-display');
+    if (ed) ed.textContent = newEntry.toFixed(6);
+
+    /* Move entry line on chart */
+    if (_posLines.entry) {
+        try { _posLines.entry.setPrice(newEntry); } catch(e) {}
+    }
+
+    /* Recalc TP from new entry + current SL */
+    var sl = parseFloat(document.getElementById('pos-sl-input').value) || 0;
+    if (sl > 0) {
+        var newTP = _posCalcTP(sl);
+        document.getElementById('pos-tp-input').value = newTP;
+        if (_posLines.tp) {
+            try { _posLines.tp.setPrice(newTP); } catch(e) {}
+        }
+    }
+
     _posUpdateCalc();
     _posEnableConfirm();
+}, 500);
 
     var dot = document.getElementById('pos-status-dot');
     if (dot) { dot.style.background = '#ffcc44'; dot.style.boxShadow = '0 0 6px #ffcc4488'; }
