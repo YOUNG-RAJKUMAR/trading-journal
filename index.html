@@ -3030,7 +3030,7 @@ function posDrawPosition() {
     /* Default SL: 20 pips/pts below(BUY) or above(SELL) */
     var cfg    = _instCfg();
     var pipVal = 1 / cfg.pip;
-    var defPips = cfg.lbl === 'pips' ? 20 : 200;
+    var defPips = cfg.lbl === 'pips' ? 5 : (cfg.lbl === 'pts' && _calcSymbol.indexOf('XAU') !== -1 ? 5 : 20);
 
     /* Prefer calculator SL if already filled */
     var calcSL = parseFloat(document.getElementById('d-sl').value) || 0;
