@@ -2988,10 +2988,7 @@ document.getElementById('pos-entry-display').textContent = ent.toFixed(6);
 document.getElementById('pos-sl-input').value = slDef;
 document.getElementById('pos-tp-input').value = tpDef;
 var calcBody = document.getElementById('calc-scroll-body');
-if(calcBody) {
-    var btn = document.getElementById('pos-confirm-btn');
-    if(btn) calcBody.scrollTop = btn.offsetTop;
-}
+if(calcBody) calcBody.scrollTop = calcBody.scrollHeight;
     /* Lock TP field — it's always auto-calculated */
     var tpIn = document.getElementById('pos-tp-input');
     tpIn.readOnly = true;
