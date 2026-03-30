@@ -1236,7 +1236,7 @@ body.theme-frosted .stat-val {
                     <!-- SL PRICE + R:R -->
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;">
                         <div>
-                            <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL Price</label>
+                            <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL Price &nbsp;<span id="d-rsout" style="color:#ff6666;font-size:.58rem;font-family:'Courier New',monospace;"></span></label>
                             <input type="number" id="d-sl" placeholder="e.g. 1.09500" step="0.00001" oninput="deskAtp();deskCl();"
                                 style="width:100%;background:#050505;border:1px solid #3a1a1a;color:#ff6666;padding:9px;font-size:.95rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;">
                         </div>
@@ -1251,22 +1251,23 @@ body.theme-frosted .stat-val {
                     <!-- TP PRICE -->
                     <div style="margin-bottom:9px;">
                         <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">
-                            TP Price &nbsp;<span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">● AUTO</span>
-                        </label>
+    TP Price &nbsp;<span id="d-at" style="font-size:.5rem;color:#44ff88;display:none;">● AUTO</span>&nbsp;<span id="d-rt" style="color:#44cc88;font-size:.58rem;font-family:'Courier New',monospace;"></span>
+</label>
                         <input type="number" id="d-tp" placeholder="e.g. 1.10500" step="0.00001" oninput="deskMtp()"
                             style="width:100%;background:#050505;border:1px solid #1a3a1a;color:#44cc88;padding:9px;font-size:.95rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;">
                     </div>
                     
                     
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;">
-                        <div id="d-rcl" style="grid-column:span 2;background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Lot Size</div><div id="d-rl" style="font-size:1.4rem;color:#44ff88;font-weight:700;">---</div><div id="d-rls" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">Enter values</div></div>
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Risk ($)</div><div id="d-rr2" style="font-size:.88rem;color:#ff4444;">---</div><div id="d-rrs" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">---</div></div>
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Profit ($)</div><div id="d-rp2" style="font-size:.88rem;color:#44ff88;">---</div><div id="d-rps" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">---</div></div>
-                 <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">SL Dist</div><div id="d-rsout" style="font-size:.88rem;color:#ff6666;">---</div></div>
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">TP Dist</div><div id="d-rt" style="font-size:.88rem;color:#44cc88;">---</div></div>
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">R:R</div><div id="d-rrr" style="font-size:.88rem;color:#fff;">---</div></div>
-                        <div style="background:#050505;border:1px solid #1a1a1a;padding:8px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Tick Val</div><div id="d-rtv" style="font-size:.88rem;color:#fff;">---</div></div>
-                    </div>
+                  <div style="margin-top:10px;">
+    <div id="d-rcl" style="background:#050505;border:1px solid #1a1a1a;padding:9px 10px;text-align:center;border-radius:3px;"><div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Lot Size</div><div id="d-rl" style="font-size:1.4rem;color:#44ff88;font-weight:700;">---</div><div id="d-rls" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">Enter values</div></div>
+    <!-- hidden elements kept for JS compatibility -->
+    <span id="d-rr2"  style="display:none;"></span>
+    <span id="d-rrs"  style="display:none;"></span>
+    <span id="d-rp2"  style="display:none;"></span>
+    <span id="d-rps"  style="display:none;"></span>
+    <span id="d-rrr"  style="display:none;"></span>
+    <span id="d-rtv"  style="display:none;"></span>
+</div>
 
            <!-- ══ POSITION BUILDER ══ -->
 <hr style="border:none;border-top:1px solid #1a1a1a;margin:14px 0 10px;">
