@@ -1819,7 +1819,14 @@ var MT5Feed = (function() {
     return {
         datafeed:    datafeed,
         isConnected: function() { return _connected; },
-        get lastData() { return lastData; }
+        get lastData() { return lastData; },
+        sendMessage: function(msg) {
+            if(ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(msg));
+                return true;
+            }
+            return false;
+        }
     };
 })();
 
@@ -3254,22 +3261,21 @@ function posConfirmTrade() {
         btn.textContent     = '⟳ SENDING TO MT5...';
     }
 
-    if (window._mt5WS && window._mt5WS.readyState === WebSocket.OPEN) {
-        window._mt5WS.send(JSON.stringify({
-            type:   'place_order',
-            symbol: sym,
-            side:   side,
-            lots:   parseFloat(lots.toFixed(2)),
-            sl:     sl,
-            tp:     tp
-        }));
+var sent = MT5Feed.sendMessage({
+        type:   'place_order',
+        symbol: sym,
+        side:   side,
+        lots:   parseFloat(lots.toFixed(2)),
+        sl:     sl,
+        tp:     tp
+    });
+    if (sent) {
         _posFeedback('⟳ Sent — waiting for MT5 ack...', '#ffcc44');
-        /* 8s timeout */
         setTimeout(function() {
             var fb = document.getElementById('pos-feedback');
             if (fb && fb.textContent.indexOf('⟳') !== -1)
                 _posFeedback('⚠ No ack — check MT5 manually', '#ff8844');
-        }, 8000);
+        }, 30000);
     } else {
         _posFeedback('✗ MT5 bridge not connected', '#ff4444');
         if (btn) { btn.disabled=false; btn.style.cursor='pointer'; btn.textContent='⚠ RETRY'; }
