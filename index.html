@@ -3261,26 +3261,38 @@ function posConfirmTrade() {
         btn.textContent     = '⟳ SENDING TO MT5...';
     }
 
-var sent = MT5Feed.sendMessage({
-        type:   'place_order',
-        symbol: sym,
-        side:   side,
-        lots:   parseFloat(lots.toFixed(2)),
-        sl:     sl,
-        tp:     tp
+var btn2 = document.getElementById('pos-confirm-btn');
+    _posFeedback('⟳ Sending to MT5...', '#ffcc44');
+
+    fetch('http://localhost:8766/api/order', {
+        method:  'POST',
+        headers: {'Content-Type': 'application/json'},
+        body:    JSON.stringify({
+            symbol: sym,
+            side:   side,
+            lots:   parseFloat(lots.toFixed(2)),
+            sl:     sl,
+            tp:     tp
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        var fb  = document.getElementById('pos-feedback');
+        var dot = document.getElementById('pos-status-dot');
+        if (result.success) {
+            if(fb)  { fb.textContent = '✅ ORDER PLACED — Ticket #' + (result.ticket||'???'); fb.style.color = '#44ff88'; }
+            if(dot) { dot.style.background = '#44ff88'; dot.style.boxShadow = '0 0 6px #44ff8888'; }
+            posClearDrawings();
+        } else {
+            if(fb)  { fb.textContent = '✗ REJECTED: ' + (result.error||'Unknown'); fb.style.color = '#ff4444'; }
+            if(dot) { dot.style.background = '#ff4444'; }
+            if(btn2){ btn2.disabled=false; btn2.style.cursor='pointer'; btn2.textContent='⚠ RETRY'; }
+        }
+    })
+    .catch(function(err) {
+        _posFeedback('✗ HTTP error: ' + err.message, '#ff4444');
+        if(btn2){ btn2.disabled=false; btn2.style.cursor='pointer'; btn2.textContent='⚠ RETRY'; }
     });
-    if (sent) {
-        _posFeedback('⟳ Sent — waiting for MT5 ack...', '#ffcc44');
-        setTimeout(function() {
-            var fb = document.getElementById('pos-feedback');
-            if (fb && fb.textContent.indexOf('⟳') !== -1)
-                _posFeedback('⚠ No ack — check MT5 manually', '#ff8844');
-        }, 30000);
-    } else {
-        _posFeedback('✗ MT5 bridge not connected', '#ff4444');
-        if (btn) { btn.disabled=false; btn.style.cursor='pointer'; btn.textContent='⚠ RETRY'; }
-    }
-}
 
 /* ── Clear all drawings and reset ── */
 function posClearDrawings() {
