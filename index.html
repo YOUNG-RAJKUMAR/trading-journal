@@ -1519,6 +1519,7 @@ var MT5Feed = (function() {
     function connect() {
         try {
             ws = new WebSocket('ws://localhost:8765');
+            window._mt5WS = ws;          // ← EXPOSE to posConfirmTrade()
         } catch(e) {
             setStatus('disconnected','MT5 OFFLINE');
             scheduleRetry(); return;
