@@ -4956,27 +4956,21 @@ function pmDrawOrUpdateLines(chart, pos) {
         // ── Floating P&L line (live price) ──
         try {
             var pnlText = (pos.profit >= 0 ? '+$' : '-$') + Math.abs(pos.profit).toFixed(2);
-        
-_pmChartLines[ticket].pnl = chart.createOrderLine()
-    .setEditable(false)
-    .setPrice(pos.current_price || pos.open_price)
-    .setText(pnlText)
-    .setQuantity('✕ close')
-    .setBodyBackgroundColor(pos.profit >= 0 ? '#001a0a' : '#1a0000')
-    .setBodyBorderColor(    pos.profit >= 0 ? '#44ff88' : '#ff4444')
-    .setBodyTextColor(      pos.profit >= 0 ? '#44ff88' : '#ff6666')
-    .setQuantityBackgroundColor('rgba(255,68,68,0.25)')
-    .setQuantityBorderColor('#ff4444')
-    .setQuantityTextColor('#ff6666')
-    .setLineColor('rgba(200,200,200,0.1)')
-    .setLineStyle(1)
-    .setLineLength(45)
-    .onClose(function() {
-        pmCloseTicketDirect(ticket);
-    })
-    .onModify(function() {
-        pmCloseTicketDirect(ticket);
-    });    } catch(e) { console.warn('[PM] pnl line:', e); }
+            _pmChartLines[ticket].pnl = chart.createOrderLine()
+                .setEditable(false)
+                .setPrice(pos.current_price || pos.open_price)
+                .setText(pnlText + '  [close ✕]')
+                .setQuantity('')
+                .setBodyBackgroundColor(pos.profit >= 0 ? '#001a0a' : '#1a0000')
+                .setBodyBorderColor(    pos.profit >= 0 ? '#44ff88' : '#ff4444')
+                .setBodyTextColor(      pos.profit >= 0 ? '#44ff88' : '#ff6666')
+                .setLineColor('rgba(200,200,200,0.1)')
+                .setLineStyle(1)
+                .setLineLength(45)
+             .onModify(function() {
+    pmCloseTicketDirect(ticket);
+});
+        } catch(e) { console.warn('[PM] pnl line:', e); }
 
     } else {
         // ── UPDATE existing lines ──
@@ -4988,7 +4982,7 @@ _pmChartLines[ticket].pnl = chart.createOrderLine()
                 lines.pnl.setPrice(pos.current_price);
                 var pnl     = pos.profit + pos.swap;
                 var pnlText = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
-                lines.pnl.setText(pnlText);
+                lines.pnl.setText(pnlText + '  [close ✕]');
                 lines.pnl.setBodyBackgroundColor(pnl >= 0 ? '#001a0a' : '#1a0000');
                 lines.pnl.setBodyBorderColor(    pnl >= 0 ? '#44ff88' : '#ff4444');
                 lines.pnl.setBodyTextColor(      pnl >= 0 ? '#44ff88' : '#ff6666');
