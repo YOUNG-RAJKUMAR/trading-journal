@@ -2490,7 +2490,7 @@ function refreshPanel(num) {
 function launchPanel(num) {
     var c = window.ui._tvColors();
     var containerId = 'tv-container-' + num;
-    var symbols = { 1: 'US30', 2: 'EURUSD' };
+    var symbols = { 1: 'NAS100', 2: 'US500' };
     var symbol  = symbols[num] || 'EURUSD';
     var tf      = _currentTF[num-1] || '60';
 
@@ -2641,7 +2641,7 @@ var _dm          = 'amt';
 var _calcLiveBid = 0;
 var _calcLiveAsk = 0;
 var _calcSide    = 'BUY';
-var _calcSymbol  = 'EURUSD';
+var _calcSymbol  = 'NAS100';
 
 function deskDetectInst(sym) {
     sym = sym.toUpperCase();
