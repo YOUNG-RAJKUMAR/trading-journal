@@ -3272,20 +3272,26 @@ document.addEventListener('keydown', function(e) {
         <script>
 
 /* ═══════════════════════════════════════════════════════════════════
-   PAIR DIRECTIONAL BIAS — STRUCTURE-BASED (4H FRACTAL SENTIMENT)
+   SMC / ICT MARKET STRUCTURE BIAS METER  — v3 (corrected rules)
+   Instruments : EURUSD · GBPUSD · XAU/USD · US30
+   Lookback    : 400 candles per TF
+   TF weights  : H4 = 60%  H1 = 25%  D1 = 15%
 
-   SCORING WEIGHTS:
-     Market Structure   55%  — HH/HL vs LL/LH swing sequence
-     Structure Integrity 20%  — Has price broken the last HL/LH yet?
-     Body Consensus     15%  — % of recent 4H candles closing bullish
-     Displacement       10%  — Direction of the biggest impulsive candle
+   CORRECT ICT RULES:
+   ──────────────────────────────────────────────────────────────
+   UPTREND  (HH + HL sequence):
+     CHoCH  = close BELOW the latest HL    → flip to BEARISH
+     SWEEP  = wick below latest HL, close ABOVE → still BULL (liq. grab)
+     BOS    = close ABOVE latest HH        → bullish continuation
 
-   KEY PRINCIPLE:
-     Score stays BULLISH during a 50% pullback as long as the last
-     Higher Low (HL) has not been broken. Only a confirmed CHoCH
-     (Change of Character) flips the bias to BEARISH.
+   DOWNTREND (LL + LH sequence):
+     CHoCH  = close ABOVE the latest LH   → flip to BULLISH
+     SWEEP  = wick above latest LH, close BELOW → still BEAR (liq. grab)
+     BOS    = close BELOW latest LL       → bearish continuation
 
-   Instruments: EURUSD · GBPUSD · XAU/USD · US30
+   KEY: CHoCH does NOT need to break "Protected High/Low".
+        It only needs to break the LATEST HL or LATEST LH.
+        After CHoCH → every break of latest LH(down) or HH(up) = BOS.
 ═══════════════════════════════════════════════════════════════════ */
 
 var CS_INSTRUMENTS = [
@@ -3295,230 +3301,256 @@ var CS_INSTRUMENTS = [
     { sym: 'US30',   label: 'US30'    },
 ];
 
+var CS_LOOKBACK = 400;
+
 var _csOpen         = false;
 var _csPreset       = 'medium';
 var _csRefreshTimer = null;
 
-/* Default: 4H primary TF — ideal for 4H fractal sentiment trading */
-var _csConfig = { bars: 20, tf1: 'H4', tf2: 'H1', tf3: 'D1' };
+var _csConfig = { bars: CS_LOOKBACK, tf1: 'H4', tf2: 'H1', tf3: 'D1' };
 
 var CS_PRESETS = {
-    short:  { bars: 15, tf1: 'M30', tf2: 'H1',  tf3: 'H4' },
-    medium: { bars: 20, tf1: 'H4',  tf2: 'H1',  tf3: 'D1' },
-    long:   { bars: 20, tf1: 'D1',  tf2: 'H4',  tf3: 'W1' },
+    short:  { bars: CS_LOOKBACK, tf1: 'M30', tf2: 'H1', tf3: 'H4' },
+    medium: { bars: CS_LOOKBACK, tf1: 'H4',  tf2: 'H1', tf3: 'D1' },
+    long:   { bars: CS_LOOKBACK, tf1: 'D1',  tf2: 'H4', tf3: 'W1' },
     custom: null,
 };
 
+var TF_WEIGHTS = [0.60, 0.25, 0.15];   /* H4, H1, D1 */
+
 /* ═══════════════════════════════════════════════════════════════
-   SWING POINT DETECTION
-   Uses N-bar fractal: a swing high at index i requires
-   that candle i has the highest high of the surrounding N bars.
-   N=2 gives the classic 5-bar fractal (ICT style).
+   FRACTAL SWING DETECTION
+   strength=3 → 7-bar fractal (H4, D1)
+   strength=2 → 5-bar fractal (H1, M30)
 ═══════════════════════════════════════════════════════════════ */
 function _detectSwings(candles, strength) {
-    strength = strength || 2;
-    var highs = [];
-    var lows  = [];
-    var len   = candles.length;
-
+    var highs = [], lows = [], len = candles.length;
     for (var i = strength; i < len - strength; i++) {
-        /* Swing High: candle[i].high is the highest in the window */
-        var isHigh = true;
+        var isH = true, isL = true;
         for (var j = i - strength; j <= i + strength; j++) {
-            if (j !== i && candles[j].high >= candles[i].high) {
-                isHigh = false; break;
-            }
+            if (j === i) continue;
+            if (candles[j].high >= candles[i].high) isH = false;
+            if (candles[j].low  <= candles[i].low)  isL = false;
         }
-        if (isHigh) highs.push({ index: i, price: candles[i].high, time: candles[i].time });
-
-        /* Swing Low: candle[i].low is the lowest in the window */
-        var isLow = true;
-        for (var k = i - strength; k <= i + strength; k++) {
-            if (k !== i && candles[k].low <= candles[i].low) {
-                isLow = false; break;
-            }
-        }
-        if (isLow) lows.push({ index: i, price: candles[i].low, time: candles[i].time });
+        if (isH) highs.push({ idx: i, price: candles[i].high, time: candles[i].time });
+        if (isL) lows.push({  idx: i, price: candles[i].low,  time: candles[i].time });
     }
-
     return { highs: highs, lows: lows };
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   STRUCTURE CLASSIFICATION
-   Compares last 2 swing highs (SH1, SH2) and last 2 swing lows (SL1, SL2)
-   SH2 > SH1 AND SL2 > SL1 → HH/HL → BULLISH  (+1)
-   SH2 < SH1 AND SL2 < SL1 → LL/LH → BEARISH  (-1)
-   Mixed                    → NEUTRAL / INDECISION (0)
+   CORE STATE MACHINE — correct ICT CHoCH / BOS logic
+
+   Walks ALL swings in time order to:
+     1. Track lastHH / lastHL / lastLL / lastLH at every step
+     2. Determine current trend from swing sequence
+     3. Apply CHoCH / BOS / SWEEP rules against latest HL or LH
+        (NOT against a "Protected High/Low")
 ═══════════════════════════════════════════════════════════════ */
-function _classifyStructure(highs, lows) {
-    if (highs.length < 2 || lows.length < 2) {
-        return { bias: 0, lastHL: null, lastLH: null, label: 'NO DATA' };
+function _smcState(candles, swings) {
+    if (swings.highs.length < 2 || swings.lows.length < 2) return null;
+
+    /* ── Build chronological swing sequence ── */
+    var seq = [];
+    swings.highs.forEach(function(s) { seq.push({ type:'H', idx:s.idx, price:s.price }); });
+    swings.lows.forEach(function(s)  { seq.push({ type:'L', idx:s.idx, price:s.price }); });
+    seq.sort(function(a, b) { return a.idx - b.idx; });
+
+    /* ── Walk sequence → track last HH, HL, LL, LH ── */
+    var lastHH = null, lastHL = null;
+    var lastLL = null, lastLH = null;
+    var prevH  = null, prevL  = null;
+    var trend  = 0;   /* 1 = bull  -1 = bear  0 = neutral */
+
+    for (var i = 0; i < seq.length; i++) {
+        var s = seq[i];
+        if (s.type === 'H') {
+            if (prevH !== null) {
+                if (s.price > prevH) {
+                    lastHH = s.price;
+                    /* HH in bearish trend → potential CHoCH (handled below) */
+                    if (trend !== -1) trend = 1;
+                } else {
+                    lastLH = s.price;
+                    if (trend !== 1) trend = -1;
+                }
+            } else {
+                lastHH = s.price;   /* first high = treat as HH */
+            }
+            prevH = s.price;
+        } else {
+            if (prevL !== null) {
+                if (s.price > prevL) {
+                    lastHL = s.price;
+                    if (trend !== -1) trend = 1;
+                } else {
+                    lastLL = s.price;
+                    if (trend !== 1) trend = -1;
+                }
+            } else {
+                lastLL = s.price;   /* first low = treat as LL */
+            }
+            prevL = s.price;
+        }
     }
 
-    /* Get last 2 of each, sorted by time ascending */
-    var sh = highs.slice(-2);
-    var sl = lows.slice(-2);
+    /* ── Structure label from last 2 of each swing ── */
+    var sh = swings.highs.slice(-2);
+    var sl = swings.lows.slice(-2);
+    var isHH = sh.length >= 2 && sh[1].price > sh[0].price;
+    var isHL = sl.length >= 2 && sl[1].price > sl[0].price;
+    var isLL = sl.length >= 2 && sl[1].price < sl[0].price;
+    var isLH = sh.length >= 2 && sh[1].price < sh[0].price;
 
-    var hh = sh[1].price > sh[0].price;   /* Higher High */
-    var hl = sl[1].price > sl[0].price;   /* Higher Low  */
-    var ll = sl[1].price < sl[0].price;   /* Lower Low   */
-    var lh = sh[1].price < sh[0].price;   /* Lower High  */
+    var structLabel = 'MIXED';
+    if      (isHH && isHL) structLabel = 'HH/HL';
+    else if (isLL && isLH) structLabel = 'LL/LH';
+    else if (isHH)         structLabel = 'HH';
+    else if (isHL)         structLabel = 'HL';
+    else if (isLL)         structLabel = 'LL';
+    else if (isLH)         structLabel = 'LH';
 
-    var bias  = 0;
-    var label = 'INDECISION';
+    /* ── Current bar ── */
+    var last  = candles[candles.length - 1];
+    var close = last.close;
+    var high  = last.high;
+    var low   = last.low;
 
-    if (hh && hl) { bias =  1; label = 'HH/HL'; }
-    if (ll && lh) { bias = -1; label = 'LL/LH'; }
+    /* ═══════════════════════════════════════════════════════
+       CHoCH / BOS / SWEEP — using LATEST HL or LH only
+       ═══════════════════════════════════════════════════════
+
+       UPTREND rules:
+         CHoCH = close < lastHL         (breaks latest Higher Low)
+         SWEEP = low   < lastHL AND close > lastHL  (wick only)
+         BOS   = close > lastHH         (breaks latest Higher High)
+
+       DOWNTREND rules:
+         CHoCH = close > lastLH         (breaks latest Lower High)
+         SWEEP = high  > lastLH AND close < lastLH  (wick only)
+         BOS   = close < lastLL         (breaks latest Lower Low)
+    ═══════════════════════════════════════════════════════ */
+    var isChoch = false, isBOS = false, isSweep = false;
+    var eventLabel = '';
+
+    if (trend === 1) {
+        /* ── UPTREND ── */
+        if (lastHL !== null && close < lastHL) {
+            /* Close BELOW latest HL → CHoCH bearish */
+            isChoch    = true;
+            eventLabel = 'CHoCH ⚡';
+        } else if (lastHL !== null && low < lastHL && close > lastHL) {
+            /* Wick below latest HL, close above → SWEEP (liquidity grab) */
+            isSweep    = true;
+            eventLabel = 'SWEEP';
+        } else if (lastHH !== null && close > lastHH) {
+            /* Close ABOVE latest HH → BOS bullish continuation */
+            isBOS      = true;
+            eventLabel = 'BOS ↑';
+        }
+    } else if (trend === -1) {
+        /* ── DOWNTREND ── */
+        if (lastLH !== null && close > lastLH) {
+            /* Close ABOVE latest LH → CHoCH bullish */
+            isChoch    = true;
+            eventLabel = 'CHoCH ⚡';
+        } else if (lastLH !== null && high > lastLH && close < lastLH) {
+            /* Wick above latest LH, close below → SWEEP (liquidity grab) */
+            isSweep    = true;
+            eventLabel = 'SWEEP';
+        } else if (lastLL !== null && close < lastLL) {
+            /* Close BELOW latest LL → BOS bearish continuation */
+            isBOS      = true;
+            eventLabel = 'BOS ↓';
+        }
+    }
+
+    /* ── SCORE ──
+       Structure base : ±55  (HH/HL or LL/LH)
+       Integrity      : ±20  (where is price vs latest HL or LH)
+       BOS bonus      : ±10
+       Body consensus : ±15  (last 8 candles)
+    ── */
+
+    /* Base */
+    var base = 0;
+    if      (structLabel === 'HH/HL') base =  55;
+    else if (structLabel === 'LL/LH') base = -55;
+    else if (structLabel === 'HH' || structLabel === 'HL') base =  28;
+    else if (structLabel === 'LL' || structLabel === 'LH') base = -28;
+
+    /* Integrity — price position vs key structural level */
+    var intg = 0;
+    if (trend === 1 && lastHL !== null) {
+        if (isChoch) {
+            intg = -25;
+        } else if (isSweep) {
+            intg = +8;
+        } else {
+            /* Between lastHL (0%) and lastHH (100%) */
+            var rng = (lastHH !== null ? lastHH : close) - lastHL;
+            var pos = rng > 0 ? Math.min((close - lastHL) / rng, 1) : 0.5;
+            /* +5 when sitting just above HL (premium zone for entries), +20 near new HH */
+            intg = 5 + pos * 15;
+        }
+    } else if (trend === -1 && lastLH !== null) {
+        if (isChoch) {
+            intg = +25;
+        } else if (isSweep) {
+            intg = -8;
+        } else {
+            var rng2 = lastLH - (lastLL !== null ? lastLL : close);
+            var pos2 = rng2 > 0 ? Math.min((lastLH - close) / rng2, 1) : 0.5;
+            intg = -(5 + pos2 * 15);
+        }
+    }
+
+    /* BOS bonus */
+    var bosBonus = isBOS ? (trend * 10) : 0;
+
+    /* Body consensus — last 8 closed candles */
+    var c8 = candles.slice(-8);
+    var bc = 0;
+    c8.forEach(function(c) { if (c.close > c.open) bc++; });
+    var cons = ((bc / 8) - 0.5) * 30;
+
+    var total = Math.max(-100, Math.min(100, base + intg + bosBonus + cons));
 
     return {
-        bias:    bias,
-        label:   label,
-        lastHL:  hl ? sl[1].price : sl[0].price,  /* Most recent confirmed Higher Low */
-        lastLH:  lh ? sh[1].price : sh[0].price,  /* Most recent confirmed Lower High */
-        lastSH:  sh[1].price,
-        lastSL:  sl[1].price,
-        prevSH:  sh[0].price,
-        prevSL:  sl[0].price,
+        total:       total,
+        trend:       trend,
+        isChoch:     isChoch,
+        isBOS:       isBOS,
+        isSweep:     isSweep,
+        eventLabel:  eventLabel,
+        structLabel: structLabel,
+        lastHL:      lastHL,
+        lastLH:      lastLH,
+        lastHH:      lastHH,
+        lastLL:      lastLL,
     };
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   STRUCTURE INTEGRITY
-   BULLISH: Is current price still ABOVE the last HL?
-     - Yes → structure intact → no penalty
-     - No  → price is testing/breaking HL → CHoCH zone → penalty
-   BEARISH: Is current price still BELOW the last LH?
-     - Yes → structure intact
-     - No  → BOS above LH → CHoCH zone
-   Returns a score in range -20..+20
-═══════════════════════════════════════════════════════════════ */
-function _structureIntegrity(struct, currentPrice) {
-    if (!struct || struct.bias === 0) return 0;
-
-    if (struct.bias === 1) {
-        /* Bullish — check if price is still above the last HL */
-        if (!struct.lastHL) return 0;
-        if (currentPrice > struct.lastHL) {
-            /* How far above the HL? Deep in the range = strong, near HL = weaker */
-            var range     = struct.lastSH - struct.lastHL;
-            var position  = currentPrice - struct.lastHL;
-            var pct       = range > 0 ? Math.min(position / range, 1) : 0.5;
-            /* Score 0..+20 — full 20 when at the high, minimum 5 when just above HL */
-            return 5 + pct * 15;
-        } else {
-            /* Price broke below last HL → CHoCH → heavy penalty */
-            return -20;
-        }
-    } else {
-        /* Bearish — check if price is still below the last LH */
-        if (!struct.lastLH) return 0;
-        if (currentPrice < struct.lastLH) {
-            var range2   = struct.lastLH - struct.lastSL;
-            var position2 = struct.lastLH - currentPrice;
-            var pct2     = range2 > 0 ? Math.min(position2 / range2, 1) : 0.5;
-            return -(5 + pct2 * 15);
-        } else {
-            /* Price broke above last LH → CHoCH → heavy penalty */
-            return 20;
-        }
-    }
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   BODY CONSENSUS
-   Counts what % of the last N 4H candles closed bullish (close > open)
-   Returns -15..+15
-   Even during a pullback, if 6 of 8 recent candles were bullish
-   the bias stays positive — this is a smoother momentum signal.
-═══════════════════════════════════════════════════════════════ */
-function _bodyConsensus(candles, lookback) {
-    lookback = lookback || 8;
-    if (!candles || candles.length < lookback) return 0;
-    var recent   = candles.slice(-lookback);
-    var bullCount = 0;
-    recent.forEach(function(c) { if (c.close > c.open) bullCount++; });
-    var ratio = bullCount / lookback;           /* 0..1 */
-    return (ratio - 0.5) * 30;                 /* -15..+15 */
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   DISPLACEMENT DIRECTION
-   The single largest-body candle in the last N bars shows the
-   direction of the most recent impulsive move (ICT displacement).
-   Returns -10..+10
-═══════════════════════════════════════════════════════════════ */
-function _displacement(candles, lookback) {
-    lookback = lookback || 10;
-    if (!candles || candles.length < lookback) return 0;
-    var recent  = candles.slice(-lookback);
-    var maxBody = 0;
-    var dir     = 0;
-    recent.forEach(function(c) {
-        var body = Math.abs(c.close - c.open);
-        if (body > maxBody) {
-            maxBody = body;
-            dir     = c.close >= c.open ? 1 : -1;
-        }
-    });
-    return dir * 10;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   CORE SCORER — single instrument, single TF
-   Returns a score in range approx −100..+100
-   Breakdown:
-     Structure    55%  → ±55
-     Integrity    20%  → ±20
-     Consensus    15%  → ±15
-     Displacement 10%  → ±10
-═══════════════════════════════════════════════════════════════ */
-function _csBiasScore(candles, bars) {
-    if (!candles || candles.length < Math.max(bars + 4, 10)) return null;
-
-    var sorted = candles.slice().sort(function(a, b) { return a.time - b.time; });
-    var window = sorted.slice(-Math.min(sorted.length, bars + 20));
-
-    /* Adjust fractal strength to available data */
-    var strength = window.length >= 30 ? 2 : 1;
-
-    var swings   = _detectSwings(window, strength);
-    var struct   = _classifyStructure(swings.highs, swings.lows);
-
-    /* Current price from the last closed candle */
-    var lastBar      = window[window.length - 1];
-    var currentPrice = lastBar.close;
-
-    /* Component scores */
-    var structScore  = struct.bias * 55;                         /* ±55 */
-    var integrScore  = _structureIntegrity(struct, currentPrice); /* ±20 */
-    var consensScore = _bodyConsensus(window, 8);                /* ±15 */
-    var dispScore    = _displacement(window, 10);                /* ±10 */
-
-    var total = structScore + integrScore + consensScore + dispScore;
-
-    return {
-        total:     total,
-        struct:    struct,
-        integrity: integrScore,
-        consensus: consensScore,
-        disp:      dispScore,
-    };
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   TF AGGREGATOR — runs scorer on a single TF for all instruments
+   SINGLE-TF RUNNER
 ═══════════════════════════════════════════════════════════════ */
 function csCalcTF(tf, bars) {
-    var data   = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
-    var result = {};
+    var data     = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
+    var result   = {};
+    var strength = (tf === 'H1' || tf === 'M30') ? 2 : 3;
 
     CS_INSTRUMENTS.forEach(function(inst) {
-        if (!data[inst.sym]) return;
-        var candles = data[inst.sym].candles && data[inst.sym].candles[tf];
-        if (!candles) return;
-        var score = _csBiasScore(candles, bars);
-        if (score !== null) result[inst.sym] = score;
+        var sym = inst.sym;
+        if (!data[sym]) return;
+        var all = data[sym].candles && data[sym].candles[tf];
+        if (!all || all.length < 20) return;
+
+        var sorted  = all.slice().sort(function(a, b) { return a.time - b.time; });
+        var candles = sorted.slice(-Math.min(sorted.length, bars));
+
+        var swings = _detectSwings(candles, strength);
+        var state  = _smcState(candles, swings);
+        if (state) result[sym] = state;
     });
 
     return result;
@@ -3526,56 +3558,50 @@ function csCalcTF(tf, bars) {
 
 /* ═══════════════════════════════════════════════════════════════
    MULTI-TF CONFLUENCE
-   H4 has 60% weight (primary fractal TF)
-   H1 has 25% weight (entry-level confirmation)
-   D1 has 15% weight (higher-timeframe context)
-   Only signals that agree across TFs get full confidence
 ═══════════════════════════════════════════════════════════════ */
-var TF_WEIGHTS = { 0: 0.60, 1: 0.25, 2: 0.15 };
-
-function _multiTFConfluence(scores1, scores2, scores3) {
+function _confluence(s1, s2, s3) {
     var result = {};
     CS_INSTRUMENTS.forEach(function(inst) {
-        var sym   = inst.sym;
-        var vals  = [];
-        var wsum  = 0;
-        var total = 0;
+        var sym  = inst.sym;
+        var sets = [s1[sym], s2[sym], s3[sym]];
+        var tot  = 0, wsum = 0;
 
-        [scores1, scores2, scores3].forEach(function(s, idx) {
-            if (s[sym] !== undefined) {
-                var w = TF_WEIGHTS[idx];
-                total += s[sym].total * w;
-                wsum  += w;
-                vals.push(s[sym]);
-            }
+        sets.forEach(function(s, i) {
+            if (!s) return;
+            tot  += s.total * TF_WEIGHTS[i];
+            wsum += TF_WEIGHTS[i];
         });
-
         if (!wsum) return;
 
-        var weighted = total / wsum;
+        var weighted = tot / wsum;
+        var valids = sets.filter(Boolean);
+        var bulls  = valids.filter(function(s) { return s.total >  5; }).length;
+        var bears  = valids.filter(function(s) { return s.total < -5; }).length;
+        var all3   = valids.length;
 
-        /* Confluence bonus/penalty:
-           If all 3 TFs agree on direction → +10% boost
-           If they disagree → reduce score toward 0 by 30%   */
-        var signs  = vals.map(function(v) { return v.total >= 0 ? 1 : -1; });
-        var allPos = signs.every(function(s) { return s === 1; });
-        var allNeg = signs.every(function(s) { return s === -1; });
+        /* Confluence multiplier */
+        var mult = (bulls === all3 || bears === all3) ? 1.12
+                 : (bulls >= 2 || bears >= 2)         ? 1.00
+                 :                                       0.65;
 
-        if (allPos || allNeg) {
-            weighted *= 1.10;   /* Full confluence — boost */
-        } else {
-            weighted *= 0.70;   /* Mixed signals — dampen */
-        }
+        weighted = Math.max(-100, Math.min(100, weighted * mult));
 
+        var primary = s1[sym] || s2[sym];
         result[sym] = {
-            total:  weighted,
-            tf1:    scores1[sym] ? scores1[sym].total : null,
-            tf2:    scores2[sym] ? scores2[sym].total : null,
-            tf3:    scores3[sym] ? scores3[sym].total : null,
-            struct: scores1[sym] ? scores1[sym].struct : null,
+            total:       weighted,
+            tf1:         s1[sym] ? s1[sym].total : null,
+            tf2:         s2[sym] ? s2[sym].total : null,
+            tf3:         s3[sym] ? s3[sym].total : null,
+            structLabel: primary ? primary.structLabel : '---',
+            eventLabel:  primary ? primary.eventLabel  : '',
+            isChoch:     primary ? primary.isChoch     : false,
+            isBOS:       primary ? primary.isBOS       : false,
+            isSweep:     primary ? primary.isSweep     : false,
+            confluBulls: bulls,
+            confluBears: bears,
+            confluTotal: all3,
         };
     });
-
     return result;
 }
 
@@ -3600,31 +3626,28 @@ function csRender() {
 
     var tf1 = _csConfig.tf1, tf2 = _csConfig.tf2, tf3 = _csConfig.tf3;
     var bars = _csConfig.bars;
+    var s1   = csCalcTF(tf1, bars);
+    var s2   = csCalcTF(tf2, bars);
+    var s3   = csCalcTF(tf3, bars);
+    var conf = _confluence(s1, s2, s3);
 
-    var s1 = csCalcTF(tf1, bars);
-    var s2 = csCalcTF(tf2, bars);
-    var s3 = csCalcTF(tf3, bars);
-
-    var confluence = _multiTFConfluence(s1, s2, s3);
-
-    /* Scale bars relative to the strongest signal */
-    var maxAbs = 0.001;
-    Object.keys(confluence).forEach(function(sym) {
-        maxAbs = Math.max(maxAbs, Math.abs(confluence[sym].total));
-        [confluence[sym].tf1, confluence[sym].tf2, confluence[sym].tf3].forEach(function(v) {
+    /* Scale bars */
+    var maxAbs = 1;
+    Object.keys(conf).forEach(function(sym) {
+        maxAbs = Math.max(maxAbs, Math.abs(conf[sym].total));
+        [conf[sym].tf1, conf[sym].tf2, conf[sym].tf3].forEach(function(v) {
             if (v !== null) maxAbs = Math.max(maxAbs, Math.abs(v));
         });
     });
-    maxAbs *= 1.2;
+    maxAbs = Math.min(maxAbs * 1.2, 100);
 
-    /* Sort strongest → weakest if checkbox checked */
+    /* Sort */
     var instruments = CS_INSTRUMENTS.slice();
     var sortCheck   = document.getElementById('cs-sort-check');
     if (sortCheck && sortCheck.checked) {
         instruments.sort(function(a, b) {
-            var va = confluence[a.sym] ? confluence[a.sym].total : 0;
-            var vb = confluence[b.sym] ? confluence[b.sym].total : 0;
-            return vb - va;
+            return (conf[b.sym] ? conf[b.sym].total : 0)
+                 - (conf[a.sym] ? conf[a.sym].total : 0);
         });
     }
 
@@ -3633,45 +3656,32 @@ function csRender() {
     }
 
     row.innerHTML = instruments.map(function(inst) {
-        var sym  = inst.sym;
-        var conf = confluence[sym];
-        if (!conf) return '';
+        var sym = inst.sym;
+        var c   = conf[sym];
+        if (!c) return '';
+        var avg    = c.total;
+        var tfVals = [c.tf1, c.tf2, c.tf3];
 
-        var avg    = conf.total;
-        var tfVals = [conf.tf1, conf.tf2, conf.tf3];
-        var struct = conf.struct;
+        /* Direction badge */
+        var dirLabel, dirColor, dirBg;
+        if (c.isChoch) {
+            dirLabel = '⚡ CHoCH';   dirColor = '#EF9F27'; dirBg = 'rgba(239,159,39,0.12)';
+        } else if (c.isSweep) {
+            dirLabel = avg > 0 ? '◈ SWEEP LQ' : '◈ SWEEP LQ';
+            dirColor = '#BA7517'; dirBg = 'rgba(186,117,23,0.10)';
+        } else if (c.isBOS) {
+            if (avg > 0) { dirLabel = '▲ BOS'; dirColor = '#1D9E75'; dirBg = 'rgba(29,158,117,0.12)'; }
+            else         { dirLabel = '▼ BOS'; dirColor = '#A32D2D'; dirBg = 'rgba(163,45,45,0.12)'; }
+        } else if (avg >  55) { dirLabel = '▲▲ BULL'; dirColor = '#1D9E75'; dirBg = 'rgba(29,158,117,0.10)'; }
+        else if  (avg >  10) { dirLabel = '▲ BULL';  dirColor = '#3B8BD4'; dirBg = 'rgba(59,139,212,0.08)'; }
+        else if  (avg < -55) { dirLabel = '▼▼ BEAR'; dirColor = '#A32D2D'; dirBg = 'rgba(163,45,45,0.10)'; }
+        else if  (avg < -10) { dirLabel = '▼ BEAR';  dirColor = '#E24B4A'; dirBg = 'rgba(226,75,74,0.08)'; }
+        else                 { dirLabel = '◆ NEUT';  dirColor = '#5F5E5A'; dirBg = 'transparent'; }
 
-        /* ── Direction label with CHoCH detection ──
-           CHoCH = integrity was -20 on primary TF (price broke last HL/LH) */
-        var isBullIntact = avg > 5;
-        var isBearIntact = avg < -5;
-        var isChoch      = s1[sym] && Math.abs(s1[sym].integrity) === 20;
-
-        var dirLabel, dirColor;
-        if (isChoch) {
-            dirLabel = '⚡ CHoCH';
-            dirColor = '#EF9F27';
-        } else if (isBullIntact) {
-            dirLabel = avg > 40 ? '▲▲ STRONG BULL' : '▲ BULL';
-            dirColor = avg > 40 ? '#3B8BD4' : '#6a9fd4';
-        } else if (isBearIntact) {
-            dirLabel = avg < -40 ? '▼▼ STRONG BEAR' : '▼ BEAR';
-            dirColor = avg < -40 ? '#E24B4A' : '#c07050';
-        } else {
-            dirLabel = '◆ NEUT';
-            dirColor = '#888780';
-        }
-
-        /* ── Structure label (shows HH/HL or LL/LH) ── */
-        var structLabel = struct ? struct.label : '---';
-
-        /* ── Three TF bars ── */
+        /* TF bars */
         var tfBarsHtml = tfVals.map(function(sc) {
             if (sc === null) {
-                return '<div class="cs-tf-bar-wrap">'
-                    + '<div class="cs-tf-bg-upper"></div>'
-                    + '<div class="cs-tf-bg-lower"></div>'
-                    + '</div>';
+                return '<div class="cs-tf-bar-wrap"><div class="cs-tf-bg-upper"></div><div class="cs-tf-bg-lower"></div></div>';
             }
             var isPos = sc >= 0;
             var pct   = Math.min(Math.abs(sc) / maxAbs, 1) * 50;
@@ -3679,10 +3689,8 @@ function csRender() {
             return '<div class="cs-tf-bar-wrap">'
                 + '<div class="cs-tf-bg-upper"></div>'
                 + '<div class="cs-tf-bg-lower"></div>'
-                + '<div class="cs-tf-bar-inner-upper" style="height:' + (isPos ? pct : 0)
-                + '%;background:' + color + ';transition:height .4s ease;"></div>'
-                + '<div class="cs-tf-bar-inner-lower" style="height:' + (isPos ? 0 : pct)
-                + '%;background:' + color + ';transition:height .4s ease;"></div>'
+                + '<div class="cs-tf-bar-inner-upper" style="height:'+(isPos?pct:0)+'%;background:'+color+';transition:height .4s;"></div>'
+                + '<div class="cs-tf-bar-inner-lower" style="height:'+(isPos?0:pct)+'%;background:'+color+';transition:height .4s;"></div>'
                 + '</div>';
         }).join('');
 
@@ -3690,65 +3698,60 @@ function csRender() {
             return '<span class="cs-tf-lbl">' + shortTF(tf) + '</span>';
         }).join('');
 
-        var sign  = avg > 0.01 ? '+' : '';
-        var cls   = avg > 5 ? 'pos' : avg < -5 ? 'neg' : 'neu';
+        /* Confluence dots */
+        var dots = '';
+        for (var d = 0; d < c.confluTotal; d++) {
+            var dc = d < c.confluBulls ? '#3B8BD4'
+                   : d < c.confluBears ? '#E24B4A'
+                   : '#444';
+            dots += '<span style="width:5px;height:5px;border-radius:50%;background:'+dc
+                 +  ';display:inline-block;margin:0 1px;"></span>';
+        }
 
-        /* Glow intensity */
-        var intensity = Math.min(Math.abs(avg) / 60, 1);
-        var glowColor = avg > 0
-            ? 'rgba(59,139,212,' + (intensity * 0.12) + ')'
-            : 'rgba(226,75,74,'  + (intensity * 0.12) + ')';
+        var sign = avg > 0 ? '+' : '';
+        var cls  = avg > 10 ? 'pos' : avg < -10 ? 'neg' : 'neu';
 
-        return '<div class="cs-currency-col" style="min-width:86px;background:'
-            + glowColor + ';border-radius:4px;padding:3px 2px;">'
-            + '<span class="cs-currency-label" style="font-size:.58rem;letter-spacing:1.2px;">'
-            + inst.label + '</span>'
-            /* Structure label */
-            + '<span style="font-size:.42rem;color:' + dirColor
-            + ';letter-spacing:.5px;font-weight:700;display:block;text-align:center;margin-bottom:2px;">'
-            + structLabel + '</span>'
-            /* Bars */
-            + '<div>'
-            +   '<div class="cs-tf-bars">' + tfBarsHtml + '</div>'
-            +   '<div class="cs-tf-labels">' + tfLabels + '</div>'
+        return '<div class="cs-currency-col" style="min-width:90px;border-radius:5px;'
+            + 'background:'+dirBg+';padding:3px 2px;border:1px solid rgba(255,255,255,0.04);">'
+            + '<span class="cs-currency-label" style="font-size:.55rem;letter-spacing:1px;">'+inst.label+'</span>'
+            + '<span style="font-size:.44rem;letter-spacing:.3px;color:'+dirColor
+            + ';font-weight:700;display:block;text-align:center;margin:1px 0;">'+c.structLabel+'</span>'
+            + '<div style="margin:2px 0;">'
+            +   '<div class="cs-tf-bars">'+tfBarsHtml+'</div>'
+            +   '<div class="cs-tf-labels">'+tfLabels+'</div>'
             + '</div>'
-            /* Score */
-            + '<span class="cs-score ' + cls + '" style="font-size:.72rem;">'
-            + sign + avg.toFixed(0) + '</span>'
-            /* Direction badge */
-            + '<span style="font-size:.43rem;color:' + dirColor
-            + ';letter-spacing:.5px;font-weight:700;margin-top:2px;display:block;text-align:center;">'
-            + dirLabel + '</span>'
+            + '<span class="cs-score '+cls+'" style="font-size:.7rem;">'+sign+avg.toFixed(0)+'</span>'
+            + '<span style="font-size:.44rem;color:'+dirColor
+            + ';font-weight:700;letter-spacing:.3px;display:block;text-align:center;margin-top:2px;">'+dirLabel+'</span>'
+            + '<div style="display:flex;justify-content:center;gap:2px;margin-top:3px;">'+dots+'</div>'
+            + (c.eventLabel ? '<span style="font-size:.40rem;color:'+dirColor
+               +';display:block;text-align:center;margin-top:1px;opacity:.85;">'+c.eventLabel+'</span>' : '')
             + '</div>';
     }).join('');
 
-    /* Footer timestamp */
+    /* Footer */
     var now = new Date();
     var upd = document.getElementById('cs-last-update');
     if (upd) upd.textContent = 'UPDATED '
-        + now.getHours().toString().padStart(2, '0')   + ':'
-        + now.getMinutes().toString().padStart(2, '0') + ':'
-        + now.getSeconds().toString().padStart(2, '0');
+        + now.getHours().toString().padStart(2,'0') + ':'
+        + now.getMinutes().toString().padStart(2,'0') + ':'
+        + now.getSeconds().toString().padStart(2,'0')
+        + '  |  400 BAR LOOKBACK';
 
     /* Button badge */
     var badge = document.getElementById('cs-btn-badge');
     if (badge) {
-        var withData = instruments.filter(function(i) { return !!confluence[i.sym]; });
-        var sorted2  = withData.slice().sort(function(a, b) {
-            return (confluence[b.sym].total || 0) - (confluence[a.sym].total || 0);
-        });
-        if (sorted2.length >= 2) {
-            badge.textContent = '▲' + sorted2[0].label
-                + '  ▼' + sorted2[sorted2.length - 1].label;
+        var s2b = CS_INSTRUMENTS.filter(function(i){ return !!conf[i.sym]; })
+                    .sort(function(a,b){ return (conf[b.sym].total||0)-(conf[a.sym].total||0); });
+        if (s2b.length >= 2) {
+            badge.textContent = '▲'+s2b[0].label+'  ▼'+s2b[s2b.length-1].label;
             badge.style.display = 'inline';
-        } else {
-            badge.style.display = 'none';
         }
     }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   OVERLAY CONTROLS (unchanged API — same function names)
+   OVERLAY CONTROLS
 ═══════════════════════════════════════════════════════════════ */
 function csToggleOverlay() {
     var ov = document.getElementById('cs-overlay');
@@ -3780,8 +3783,8 @@ function csToggleSettings() {
 
 function csSetPreset(name) {
     _csPreset = name;
-    ['short', 'medium', 'long', 'custom'].forEach(function(p) {
-        var btn = document.getElementById('csp-' + p);
+    ['short','medium','long','custom'].forEach(function(p) {
+        var btn = document.getElementById('csp-'+p);
         if (btn) btn.classList.toggle('active', p === name);
     });
     if (name !== 'custom') {
@@ -3799,13 +3802,13 @@ function csSetPreset(name) {
 }
 
 function csSaveSettings() {
-    _csConfig.bars = parseInt(document.getElementById('cs-bars').value);
+    _csConfig.bars = parseInt(document.getElementById('cs-bars').value) || CS_LOOKBACK;
     _csConfig.tf1  = document.getElementById('cs-tf1').value;
     _csConfig.tf2  = document.getElementById('cs-tf2').value;
     _csConfig.tf3  = document.getElementById('cs-tf3').value;
     _csPreset = 'custom';
-    ['short', 'medium', 'long'].forEach(function(p) {
-        var btn = document.getElementById('csp-' + p);
+    ['short','medium','long'].forEach(function(p) {
+        var btn = document.getElementById('csp-'+p);
         if (btn) btn.classList.remove('active');
     });
     var cb = document.getElementById('csp-custom');
@@ -3815,18 +3818,13 @@ function csSaveSettings() {
     csRender();
 }
 
-/* Close on Escape */
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && _csOpen) csToggleOverlay();
 });
 
-/* Auto-render when MT5 connects */
 var _csPoll = setInterval(function() {
     var d = window.MT5Feed && MT5Feed.lastData;
-    if (d && Object.keys(d).length > 0) {
-        clearInterval(_csPoll);
-        csRender();
-    }
+    if (d && Object.keys(d).length > 0) { clearInterval(_csPoll); csRender(); }
 }, 2000);
 </script>
 
