@@ -1978,17 +1978,16 @@ window.ui = {
         }
     },
 
-    switchTab(id) {
-        document.querySelectorAll('.tab-content,.tab-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(`tab-${id}`).classList.add('active');
-        document.getElementById(`btn-${id}`).classList.add('active');
-        if(id === 'analytics') this.renderAnalytics();
-        if(id === 'calendar')  { this.renderCalendar(); this.updateSideStats(); }
-        if(id === 'journal')   this.renderJournal();
-       if(id === 'charts')    this.launchTradingDesk();
-        if(id === 'backtest')  window.initReplayTab && window.initReplayTab();
-    },
-
+  switchTab(id) {
+    document.querySelectorAll('.tab-content,.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(`tab-${id}`).classList.add('active');
+    document.getElementById(`btn-${id}`).classList.add('active');
+    if(id === 'analytics') this.renderAnalytics();
+    if(id === 'calendar')  { this.renderCalendar(); this.updateSideStats(); }
+    if(id === 'journal')   this.renderJournal();
+    if(id === 'charts')    { this.launchTradingDesk(); window.scrollTo(0, document.body.scrollHeight); }
+    if(id === 'backtest')  window.initReplayTab && window.initReplayTab();
+},
 _tvColors() {
     return {
         bg:         '#292A35',
