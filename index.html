@@ -2983,8 +2983,8 @@ function posDrawPosition() {
     var tpDef = _posCalcTP(slDef);
 
     /* Show card and pre-fill */
-   document.getElementById('pos-live-card').style.display = 'block';
-document.getElementById('pos-live-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+document.getElementById('pos-live-card').style.display = 'block';
+document.getElementById('pos-confirm-btn').scrollIntoView({ behavior: 'instant', block: 'end' });
     document.getElementById('pos-entry-display').textContent = ent.toFixed(6);
     document.getElementById('pos-sl-input').value = slDef;
     document.getElementById('pos-tp-input').value = tpDef;
