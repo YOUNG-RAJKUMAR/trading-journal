@@ -3027,7 +3027,6 @@ function posDrawPosition() {
     if (dot) { dot.style.background = '#ffcc44'; dot.style.boxShadow = '0 0 6px #ffcc4488'; }
 }
 
-/* ── Draw the 3 lines on TradingView ── */
 function _posDrawLines(entry, sl, tp, side, sym) {
     if (!_tvWidgets[0]) return;
     var chart;
@@ -3040,19 +3039,6 @@ function _posDrawLines(entry, sl, tp, side, sym) {
 
     var isLong = side === 'BUY';
 
-    /* ── ENTRY line (position line — tracks live price) ── */
-    try {
-        _posLines.entry = chart.createPositionLine()
-            .setPrice(entry)
-            .setQuantity(side + ' @ MARKET')
-            .setLineStyle(0)
-            .setLineLength(30)
-            .setBodyBackgroundColor(isLong ? '#002200' : '#220000')
-            .setBodyBorderColor(isLong ? '#44ff88' : '#ff4444')
-            .setBodyTextColor(isLong ? '#44ff88' : '#ff4444')
-            .setLineColor(isLong ? '#44ff8866' : '#ff444466');
-    } catch(e) { console.warn('pos entry line:', e); }
-
     /* ── SL line (draggable order line) ── */
     try {
         _posLines.sl = chart.createOrderLine()
@@ -3063,11 +3049,10 @@ function _posDrawLines(entry, sl, tp, side, sym) {
             .setBodyBackgroundColor('#440000')
             .setBodyBorderColor('#ff4444')
             .setBodyTextColor('#ffffff')
-            .setLineColor('#ff444466')
+            .setLineColor('rgba(255,68,68,0.5)')
             .setLineStyle(2)
             .setLineLength(30)
             .onMove(function() {
-                /* Read back new price when user drags line */
                 var newSL = _posLines.sl.getPrice();
                 document.getElementById('pos-sl-input').value = newSL.toFixed(6);
                 _posUpdateCalc();
@@ -3085,7 +3070,7 @@ function _posDrawLines(entry, sl, tp, side, sym) {
             .setBodyBackgroundColor('#002200')
             .setBodyBorderColor('#44ff88')
             .setBodyTextColor('#ffffff')
-            .setLineColor('#44ff8866')
+            .setLineColor('rgba(68,255,136,0.5)')
             .setLineStyle(2)
             .setLineLength(30)
             .onMove(function() {
