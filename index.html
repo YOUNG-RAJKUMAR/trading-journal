@@ -2984,76 +2984,123 @@ function deskRs(){
 function syncHex(pickerId, hexId) { var p=document.getElementById(pickerId),h=document.getElementById(hexId); if(p&&h)h.value=p.value; }
 function syncPicker(hexId, pickerId) { var h=document.getElementById(hexId),p=document.getElementById(pickerId); if(!h||!p)return; var v=h.value.trim(); if(/^#[0-9a-fA-F]{6}$/.test(v))p.value=v; }
 
- /* ═══════════════════════════════════════════════════════════════
-   POSITION BUILDER v2 — Draggable lines + live lot sync
+/* ═══════════════════════════════════════════════════════════════
+   POSITION BUILDER v3 — SCALPER EDITION
+   ─────────────────────────────────────────────────────────────
+   • No confirm() dialog — fires immediately on button press
+   • TP auto-locked to 1:1 RR — moves instantly when SL dragged
+   • Entry price snapshot taken at DRAW time, stays fixed
+   • Lot size recalculated on every SL change
+   • HTTP POST to /api/order — no WebSocket round-trip delay
+   • Pre-validated before confirm button activates — zero runtime
+     checks on the hot path, just fire the fetch()
 ═══════════════════════════════════════════════════════════════ */
+
 var _posLines   = { entry: null, sl: null, tp: null };
 var _posActive  = false;
+var _posEntrySnap = 0;          // ← price locked at DRAW time
 var _posEntryLiveInterval = null;
+var _posSending = false;        // ← debounce double-clicks
 
-/* ── Called when user clicks DRAW ── */
+
+/* ── Compute TP at exact 1:1 from SNAPSHOT entry ── */
+function _posCalcTP(sl) {
+    var ent = _posEntrySnap;
+    if (!ent || !sl) return 0;
+    var dist = Math.abs(ent - sl);
+    return _calcSide === 'BUY'
+        ? parseFloat((ent + dist).toFixed(6))
+        : parseFloat((ent - dist).toFixed(6));
+}
+
+
+/* ── Called when user clicks DRAW ─────────────────────────── */
 function posDrawPosition() {
     var side = _calcSide;
-    var sym  = _calcSymbol;
     var ent  = _liveEntry();
 
     if (!ent || ent <= 0) {
-        _posFeedback('⚠ No live price — connect MT5 first', '#ffcc44');
+        _posFeedback('No live price — connect MT5 first', '#ffcc44');
         return;
     }
 
-    /* Default SL: 20 pips below (BUY) or above (SELL) */
+    /* Snapshot entry price — stays fixed for the life of this position */
+    _posEntrySnap = ent;
+
+    /* Default SL: 20 pips/pts below(BUY) or above(SELL) */
     var cfg    = _instCfg();
-    var pipVal = 1 / cfg.pip;          /* 0.0001 for forex, 0.1 for gold, etc. */
+    var pipVal = 1 / cfg.pip;
     var defPips = cfg.lbl === 'pips' ? 20 : 200;
-    var slDef  = side === 'BUY'
-        ? parseFloat((ent - defPips * pipVal).toFixed(6))
-        : parseFloat((ent + defPips * pipVal).toFixed(6));
-    var tpDef  = side === 'BUY'
-        ? parseFloat((ent + defPips * pipVal * 2).toFixed(6))
-        : parseFloat((ent - defPips * pipVal * 2).toFixed(6));
 
-    /* Pre-fill from calculator if already set */
+    /* Prefer calculator SL if already filled */
     var calcSL = parseFloat(document.getElementById('d-sl').value) || 0;
-    var calcTP = parseFloat(document.getElementById('d-tp').value) || 0;
-    if (calcSL > 0) slDef = calcSL;
-    if (calcTP > 0) tpDef = calcTP;
+    var slDef  = calcSL > 0 ? calcSL
+        : side === 'BUY'
+            ? parseFloat((ent - defPips * pipVal).toFixed(6))
+            : parseFloat((ent + defPips * pipVal).toFixed(6));
 
-    /* Show card */
+    var tpDef = _posCalcTP(slDef);
+
+    /* Show card and pre-fill */
     document.getElementById('pos-live-card').style.display = 'block';
+    document.getElementById('pos-entry-display').textContent = ent.toFixed(6);
     document.getElementById('pos-sl-input').value = slDef;
     document.getElementById('pos-tp-input').value = tpDef;
 
+    /* Lock TP field — it's always auto-calculated */
+    var tpIn = document.getElementById('pos-tp-input');
+    tpIn.readOnly = true;
+    tpIn.style.opacity = '0.6';
+    tpIn.style.cursor  = 'not-allowed';
+    tpIn.title = 'Auto-set to 1:1 RR — move SL line to adjust';
+
     _posActive = true;
-    _posDrawLines(ent, slDef, tpDef, side, sym);
+    _posSending = false;
+
+    _posDrawLines(ent, slDef, tpDef, side);
     _posUpdateCalc();
-    _posStartEntryTracker();
     _posEnableConfirm();
-    _posFeedback('✓ Drag SL/TP lines or edit prices below', '#44ff88');
 
     var dot = document.getElementById('pos-status-dot');
     if (dot) { dot.style.background = '#ffcc44'; dot.style.boxShadow = '0 0 6px #ffcc4488'; }
+
+    _posFeedback('Drag SL line — TP auto-follows at 1:1', '#44ff88');
 }
 
-function _posDrawLines(entry, sl, tp, side, sym) {
+
+/* ── Draw order lines on chart ─────────────────────────────── */
+function _posDrawLines(entry, sl, tp, side) {
     if (!_tvWidgets[0]) return;
     var chart;
     try { chart = _tvWidgets[0].activeChart(); } catch(e) { return; }
 
-    /* Remove old lines */
-    ['entry','sl','tp'].forEach(function(k) {
+    /* Remove existing lines */
+    ['entry', 'sl', 'tp'].forEach(function(k) {
         if (_posLines[k]) { try { _posLines[k].remove(); } catch(e) {} _posLines[k] = null; }
     });
 
-    var isLong = side === 'BUY';
+    /* ── Entry line (static — snapshot price) ── */
+    try {
+        _posLines.entry = chart.createOrderLine()
+            .setEditable(false)
+            .setPrice(entry)
+            .setText('ENTRY')
+            .setQuantity('')
+            .setBodyBackgroundColor(side === 'BUY' ? '#003300' : '#1a0000')
+            .setBodyBorderColor(   side === 'BUY' ? '#44ff88' : '#ff4444')
+            .setBodyTextColor('#ffffff')
+            .setLineColor(         side === 'BUY' ? 'rgba(68,255,136,0.4)' : 'rgba(255,68,68,0.4)')
+            .setLineStyle(0)
+            .setLineLength(20);
+    } catch(e) { console.warn('entry line:', e); }
 
-    /* ── SL line (draggable order line) ── */
+    /* ── SL line (draggable — drives everything) ── */
     try {
         _posLines.sl = chart.createOrderLine()
             .setEditable(true)
             .setPrice(sl)
-            .setText('◼ STOP LOSS')
-            .setQuantity(sym)
+            .setText('STOP LOSS')
+            .setQuantity('drag to adjust')
             .setBodyBackgroundColor('#440000')
             .setBodyBorderColor('#ff4444')
             .setBodyTextColor('#ffffff')
@@ -3061,212 +3108,194 @@ function _posDrawLines(entry, sl, tp, side, sym) {
             .setLineStyle(2)
             .setLineLength(30)
             .onMove(function() {
-                var newSL = _posLines.sl.getPrice();
-                document.getElementById('pos-sl-input').value = newSL.toFixed(6);
+                var newSL = parseFloat(_posLines.sl.getPrice().toFixed(6));
+                var newTP = _posCalcTP(newSL);
+
+                /* Update input display */
+                document.getElementById('pos-sl-input').value = newSL;
+                document.getElementById('pos-tp-input').value = newTP;
+
+                /* Move TP line instantly */
+                if (_posLines.tp) {
+                    try { _posLines.tp.setPrice(newTP); } catch(e) {}
+                }
+
+                /* Recalc lots and update confirm button */
                 _posUpdateCalc();
                 _posEnableConfirm();
             });
-    } catch(e) { console.warn('pos sl line:', e); }
+    } catch(e) { console.warn('sl line:', e); }
 
-    /* ── TP line (draggable order line) ── */
+    /* ── TP line (auto-positioned, not draggable) ── */
     try {
         _posLines.tp = chart.createOrderLine()
-            .setEditable(true)
+            .setEditable(false)
             .setPrice(tp)
-            .setText('◼ TAKE PROFIT')
-            .setQuantity(sym)
+            .setText('TAKE PROFIT  1:1')
+            .setQuantity('')
             .setBodyBackgroundColor('#002200')
             .setBodyBorderColor('#44ff88')
             .setBodyTextColor('#ffffff')
             .setLineColor('rgba(68,255,136,0.5)')
             .setLineStyle(2)
-            .setLineLength(30)
-            .onMove(function() {
-                var newTP = _posLines.tp.getPrice();
-                document.getElementById('pos-tp-input').value = newTP.toFixed(6);
-                _posUpdateCalc();
-                _posEnableConfirm();
-            });
-    } catch(e) { console.warn('pos tp line:', e); }
+            .setLineLength(30);
+    } catch(e) { console.warn('tp line:', e); }
 }
 
-/* ── Track live entry price and update entry line ── */
-function _posStartEntryTracker() {
-    if (_posEntryLiveInterval) clearInterval(_posEntryLiveInterval);
-    _posEntryLiveInterval = setInterval(function() {
-        if (!_posActive) { clearInterval(_posEntryLiveInterval); return; }
-        var ent = _liveEntry();
-        if (!ent) return;
-        /* Update entry display */
-        var ed = document.getElementById('pos-entry-display');
-        if (ed) ed.textContent = ent.toFixed(6);
-        /* Update entry line on chart */
-        if (_posLines.entry) {
-            try { _posLines.entry.setPrice(ent); } catch(e) {}
-        }
-        /* Re-calc lots since entry moved */
-        _posUpdateCalc();
-    }, 500);
-}
 
-/* ── Recalculate lots/risk/rr from current positions ── */
+/* ── Recalculate lots/risk/RR from current SL ──────────────── */
 function _posUpdateCalc() {
-    var ent  = _liveEntry();
-    var sl   = parseFloat(document.getElementById('pos-sl-input').value)  || 0;
-    var tp   = parseFloat(document.getElementById('pos-tp-input').value)  || 0;
-    var cfg  = _instCfg();
+    var ent = _posEntrySnap;
+    var sl  = parseFloat(document.getElementById('pos-sl-input').value) || 0;
+    var tp  = parseFloat(document.getElementById('pos-tp-input').value) || 0;
+    var cfg = _instCfg();
 
-    /* Update entry display */
+    /* Show snapshot entry */
     var ed = document.getElementById('pos-entry-display');
     if (ed && ent) ed.textContent = ent.toFixed(6);
 
-    if (!ent || !sl) {
-        _posSetStats('---', '---', '---');
-        return;
-    }
+    if (!ent || !sl) { _posSetStats('---', '---', '1:1'); return; }
 
-    var slDist  = Math.abs(ent - sl);
-    if (slDist === 0) { _posSetStats('ERR', 'SL=Entry', '---'); return; }
+    var slDist = Math.abs(ent - sl);
+    if (slDist === 0) { _posSetStats('ERR', 'SL=Entry', '1:1'); return; }
 
-    /* Also sync SL to main calculator so lot calc uses same values */
+    /* Sync SL to main calculator */
     document.getElementById('d-sl').value = sl;
+    if (tp) document.getElementById('d-tp').value = tp;
 
-    /* Calc lots */
-    var b   = parseFloat(document.getElementById('d-bal').value) || 0;
-    var ra  = parseFloat(document.getElementById('d-ra').value)  || 0;
-    var rp  = parseFloat(document.getElementById('d-rp').value)  || 0;
-    var rm  = _dm === 'amt' ? ra : (b > 0 ? b * rp / 100 : 0);
+    /* Risk amount */
+    var b  = parseFloat(document.getElementById('d-bal').value) || 0;
+    var ra = parseFloat(document.getElementById('d-ra').value)  || 0;
+    var rp = parseFloat(document.getElementById('d-rp').value)  || 0;
+    var rm = _dm === 'amt' ? ra : (b > 0 ? b * rp / 100 : 0);
 
-    if (!rm) { _posSetStats('---', 'Set risk $', '---'); return; }
+    if (!rm) { _posSetStats('---', 'Set risk $', '1:1'); return; }
 
     var spreadDist = _spreadPrice();
     var effSL = slDist + spreadDist;
     var lots  = Math.floor(rm / (effSL * cfg.mult) * 100) / 100;
-    var risk  = lots * effSL * cfg.mult;
-    var rr    = (tp && lots > 0)
-        ? parseFloat((Math.abs(tp - ent) / slDist).toFixed(2))
-        : 0;
+    var risk  = parseFloat((lots * effSL * cfg.mult).toFixed(2));
 
-    _posSetStats(
-        lots.toFixed(2),
-        '$' + risk.toFixed(2),
-        rr > 0 ? '1:' + rr : '---'
-    );
+    _posSetStats(lots.toFixed(2), '$' + risk, '1:1');
 
-    /* Sync TP to calculator too */
-    if (tp) document.getElementById('d-tp').value = tp;
-
-    /* Update main calculator display */
+    /* Keep main calculator in sync */
     deskCl();
 }
 
+
 function _posSetStats(lots, risk, rr) {
-    var ld = document.getElementById('pos-lots-display');
-    var rd = document.getElementById('pos-risk-display');
+    var ld  = document.getElementById('pos-lots-display');
+    var rd  = document.getElementById('pos-risk-display');
     var rrd = document.getElementById('pos-rr-display');
     if (ld)  ld.textContent  = lots;
     if (rd)  rd.textContent  = risk;
     if (rrd) rrd.textContent = rr;
 }
 
-/* ── Called when user types in SL input ── */
+
+/* ── Called when user types SL manually ────────────────────── */
 function posOnSLChange() {
-    var sl = parseFloat(document.getElementById('pos-sl-input').value) || 0;
-    /* Move chart line to match typed value */
-    if (_posLines.sl && sl > 0) {
-        try { _posLines.sl.setPrice(sl); } catch(e) {}
-    }
+    var sl    = parseFloat(document.getElementById('pos-sl-input').value) || 0;
+    var newTP = _posCalcTP(sl);
+
+    /* Update TP display */
+    document.getElementById('pos-tp-input').value = newTP > 0 ? newTP : '';
+
+    /* Move chart lines */
+    if (_posLines.sl && sl > 0) { try { _posLines.sl.setPrice(sl); } catch(e) {} }
+    if (_posLines.tp && newTP > 0) { try { _posLines.tp.setPrice(newTP); } catch(e) {} }
+
     _posUpdateCalc();
     _posEnableConfirm();
 }
 
-/* ── Called when user types in TP input ── */
+
+/* ── TP input is locked — no-op to prevent confusion ──────── */
 function posOnTPChange() {
-    var tp = parseFloat(document.getElementById('pos-tp-input').value) || 0;
-    if (_posLines.tp && tp > 0) {
-        try { _posLines.tp.setPrice(tp); } catch(e) {}
-    }
-    _posUpdateCalc();
-    _posEnableConfirm();
+    /* TP is always auto-calculated from SL — ignore manual edits */
+    var sl = parseFloat(document.getElementById('pos-sl-input').value) || 0;
+    var tp = _posCalcTP(sl);
+    document.getElementById('pos-tp-input').value = tp > 0 ? tp : '';
 }
 
-/* ── Enable confirm button when everything is valid ── */
+
+/* ── Enable/style confirm button when all values valid ──────── */
 function _posEnableConfirm() {
-    var side  = _calcSide;
-    var ent   = _liveEntry();
-    var sl    = parseFloat(document.getElementById('pos-sl-input').value)  || 0;
-    var tp    = parseFloat(document.getElementById('pos-tp-input').value)  || 0;
-    var lots  = parseFloat(document.getElementById('pos-lots-display').textContent) || 0;
-    var btn   = document.getElementById('pos-confirm-btn');
-
-    var valid = ent > 0 && sl > 0 && tp > 0 && lots > 0
-        && sl !== ent && tp !== ent;
-
+    var side = _calcSide;
+    var ent  = _posEntrySnap;
+    var sl   = parseFloat(document.getElementById('pos-sl-input').value) || 0;
+    var tp   = parseFloat(document.getElementById('pos-tp-input').value) || 0;
+    var lots = parseFloat(document.getElementById('pos-lots-display').textContent) || 0;
+    var btn  = document.getElementById('pos-confirm-btn');
     if (!btn) return;
+
+    /* Direction sanity */
+    var dirOK = side === 'BUY'
+        ? (sl > 0 && sl < ent && tp > ent)
+        : (sl > 0 && sl > ent && tp < ent);
+
+    var valid = ent > 0 && sl > 0 && tp > 0 && lots > 0 && dirOK;
+
     if (valid) {
         btn.disabled          = false;
         btn.style.cursor      = 'pointer';
         btn.style.background  = side === 'BUY' ? '#002200' : '#220000';
         btn.style.color       = side === 'BUY' ? '#44ff88' : '#ff4444';
         btn.style.borderColor = side === 'BUY' ? '#1a5a1a' : '#5a1a1a';
-        btn.textContent       = (side === 'BUY' ? '▲ CONFIRM BUY' : '▼ CONFIRM SELL')
-            + '  ' + lots.toFixed(2) + ' lots';
+        btn.textContent = (side === 'BUY' ? '▲ FIRE BUY' : '▼ FIRE SELL')
+            + '  ' + lots.toFixed(2) + ' lots  |  1:1';
     } else {
         btn.disabled          = true;
         btn.style.cursor      = 'not-allowed';
         btn.style.background  = '#0a0a0a';
         btn.style.color       = '#333';
         btn.style.borderColor = '#1a1a1a';
-        btn.textContent       = '🔒 CONFIRM & PLACE TRADE';
+        btn.textContent       = '🔒 SET SL TO ACTIVATE';
     }
 }
 
-/* ── Final confirm & send to MT5 ── */
+
+/* ── FIRE — no confirm dialog, immediate HTTP POST ──────────── */
 function posConfirmTrade() {
+    if (_posSending) return;            /* debounce */
+
     var side = _calcSide;
     var sym  = _calcSymbol;
-    var ent  = _liveEntry();
-    var sl   = parseFloat(document.getElementById('pos-sl-input').value)  || 0;
-    var tp   = parseFloat(document.getElementById('pos-tp-input').value)  || 0;
+    var ent  = _posEntrySnap;
+    var sl   = parseFloat(document.getElementById('pos-sl-input').value) || 0;
+    var tp   = parseFloat(document.getElementById('pos-tp-input').value) || 0;
     var lots = parseFloat(document.getElementById('pos-lots-display').textContent) || 0;
 
+    /* Final guard — button should already be disabled if invalid */
     if (!ent || !sl || !tp || lots <= 0) {
-        _posFeedback('⚠ Fill all values first', '#ff4444'); return;
+        _posFeedback('Fill all values first', '#ff4444');
+        return;
     }
 
-    /* Direction check */
-    if (side === 'BUY'  && sl >= ent) { _posFeedback('⚠ BUY: SL must be below entry', '#ff4444'); return; }
-    if (side === 'BUY'  && tp <= ent) { _posFeedback('⚠ BUY: TP must be above entry', '#ff4444'); return; }
-    if (side === 'SELL' && sl <= ent) { _posFeedback('⚠ SELL: SL must be above entry', '#ff4444'); return; }
-    if (side === 'SELL' && tp >= ent) { _posFeedback('⚠ SELL: TP must be below entry', '#ff4444'); return; }
+    /* Direction guard */
+    if (side === 'BUY'  && sl >= ent) { _posFeedback('BUY: SL must be below entry', '#ff4444'); return; }
+    if (side === 'BUY'  && tp <= ent) { _posFeedback('BUY: TP must be above entry',  '#ff4444'); return; }
+    if (side === 'SELL' && sl <= ent) { _posFeedback('SELL: SL must be above entry', '#ff4444'); return; }
+    if (side === 'SELL' && tp >= ent) { _posFeedback('SELL: TP must be below entry', '#ff4444'); return; }
 
-    var msg = '⚠ REAL ORDER — CONFIRM\n'
-        + '──────────────────────\n'
-        + 'Symbol : ' + sym    + '\n'
-        + 'Side   : ' + side   + '\n'
-        + 'Lots   : ' + lots.toFixed(2) + '\n'
-        + 'Entry  : MARKET (' + ent.toFixed(6) + ')\n'
-        + 'SL     : ' + sl    + '\n'
-        + 'TP     : ' + tp    + '\n'
-        + '──────────────────────\n'
-        + 'This sends a LIVE MARKET ORDER to MT5.';
-
-    if (!confirm(msg)) return;
+    /* ── FIRE immediately — no confirm() dialog ── */
+    _posSending = true;
 
     var btn = document.getElementById('pos-confirm-btn');
     if (btn) {
-        btn.disabled        = true;
-        btn.style.color     = '#ffcc44';
-        btn.style.background= '#0a0a00';
-        btn.textContent     = '⟳ SENDING TO MT5...';
+        btn.disabled       = true;
+        btn.style.cursor   = 'not-allowed';
+        btn.style.color    = '#ffcc44';
+        btn.style.background = '#0a0a00';
+        btn.textContent    = '⟳ SENDING...';
     }
+    _posFeedback('Sending to MT5...', '#ffcc44');
 
-var btn2 = document.getElementById('pos-confirm-btn');
-    _posFeedback('⟳ Sending to MT5...', '#ffcc44');
+    var t0 = performance.now();
 
     fetch('http://localhost:8766/api/order', {
         method:  'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
             symbol: sym,
             side:   side,
@@ -3277,51 +3306,103 @@ var btn2 = document.getElementById('pos-confirm-btn');
     })
     .then(function(r) { return r.json(); })
     .then(function(result) {
+        var ms  = Math.round(performance.now() - t0);
         var fb  = document.getElementById('pos-feedback');
         var dot = document.getElementById('pos-status-dot');
+
         if (result.success) {
-            if(fb)  { fb.textContent = '✅ ORDER PLACED — Ticket #' + (result.ticket||'???'); fb.style.color = '#44ff88'; }
-            if(dot) { dot.style.background = '#44ff88'; dot.style.boxShadow = '0 0 6px #44ff8888'; }
-            posClearDrawings();
+            if (fb) {
+                fb.textContent = 'ORDER #' + (result.ticket || '?')
+                    + '  ' + lots.toFixed(2) + ' lots'
+                    + '  |  ' + ms + 'ms';
+                fb.style.color = '#44ff88';
+            }
+            if (dot) { dot.style.background = '#44ff88'; dot.style.boxShadow = '0 0 6px #44ff8888'; }
+            /* Auto-clear drawings after 2s so trader can see the filled lines */
+            setTimeout(posClearDrawings, 2000);
         } else {
-            if(fb)  { fb.textContent = '✗ REJECTED: ' + (result.error||'Unknown'); fb.style.color = '#ff4444'; }
-            if(dot) { dot.style.background = '#ff4444'; }
-            if(btn2){ btn2.disabled=false; btn2.style.cursor='pointer'; btn2.textContent='⚠ RETRY'; }
+            if (fb) {
+                fb.textContent = 'REJECTED: ' + (result.error || 'Unknown');
+                fb.style.color = '#ff4444';
+            }
+            if (dot) { dot.style.background = '#ff4444'; }
+            /* Re-enable so trader can retry */
+            _posSending = false;
+            if (btn) {
+                btn.disabled        = false;
+                btn.style.cursor    = 'pointer';
+                btn.style.color     = '#ff4444';
+                btn.style.background = '#1a0000';
+                btn.textContent     = 'RETRY';
+            }
         }
     })
     .catch(function(err) {
-        _posFeedback('✗ HTTP error: ' + err.message, '#ff4444');
-        if(btn2){ btn2.disabled=false; btn2.style.cursor='pointer'; btn2.textContent='⚠ RETRY'; }
+        var ms = Math.round(performance.now() - t0);
+        _posFeedback('HTTP ERROR: ' + err.message + '  (' + ms + 'ms)', '#ff4444');
+        _posSending = false;
+        if (btn) {
+            btn.disabled        = false;
+            btn.style.cursor    = 'pointer';
+            btn.style.color     = '#ff4444';
+            btn.style.background = '#1a0000';
+            btn.textContent     = 'RETRY';
+        }
+        var dot = document.getElementById('pos-status-dot');
+        if (dot) { dot.style.background = '#ff4444'; }
     });
 }
-/* ── Clear all drawings and reset ── */
+
+
+/* ── Clear all drawings and fully reset ─────────────────────── */
 function posClearDrawings() {
-    _posActive = false;
-    if (_posEntryLiveInterval) { clearInterval(_posEntryLiveInterval); _posEntryLiveInterval = null; }
-    ['entry','sl','tp'].forEach(function(k) {
+    _posActive    = false;
+    _posEntrySnap = 0;
+    _posSending   = false;
+
+    if (_posEntryLiveInterval) {
+        clearInterval(_posEntryLiveInterval);
+        _posEntryLiveInterval = null;
+    }
+
+    ['entry', 'sl', 'tp'].forEach(function(k) {
         if (_posLines[k]) { try { _posLines[k].remove(); } catch(e) {} _posLines[k] = null; }
     });
-    document.getElementById('pos-live-card').style.display  = 'none';
-    document.getElementById('pos-sl-input').value  = '';
-    document.getElementById('pos-tp-input').value  = '';
-    _posSetStats('---', '---', '---');
+
+    document.getElementById('pos-live-card').style.display = 'none';
+    document.getElementById('pos-sl-input').value = '';
+
+    /* Restore TP field */
+    var tpIn = document.getElementById('pos-tp-input');
+    tpIn.value      = '';
+    tpIn.readOnly   = false;
+    tpIn.style.opacity = '1';
+    tpIn.style.cursor  = '';
+    tpIn.title      = '';
+
+    _posSetStats('---', '---', '1:1');
+
     var btn = document.getElementById('pos-confirm-btn');
     if (btn) {
-        btn.disabled=true; btn.style.cursor='not-allowed';
-        btn.style.background='#0a0a0a'; btn.style.color='#333';
-        btn.style.borderColor='#1a1a1a';
-        btn.textContent='🔒 CONFIRM & PLACE TRADE';
+        btn.disabled          = true;
+        btn.style.cursor      = 'not-allowed';
+        btn.style.background  = '#0a0a0a';
+        btn.style.color       = '#333';
+        btn.style.borderColor = '#1a1a1a';
+        btn.textContent       = '🔒 CONFIRM & PLACE TRADE';
     }
+
     var dot = document.getElementById('pos-status-dot');
-    if (dot) { dot.style.background='#333'; dot.style.boxShadow='none'; }
+    if (dot) { dot.style.background = '#333'; dot.style.boxShadow = 'none'; }
+
     _posFeedback('', '#555');
 }
+
 
 function _posFeedback(msg, color) {
     var fb = document.getElementById('pos-feedback');
     if (fb) { fb.textContent = msg; fb.style.color = color || '#555'; }
 }
-
     </script>
 
 <!-- Theme System -->
