@@ -1245,18 +1245,7 @@ body.theme-frosted .stat-val {
                 <div id="d-rls" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">Enter values</div>
             </div>
         </div>
-
-        <!-- QUICK RISK TABLE -->
-        <div id="d-qs" style="margin-top:12px;display:none;">
-            <div style="font-size:.44rem;color:#2a2a2a;text-transform:uppercase;letter-spacing:1px;padding-top:10px;border-top:1px solid #1a1a1a;margin-bottom:7px;">Quick Risk Reference</div>
-            <table style="width:100%;border-collapse:collapse;"><thead><tr>
-                <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">%</th>
-                <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">$Risk</th>
-                <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">Lots</th>
-                <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">Profit</th>
-            </tr></thead><tbody id="d-qb"></tbody></table>
-        </div>
-
+     
         <hr style="border:none;border-top:1px solid #1a1a1a;margin:14px 0 10px;">
 
         <!-- POSITION BUILDER -->
@@ -2798,23 +2787,6 @@ function deskCl(){
     var ent = _liveEntry();
     var cfg = _instCfg();
 
-    /* ── Quick risk reference table ── */
-    var qs=document.getElementById('d-qs'), qb=document.getElementById('d-qb');
-    if(b>0 && qs && qb && ent && slP){
-        var dist0=Math.abs(ent-slP);
-        var rows=[0.5,1,1.5,2,3,5].map(function(p){
-            var a=b*p/100;
-            var l=dist0>0?Math.floor(a/(dist0*cfg.mult)*100)/100:0;
-            var pr=(tpP&&l>0)?l*Math.abs(tpP-ent)*cfg.mult:0;
-            var hi=(_dm==='pct'&&p===rp);
-            var c=hi?'#fff':'#888';
-            return '<tr style="'+(hi?'background:#0d1a0d;':'')+'"><td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+c+';">'+p+'%</td>'
-                +'<td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+c+';">$'+a.toFixed(0)+'</td>'
-                +'<td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+c+';">'+(dist0>0?l.toFixed(2):'---')+'</td>'
-                +'<td style="padding:3px 5px;font-size:.63rem;border-bottom:1px solid #0a0a0a;color:'+c+';">'+(dist0>0&&tpP?'$'+pr.toFixed(0):'---')+'</td></tr>';
-        }).join('');
-        qb.innerHTML=rows; qs.style.display='block';
-    }
 
     /* ── Guard: need live price + SL ── */
     if(!ent){
