@@ -2547,22 +2547,9 @@ if(num === 1) {
             });
         }
 
-        /* Panel 2 — also sync its symbol to the calculator */
-        if(num === 2) {
-            _tvWidgets[1].onChartReady(function() {
-                try {
-                    var initSym2 = _tvWidgets[1].activeChart().symbol();
-                    if(initSym2) deskSelectSymbol(initSym2);
+     /* Panel 2 — NEVER drives the calculator; panel 1 is always master */
+        /* (intentionally empty) */
 
-                    _tvWidgets[1].activeChart().onSymbolChanged().subscribe(null, function() {
-                        var newSym2 = _tvWidgets[1].activeChart().symbol();
-                        if(newSym2) deskSelectSymbol(newSym2);
-                    });
-                } catch(e) {}
-            });
-        }
-    });   // ← THIS CLOSING BRACKET WAS MISSING
-}         // closes launchPanel
 
 function _launchPanelFree(num, containerId, symbol, tf, c) {
     _tvWidgets[num-1] = new TradingView.widget({
@@ -2971,13 +2958,32 @@ function _posCalcTP(sl) {
 /* ── Called when user clicks DRAW ─────────────────────────── */
 function posDrawPosition() {
     var side = _calcSide;
-    var ent  = _liveEntry();
+    var sym  = _calcSymbol;
+
+    /* ── Ensure at least one panel is showing the calculator's symbol ──
+       If neither panel shows sym, auto-switch panel 1 to it so the
+       order lines land on the correct chart. */
+    var p1sym = '', p2sym = '';
+    try { p1sym = (_tvWidgets[0] && _tvWidgets[0].activeChart().symbol()) || ''; } catch(e){}
+    try { p2sym = (_tvWidgets[1] && _tvWidgets[1].activeChart && _tvWidgets[1].activeChart().symbol()) || ''; } catch(e){}
+
+    var symOnChart = (p1sym === sym || p2sym === sym);
+    if (!symOnChart && _tvWidgets[0]) {
+        try {
+            _tvWidgets[0].activeChart().setSymbol(sym);
+            _posFeedback('Switched chart 1 → ' + sym + ', loading…', '#ffcc44');
+            /* Give the chart 600 ms to load bars, then draw */
+            setTimeout(posDrawPosition, 650);
+            return;
+        } catch(e) {}
+    }
+
+    var ent = _liveEntry();
 
     if (!ent || ent <= 0) {
         _posFeedback('No live price — connect MT5 first', '#ffcc44');
         return;
     }
-
     /* Snapshot entry price — stays fixed for the life of this position */
     _posEntrySnap = ent;
 
