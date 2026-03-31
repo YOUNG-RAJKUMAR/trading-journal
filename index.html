@@ -1166,6 +1166,20 @@ body.theme-frosted .stat-val {
         <span id="d-rrr" style="display:none;"></span>
         <span id="d-rtv" style="display:none;"></span>
 
+        <!-- RISK MODE TOGGLE -->
+        <div style="display:flex;margin-bottom:9px;">
+            <button id="d-pb" onclick="deskSm('pct')" style="flex:1;padding:7px;font-size:.6rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;background:#050505;color:#444;border:1px solid #1a1a1a;border-right:none;">Risk %</button>
+            <button id="d-ab" onclick="deskSm('amt')" style="flex:1;padding:7px;font-size:.6rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;background:#fff;color:#000;border:1px solid #fff;font-weight:700;">Risk $</button>
+        </div>
+        <div id="d-pr" style="display:none;margin-bottom:9px;">
+            <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Risk %</label>
+            <input type="number" id="d-rp" placeholder="1" step="0.1" min="0" oninput="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;">
+        </div>
+        <div id="d-ar" style="margin-bottom:9px;">
+            <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Fixed Risk ($)</label>
+            <input type="number" id="d-ra" placeholder="100" value="0" min="0" oninput="deskCl()" style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;-moz-appearance:textfield;">
+        </div>
+
         <hr style="border:none;border-top:1px solid #1a1a1a;margin:10px 0;">
 
         <!-- INSTRUMENT -->
@@ -1243,12 +1257,6 @@ body.theme-frosted .stat-val {
             </div>
         </div>
 
-       <div style="margin-bottom:9px;">
-    <label style="display:block;font-size:.53rem;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Fixed Risk ($)</label>
-   <input type="number" id="d-ra" placeholder="100" value="0" min="0" oninput="deskCl(); if(_posActive) _posUpdateCalc();"
-        style="width:100%;background:#050505;border:1px solid #1a1a1a;color:#fff;padding:8px 9px;font-size:.78rem;font-family:inherit;outline:none;border-radius:2px;">
-   </div>
-        
         <button id="pos-draw-btn" onclick="posDrawPosition()"
             style="width:100%;padding:10px;font-size:.63rem;font-weight:700;letter-spacing:1.5px;cursor:pointer;font-family:inherit;border:1px solid #1a3a5a;background:#050e1a;color:#3B8BD4;text-transform:uppercase;border-radius:2px;margin-bottom:6px;transition:all .15s;">
             📐 DRAW POSITION ON CHART
@@ -3049,7 +3057,7 @@ function _posDrawLines(entry, sl, tp, side) {
         _posLines.entry = chart.createOrderLine()
             .setEditable(false)
             .setPrice(entry)
-            .setText((_calcSide === 'BUY' ? '▲ BUY' : '▼ SELL') + '  ---L  │  Risk $---')
+            .setText('ENTRY')
             .setQuantity('')
             .setBodyBackgroundColor(side === 'BUY' ? '#003300' : '#1a0000')
             .setBodyBorderColor(   side === 'BUY' ? '#44ff88' : '#ff4444')
@@ -3142,14 +3150,7 @@ function _posUpdateCalc() {
     var risk  = parseFloat((lots * effSL * cfg.mult).toFixed(2));
 
     _posSetStats(lots.toFixed(2), '$' + risk, '1:1');
-if (_posLines.entry) {
-    try {
-        _posLines.entry.setText(
-            (_calcSide === 'BUY' ? '▲ BUY' : '▼ SELL') +
-            '  ' + lots.toFixed(2) + 'L  │  Risk $' + risk
-        );
-    } catch(e) {}
-}
+
     /* Keep main calculator in sync */
     deskCl();
 }
@@ -4955,7 +4956,7 @@ function pmDrawOrUpdateLines(chart, pos) {
         // ── Floating P&L line (live price) ──
         try {
             var pnlText = (pos.profit >= 0 ? '+$' : '-$') + Math.abs(pos.profit).toFixed(2);
-        _pmChartLines[ticket].pnl = chart.createOrderLine()
+            _pmChartLines[ticket].pnl = chart.createOrderLine()
     .setEditable(true)
     .setPrice(pos.current_price || pos.open_price)
     .setText('✕ CLOSE  ' + pnlText)
@@ -4976,7 +4977,8 @@ function pmDrawOrUpdateLines(chart, pos) {
     })
     .onCancel(function() {
         pmCloseTicketDirect(ticket);
-    });     } catch(e) { console.warn('[PM] pnl line:', e); }
+    });
+        } catch(e) { console.warn('[PM] pnl line:', e); }
 
     } else {
         // ── UPDATE existing lines ──
@@ -5029,8 +5031,8 @@ function pmRemoveLines(ticket) {
 function pmClearAllLines() {
     Object.keys(_pmChartLines).forEach(function(t) { pmRemoveLines(parseInt(t)); });
 }
-/* ── DIRECT CLOSE FROM CHART — no panel needed ── */
-function pmCloseTicketDirect(ticket) {
+
+    function pmCloseTicketDirect(ticket) {
     var pos = _pmPositions.find(function(p) { return p.ticket === ticket; });
     if (!pos) return;
 
