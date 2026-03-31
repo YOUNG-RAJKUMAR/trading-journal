@@ -1217,11 +1217,11 @@ body.theme-frosted .stat-val {
 
         <!-- BUY / SELL -->
         <div style="display:flex;margin-bottom:9px;border:1px solid #1a1a1a;overflow:hidden;border-radius:2px;">
-            <button id="d-buy-btn" onclick="deskSetSide('BUY')"
+      <button id="d-buy-btn" onclick="deskSetSide('BUY');posDrawPosition()"
                 style="flex:1;padding:8px;font-size:.65rem;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:inherit;border:none;background:#003300;color:#44ff88;transition:all .15s;">
                 ▲ BUY
             </button>
-            <button id="d-sell-btn" onclick="deskSetSide('SELL')"
+            <button id="d-sell-btn" onclick="deskSetSide('SELL');posDrawPosition()"
                 style="flex:1;padding:8px;font-size:.65rem;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:inherit;border:none;background:#050505;color:#444;transition:all .15s;">
                 ▼ SELL
             </button>
