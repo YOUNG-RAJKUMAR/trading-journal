@@ -4126,15 +4126,13 @@ function csCalcTF(tf, bars) {
     var result   = {};
     var strength = (tf === 'H1' || tf === 'M30') ? 2 : 3;
 
-    Object.keys(data).forEach(function(sym) {          // ← dynamic, not CS_INSTRUMENTS
+    Object.keys(data).forEach(function(sym) {
         var all = data[sym].candles && data[sym].candles[tf];
         if (!all || all.length < 20) return;
-
         var sorted  = all.slice().sort(function(a, b) { return a.time - b.time; });
         var candles = sorted.slice(-Math.min(sorted.length, bars));
-
-        var swings = _detectSwings(candles, strength);
-        var state  = _smcState(candles, swings);
+        var swings  = _detectSwings(candles, strength);
+        var state   = _smcState(candles, swings);
         if (state) result[sym] = state;
     });
 
@@ -4143,10 +4141,11 @@ function csCalcTF(tf, bars) {
 /* ═══════════════════════════════════════════════════════════════
    MULTI-TF CONFLUENCE
 ═══════════════════════════════════════════════════════════════ */
-function _confluence(s1, s2, s3) {
+ffunction _confluence(s1, s2, s3) {
     var result = {};
-    CS_INSTRUMENTS.forEach(function(inst) {
-        var sym  = inst.sym;
+    var allSyms = Object.keys(Object.assign({}, s1, s2, s3));
+    allSyms.forEach(function(sym) {
+        var inst = { sym: sym };
         var sets = [s1[sym], s2[sym], s3[sym]];
         var tot  = 0, wsum = 0;
 
@@ -4198,7 +4197,7 @@ function csRender() {
     if (!row) return;
 
     var data    = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
-    var hasData = CS_INSTRUMENTS.some(function(inst) { return !!data[inst.sym]; });
+    var hasData = Object.keys(data).length > 0;
 
     if (!hasData) {
         if (loadMsg) loadMsg.style.display = 'block';
@@ -4225,11 +4224,8 @@ function csRender() {
     });
     maxAbs = Math.min(maxAbs * 1.2, 100);
 
-    /* Sort */
-   /* ── Build dynamic instruments list — always include active chart symbol ── */
-    /* ── Build instruments from ALL live MT5 symbols ── */
+ /* ── ALL live MT5 symbols ── */
     var activeSym = window._calcSymbol || '';
-    var data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
     var instruments = Object.keys(data).sort().map(function(sym) {
         return { sym: sym, label: sym, _isActive: sym === activeSym };
     });
