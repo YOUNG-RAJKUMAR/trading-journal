@@ -2859,8 +2859,14 @@ function deskCl(){
     deskSelectSymbol(_calcSymbol);
 }
 
-        function deskSelectSymbol(sym) {
+  function deskSelectSymbol(sym) {
     sym = sym.toUpperCase();
+
+    /* ── Auto-reset position builder when symbol changes ── */
+    if (sym !== _calcSymbol && _posActive) {
+        posClearDrawings();
+    }
+
     _calcSymbol = sym;
 
     /* sync select */
