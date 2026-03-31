@@ -4126,9 +4126,7 @@ function csCalcTF(tf, bars) {
     var result   = {};
     var strength = (tf === 'H1' || tf === 'M30') ? 2 : 3;
 
-    CS_INSTRUMENTS.forEach(function(inst) {
-        var sym = inst.sym;
-        if (!data[sym]) return;
+    Object.keys(data).forEach(function(sym) {          // ← dynamic, not CS_INSTRUMENTS
         var all = data[sym].candles && data[sym].candles[tf];
         if (!all || all.length < 20) return;
 
@@ -4142,7 +4140,6 @@ function csCalcTF(tf, bars) {
 
     return result;
 }
-
 /* ═══════════════════════════════════════════════════════════════
    MULTI-TF CONFLUENCE
 ═══════════════════════════════════════════════════════════════ */
@@ -4230,19 +4227,13 @@ function csRender() {
 
     /* Sort */
    /* ── Build dynamic instruments list — always include active chart symbol ── */
-var instruments = CS_INSTRUMENTS.slice();
-var activeSym = window._calcSymbol || '';
-var data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
-if (activeSym && data[activeSym]) {
-    var alreadyIn = instruments.some(function(i){ return i.sym === activeSym; });
-    if (!alreadyIn) {
-        instruments.push({ sym: activeSym, label: activeSym, _isActive: true });
-    }
-}
-/* Mark which is active */
-instruments = instruments.map(function(i) {
-    return Object.assign({}, i, { _isActive: i.sym === activeSym });
-});
+    /* ── Build instruments from ALL live MT5 symbols ── */
+    var activeSym = window._calcSymbol || '';
+    var data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
+    var instruments = Object.keys(data).sort().map(function(sym) {
+        return { sym: sym, label: sym, _isActive: sym === activeSym };
+    });
+
     var sortCheck   = document.getElementById('cs-sort-check');
     if (sortCheck && sortCheck.checked) {
         instruments.sort(function(a, b) {
