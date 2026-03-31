@@ -2561,6 +2561,9 @@ if(num === 1) {
                 } catch(e) {}
             });
         }
+    });   // ← THIS CLOSING BRACKET WAS MISSING
+}         // closes launchPanel
+
 function _launchPanelFree(num, containerId, symbol, tf, c) {
     _tvWidgets[num-1] = new TradingView.widget({
         container_id:        containerId,
