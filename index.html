@@ -1327,7 +1327,7 @@ body.theme-frosted .stat-val {
         </div>
 
        <!-- ══ BOTTOM TOOLBAR ══ -->
-<div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:#060606;border-top:1px solid #1a1a1a;flex-shrink:0;flex-wrap:wrap;">
+<div id="charts-toolbar" style="display:none;align-items:center;gap:6px;padding:5px 10px;background:#060606;border-top:1px solid #1a1a1a;flex-shrink:0;flex-wrap:wrap;">
 
     <!-- NEWS -->
     <button id="ff-news-toggle-btn" onclick="ffToggleOverlay()" style="display:flex;align-items:center;gap:5px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1b2a3a;border:1px solid #2d5a8e;color:#7ab3e0;flex-shrink:0;transition:all .15s;">
@@ -2027,6 +2027,8 @@ window.ui = {
     document.querySelectorAll('.tab-content,.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(`tab-${id}`).classList.add('active');
     document.getElementById(`btn-${id}`).classList.add('active');
+    var tb = document.getElementById('charts-toolbar');
+    if(tb) tb.style.display = id === 'charts' ? 'flex' : 'none';
     if(id === 'analytics') this.renderAnalytics();
     if(id === 'calendar')  { this.renderCalendar(); this.updateSideStats(); }
     if(id === 'journal')   this.renderJournal();
