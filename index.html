@@ -1320,10 +1320,51 @@ body.theme-frosted .stat-val {
                             <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">Lots</th>
                             <th style="color:#2a2a2a;font-size:.52rem;text-align:left;padding:2px 5px;font-weight:400;border-bottom:1px solid #0d0d0d;">Profit</th>
                         </tr></thead><tbody id="d-qb"></tbody></table>
+                    <!-- ══ BOTTOM TOOLBAR ══ -->
+<div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:#060606;border-top:1px solid #1a1a1a;flex-shrink:0;flex-wrap:wrap;">
+
+    <!-- NEWS -->
+    <button id="ff-news-toggle-btn" onclick="ffToggleOverlay()" style="display:flex;align-items:center;gap:5px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1b2a3a;border:1px solid #2d5a8e;color:#7ab3e0;flex-shrink:0;transition:all .15s;">
+        <span class="ff-btn-dot" style="width:6px;height:6px;border-radius:50%;background:#ff4444;animation:pulse 1s infinite;flex-shrink:0;display:inline-block;"></span>
+        📅 NEWS
+        <span id="ff-btn-count" style="background:#cc222233;border:1px solid #cc444455;color:#ff6666;padding:0 5px;font-size:.44rem;border-radius:2px;display:none;"></span>
+    </button>
+
+    <!-- CURRENCY STRENGTH -->
+    <button id="cs-toggle-btn" onclick="csToggleOverlay()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1a2a1a;border:1px solid #2d6a2d;color:#6ab36a;flex-shrink:0;transition:all .15s;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#6ab36a;animation:pulse 1s infinite;display:inline-block;"></span>
+        📊 STRENGTH
+        <span id="cs-btn-badge" style="display:none;font-size:.44rem;background:#1a3a5c33;border:1px solid #2d5a8e55;color:#7ab3e0;padding:0 5px;border-radius:2px;"></span>
+    </button>
+
+    <!-- POSITIONS -->
+    <button id="pos-panel-toggle-btn" onclick="pmTogglePanel()" style="display:flex;align-items:center;gap:5px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1a1a2a;border:1px solid #3a3a6a;color:#8888ff;flex-shrink:0;transition:all .15s;">
+        <span id="pm-btn-dot" style="width:6px;height:6px;border-radius:50%;background:#3a3a6a;display:inline-block;transition:all .3s;"></span>
+        📋 POSITIONS
+        <span id="pm-btn-count" style="display:none;background:#33336633;border:1px solid #44448855;color:#aaaaff;padding:0 5px;font-size:.44rem;border-radius:2px;"></span>
+    </button>
+
+    <!-- ACTIVE SYMBOL BADGE -->
+    <div id="bottom-sym-badge" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#0a1a0a;border:1px solid #1a3a1a;font-size:.68rem;font-weight:700;color:#44ff88;font-family:'Courier New',monospace;letter-spacing:2px;">
+        <span style="width:5px;height:5px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;"></span>
+        <span id="bottom-sym-label">NAS100</span>
+    </div>
+
+    <!-- LAYOUT -->
+    <div style="display:flex;align-items:center;gap:4px;margin-left:auto;">
+        <span style="font-size:.42rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-right:2px;">Layout</span>
+        <button id="layout-btn-single" onclick="setChartLayout('single')" style="padding:5px 12px;font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #fff;background:#fff;color:#000;font-weight:700;font-family:inherit;border-radius:2px;">▣ Single</button>
+        <button id="layout-btn-horizontal" onclick="setChartLayout('horizontal')" style="padding:5px 12px;font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">◫ Side</button>
+        <button id="layout-btn-vertical" onclick="setChartLayout('vertical')" style="padding:5px 12px;font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">⬒ Stack</button>
+    </div>
+</div>
+
+                    
                     </div>
                 </div>
             </div>
         </div>
+    
     </div><!-- /tab-charts -->
 
     <!-- CALENDAR TAB -->
@@ -4558,61 +4599,6 @@ var _csPoll = setInterval(function() {
     </div>
 </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════════
-     LIVE POSITION MANAGER
-     Paste this entire block into your HTML just before </body>
-
-     Features:
-       • Polls /api/positions every 2 seconds
-       • Draws entry / SL / TP lines on the active chart panel
-       • SL and TP lines are DRAGGABLE — auto-sends /api/modify on drop
-       • Floating P&L badge per position that tracks live price
-       • CLOSE button on each position card in the panel
-       • Partial close (type a volume)
-       • Works with multi-panel layout (panel 1 always primary)
-═══════════════════════════════════════════════════════════════════ -->
-
-<!-- ══ POSITIONS PANEL TOGGLE BUTTON — add this inside your toolbar row ══
-     (put it next to the NEWS and CURRENCY STRENGTH buttons)-->
-
-<!-- ══ BOTTOM TOOLBAR ══ -->
-<div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:#060606;border-top:1px solid #1a1a1a;flex-shrink:0;flex-wrap:wrap;">
-
-    <!-- NEWS -->
-    <button id="ff-news-toggle-btn" onclick="ffToggleOverlay()" style="display:flex;align-items:center;gap:5px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1b2a3a;border:1px solid #2d5a8e;color:#7ab3e0;flex-shrink:0;transition:all .15s;">
-        <span class="ff-btn-dot" style="width:6px;height:6px;border-radius:50%;background:#ff4444;animation:pulse 1s infinite;flex-shrink:0;display:inline-block;"></span>
-        📅 NEWS
-        <span id="ff-btn-count" style="background:#cc222233;border:1px solid #cc444455;color:#ff6666;padding:0 5px;font-size:.44rem;border-radius:2px;display:none;"></span>
-    </button>
-
-    <!-- CURRENCY STRENGTH -->
-    <button id="cs-toggle-btn" onclick="csToggleOverlay()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1a2a1a;border:1px solid #2d6a2d;color:#6ab36a;flex-shrink:0;transition:all .15s;">
-        <span style="width:6px;height:6px;border-radius:50%;background:#6ab36a;animation:pulse 1s infinite;display:inline-block;"></span>
-        📊 STRENGTH
-        <span id="cs-btn-badge" style="display:none;font-size:.44rem;background:#1a3a5c33;border:1px solid #2d5a8e55;color:#7ab3e0;padding:0 5px;border-radius:2px;"></span>
-    </button>
-
-    <!-- POSITIONS -->
-    <button id="pos-panel-toggle-btn" onclick="pmTogglePanel()" style="display:flex;align-items:center;gap:5px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1a1a2a;border:1px solid #3a3a6a;color:#8888ff;flex-shrink:0;transition:all .15s;">
-        <span id="pm-btn-dot" style="width:6px;height:6px;border-radius:50%;background:#3a3a6a;display:inline-block;transition:all .3s;"></span>
-        📋 POSITIONS
-        <span id="pm-btn-count" style="display:none;background:#33336633;border:1px solid #44448855;color:#aaaaff;padding:0 5px;font-size:.44rem;border-radius:2px;"></span>
-    </button>
-
-    <!-- ACTIVE SYMBOL BADGE -->
-    <div id="bottom-sym-badge" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#0a1a0a;border:1px solid #1a3a1a;font-size:.68rem;font-weight:700;color:#44ff88;font-family:'Courier New',monospace;letter-spacing:2px;">
-        <span style="width:5px;height:5px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;"></span>
-        <span id="bottom-sym-label">NAS100</span>
-    </div>
-
-    <!-- LAYOUT -->
-    <div style="display:flex;align-items:center;gap:4px;margin-left:auto;">
-        <span style="font-size:.42rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-right:2px;">Layout</span>
-        <button id="layout-btn-single" onclick="setChartLayout('single')" style="padding:5px 12px;font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #fff;background:#fff;color:#000;font-weight:700;font-family:inherit;border-radius:2px;">▣ Single</button>
-        <button id="layout-btn-horizontal" onclick="setChartLayout('horizontal')" style="padding:5px 12px;font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">◫ Side</button>
-        <button id="layout-btn-vertical" onclick="setChartLayout('vertical')" style="padding:5px 12px;font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">⬒ Stack</button>
-    </div>
-</div>
 
 
 <!-- ══ POSITIONS OVERLAY PANEL ══ -->
