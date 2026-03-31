@@ -2537,8 +2537,7 @@ function launchPanel(num) {
         _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(null, function(interval) {
             _currentTF[num-1] = interval;
         });
-
-        if(num === 1) {
+if(num === 1) {
             var initSym = _tvWidgets[0].activeChart().symbol();
             if(initSym) deskSelectSymbol(initSym);
 
@@ -2547,9 +2546,21 @@ function launchPanel(num) {
                 if(newSym) deskSelectSymbol(newSym);
             });
         }
-    });
-}
 
+        /* Panel 2 — also sync its symbol to the calculator */
+        if(num === 2) {
+            _tvWidgets[1].onChartReady(function() {
+                try {
+                    var initSym2 = _tvWidgets[1].activeChart().symbol();
+                    if(initSym2) deskSelectSymbol(initSym2);
+
+                    _tvWidgets[1].activeChart().onSymbolChanged().subscribe(null, function() {
+                        var newSym2 = _tvWidgets[1].activeChart().symbol();
+                        if(newSym2) deskSelectSymbol(newSym2);
+                    });
+                } catch(e) {}
+            });
+        }
 function _launchPanelFree(num, containerId, symbol, tf, c) {
     _tvWidgets[num-1] = new TradingView.widget({
         container_id:        containerId,
@@ -3042,11 +3053,24 @@ _posEntryLiveInterval = setInterval(function() {
 
 
 /* ── Draw order lines on chart ─────────────────────────────── */
-function _posDrawLines(entry, sl, tp, side) {
-    if (!_tvWidgets[0]) return;
-    var chart;
-    try { chart = _tvWidgets[0].activeChart(); } catch(e) { return; }
+/* Returns whichever widget is currently showing _calcSymbol */
+function _getPanelForSymbol(sym) {
+    sym = (sym || '').toUpperCase();
+    if (_chartLayout !== 'single' && _tvWidgets[1]) {
+        try {
+            if (_tvWidgets[1].activeChart().symbol().toUpperCase() === sym)
+                return _tvWidgets[1];
+        } catch(e) {}
+    }
+    return _tvWidgets[0];
+}
 
+function _posDrawLines(entry, sl, tp, side) {
+    var widget = _getPanelForSymbol(_calcSymbol);
+    if (!widget) return;
+    var chart;
+    try { chart = widget.activeChart(); } catch(e) { return; }
+    
     /* Remove existing lines */
     ['entry', 'sl', 'tp'].forEach(function(k) {
         if (_posLines[k]) { try { _posLines[k].remove(); } catch(e) {} _posLines[k] = null; }
