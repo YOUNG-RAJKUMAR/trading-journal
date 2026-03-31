@@ -2863,9 +2863,9 @@ function deskCl(){
     sym = sym.toUpperCase();
 
     /* ── Auto-reset position builder when symbol changes ── */
-    if (sym !== _calcSymbol && _posActive) {
-        posClearDrawings();
-    }
+   if (sym !== _calcSymbol) {
+    posClearDrawings();   /* always reset on symbol change, active or not */
+}
 
     _calcSymbol = sym;
 
@@ -3386,6 +3386,9 @@ function posClearDrawings() {
 
     document.getElementById('pos-live-card').style.display = 'none';
     document.getElementById('pos-sl-input').value = '';
+
+    var _dsl = document.getElementById('d-sl'); if (_dsl) _dsl.value = '';
+   var _dtp = document.getElementById('d-tp'); if (_dtp) _dtp.value = '';
 
     /* Restore TP field */
     var tpIn = document.getElementById('pos-tp-input');
