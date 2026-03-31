@@ -1062,17 +1062,16 @@ body.theme-frosted .stat-val {
         </div>
     </div>
 
-    <!-- CHARTS TAB -->
-    <div id="tab-charts" class="tab-content" style="padding:0;margin:0;">
+<div id="tab-charts" class="tab-content" style="padding:0;margin:0;display:flex;flex-direction:column;height:calc(136vh - 80px);">
 
         <!-- Chart + Calculator -->
-      <div style="display:flex;height:calc(136vh - 80px);">
+      <div style="display:flex;flex:1;min-height:0;">
 
         <!-- ══ CHART CONTAINER WITH OFFLINE OVERLAY ══ -->
            <div style="flex:1;min-width:0;height:100%;position:relative;zoom:0.75;display:flex;flex-direction:column;">
 
-                <!-- LAYOUT TOGGLE BUTTONS -->
-               <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;padding:4px 8px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;flex-shrink:0;">
+                <!--  buttons  in bottom bar -->
+               <div style="display:none;">
 
     <!-- NEWS BUTTON -->
     <button id="ff-news-toggle-btn" onclick="ffToggleOverlay()">
@@ -1112,7 +1111,9 @@ body.theme-frosted .stat-val {
             ⬒ Top / Bottom
         </button>
  </div>
-</div><!-- /toolbar-row -->
+</div>
+
+
 
 <!-- PANELS WRAPPER -->
 <div id="charts-panels-wrap" style="flex:1;display:flex;flex-direction:row;min-height:0;">
@@ -2868,6 +2869,13 @@ if (sym !== _calcSymbol) {
 }
     _calcSymbol = sym;
 
+      /* ── Update bottom bar badge ── */
+var bsl = document.getElementById('bottom-sym-label');
+if (bsl) bsl.textContent = sym;
+
+/* ── Re-render currency meter with new active symbol ── */
+if (_csOpen) csRender();
+
     /* sync select */
     var sel = document.getElementById('calc-sym-select');
     if(sel) sel.value = sym;
@@ -4221,7 +4229,20 @@ function csRender() {
     maxAbs = Math.min(maxAbs * 1.2, 100);
 
     /* Sort */
-    var instruments = CS_INSTRUMENTS.slice();
+   /* ── Build dynamic instruments list — always include active chart symbol ── */
+var instruments = CS_INSTRUMENTS.slice();
+var activeSym = window._calcSymbol || '';
+var data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData : {};
+if (activeSym && data[activeSym]) {
+    var alreadyIn = instruments.some(function(i){ return i.sym === activeSym; });
+    if (!alreadyIn) {
+        instruments.push({ sym: activeSym, label: activeSym, _isActive: true });
+    }
+}
+/* Mark which is active */
+instruments = instruments.map(function(i) {
+    return Object.assign({}, i, { _isActive: i.sym === activeSym });
+});
     var sortCheck   = document.getElementById('cs-sort-check');
     if (sortCheck && sortCheck.checked) {
         instruments.sort(function(a, b) {
@@ -4290,8 +4311,12 @@ function csRender() {
         var sign = avg > 0 ? '+' : '';
         var cls  = avg > 10 ? 'pos' : avg < -10 ? 'neg' : 'neu';
 
-        return '<div class="cs-currency-col" style="min-width:90px;border-radius:5px;'
-            + 'background:'+dirBg+';padding:3px 2px;border:1px solid rgba(255,255,255,0.04);">'
+        var activeBorder = inst._isActive
+    ? 'border:1px solid #44ff8888;box-shadow:0 0 8px rgba(68,255,136,0.2);'
+    : 'border:1px solid rgba(255,255,255,0.04);';
+return '<div class="cs-currency-col" style="min-width:90px;border-radius:5px;'
+    + 'background:'+dirBg+';padding:3px 2px;'+activeBorder+'">'
+    + (inst._isActive ? '<span style="font-size:.38rem;color:#44ff88;letter-spacing:.5px;display:block;text-align:center;margin-bottom:1px;">● ACTIVE</span>' : '')
             + '<span class="cs-currency-label" style="font-size:.55rem;letter-spacing:1px;">'+inst.label+'</span>'
             + '<span style="font-size:.44rem;letter-spacing:.3px;color:'+dirColor
             + ';font-weight:700;display:block;text-align:center;margin:1px 0;">'+c.structLabel+'</span>'
@@ -4560,16 +4585,44 @@ var _csPoll = setInterval(function() {
 <!-- ══ POSITIONS PANEL TOGGLE BUTTON — add this inside your toolbar row ══
      (put it next to the NEWS and CURRENCY STRENGTH buttons)-->
 
-<button id="pos-panel-toggle-btn" onclick="pmTogglePanel()"
-    style="display:flex;align-items:center;gap:5px;padding:8px 18px;
-           font-size:.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-           cursor:pointer;font-family:inherit;background:#1a1a2a;border:1px solid #3a3a6a;
-           color:#8888ff;flex-shrink:0;transition:all .15s;">
-    <span id="pm-btn-dot" style="width:6px;height:6px;border-radius:50%;background:#3a3a6a;display:inline-block;transition:all .3s;"></span>
-    📋 POSITIONS
-    <span id="pm-btn-count" style="display:none;background:#33336633;border:1px solid #44448855;
-          color:#aaaaff;padding:0 5px;font-size:.48rem;border-radius:2px;"></span>
-</button>
+<!-- ══ BOTTOM TOOLBAR ══ -->
+<div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:#060606;border-top:1px solid #1a1a1a;flex-shrink:0;flex-wrap:wrap;">
+
+    <!-- NEWS -->
+    <button id="ff-news-toggle-btn" onclick="ffToggleOverlay()" style="display:flex;align-items:center;gap:5px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1b2a3a;border:1px solid #2d5a8e;color:#7ab3e0;flex-shrink:0;transition:all .15s;">
+        <span class="ff-btn-dot" style="width:6px;height:6px;border-radius:50%;background:#ff4444;animation:pulse 1s infinite;flex-shrink:0;display:inline-block;"></span>
+        📅 NEWS
+        <span id="ff-btn-count" style="background:#cc222233;border:1px solid #cc444455;color:#ff6666;padding:0 5px;font-size:.44rem;border-radius:2px;display:none;"></span>
+    </button>
+
+    <!-- CURRENCY STRENGTH -->
+    <button id="cs-toggle-btn" onclick="csToggleOverlay()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1a2a1a;border:1px solid #2d6a2d;color:#6ab36a;flex-shrink:0;transition:all .15s;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#6ab36a;animation:pulse 1s infinite;display:inline-block;"></span>
+        📊 STRENGTH
+        <span id="cs-btn-badge" style="display:none;font-size:.44rem;background:#1a3a5c33;border:1px solid #2d5a8e55;color:#7ab3e0;padding:0 5px;border-radius:2px;"></span>
+    </button>
+
+    <!-- POSITIONS -->
+    <button id="pos-panel-toggle-btn" onclick="pmTogglePanel()" style="display:flex;align-items:center;gap:5px;padding:6px 14px;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;background:#1a1a2a;border:1px solid #3a3a6a;color:#8888ff;flex-shrink:0;transition:all .15s;">
+        <span id="pm-btn-dot" style="width:6px;height:6px;border-radius:50%;background:#3a3a6a;display:inline-block;transition:all .3s;"></span>
+        📋 POSITIONS
+        <span id="pm-btn-count" style="display:none;background:#33336633;border:1px solid #44448855;color:#aaaaff;padding:0 5px;font-size:.44rem;border-radius:2px;"></span>
+    </button>
+
+    <!-- ACTIVE SYMBOL BADGE -->
+    <div id="bottom-sym-badge" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#0a1a0a;border:1px solid #1a3a1a;font-size:.68rem;font-weight:700;color:#44ff88;font-family:'Courier New',monospace;letter-spacing:2px;">
+        <span style="width:5px;height:5px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;"></span>
+        <span id="bottom-sym-label">NAS100</span>
+    </div>
+
+    <!-- LAYOUT -->
+    <div style="display:flex;align-items:center;gap:4px;margin-left:auto;">
+        <span style="font-size:.42rem;color:#444;text-transform:uppercase;letter-spacing:1px;margin-right:2px;">Layout</span>
+        <button id="layout-btn-single" onclick="setChartLayout('single')" style="padding:5px 12px;font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #fff;background:#fff;color:#000;font-weight:700;font-family:inherit;border-radius:2px;">▣ Single</button>
+        <button id="layout-btn-horizontal" onclick="setChartLayout('horizontal')" style="padding:5px 12px;font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">◫ Side</button>
+        <button id="layout-btn-vertical" onclick="setChartLayout('vertical')" style="padding:5px 12px;font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;border:1px solid #333;background:#111;color:#666;font-family:inherit;border-radius:2px;">⬒ Stack</button>
+    </div>
+</div>
 
 
 <!-- ══ POSITIONS OVERLAY PANEL ══ -->
