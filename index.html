@@ -4771,7 +4771,7 @@ var _csPoll = setInterval(function() {
 
 var _pmOpen      = false;
 var _pmPositions = [];          // latest fetched positions
-var _pmChartLines = {};         // {ticket: {entry, sl, tp}}
+var _pmChartLines = {};         // key: "panelIdx_ticket"
 var _pmPollTimer  = null;
 var _pmCloseTicket   = null;
 var _pmModifyTicket  = null;
@@ -4959,43 +4959,52 @@ function pmSelectPosition(ticket) {
    Draw / update chart lines for ALL open positions
 ───────────────────────────────────────────────────── */
 function pmSyncChartLines() {
-    if (!_tvWidgets[0]) return;
-    var chart;
-    try { chart = _tvWidgets[0].activeChart(); } catch(e) { return; }
+    /* ── Collect all active panels ── */
+    var activePanels = [];
+    [0, 1].forEach(function(i) {
+        if (!_tvWidgets[i]) return;
+        if (_chartLayout === 'single' && i === 1) return;
+        try {
+            var chart = _tvWidgets[i].activeChart();
+            var sym   = chart.symbol();
+            activePanels.push({ idx: i, chart: chart, sym: sym });
+        } catch(e) {}
+    });
+    if (!activePanels.length) return;
 
-    // Get current chart symbol
-    var currentSym;
-    try { currentSym = chart.symbol(); } catch(e) { return; }
-
-    // Remove lines for tickets no longer in positions
+    /* ── Remove lines for closed tickets ── */
     var openTickets = _pmPositions.map(function(p) { return p.ticket; });
-    Object.keys(_pmChartLines).forEach(function(ticket) {
-        if (openTickets.indexOf(parseInt(ticket)) === -1) {
-            pmRemoveLines(parseInt(ticket));
+    Object.keys(_pmChartLines).forEach(function(key) {
+        var ticket = parseInt(key.split('_')[1]);
+        if (openTickets.indexOf(ticket) === -1) {
+            _pmRemoveLinesKey(key);
         }
     });
 
-    // Draw/update lines for positions matching the current chart symbol
-    _pmPositions.forEach(function(pos) {
-        if (pos.symbol !== currentSym) return;
-        pmDrawOrUpdateLines(chart, pos);
+    /* ── Draw / update on every matching panel ── */
+    activePanels.forEach(function(panel) {
+        _pmPositions.forEach(function(pos) {
+            if (pos.symbol !== panel.sym) return;
+            pmDrawOrUpdateLines(panel.chart, pos, panel.idx);
+        });
     });
 }
-
-function pmDrawOrUpdateLines(chart, pos) {
+function pmDrawOrUpdateLines(chart, pos, panelIdx) {
+    panelIdx = panelIdx || 0;
     var ticket  = pos.ticket;
+    var key     = panelIdx + '_' + ticket;
     var isBuy   = pos.type === 'BUY';
     var dec     = Math.max(
         (pos.open_price.toString().split('.')[1] || '').length, 2
     );
 
-    // Remove existing lines if symbol changed
-    if (_pmChartLines[ticket] && _pmChartLines[ticket].symbol !== pos.symbol) {
-        pmRemoveLines(ticket);
+    // Remove existing lines for this panel+ticket if symbol changed
+    if (_pmChartLines[key] && _pmChartLines[key].symbol !== pos.symbol) {
+        _pmRemoveLinesKey(key);
     }
 
-    if (!_pmChartLines[ticket]) {
-        _pmChartLines[ticket] = { entry: null, sl: null, tp: null, pnl: null, symbol: pos.symbol };
+    if (!_pmChartLines[key]) {
+        _pmChartLines[key] = { entry: null, sl: null, tp: null, pnl: null, symbol: pos.symbol };
 
         // ── ENTRY line ──
         try {
@@ -5015,7 +5024,7 @@ function pmDrawOrUpdateLines(chart, pos) {
         // ── SL line (draggable) ──
         if (pos.sl) {
             try {
-                _pmChartLines[ticket].sl = chart.createOrderLine()
+               _pmChartLines[key].sl = chart.createOrderLine()
                     .setEditable(true)
                     .setPrice(pos.sl)
                     .setText('SL #' + ticket)
@@ -5028,7 +5037,7 @@ function pmDrawOrUpdateLines(chart, pos) {
                     .setLineLength(35)
                     .onMove(function() {
                         var newSL = parseFloat(
-                            _pmChartLines[ticket].sl.getPrice().toFixed(dec + 1)
+                           _pmChartLines[key].sl.getPrice().toFixed(dec + 1)
                         );
                         var currentTP = pos.tp || 0;
                         pmSendModify(ticket, newSL, currentTP,
@@ -5042,7 +5051,7 @@ function pmDrawOrUpdateLines(chart, pos) {
         // ── TP line (draggable) ──
         if (pos.tp) {
             try {
-                _pmChartLines[ticket].tp = chart.createOrderLine()
+                _pmChartLines[key].tp = chart.createOrderLine()
                     .setEditable(true)
                     .setPrice(pos.tp)
                     .setText('TP #' + ticket)
@@ -5055,7 +5064,7 @@ function pmDrawOrUpdateLines(chart, pos) {
                     .setLineLength(35)
                     .onMove(function() {
                         var newTP = parseFloat(
-                            _pmChartLines[ticket].tp.getPrice().toFixed(dec + 1)
+                            _pmChartLines[key].tp.getPrice().toFixed(dec + 1)
                         );
                         var currentSL = pos.sl || 0;
                         pmSendModify(ticket, currentSL, newTP,
@@ -5068,7 +5077,7 @@ function pmDrawOrUpdateLines(chart, pos) {
         // ── Floating P&L line (live price) ──
         try {
             var pnlText = (pos.profit >= 0 ? '+$' : '-$') + Math.abs(pos.profit).toFixed(2);
-            _pmChartLines[ticket].pnl = chart.createOrderLine()
+          _pmChartLines[key].pnl = chart.createOrderLine()
     .setEditable(true)
     .setPrice(pos.current_price || pos.open_price)
     .setText('✕ CLOSE  ' + pnlText)
@@ -5094,7 +5103,7 @@ function pmDrawOrUpdateLines(chart, pos) {
 
     } else {
         // ── UPDATE existing lines ──
-        var lines = _pmChartLines[ticket];
+       var lines = _pmChartLines[key]
 
         // Update P&L badge price and text
         if (lines.pnl && pos.current_price) {
@@ -5131,15 +5140,23 @@ function pmDrawOrUpdateLines(chart, pos) {
     }
 }
 
-function pmRemoveLines(ticket) {
-    var lines = _pmChartLines[ticket];
+function _pmRemoveLinesKey(key) {
+    var lines = _pmChartLines[key];
     if (!lines) return;
     ['entry', 'sl', 'tp', 'pnl'].forEach(function(k) {
         if (lines[k]) { try { lines[k].remove(); } catch(e) {} lines[k] = null; }
     });
-    delete _pmChartLines[ticket];
+    delete _pmChartLines[key];
 }
 
+function pmRemoveLines(ticket) {
+    /* Remove from ALL panels */
+    Object.keys(_pmChartLines).forEach(function(key) {
+        if (key.split('_')[1] === String(ticket)) _pmRemoveLinesKey(key);
+    });
+    delete _pmPrevPnL[ticket];
+}
+    
 function pmClearAllLines() {
     Object.keys(_pmChartLines).forEach(function(t) { pmRemoveLines(parseInt(t)); });
 }
