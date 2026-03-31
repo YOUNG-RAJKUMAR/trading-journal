@@ -2863,10 +2863,9 @@ function deskCl(){
     sym = sym.toUpperCase();
 
     /* ── Auto-reset position builder when symbol changes ── */
-   if (sym !== _calcSymbol) {
-    posClearDrawings();   /* always reset on symbol change, active or not */
+if (sym !== _calcSymbol) {
+    _posResetDrawOnly();
 }
-
     _calcSymbol = sym;
 
     /* sync select */
@@ -2892,6 +2891,42 @@ function deskCl(){
     deskRefreshPrice();
     deskAtp();
     deskCl();
+}
+
+       function _posResetDrawOnly() {
+    _posActive    = false;
+    _posEntrySnap = 0;
+    _posSending   = false;
+    _posSymbol    = '';
+
+    if (_posEntryLiveInterval) {
+        clearInterval(_posEntryLiveInterval);
+        _posEntryLiveInterval = null;
+    }
+
+    ['entry', 'sl', 'tp'].forEach(function(k) {
+        if (_posLines[k]) { try { _posLines[k].remove(); } catch(e) {} _posLines[k] = null; }
+    });
+
+    document.getElementById('pos-live-card').style.display = 'none';
+    document.getElementById('pos-sl-input').value = '';
+
+    var tpIn = document.getElementById('pos-tp-input');
+    tpIn.value = ''; tpIn.readOnly = false;
+    tpIn.style.opacity = '1'; tpIn.style.cursor = ''; tpIn.title = '';
+
+    _posSetStats('---', '---', '1:1');
+
+    var btn = document.getElementById('pos-confirm-btn');
+    if (btn) {
+        btn.disabled = true; btn.style.cursor = 'not-allowed';
+        btn.style.background = '#0a0a0a'; btn.style.color = '#333';
+        btn.style.borderColor = '#1a1a1a';
+        btn.textContent = '🔒 CONFIRM & PLACE TRADE';
+    }
+    var dot = document.getElementById('pos-status-dot');
+    if (dot) { dot.style.background = '#333'; dot.style.boxShadow = 'none'; }
+    _posFeedback('', '#555');
 }
         
 function deskRefreshPrice() {
@@ -2951,7 +2986,7 @@ var _posActive  = false;
 var _posEntrySnap = 0;          // ← price locked at DRAW time
 var _posEntryLiveInterval = null;
 var _posSending = false;        // ← debounce double-clicks
-
+var _posSymbol  = '';   
 
 /* ── Compute TP at exact 1:1 from SNAPSHOT entry ── */
 function _posCalcTP(sl) {
@@ -3002,7 +3037,8 @@ function posDrawPosition() {
     var defPips = cfg.lbl === 'pips' ? 5 : (cfg.lbl === 'pts' && _calcSymbol.indexOf('XAU') !== -1 ? 5 : 20);
 
     /* Prefer calculator SL if already filled */
-    var calcSL = parseFloat(document.getElementById('d-sl').value) || 0;
+    var calcSL = (_posSymbol === sym) ? (parseFloat(document.getElementById('d-sl').value) || 0) : 0;
+    _posSymbol = sym;
     var slDef  = calcSL > 0 ? calcSL
         : side === 'BUY'
             ? parseFloat((ent - defPips * pipVal).toFixed(6))
