@@ -1636,7 +1636,7 @@ ws.onmessage = function(event) {
     try {
         var msg = JSON.parse(event.data);
 
-        // ✅ Handle auto-detected suffix (must be first)
+        // ✅ SUFFIX AUTO-DETECTION (must be first)
         if (msg.type === 'suffix_info') {
             const detectedSuffix = msg.suffix || '';
             console.log('[AUTO] Detected broker suffix:', detectedSuffix);
@@ -1651,70 +1651,83 @@ ws.onmessage = function(event) {
                 if (typeof pmRefresh === 'function') pmRefresh();
                 if (window.ui && window.ui.launchTradingDesk) window.ui.launchTradingDesk();
             }
-            return; // don't process further for this message
-        }
-
-        if(msg.type === 'loading_start') {
-            var txt = document.getElementById('mt5-status-text');
-            if(txt) txt.textContent = 'LOADING 0%';
             return;
         }
 
-        if(msg.type === 'symbol_history') {
-            if(!lastData) lastData = {};
+        if (msg.type === 'loading_start') {
+            var txt = document.getElementById('mt5-status-text');
+            if (txt) txt.textContent = 'LOADING 0%';
+            return;
+        }
+
+        if (msg.type === 'symbol_history') {
+            if (!lastData) lastData = {};
             lastData[msg.symbol] = msg.data;
-            var pct = Math.round(((msg.index+1)/msg.total)*100);
+            var pct = Math.round(((msg.index + 1) / msg.total) * 100);
             var txt = document.getElementById('mt5-status-text');
-            if(txt) txt.textContent = 'LOADING ' + pct + '%';
+            if (txt) txt.textContent = 'LOADING ' + pct + '%';
             return;
         }
 
-        if(msg.type === 'loading_done') {
-            setStatus('connected','● MT5 LIVE');
+        if (msg.type === 'loading_done') {
+            setStatus('connected', '● MT5 LIVE');
             startCountdown();
-            if(window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
-            setTimeout(function(){
-                if(typeof deskBuildPills==='function') deskBuildPills();
+            if (window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
+            setTimeout(function() {
+                if (typeof deskBuildPills === 'function') deskBuildPills();
             }, 600);
             return;
         }
 
-        if(msg.type === 'order_ack') {
-            var fb  = document.getElementById('pos-feedback');
+        if (msg.type === 'order_ack') {
+            var fb = document.getElementById('pos-feedback');
             var dot = document.getElementById('pos-status-dot');
-            if(msg.success) {
-                if(fb)  { fb.textContent = '✅ ORDER PLACED — Ticket #' + (msg.ticket||'???'); fb.style.color = '#44ff88'; }
-                if(dot) { dot.style.background = '#44ff88'; dot.style.boxShadow = '0 0 6px #44ff8888'; }
+            if (msg.success) {
+                if (fb) {
+                    fb.textContent = '✅ ORDER PLACED — Ticket #' + (msg.ticket || '???');
+                    fb.style.color = '#44ff88';
+                }
+                if (dot) {
+                    dot.style.background = '#44ff88';
+                    dot.style.boxShadow = '0 0 6px #44ff8888';
+                }
                 posClearDrawings();
             } else {
-                if(fb)  { fb.textContent = '✗ REJECTED: ' + (msg.error||'Unknown'); fb.style.color = '#ff4444'; }
-                if(dot) { dot.style.background = '#ff4444'; }
+                if (fb) {
+                    fb.textContent = '✗ REJECTED: ' + (msg.error || 'Unknown');
+                    fb.style.color = '#ff4444';
+                }
+                if (dot) dot.style.background = '#ff4444';
                 var btn = document.getElementById('pos-confirm-btn');
-                if(btn) { btn.disabled=false; btn.style.cursor='pointer'; btn.textContent='⚠ RETRY'; }
+                if (btn) {
+                    btn.disabled = false;
+                    btn.style.cursor = 'pointer';
+                    btn.textContent = '⚠ RETRY';
+                }
             }
             return;
         }
 
-        if(msg.type === 'tick_update') {
+        if (msg.type === 'tick_update') {
             window._lastTickReceived = Date.now();
             Object.keys(msg.data).forEach(function(sym) {
-                if(!lastData[sym]) return;
-                lastData[sym].bid    = parseFloat(msg.data[sym].bid.toFixed(8));
-                lastData[sym].ask    = parseFloat(msg.data[sym].ask.toFixed(8));
+                if (!lastData[sym]) return;
+                lastData[sym].bid = parseFloat(msg.data[sym].bid.toFixed(8));
+                lastData[sym].ask = parseFloat(msg.data[sym].ask.toFixed(8));
                 lastData[sym].spread = msg.data[sym].spread;
-                lastData[sym].time   = msg.data[sym].time;
+                lastData[sym].time = msg.data[sym].time;
 
                 Object.keys(msg.data[sym].candles).forEach(function(tf) {
                     var incoming = msg.data[sym].candles[tf];
-                    if(!incoming || !incoming.length) return;
-                    if(!lastData[sym].candles[tf]) return;
-                    var hist   = lastData[sym].candles[tf];
+                    if (!incoming || !incoming.length) return;
+                    if (!lastData[sym].candles[tf]) return;
+                    var hist = lastData[sym].candles[tf];
                     var latest = incoming[incoming.length - 1];
-                    var last   = hist[hist.length - 1];
+                    var last = hist[hist.length - 1];
 
-                    if(latest.time === last.time) {
+                    if (latest.time === last.time) {
                         hist[hist.length - 1] = latest;
-                    } else if(latest.time > last.time) {
+                    } else if (latest.time > last.time) {
                         hist.push(latest);
                     } else {
                         return;
@@ -1722,15 +1735,15 @@ ws.onmessage = function(event) {
 
                     Object.keys(subscribers).forEach(function(guid) {
                         var sub = subscribers[guid];
-                        if(sub.symbol !== sym || sub.resolution !== tf) return;
-                        if(latest.time < sub.lastBarTime) return;
+                        if (sub.symbol !== sym || sub.resolution !== tf) return;
+                        if (latest.time < sub.lastBarTime) return;
                         sub.lastBarTime = latest.time;
                         sub.callback({
-                            time:   latest.time,
-                            open:   latest.open,
-                            high:   latest.high,
-                            low:    latest.low,
-                            close:  latest.close,
+                            time: latest.time,
+                            open: latest.open,
+                            high: latest.high,
+                            low: latest.low,
+                            close: latest.close,
                             volume: latest.volume
                         });
                     });
@@ -1738,18 +1751,18 @@ ws.onmessage = function(event) {
             });
 
             var _activeSym = window._calcSymbol || 'EURUSD';
-            if(lastData[_activeSym]) {
-                var d   = lastData[_activeSym];
-                var dec = Math.min((d.bid.toString().split('.')[1]||'').length, 8);
-                window._calcLiveBid   = d.bid;
-                window._calcLiveAsk   = d.ask;
+            if (lastData[_activeSym]) {
+                var d = lastData[_activeSym];
+                var dec = Math.min((d.bid.toString().split('.')[1] || '').length, 8);
+                window._calcLiveBid = d.bid;
+                window._calcLiveAsk = d.ask;
                 window._calcSpreadPts = d.spread || 0;
                 requestAnimationFrame(function() {
                     var pe = document.getElementById('calc-live-price');
                     var se = document.getElementById('calc-spread');
                     var ed = document.getElementById('d-entry-display');
-                    if(pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
-                    if(se) {
+                    if (pe) pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
+                    if (se) {
                         var inst = document.getElementById('d-inst');
                         var spreadDisplay = (inst && inst.value === 'forex')
                             ? (d.spread / 10).toFixed(1) + ' pips'
@@ -1757,20 +1770,23 @@ ws.onmessage = function(event) {
                         se.textContent = 'spread: ' + spreadDisplay;
                         se.style.color = '#44ff88';
                         clearTimeout(se._fadeTimer);
-                        se._fadeTimer = setTimeout(function(){ se.style.color = '#777'; }, 200);
+                        se._fadeTimer = setTimeout(function() {
+                            se.style.color = '#777';
+                        }, 200);
                     }
                     var entryPrice = (window._calcSide === 'BUY') ? d.ask : d.bid;
-                    if(ed) {
+                    if (ed) {
                         ed.textContent = entryPrice.toFixed(dec);
                         ed.style.color = (window._calcSide === 'BUY') ? '#44ff88' : '#ff6666';
                     }
                 });
-                if(typeof deskCl === 'function') deskCl();
+                if (typeof deskCl === 'function') deskCl();
             }
             return;
         }
-
-    } catch(e) { console.log('WS parse error:', e); }
+    } catch (e) {
+        console.log('WS parse error:', e);
+    }
 };
         ws.onerror = function() {};
         ws.onclose = function() {
