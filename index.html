@@ -1507,14 +1507,15 @@ window.buildSymbolMapWithSuffix = function() {
 };
 
 window.getActualSymbol = function(plainSym) {
-    const plain = plainSym.toUpperCase();
-    if (window._symbolMap && window._symbolMap[plain]) {
-        return window._symbolMap[plain];
+    // Strip any suffix the TV library may have appended (e.g. ".X" from ".x")
+    var stripped = plainSym.replace(/\.[a-zA-Z]+$/, '').toUpperCase();
+    if (window._symbolMap && window._symbolMap[stripped]) {
+        return window._symbolMap[stripped];
     }
     if (window._userSuffix) {
-        return plain + window._userSuffix;
+        return stripped + window._userSuffix;   // preserves original case ".x"
     }
-    return plain;
+    return stripped;
 };
 
 window.getPlainSymbol = function(actualSym) {
@@ -2620,8 +2621,17 @@ function refreshPanel(num) {
 function launchPanel(num) {
     var c = window.ui._tvColors();
     var containerId = 'tv-container-' + num;
-    var symbols = { 1: 'NAS100', 2: 'US500' };
-    var symbol  = symbols[num] || 'EURUSD';
+    var preferred = { 1: 'NAS100', 2: 'US500' };
+var symbol = preferred[num] || 'EURUSD';
+
+// Fall back to first symbol in the live map if preferred isn't available
+if (window._symbolMap && !window._symbolMap[symbol.toUpperCase()]) {
+    var keys = Object.keys(window._symbolMap);
+    if (keys.length > 0) symbol = keys[0];
+} else if (!window._symbolMap && window.MT5Feed && MT5Feed.lastData) {
+    var firstActual = Object.keys(MT5Feed.lastData)[0];
+    if (firstActual) symbol = window.getPlainSymbol(firstActual);
+}
     var tf      = _currentTF[num-1] || '60';
 
     if(_tvWidgets[num-1]) {
