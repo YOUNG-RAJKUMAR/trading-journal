@@ -1927,13 +1927,15 @@ var MT5Feed = (function() {
                 '360':'H6','480':'H8','720':'H12',
                 'D':'D1',  'W':'W1',  'M':'MN1'
             };
-            subscribers[listenerGuid] = {
-                symbol:      symbolInfo.name,
-                resolution:  resMap[resolution] || 'H1',
-                callback:    onTick,
-                lastBarTime: 0
-            };
-        },
+          var plain = symbolInfo.name.toUpperCase();
+    var actual = window.getActualSymbol(plain);   // "EURUSD.x"
+    subscribers[listenerGuid] = {
+        symbol:      actual,                     // store with suffix
+        resolution:  resMap[resolution] || 'H1',
+        callback:    onTick,
+        lastBarTime: 0
+    };
+},
 
         unsubscribeBars: function(listenerGuid) {
             delete subscribers[listenerGuid];
