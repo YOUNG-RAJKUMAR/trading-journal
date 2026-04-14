@@ -1552,6 +1552,7 @@ var MT5Feed = (function() {
     var lastData = {};
     var _connected = false;
     var _retryTimer = null;
+    var _connecting = false;  
     var _countdownTimer = null;
 
     function setStatus(state, text) {
@@ -1594,18 +1595,43 @@ var MT5Feed = (function() {
         }, 1000);
     }
 
-    function connect() {
-        try {
-            ws = new WebSocket('ws://localhost:8765');
-            window._mt5WS = ws;
-        } catch(e) {
-            setStatus('disconnected','MT5 OFFLINE');
-            scheduleRetry(); return;
-        }
-        setStatus('connecting','MT5 CONNECTING...');
-        ws.onopen = function() { clearTimeout(_retryTimer); };
+   function connect() {
+    if (_connecting) {
+        console.log('[MT5] Connection already in progress – skipping duplicate');
+        return;
+    }
+    _connecting = true;
 
-        ws.onmessage = function(event) {
+    try {
+        ws = new WebSocket('ws://127.0.0.1:8765');   // ← changed from localhost
+        window._mt5WS = ws;
+    } catch(e) {
+        setStatus('disconnected','MT5 OFFLINE');
+        _connecting = false;
+        scheduleRetry();
+        return;
+    }
+
+    setStatus('connecting','MT5 CONNECTING...');
+
+    ws.onopen = function() {
+        clearTimeout(_retryTimer);
+        _connecting = false;
+    };
+
+    ws.onclose = function() {
+        setStatus('disconnected','MT5 OFFLINE');
+        if(_countdownTimer) clearInterval(_countdownTimer);
+        _connecting = false;
+        scheduleRetry();
+    };
+
+    ws.onerror = function() {
+        _connecting = false;
+    };
+
+    // The rest of ws.onmessage stays exactly as you have it
+    ws.onmessage = function(event) {
             try {
                 var msg = JSON.parse(event.data);
 
