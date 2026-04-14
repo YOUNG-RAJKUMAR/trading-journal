@@ -1489,6 +1489,25 @@ var MT5Feed = (function() {
     var _retryTimer = null;
     var _countdownTimer = null;
 
+    if (msg.type === 'suffix_info') {
+    const detectedSuffix = msg.suffix || '';
+    console.log('[AUTO] Detected broker suffix:', detectedSuffix);
+    if (detectedSuffix) {
+        // Update the global suffix variable and input field
+        _userSuffix = detectedSuffix;
+        localStorage.setItem('rk_symbol_suffix', _userSuffix);
+        const suffixInput = document.getElementById('symbol-suffix');
+        if (suffixInput) suffixInput.value = detectedSuffix;
+        // Rebuild the symbol map
+        buildSymbolMapWithSuffix();
+        // Refresh UI components that depend on symbols
+        if (typeof deskBuildPills === 'function') deskBuildPills();
+        if (typeof csRender === 'function') csRender();
+        if (typeof pmRefresh === 'function') pmRefresh();
+        if (window.ui && window.ui.launchTradingDesk) window.ui.launchTradingDesk();
+    }
+}
+
     function setStatus(state, text) {
         var badge = document.getElementById('mt5-status-badge');
         var txt   = document.getElementById('mt5-status-text');
