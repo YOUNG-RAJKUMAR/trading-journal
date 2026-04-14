@@ -1815,10 +1815,10 @@ getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
         'D':'D1',  'W':'W1',  'M':'MN1'
     };
 
-     const plain = symbolInfo.name;
-    const actual = getActualSymbol(plain);
+ var tf     = resMap[resolution] || 'H1';   // ← ADD THIS
+    var plain  = symbolInfo.name.toUpperCase();
+    var symbol = getActualSymbol(plain);        // ← ADD THIS (was missing)
     
-    /* ── Second TFs: still use WebSocket cache (no HTTP history available) ── */
     var isSecondTF = tf.charAt(0) === 'S';
     if(isSecondTF) {
         var d = lastData[symbol];
