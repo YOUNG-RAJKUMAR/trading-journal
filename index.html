@@ -899,6 +899,7 @@ body.theme-frosted .stat-val {
         /* CHARTS TAB */
         #tab-charts { zoom:0.75; }
 
+
         /* PDF */
         .pdf-export-mode #main-content { padding:0;max-width:100%; }
         .pdf-export-mode .tab-btn,.pdf-export-mode .header-top,.pdf-export-mode .search-container { display:none!important; }
@@ -1367,6 +1368,15 @@ body.theme-frosted .stat-val {
     
     </div><!-- /tab-charts -->
 
+         <!-- Suffix configuration -->
+<div style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);padding:2px 8px;border-radius:3px;">
+    <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:1px;">Suffix</span>
+    <input type="text" id="symbol-suffix" placeholder=".X" value=""
+           style="width:60px;background:#050505;border:1px solid #333;color:#fff;padding:4px 6px;font-size:.7rem;font-family:monospace;">
+    <button id="apply-suffix-btn" class="btn-action" style="padding:2px 8px;" onclick="applySymbolSuffix()">Apply</button>
+</div>
+
+    
     <!-- CALENDAR TAB -->
     <div id="tab-calendar" class="tab-content">
         <div class="calendar-layout">
@@ -1494,6 +1504,79 @@ var MT5Feed = (function() {
         }
     }
 
+    // ========== USER-DEFINED SUFFIX ==========
+let _userSuffix = localStorage.getItem('rk_symbol_suffix') || '';
+
+// Apply suffix from input and rebuild mapping
+function applySymbolSuffix() {
+    const input = document.getElementById('symbol-suffix');
+    if (input) {
+        _userSuffix = input.value.trim();
+        localStorage.setItem('rk_symbol_suffix', _userSuffix);
+        console.log('[Suffix] Set to:', _userSuffix);
+        // Rebuild symbol mapping with new suffix
+        if (window.MT5Feed && window.MT5Feed.lastData) {
+            buildSymbolMapWithSuffix();
+        }
+        // Refresh all symbol-dependent components
+        if (typeof deskBuildPills === 'function') deskBuildPills();
+        if (typeof csRender === 'function') csRender();
+        if (typeof pmRefresh === 'function') pmRefresh();
+        if (window.ui && window.ui.launchTradingDesk) window.ui.launchTradingDesk();
+    }
+}
+
+// Build mapping using user-defined suffix (or fallback to plain)
+function buildSymbolMapWithSuffix() {
+    const data = window.MT5Feed && window.MT5Feed.lastData;
+    if (!data || Object.keys(data).length === 0) {
+        setTimeout(buildSymbolMapWithSuffix, 1000);
+        return;
+    }
+    window._symbolMap = {};
+    window._reverseMap = {};
+    const suffix = _userSuffix;
+    Object.keys(data).forEach(actual => {
+        let plain = actual;
+        // If suffix is non-empty, try to remove it to get plain symbol
+        if (suffix && actual.endsWith(suffix)) {
+            plain = actual.slice(0, -suffix.length);
+        } else {
+            // Otherwise, keep original (maybe no suffix match)
+            plain = actual;
+        }
+        plain = plain.toUpperCase();
+        window._symbolMap[plain] = actual;
+        window._reverseMap[actual] = plain;
+    });
+    console.log('[SymbolMap] Built with suffix "' + suffix + '":', window._symbolMap);
+    window._symbolMapBuilt = true;
+}
+
+// Get actual MT5 symbol for a plain symbol (using the user suffix)
+function getActualSymbol(plainSym) {
+    const plain = plainSym.toUpperCase();
+    // If we have a direct map from previous build, use it
+    if (window._symbolMap && window._symbolMap[plain]) {
+        return window._symbolMap[plain];
+    }
+    // Otherwise, construct with suffix (if any) and return that
+    if (_userSuffix) {
+        return plain + _userSuffix;
+    }
+    return plain; // fallback
+}
+
+// Get plain symbol from actual MT5 symbol (reverse mapping)
+function getPlainSymbol(actualSym) {
+    if (window._reverseMap && window._reverseMap[actualSym]) {
+        return window._reverseMap[actualSym];
+    }
+    if (_userSuffix && actualSym.endsWith(_userSuffix)) {
+        return actualSym.slice(0, -_userSuffix.length);
+    }
+    return actualSym;
+}
     function startCountdown() {
         if(_countdownTimer) clearInterval(_countdownTimer);
         _countdownTimer = setInterval(function() {
@@ -1681,50 +1764,47 @@ var MT5Feed = (function() {
             }, 0);
         },
 
-        searchSymbols: function(userInput, exchange, symbolType, onResult) {
-            var all = Object.keys(lastData);
-            var q   = userInput.toUpperCase();
-            onResult(
-                all.filter(function(s){ return s.indexOf(q) !== -1; })
-                   .map(function(s) {
-                       return { symbol:s, full_name:s, description:s, exchange:'MT5', type:'forex' };
-                   })
-            );
-        },
+      searchSymbols: function(userInput, exchange, symbolType, onResult) {
+    const allActual = Object.keys(MT5Feed.lastData);
+    const q = userInput.toUpperCase();
+    const matched = allActual.filter(actual => actual.toUpperCase().includes(q))
+        .map(actual => {
+            const plain = getPlainSymbol(actual);
+            return { symbol: plain, full_name: plain, description: actual, exchange: 'MT5', type: 'forex' };
+        });
+    onResult(matched);
+},
 
-        resolveSymbol: function(symbolName, onResolve, onError) {
-            var isGold   = symbolName.indexOf('XAU') !== -1 || symbolName.indexOf('XAG') !== -1;
-            var isIndex  = symbolName.indexOf('US30') !== -1 || symbolName.indexOf('US500') !== -1
-                        || symbolName.indexOf('US100') !== -1 || symbolName.indexOf('GER') !== -1;
-            var isCrypto = symbolName.indexOf('BTC') !== -1 || symbolName.indexOf('ETH') !== -1;
-            setTimeout(function() {
-                onResolve({
-                    name:         symbolName,
-                    ticker:       symbolName,
-                    description:  symbolName + ' — MT5 Live',
-                    type:         isCrypto ? 'crypto' : isIndex ? 'index' : 'forex',
-                    session:      '24x7',
-                    timezone:     'Etc/UTC',
-                    minmov:       1,
-                    pricescale:   isGold ? 100 : isIndex ? 1 : isCrypto ? 100 : 100000,
-                    has_intraday: true,
-                    has_seconds:  true,
-                    has_daily:    true,
-                    has_weekly_and_monthly: true,
-                    supported_resolutions: [
-                        '10S','15S','30S','45S',
-                        '1','2','3','4','5','6','10','12',
-                        '15','20','30','60','120','180','240',
-                        '360','480','720','D','W','M'
-                    ],
-                    volume_precision: 2,
-                    data_status: 'streaming',
-                    force_session_rebuild: false,
-                });
-            }, 0);
-        },
 
-   getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
+resolveSymbol: function(symbolName, onResolve, onError) {
+    const plain = symbolName.toUpperCase();
+    const actual = getActualSymbol(plain);
+    const isGold   = actual.indexOf('XAU') !== -1 || actual.indexOf('XAG') !== -1;
+    const isIndex  = actual.indexOf('US30') !== -1 || actual.indexOf('US500') !== -1
+                  || actual.indexOf('US100') !== -1 || actual.indexOf('GER') !== -1;
+    const isCrypto = actual.indexOf('BTC') !== -1 || actual.indexOf('ETH') !== -1;
+    setTimeout(() => {
+        onResolve({
+            name:         plain,
+            ticker:       plain,
+            description:  actual + ' — MT5 Live',
+            type:         isCrypto ? 'crypto' : isIndex ? 'index' : 'forex',
+            session:      '24x7',
+            timezone:     'Etc/UTC',
+            minmov:       1,
+            pricescale:   isGold ? 100 : isIndex ? 1 : isCrypto ? 100 : 100000,
+            has_intraday: true,
+            has_seconds:  true,
+            has_daily:    true,
+            has_weekly_and_monthly: true,
+            supported_resolutions: ['10S','15S','30S','45S','1','2','3','4','5','6','10','12','15','20','30','60','120','180','240','360','480','720','D','W','M'],
+            volume_precision: 2,
+            data_status: 'streaming',
+        });
+    }, 0);
+},
+
+getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
     var resMap = {
         '10S':'S10','15S':'S15','30S':'S30','45S':'S45',
         '1':'M1',  '2':'M2',  '3':'M3',  '4':'M4',
@@ -1735,9 +1815,9 @@ var MT5Feed = (function() {
         'D':'D1',  'W':'W1',  'M':'MN1'
     };
 
-    var tf     = resMap[resolution] || 'H1';
-    var symbol = symbolInfo.name;
-
+     const plain = symbolInfo.name;
+    const actual = getActualSymbol(plain);
+    
     /* ── Second TFs: still use WebSocket cache (no HTTP history available) ── */
     var isSecondTF = tf.charAt(0) === 'S';
     if(isSecondTF) {
@@ -2780,11 +2860,13 @@ function _spreadPrice() {
     return spread * pointSize;
 }
 
-function _liveEntry(){
-    /* BUY  → fill at ASK (higher price) */
-    /* SELL → fill at BID (lower price)  */
-    return _calcSide === 'BUY' ? _calcLiveAsk : _calcLiveBid;
+function _liveEntry() {
+    const actualSymbol = getActualSymbol(_calcSymbol);
+    const data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData[actualSymbol] : null;
+    if (!data) return 0;
+    return _calcSide === 'BUY' ? data.ask : data.bid;
 }
+
 
 function deskSm(m){
     _dm=m;
@@ -2882,76 +2964,109 @@ function deskCl(){
     deskSv('d-rtv',  '$'+pvl.toFixed(0)+'/'+cfg.lbl+'/lot');
 }
 
-   function deskBuildPills() {
-    var data = {};
-    try { data = MT5Feed.lastData || {}; } catch(e) { return; }
-    var syms = Object.keys(data).sort();
-    if(!syms.length) {
-        /* retry in 1s if data not ready yet */
+ function deskBuildPills() {
+    const data = window.MT5Feed && MT5Feed.lastData;
+    if (!data || Object.keys(data).length === 0) {
         setTimeout(deskBuildPills, 1000);
         return;
     }
+    const actualSyms = Object.keys(data);
+    const plainSyms = actualSyms.map(actual => getPlainSymbol(actual));
+    const sel = document.getElementById('calc-sym-select');
+    if (!sel) return;
 
-    var sel = document.getElementById('calc-sym-select');
-    if(!sel) return;
-
-    sel.innerHTML = syms.map(function(s) {
-        return '<option value="'+s+'" '+(s===_calcSymbol?'selected':'')+'>'+s+'</option>';
+    sel.innerHTML = actualSyms.map((actual, idx) => {
+        const plain = plainSyms[idx];
+        return `<option value="${plain}" ${plain === _calcSymbol ? 'selected' : ''}>${plain}</option>`;
     }).join('');
 
-    /* set to first symbol if _calcSymbol not in list */
-    if(syms.indexOf(_calcSymbol) === -1) _calcSymbol = syms[0];
-    sel.value = _calcSymbol;
-
-    deskSelectSymbol(_calcSymbol);
+    // If current _calcSymbol not found, pick first available
+    if (plainSyms.indexOf(_calcSymbol) === -1 && plainSyms.length) {
+        deskSelectSymbol(plainSyms[0]);
+    }
 }
-
-  function deskSelectSymbol(sym) {
+// ========== UPDATED deskSelectSymbol ==========
+function deskSelectSymbol(sym) {
     sym = sym.toUpperCase();
 
-    /* ── Auto-reset position builder when symbol changes ── */
-if (sym !== _calcSymbol) {
-    _posResetDrawOnly();
-}
-    _calcSymbol = sym;
+    // Auto-reset position builder when symbol changes
+    if (sym !== _calcSymbol) {
+        _posResetDrawOnly();
+    }
+    _calcSymbol = sym;   // plain symbol (displayed)
 
-      /* ── Update bottom bar badge ── */
-var bsl = document.getElementById('bottom-sym-label');
-if (bsl) bsl.textContent = sym;
+    // Update bottom bar badge
+    var bsl = document.getElementById('bottom-sym-label');
+    if (bsl) bsl.textContent = sym;
 
-/* ── Re-render currency meter with new active symbol ── */
-if (_csOpen) csRender();
+    // Re-render currency meter with new active symbol
+    if (_csOpen) csRender();
 
-    /* sync select */
+    // Sync select dropdown
     var sel = document.getElementById('calc-sym-select');
-    if(sel) sel.value = sym;
+    if (sel) sel.value = sym;
 
-    /* update BOTH header labels */
+    // Update header labels
     var lbl1 = document.getElementById('calc-symbol');
-    if(lbl1) lbl1.textContent = sym;
-   var hdr2 = document.getElementById('calc-header-sym');
-    if(hdr2) hdr2.textContent = sym;
+    if (lbl1) lbl1.textContent = sym;
+    var hdr2 = document.getElementById('calc-header-sym');
+    if (hdr2) hdr2.textContent = sym;
 
-    /* update the big header title at top of calculator panel */
-    var hdr = document.querySelector('#main-content .header-title');
-    /* only update calc header, not app header */
-
-    /* auto-detect instrument */
+    // Auto-detect instrument type
     var inst = deskDetectInst(sym);
     var instEl = document.getElementById('d-inst');
-    if(instEl) instEl.value = inst;
+    if (instEl) instEl.value = inst;
 
-    /* refresh live price immediately */
+    // Refresh live price (now uses suffix mapping internally)
     deskRefreshPrice();
     deskAtp();
     deskCl();
 }
 
-       function _posResetDrawOnly() {
-    _posActive    = false;
+// ========== UPDATED deskRefreshPrice ==========
+function deskRefreshPrice() {
+    // Convert plain symbol to actual broker symbol using user suffix
+    const actualSymbol = getActualSymbol(_calcSymbol);
+    const data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData[actualSymbol] : null;
+    var pe = document.getElementById('calc-live-price');
+    var se = document.getElementById('calc-spread');
+    var ed = document.getElementById('d-entry-display');
+    var lbl = document.getElementById('d-side-lbl');
+
+    if (data && data.bid) {
+        window._calcLiveBid = data.bid;
+        window._calcLiveAsk = data.ask;
+        var entryPrice = (_calcSide === 'BUY') ? data.ask : data.bid;
+        var dec = Math.min((data.bid.toString().split('.')[1] || '').length, 8);
+        if (pe) pe.textContent = data.bid.toFixed(dec) + ' / ' + data.ask.toFixed(dec);
+        if (se) se.textContent = 'spread: ' + (data.spread || '---');
+        window._calcSpreadPts = data.spread || 0;
+        if (ed) {
+            ed.textContent = entryPrice.toFixed(dec);
+            ed.style.color = (_calcSide === 'BUY') ? '#44ff88' : '#ff6666';
+        }
+        if (lbl) {
+            lbl.textContent = (_calcSide === 'BUY') ? '● ASK (BUY)' : '● BID (SELL)';
+            lbl.style.color = (_calcSide === 'BUY') ? '#44ff88' : '#ff6666';
+        }
+    } else {
+        window._calcLiveBid = 0;
+        window._calcLiveAsk = 0;
+        if (pe) pe.textContent = '--- / ---';
+        if (se) se.textContent = 'spread: ---';
+        if (ed) {
+            ed.textContent = 'no data';
+            ed.style.color = '#555';
+        }
+    }
+}
+
+// ========== UPDATED _posResetDrawOnly ==========
+function _posResetDrawOnly() {
+    _posActive = false;
     _posEntrySnap = 0;
-    _posSending   = false;
-    _posSymbol    = '';
+    _posSending = false;
+    _posSymbol = '';
 
     if (_posEntryLiveInterval) {
         clearInterval(_posEntryLiveInterval);
@@ -2959,56 +3074,41 @@ if (_csOpen) csRender();
     }
 
     ['entry', 'sl', 'tp'].forEach(function(k) {
-        if (_posLines[k]) { try { _posLines[k].remove(); } catch(e) {} _posLines[k] = null; }
+        if (_posLines[k]) {
+            try { _posLines[k].remove(); } catch(e) {}
+            _posLines[k] = null;
+        }
     });
 
     document.getElementById('pos-live-card').style.display = 'none';
     document.getElementById('pos-sl-input').value = '';
 
     var tpIn = document.getElementById('pos-tp-input');
-    tpIn.value = ''; tpIn.readOnly = false;
-    tpIn.style.opacity = '1'; tpIn.style.cursor = ''; tpIn.title = '';
+    tpIn.value = '';
+    tpIn.readOnly = false;
+    tpIn.style.opacity = '1';
+    tpIn.style.cursor = '';
+    tpIn.title = '';
 
     _posSetStats('---', '---', '1:1');
 
     var btn = document.getElementById('pos-confirm-btn');
     if (btn) {
-        btn.disabled = true; btn.style.cursor = 'not-allowed';
-        btn.style.background = '#0a0a0a'; btn.style.color = '#333';
+        btn.disabled = true;
+        btn.style.cursor = 'not-allowed';
+        btn.style.background = '#0a0a0a';
+        btn.style.color = '#333';
         btn.style.borderColor = '#1a1a1a';
         btn.textContent = '🔒 CONFIRM & PLACE TRADE';
     }
     var dot = document.getElementById('pos-status-dot');
-    if (dot) { dot.style.background = '#333'; dot.style.boxShadow = 'none'; }
+    if (dot) {
+        dot.style.background = '#333';
+        dot.style.boxShadow = 'none';
+    }
     _posFeedback('', '#555');
 }
-        
-function deskRefreshPrice() {
-    var data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData[_calcSymbol] : null;
-    var pe  = document.getElementById('calc-live-price');
-    var se  = document.getElementById('calc-spread');
-    var ed  = document.getElementById('d-entry-display');
-    var lbl = document.getElementById('d-side-lbl');
-
-    if(data && data.bid) {
-        window._calcLiveBid = data.bid;
-        window._calcLiveAsk = data.ask;
-        var entryPrice = (_calcSide === 'BUY') ? data.ask : data.bid;
-        var dec = Math.min((data.bid.toString().split('.')[1]||'').length, 8);
-        if(pe)  pe.textContent  = data.bid.toFixed(dec) + ' / ' + data.ask.toFixed(dec);
-        if(se)  se.textContent  = 'spread: ' + (data.spread || '---');
-        window._calcSpreadPts = data.spread || 0;
-        if(ed)  { ed.textContent = entryPrice.toFixed(dec); ed.style.color = (_calcSide==='BUY') ? '#44ff88' : '#ff6666'; }
-        if(lbl) { lbl.textContent = (_calcSide==='BUY') ? '● ASK (BUY)' : '● BID (SELL)'; lbl.style.color = (_calcSide==='BUY') ? '#44ff88' : '#ff6666'; }
-    } else {
-        window._calcLiveBid = 0;
-        window._calcLiveAsk = 0;
-        if(pe)  pe.textContent  = '--- / ---';
-        if(se)  se.textContent  = 'spread: ---';
-        if(ed)  { ed.textContent = 'no data'; ed.style.color = '#555'; }
-    }
-}
-        
+    
 function deskRs(){
     ['d-bal','d-rp','d-sl','d-tp'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});
     var ra=document.getElementById('d-ra');if(ra)ra.value='0';
