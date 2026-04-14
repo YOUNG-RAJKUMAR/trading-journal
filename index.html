@@ -1859,20 +1859,25 @@ var MT5Feed = (function() {
             }, 0);
         },
 
-        getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
-            var resMap = {
-                '10S':'S10','15S':'S15','30S':'S30','45S':'S45',
-                '1':'M1',  '2':'M2',  '3':'M3',  '4':'M4',
-                '5':'M5',  '6':'M6',  '10':'M10','12':'M12',
-                '15':'M15','20':'M20','30':'M30',
-                '60':'H1', '120':'H2','180':'H3','240':'H4',
-                '360':'H6','480':'H8','720':'H12',
-                'D':'D1',  'W':'W1',  'M':'MN1'
-            };
-            var tf     = resMap[resolution] || 'H1';
-            var plain  = symbolInfo.name.toUpperCase();
-            var symbol = window.getActualSymbol(plain);
-            var isSecondTF = tf.charAt(0) === 'S';
+       getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
+    // Safely map resolution to MT5 timeframe string
+    var resMap = {
+        '10S':'S10','15S':'S15','30S':'S30','45S':'S45',
+        '1':'M1','2':'M2','3':'M3','4':'M4',
+        '5':'M5','6':'M6','10':'M10','12':'M12',
+        '15':'M15','20':'M20','30':'M30',
+        '60':'H1','120':'H2','180':'H3','240':'H4',
+        '360':'H6','480':'H8','720':'H12',
+        'D':'D1','W':'W1','M':'MN1'
+    };
+    
+    // Ensure resolution is a string
+    var resStr = String(resolution || '60');
+    var tf = resMap[resStr] || 'H1';   // fallback to H1
+    
+    var plain = symbolInfo.name.toUpperCase();
+    var symbol = window.getActualSymbol(plain);
+    var isSecondTF = tf.charAt(0) === 'S';
             if(isSecondTF) {
                 var d = lastData[symbol];
                 if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
