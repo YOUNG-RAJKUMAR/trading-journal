@@ -1751,9 +1751,10 @@ var MT5Feed = (function() {
                         });
                     });
 
-                    var _activeSym = window._calcSymbol || 'EURUSD';
-                    if (lastData[_activeSym]) {
-                        var d = lastData[_activeSym];
+                   var _activeSym = window._calcSymbol || 'EURUSD';
+                   var _actualSym = window.getActualSymbol ? window.getActualSymbol(_activeSym) : _activeSym;
+                   if (lastData[_actualSym]) {
+                    var d = lastData[_actualSym];
                         var dec = Math.min((d.bid.toString().split('.')[1] || '').length, 8);
                         window._calcLiveBid = d.bid;
                         window._calcLiveAsk = d.ask;
