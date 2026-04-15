@@ -3521,86 +3521,61 @@ function _posEnableConfirm() {
 
 /* ── FIRE — no confirm dialog, immediate HTTP POST ──────────── */
 function posConfirmTrade() {
-    if (_posSending) return;            /* debounce */
-
-    var side = _calcSide;
-    var sym  = _calcSymbol;
+    if (_posSending) return;
+    var side = _calcSide, sym = _calcSymbol;
     var ent  = _posEntrySnap;
     var sl   = parseFloat(document.getElementById('pos-sl-input').value) || 0;
     var tp   = parseFloat(document.getElementById('pos-tp-input').value) || 0;
     var lots = parseFloat(document.getElementById('pos-lots-display').textContent) || 0;
 
-    /* Final guard — button should already be disabled if invalid */
     if (!ent || !sl || !tp || lots <= 0) {
         _posFeedback('Fill all values first', '#ff4444');
         return;
     }
+    if (side === 'BUY'  && sl >= ent) { _posFeedback('BUY: SL below entry', '#ff4444'); return; }
+    if (side === 'BUY'  && tp <= ent) { _posFeedback('BUY: TP above entry', '#ff4444'); return; }
+    if (side === 'SELL' && sl <= ent) { _posFeedback('SELL: SL above entry', '#ff4444'); return; }
+    if (side === 'SELL' && tp >= ent) { _posFeedback('SELL: TP below entry', '#ff4444'); return; }
 
-    /* Direction guard */
-    if (side === 'BUY'  && sl >= ent) { _posFeedback('BUY: SL must be below entry', '#ff4444'); return; }
-    if (side === 'BUY'  && tp <= ent) { _posFeedback('BUY: TP must be above entry',  '#ff4444'); return; }
-    if (side === 'SELL' && sl <= ent) { _posFeedback('SELL: SL must be above entry', '#ff4444'); return; }
-    if (side === 'SELL' && tp >= ent) { _posFeedback('SELL: TP must be below entry', '#ff4444'); return; }
-
-    /* ── FIRE immediately — no confirm() dialog ── */
     _posSending = true;
-
     var btn = document.getElementById('pos-confirm-btn');
-    if (btn) {
-        btn.disabled       = true;
-        btn.style.cursor   = 'not-allowed';
-        btn.style.color    = '#ffcc44';
-        btn.style.background = '#0a0a00';
-        btn.textContent    = '⟳ SENDING...';
-    }
+    btn.disabled = true; btn.style.cursor = 'not-allowed';
+    btn.style.color = '#ffcc44'; btn.style.background = '#0a0a00';
+    btn.textContent = '⟳ SENDING...';
     _posFeedback('Sending to MT5...', '#ffcc44');
 
-    var t0 = performance.now();
-
-    fetch('http://localhost:8768/api/order, {
-        method:  'POST',
+    fetch('http://localhost:8766/api/order', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
+        body: JSON.stringify({
             symbol: sym,
-            side:   side,
-            lots:   parseFloat(lots.toFixed(2)),
-            sl:     sl,
-            tp:     tp
+            side: side,
+            lots: parseFloat(lots.toFixed(2)),
+            sl: sl,
+            tp: tp
         })
     })
-    .then(function(r) { return r.json(); })
-    .then(function(result) {
-        var ms  = Math.round(performance.now() - t0);
-        var fb  = document.getElementById('pos-feedback');
-        var dot = document.getElementById('pos-status-dot');
-
+    .then(r => r.json())
+    .then(result => {
+        _posSending = false;
         if (result.success) {
-            if (fb) {
-                fb.textContent = 'ORDER #' + (result.ticket || '?')
-                    + '  ' + lots.toFixed(2) + ' lots'
-                    + '  |  ' + ms + 'ms';
-                fb.style.color = '#44ff88';
-            }
-            if (dot) { dot.style.background = '#44ff88'; dot.style.boxShadow = '0 0 6px #44ff8888'; }
-            /* Auto-clear drawings after 2s so trader can see the filled lines */
+            _posFeedback('ORDER #' + (result.ticket || '?') + ' placed', '#44ff88');
             setTimeout(posClearDrawings, 2000);
         } else {
-            if (fb) {
-                fb.textContent = 'REJECTED: ' + (result.error || 'Unknown');
-                fb.style.color = '#ff4444';
-            }
-            if (dot) { dot.style.background = '#ff4444'; }
-            /* Re-enable so trader can retry */
-            _posSending = false;
-            if (btn) {
-                btn.disabled        = false;
-                btn.style.cursor    = 'pointer';
-                btn.style.color     = '#ff4444';
-                btn.style.background = '#1a0000';
-                btn.textContent     = 'RETRY';
-            }
+            _posFeedback('REJECTED: ' + (result.error || 'Unknown'), '#ff4444');
+            btn.disabled = false; btn.style.cursor = 'pointer';
+            btn.style.color = '#ff4444'; btn.style.background = '#1a0000';
+            btn.textContent = 'RETRY';
         }
     })
+    .catch(err => {
+        _posSending = false;
+        _posFeedback('HTTP ERROR: ' + err.message, '#ff4444');
+        btn.disabled = false; btn.style.cursor = 'pointer';
+        btn.style.color = '#ff4444'; btn.style.background = '#1a0000';
+        btn.textContent = 'RETRY';
+    });
+}
     .catch(function(err) {
         var ms = Math.round(performance.now() - t0);
         _posFeedback('HTTP ERROR: ' + err.message + '  (' + ms + 'ms)', '#ff4444');
@@ -4959,7 +4934,7 @@ function pmTogglePanel() {
 ───────────────────────────────────────────────────── */
 async function pmRefresh() {
     try {
-        var r = await fetch('http://localhost:8768/api/positions');
+        var r = await fetch('http://localhost:8766/api/positions');
         if (!r.ok) throw new Error('HTTP ' + r.status);
         var data = await r.json();
         _pmPositions = data.positions || [];
@@ -5324,7 +5299,7 @@ function pmClearAllLines() {
     var pos = _pmPositions.find(function(p) { return p.ticket === ticket; });
     if (!pos) return;
 
-    fetch('http://localhost:8768/api/close', {
+    fetch('http://localhost:8766/api/close', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ ticket: ticket, volume: 0 })
@@ -5404,7 +5379,7 @@ async function pmDoModify() {
 async function pmSendModify(ticket, sl, tp, logLabel) {
     try {
         console.log(logLabel, 'SL=' + sl, 'TP=' + tp);
-        var r = await fetch('http://localhost:8768/api/modify', {
+        var r = await fetch('http://localhost:8766/api/modify', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ ticket: ticket, sl: sl, tp: tp }),
@@ -5462,7 +5437,7 @@ async function pmDoClose() {
     if (fb)  { fb.textContent = 'Sending close order...'; fb.style.color = '#ffcc44'; }
 
     try {
-        var r = await fetch('http://localhost:8768/api/close', {
+        var r = await fetch('http://localhost:8766/api/close', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ ticket: ticket, volume: vol }),
@@ -5562,7 +5537,7 @@ setInterval(function() {
     // Only poll if MT5 appears connected
     var badge = document.getElementById('mt5-status-badge');
     if (badge && badge.classList.contains('connected')) {
-        fetch('http://localhost:8768/api/positions')
+        fetch('http://localhost:8766/api/positions')
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 _pmPositions = data.positions || [];
