@@ -2717,14 +2717,14 @@ if (window._symbolMap && !window._symbolMap[symbol.toUpperCase()]) {
         loading_screen: { backgroundColor: c.bg, foregroundColor: '#44ff88' },
     });
 
-    _tvWidgets[num-1].onChartReady(function() {
-        _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
-
-        _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(null, function(interval) {
-            _currentTF[num-1] = interval;
-        });
+_tvWidgets[num-1].onChartReady(function() {
+    _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
+    _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(null, function(interval) {
+        _currentTF[num-1] = interval;
+    });
+});   // ✅ Add semicolon to terminate the statement
 if(num === 1) {
-            var initSym = _tvWidgets[0].activeChart().symbol();
+    var initSym = _tvWidgets[0].activeChart().symbol();
             if(initSym) deskSelectSymbol(initSym);
 
             _tvWidgets[0].activeChart().onSymbolChanged().subscribe(null, function() {
