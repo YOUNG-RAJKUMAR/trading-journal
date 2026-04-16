@@ -3601,7 +3601,7 @@ function posConfirmTrade() {
     btn.textContent = '⟳ SENDING...';
     _posFeedback('Sending to MT5...', '#ffcc44');
 
-    fetch('http://localhost:8767/api/order', {
+    fetch('http://localhost:8768/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -4975,7 +4975,7 @@ function pmTogglePanel() {
 ───────────────────────────────────────────────────── */
 async function pmRefresh() {
     try {
-        var r = await fetch('http://localhost:8767/api/positions');
+        var r = await fetch('http://localhost:8768/api/positions');
         if (!r.ok) throw new Error('HTTP ' + r.status);
         var data = await r.json();
         _pmPositions = data.positions || [];
@@ -5340,7 +5340,7 @@ function pmClearAllLines() {
     var pos = _pmPositions.find(function(p) { return p.ticket === ticket; });
     if (!pos) return;
 
-    fetch('http://localhost:8767/api/close', {
+    fetch('http://localhost:8768/api/close', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ ticket: ticket, volume: 0 })
@@ -5420,7 +5420,7 @@ async function pmDoModify() {
 async function pmSendModify(ticket, sl, tp, logLabel) {
     try {
         console.log(logLabel, 'SL=' + sl, 'TP=' + tp);
-        var r = await fetch('http://localhost:8767/api/modify', {
+        var r = await fetch('http://localhost:8768/api/modify', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ ticket: ticket, sl: sl, tp: tp }),
@@ -5478,7 +5478,7 @@ async function pmDoClose() {
     if (fb)  { fb.textContent = 'Sending close order...'; fb.style.color = '#ffcc44'; }
 
     try {
-        var r = await fetch('http://localhost:8767/api/close', {
+        var r = await fetch('http://localhost:8768/api/close', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ ticket: ticket, volume: vol }),
@@ -5578,7 +5578,7 @@ setInterval(function() {
     // Only poll if MT5 appears connected
     var badge = document.getElementById('mt5-status-badge');
     if (badge && badge.classList.contains('connected')) {
-        fetch('http://localhost:8767/api/positions')
+        fetch('http://localhost:8768/api/positions')
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 _pmPositions = data.positions || [];
