@@ -1138,7 +1138,8 @@ body.theme-frosted .stat-val {
                 <div id="mt5-offline-overlay">
                     <h3>⚡ MT5 BRIDGE OFFLINE</h3>
                     <p>Start the bridge on your PC to get real-time live data from your MT5 terminal.</p>
-                    <code>python mt5_bridge.py</code>
+                    <code>python mt5_bridge.py --mode data</code> 
+                    <p style="color:#555;font-size:.6rem;margin-top:4px;">For order execution, also run: <code style="font-size:.65rem;">python mt5_bridge.py --mode exec --http-port 8767</code></p>
                     <p style="margin-top:8px;">Or switch to TradingView fallback:</p>
                     <button class="btn-use-tv" onclick="switchFeed('tv')">USE TV FALLBACK →</button>
                 </div>
@@ -2722,23 +2723,17 @@ _tvWidgets[num-1].onChartReady(function() {
     _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(null, function(interval) {
         _currentTF[num-1] = interval;
     });
-});   // ✅ Add semicolon to terminate the statement
 if(num === 1) {
-    var initSym = _tvWidgets[0].activeChart().symbol();
-            if(initSym) deskSelectSymbol(initSym);
+        var initSym = _tvWidgets[0].activeChart().symbol();
+        if(initSym) deskSelectSymbol(initSym);
 
-            _tvWidgets[0].activeChart().onSymbolChanged().subscribe(null, function() {
-                var newSym = _tvWidgets[0].activeChart().symbol();
-                if(newSym) deskSelectSymbol(newSym);
-            });
-        }
-
-     /* Panel 2 — NEVER drives the calculator; panel 1 is always master */
-    /* (intentionally empty) */
-           });   // closes onChartReady for panel num
-}         // closes launchPanel()
-
-
+        _tvWidgets[0].activeChart().onSymbolChanged().subscribe(null, function() {
+            var newSym = _tvWidgets[0].activeChart().symbol();
+            if(newSym) deskSelectSymbol(newSym);
+        });
+    }
+});  // closes onChartReady for launchPanel
+}    // closes launchPanel()
 
 function _launchPanelFree(num, containerId, symbol, tf, c) {
     _tvWidgets[num-1] = new TradingView.widget({
@@ -5126,8 +5121,8 @@ function pmDrawOrUpdateLines(chart, pos, panelIdx) {
         _pmChartLines[key] = { entry: null, sl: null, tp: null, pnl: null, symbol: pos.symbol };
 
         // ── ENTRY line ──
-        try {
-            _pmChartLines[ticket].entry = chart.createOrderLine()
+    try {
+        _pmChartLines[key].entry = chart.createOrderLine()
                 .setEditable(false)
                 .setPrice(pos.open_price)
                 .setText('▶ OPEN #' + ticket + ' · ' + pos.type + ' ' + pos.volume + ' lots')
@@ -5210,7 +5205,7 @@ function pmDrawOrUpdateLines(chart, pos, panelIdx) {
     .onMove(function() {
         // Snap back — prevent accidental dragging
         var snapPrice = pos.current_price || pos.open_price;
-        try { _pmChartLines[ticket].pnl.setPrice(snapPrice); } catch(e) {}
+        try { _pmChartLines[key].pnl.setPrice(snapPrice); } catch(e) {}
     })
     .onModify(function() {
         pmCloseTicketDirect(ticket);
