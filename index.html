@@ -2130,6 +2130,53 @@ function getTFMinutes(tf) {
 function pad(n) { return n < 10 ? '0'+n : ''+n; }
 
 function updateCountdownTF(tf) { _currentTF[0] = tf; }
+
+/* ── Entry-price heartbeat ──────────────────────────────────────
+   Fallback for when tick_update fires before _symbolMap is ready.
+   Polls every 800 ms; once live data is confirmed it slows to 2 s.
+──────────────────────────────────────────────────────────────── */
+(function startEntryPriceHeartbeat() {
+    var _ticksSeen = 0;
+    setInterval(function() {
+        if (!window.MT5Feed || !MT5Feed.lastData) return;
+        var sym     = window._calcSymbol || 'NAS100';
+        var actual  = window.getActualSymbol ? window.getActualSymbol(sym) : sym;
+        var d       = MT5Feed.lastData[actual];
+        if (!d || !d.bid) return;          // no data yet for this symbol
+
+        _ticksSeen++;
+        var side    = window._calcSide || 'BUY';
+        var price   = side === 'BUY' ? d.ask : d.bid;
+        var dec     = Math.min((d.bid.toString().split('.')[1] || '').length, 8);
+
+        /* Update live-price row */
+        var pe = document.getElementById('calc-live-price');
+        if (pe && pe.textContent === '--- / ---') {
+            pe.textContent = d.bid.toFixed(dec) + ' / ' + d.ask.toFixed(dec);
+        }
+
+        /* Update entry display only if it still shows stale/blank */
+        var ed = document.getElementById('d-entry-display');
+        if (ed && (ed.textContent === '---' || ed.textContent === 'no data' || ed.textContent === '')) {
+            ed.textContent  = price.toFixed(dec);
+            ed.style.color  = side === 'BUY' ? '#44ff88' : '#ff6666';
+            window._calcLiveBid = d.bid;
+            window._calcLiveAsk = d.ask;
+            window._calcSpreadPts = d.spread || 0;
+            if (typeof deskCl === 'function') deskCl();
+        }
+
+        /* Update spread label */
+        var se = document.getElementById('calc-spread');
+        if (se && se.textContent === 'spread: ---' && d.spread) {
+            var inst = document.getElementById('d-inst');
+            var spreadDisplay = (inst && inst.value === 'forex')
+                ? (d.spread / 10).toFixed(1) + ' pips'
+                : d.spread + ' pts';
+            se.textContent = 'spread: ' + spreadDisplay;
+        }
+    }, 800);
+})();
 </script>
 
 <!-- ══ FIREBASE + MAIN APP LOGIC ══ -->
@@ -5157,9 +5204,16 @@ function pmSyncChartLines() {
     });
 
     /* ── Draw / update on every matching panel ── */
-    activePanels.forEach(function(panel) {
+  activePanels.forEach(function(panel) {
+        // Normalize chart symbol: strip data-bridge suffix → plain
+        var panelPlain = (window.getPlainSymbol ? window.getPlainSymbol(panel.sym) : panel.sym).toUpperCase();
         _pmPositions.forEach(function(pos) {
-            if (pos.symbol !== panel.sym) return;
+            // Use plain_symbol sent by exec bridge (suffix already stripped in Python)
+            // Fall back to getPlainSymbol if field is missing (older bridge)
+            var posPlain = (pos.plain_symbol
+                || (window.getPlainSymbol ? window.getPlainSymbol(pos.symbol) : pos.symbol)
+                || pos.symbol).toUpperCase();
+            if (posPlain !== panelPlain) return;
             pmDrawOrUpdateLines(panel.chart, pos, panel.idx);
         });
     });
