@@ -1927,7 +1927,7 @@ getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
         'D':'D1','W':'W1','M':'MN1'
     };
     var resStr = String(resolution || '60');
-    var tf = resMap[resStr] || 'H1';   // ✅ tf defined here
+    var tf = resMap[resStr] || 'H1';
 
     var plain = symbolInfo.name.toUpperCase();
     var symbol = window.getActualSymbol ? window.getActualSymbol(plain) : plain;
@@ -1950,8 +1950,7 @@ getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
         url = 'http://localhost:8766/api/history?symbol=' + encodeURIComponent(symbol) + '&tf=' + encodeURIComponent(tf) + '&from=' + periodParams.from + '&to=' + periodParams.to;
     }
 
-    // ✅ Capture tf in a closure to avoid it becoming undefined later
-    var timeframe = tf;
+    var timeframe = tf;   // capture for closure
 
     fetch(url)
         .then(function(r) {
@@ -1972,7 +1971,7 @@ getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
                 onResult([], { noData: true });
             }
         });
-}
+},   // ✅ this closes the getBars function (note: no extra brace)
 
         subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
             var resMap = {
