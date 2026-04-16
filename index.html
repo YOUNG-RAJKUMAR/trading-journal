@@ -17,6 +17,68 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+    <script>
+// ========== GLOBAL SYMBOL HELPER (must run first) ==========
+window._userSuffix = localStorage.getItem('rk_symbol_suffix') || '';
+window._symbolMap = {};
+window._reverseMap = {};
+
+window.buildSymbolMapWithSuffix = function() {
+    const data = window.MT5Feed && MT5Feed.lastData;
+    if (!data || Object.keys(data).length === 0) {
+        setTimeout(window.buildSymbolMapWithSuffix, 500);
+        return;
+    }
+    window._symbolMap = {};
+    window._reverseMap = {};
+    const suffix = window._userSuffix;
+    Object.keys(data).forEach(actual => {
+        let plain = actual;
+        if (suffix && actual.endsWith(suffix)) {
+            plain = actual.slice(0, -suffix.length);
+        }
+        plain = plain.toUpperCase();
+        window._symbolMap[plain] = actual;
+        window._reverseMap[actual] = plain;
+    });
+    console.log('[SymbolMap] Built with suffix "' + suffix + '"');
+};
+
+window.getActualSymbol = function(plainSym) {
+    var stripped = (plainSym || '').replace(/\.[a-zA-Z]+$/, '').toUpperCase();
+    if (window._symbolMap && window._symbolMap[stripped]) {
+        return window._symbolMap[stripped];
+    }
+    if (window._userSuffix) {
+        return stripped + window._userSuffix;
+    }
+    return stripped;
+};
+
+window.getPlainSymbol = function(actualSym) {
+    if (window._reverseMap && window._reverseMap[actualSym]) {
+        return window._reverseMap[actualSym];
+    }
+    if (window._userSuffix && actualSym && actualSym.endsWith(window._userSuffix)) {
+        return actualSym.slice(0, -window._userSuffix.length);
+    }
+    return actualSym;
+};
+
+window.applySymbolSuffix = function() {
+    const input = document.getElementById('symbol-suffix');
+    if (input) {
+        window._userSuffix = input.value.trim();
+        localStorage.setItem('rk_symbol_suffix', window._userSuffix);
+        if (window.MT5Feed && window.MT5Feed.lastData) window.buildSymbolMapWithSuffix();
+        if (typeof deskBuildPills === 'function') deskBuildPills();
+        if (typeof csRender === 'function') csRender();
+        if (typeof pmRefresh === 'function') pmRefresh();
+        if (window.ui && window.ui.launchTradingDesk) window.ui.launchTradingDesk();
+    }
+};
+</script>
+
     <!-- ══ ADVANCED CHARTING LIBRARY (from your GitHub repo) ══ -->
     <script src="/charting_library/charting_library.js"></script>
 
@@ -1665,16 +1727,14 @@ var MT5Feed = (function() {
                     return;
                 }
 
-                if (msg.type === 'loading_done') {
-                    setStatus('connected', '● MT5 LIVE');
-                    startCountdown();
-                    window.buildSymbolMapWithSuffix();  // ✅ build map immediately
-                    if (window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
-                    setTimeout(function() {
-                        if (typeof deskBuildPills === 'function') deskBuildPills();
-                    }, 600);
-                    return;
-                }
+            if (msg.type === 'loading_done') {
+    setStatus('connected', '● MT5 LIVE');
+    startCountdown();
+    window.buildSymbolMapWithSuffix();   // ✅ ensure map is built
+    if (window.ui && _feedMode === 'mt5') window.ui.launchTradingDesk();
+    setTimeout(function() { if (typeof deskBuildPills === 'function') deskBuildPills(); }, 600);
+    return;
+}
 
                 if (msg.type === 'order_ack') {
                     var fb = document.getElementById('pos-feedback');
@@ -1856,8 +1916,7 @@ var MT5Feed = (function() {
             }, 0);
         },
 
-       getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
-    // Safely map resolution to MT5 timeframe string
+getBars: function(symbolInfo, resolution, periodParams, onResult, onError) {
     var resMap = {
         '10S':'S10','15S':'S15','30S':'S30','45S':'S45',
         '1':'M1','2':'M2','3':'M3','4':'M4',
@@ -1867,57 +1926,53 @@ var MT5Feed = (function() {
         '360':'H6','480':'H8','720':'H12',
         'D':'D1','W':'W1','M':'MN1'
     };
-    
-    // Ensure resolution is a string
     var resStr = String(resolution || '60');
-    var tf = resMap[resStr] || 'H1';   // fallback to H1
-    
+    var tf = resMap[resStr] || 'H1';   // ✅ tf defined here
+
     var plain = symbolInfo.name.toUpperCase();
-    var symbol = window.getActualSymbol(plain);
+    var symbol = window.getActualSymbol ? window.getActualSymbol(plain) : plain;
     var isSecondTF = tf.charAt(0) === 'S';
-            if(isSecondTF) {
-                var d = lastData[symbol];
-                if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
-                    onResult(d.candles[tf].slice(), { noData: false });
-                } else {
-                    onResult([], { noData: true });
-                }
-                return;
-            }
-            var url;
-            if(periodParams.firstDataRequest) {
-                url = 'http://localhost:8766/api/history'
-                    + '?symbol=' + encodeURIComponent(symbol)
-                    + '&tf='     + encodeURIComponent(tf)
-                    + '&count=10000';
+
+    if (isSecondTF) {
+        var d = lastData[symbol];
+        if (d && d.candles && d.candles[tf] && d.candles[tf].length) {
+            onResult(d.candles[tf].slice(), { noData: false });
+        } else {
+            onResult([], { noData: true });
+        }
+        return;
+    }
+
+    var url;
+    if (periodParams.firstDataRequest) {
+        url = 'http://localhost:8766/api/history?symbol=' + encodeURIComponent(symbol) + '&tf=' + encodeURIComponent(tf) + '&count=10000';
+    } else {
+        url = 'http://localhost:8766/api/history?symbol=' + encodeURIComponent(symbol) + '&tf=' + encodeURIComponent(tf) + '&from=' + periodParams.from + '&to=' + periodParams.to;
+    }
+
+    // ✅ Capture tf in a closure to avoid it becoming undefined later
+    var timeframe = tf;
+
+    fetch(url)
+        .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(function(data) {
+            var bars = data.bars || [];
+            console.log('[HTTP getBars]', symbol, timeframe, '→', bars.length, 'bars');
+            onResult(bars, { noData: data.no_data || bars.length === 0 });
+        })
+        .catch(function(err) {
+            console.warn('[HTTP getBars] Failed, using WS cache:', err.message);
+            var d = lastData[symbol];
+            if (d && d.candles && d.candles[timeframe] && d.candles[timeframe].length) {
+                onResult(d.candles[timeframe].slice(), { noData: false });
             } else {
-                url = 'http://localhost:8766/api/history'
-                    + '?symbol=' + encodeURIComponent(symbol)
-                    + '&tf='     + encodeURIComponent(tf)
-                    + '&from='   + periodParams.from
-                    + '&to='     + periodParams.to;
+                onResult([], { noData: true });
             }
-            fetch(url)
-                .then(function(r) {
-                    if(!r.ok) throw new Error('HTTP ' + r.status);
-                    return r.json();
-                })
-                .then(function(data) {
-                    var bars = data.bars || [];
-                    console.log('[HTTP getBars]', symbol, tf, '→', bars.length, 'bars',
-                                periodParams.firstDataRequest ? '(initial)' : '(scroll-back)');
-                    onResult(bars, { noData: data.no_data || bars.length === 0 });
-                })
-                .catch(function(err) {
-                    console.warn('[HTTP getBars] Failed, using WS cache:', err.message);
-                    var d = lastData[symbol];
-                    if(d && d.candles && d.candles[tf] && d.candles[tf].length > 0) {
-                        onResult(d.candles[tf].slice(), { noData: false });
-                    } else {
-                        onResult([], { noData: true });
-                    }
-                });
-        },
+        });
+}
 
         subscribeBars: function(symbolInfo, resolution, onTick, listenerGuid) {
             var resMap = {
@@ -2915,7 +2970,12 @@ function _spreadPrice() {
 }
 
 function _liveEntry() {
-    const actualSymbol = getActualSymbol(_calcSymbol);
+    // Safely get the actual symbol using the global helper
+    if (typeof window.getActualSymbol !== 'function') {
+        console.warn('getActualSymbol not ready yet');
+        return 0;
+    }
+    const actualSymbol = window.getActualSymbol(_calcSymbol);
     const data = (window.MT5Feed && MT5Feed.lastData) ? MT5Feed.lastData[actualSymbol] : null;
     if (!data) return 0;
     return _calcSide === 'BUY' ? data.ask : data.bid;
@@ -3018,27 +3078,29 @@ function deskCl(){
     deskSv('d-rtv',  '$'+pvl.toFixed(0)+'/'+cfg.lbl+'/lot');
 }
 
- function deskBuildPills() {
+function deskBuildPills() {
+    if (typeof window.getPlainSymbol !== 'function') {
+        setTimeout(deskBuildPills, 500);
+        return;
+    }
     const data = window.MT5Feed && MT5Feed.lastData;
     if (!data || Object.keys(data).length === 0) {
         setTimeout(deskBuildPills, 1000);
         return;
     }
     const actualSyms = Object.keys(data);
-    const plainSyms = actualSyms.map(actual => getPlainSymbol(actual));
+    const plainSyms = actualSyms.map(actual => window.getPlainSymbol(actual));
     const sel = document.getElementById('calc-sym-select');
     if (!sel) return;
-
     sel.innerHTML = actualSyms.map((actual, idx) => {
         const plain = plainSyms[idx];
         return `<option value="${plain}" ${plain === _calcSymbol ? 'selected' : ''}>${plain}</option>`;
     }).join('');
-
-    // If current _calcSymbol not found, pick first available
     if (plainSyms.indexOf(_calcSymbol) === -1 && plainSyms.length) {
         deskSelectSymbol(plainSyms[0]);
     }
 }
+       
 // ========== UPDATED deskSelectSymbol ==========
 function deskSelectSymbol(sym) {
     sym = sym.toUpperCase();
