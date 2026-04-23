@@ -1696,23 +1696,23 @@ var MT5Feed = (function() {
                 var msg = JSON.parse(event.data);
 
                 // ✅ SUFFIX AUTO-DETECTION (must be first)
-                if (msg.type === 'suffix_info') {
-                    const detectedSuffix = msg.suffix || '';
-                    console.log('[AUTO] Detected broker suffix:', detectedSuffix);
-                    if (detectedSuffix) {
-                        window._userSuffix = detectedSuffix;
-                        localStorage.setItem('rk_symbol_suffix', window._userSuffix);
-                        const suffixInput = document.getElementById('symbol-suffix');
-                        if (suffixInput) suffixInput.value = detectedSuffix;
-                        window.buildSymbolMapWithSuffix();
-                        if (typeof deskBuildPills === 'function') deskBuildPills();
-                        if (typeof csRender === 'function') csRender();
-                        if (typeof pmRefresh === 'function') pmRefresh();
-                        if (window.ui && window.ui.launchTradingDesk) window.ui.launchTradingDesk();
-                    }
-                    return;
-                }
-
+              if (msg.type === 'suffix_info') {
+    const detectedSuffix = msg.suffix || '';
+    const prevSuffix = window._userSuffix;
+    console.log('[AUTO] Detected broker suffix:', JSON.stringify(detectedSuffix),
+                prevSuffix !== detectedSuffix ? `(was: "${prevSuffix}" — clearing stale value)` : '');
+    // Always save — empty string means "no suffix" and must overwrite stale localStorage
+    window._userSuffix = detectedSuffix;
+    localStorage.setItem('rk_symbol_suffix', window._userSuffix);
+    const suffixInput = document.getElementById('symbol-suffix');
+    if (suffixInput) suffixInput.value = detectedSuffix;
+    window.buildSymbolMapWithSuffix();
+    if (typeof deskBuildPills === 'function') deskBuildPills();
+    if (typeof csRender === 'function') csRender();
+    if (typeof pmRefresh === 'function') pmRefresh();
+    if (window.ui && window.ui.launchTradingDesk) window.ui.launchTradingDesk();
+    return;
+}
                 if (msg.type === 'loading_start') {
                     var txt = document.getElementById('mt5-status-text');
                     if (txt) txt.textContent = 'LOADING 0%';
