@@ -3199,7 +3199,8 @@ function deskCl(){
     var pvl    = cfg.mult/cfg.pip; // pip value per standard lot
 
     deskSv('d-rl',  l.toFixed(2));
-    var specSrc = (cfg.source === 'live') ? '✓ LIVE SPEC' : '⚠ EST (connecting...)';     deskSv('d-rls', specSrc);;
+    var specSrc = (cfg.source === 'live') ? '✓ LIVE SPEC' : '⚠ EST (connecting...)';     
+    deskSv('d-rls', specSrc);;
     deskSv('d-rr2', '$'+ar.toFixed(2));
     deskSv('d-rrs', b>0 ? ((ar/b)*100).toFixed(2)+'% of bal' : '--');
     deskSv('d-rp2', tpP ? '$'+pp.toFixed(2) : '---');
