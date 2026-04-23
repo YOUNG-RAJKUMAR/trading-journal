@@ -2947,7 +2947,7 @@ function prefetchAllSymbolSpecs() {
         fetchSymbolSpec(plain);
     });
 }
-setTimeout(prefetchAllSymbolSpecs, 8000);   /* run 8s after page load */
+setTimeout(prefetchAllSymbolSpecs, 1500);   /* run 1.5s after page load — fast enough for bridge startup */
 
 function deskDetectInst(sym) {
     sym = sym.toUpperCase();
@@ -3012,6 +3012,9 @@ deskRefreshPrice();
    Index  US30  : 20 pt  SL, $100 risk → 0.50 lots  (mult=10    = pts*$10/lot)
    Crypto BTC   : 500 pt SL, $100 risk → 0.20 lots  (mult=1)
 */
+/* INST_MULT: fallback $/price-unit/lot — only used when live broker spec unavailable.
+   indices=10 matches Pepperstone NAS100/US100 (tick_val=1.0, tick_size=0.1 → $/pt=10).
+   Live broker spec via /api/symbol_info always overrides this. */
 var INST_MULT = { 'forex':100000, 'gold':100, 'indices':10, 'crypto':1 };
 var INST_PIP  = { 'forex':10000,  'gold':10,  'indices':1,  'crypto':1 };
 var INST_LBL  = { 'forex':'pips', 'gold':'pts','indices':'pts','crypto':'pts' };
@@ -3033,17 +3036,11 @@ var SYM_TICK = {
     'XAUUSD':100,   /* $100/point/lot (100 oz contract) */
     'XAGUSD':50,    /* $50/point/lot  (5000 oz contract) */
     'GOLD':100,
-    /* Indices — most brokers $1/point/lot */
-    'US30':1,   'DJ30':1,   'DOW30':1,
-    'US500':1,  'SPX500':1, 'SP500':1,
-    'NAS100':1, 'US100':1,  'USTEC':1, 'NDX100':1,
-    'GER40':1,  'GER30':1,  'DAX':1,   'DE40':1,
-    'UK100':1,  'FTSE100':1,
-    'JP225':1,  'JPN225':1,
-    'AUS200':1, 'AU200':1,
-    'FRA40':1,  'CAC40':1,
-    'EU50':1,   'STOXX50':1,
-    'HK50':1,   'HK33':1,
+    /* Indices — DO NOT hardcode here; actual $/pt varies by broker.
+       Pepperstone NAS100/US100: tick_size=0.1, tick_val=1.0  → $/pt=10
+       Pepperstone US30/DJ30:    tick_size=1.0, tick_val=1.0  → $/pt=1
+       Exness may differ. ALWAYS rely on live broker spec (priority 1).
+       INST_MULT['indices']=10 is the safe fallback for NAS100-like instruments. */
     /* Crypto — $1/point/lot */
     'BTCUSD':1, 'ETHUSD':1, 'XRPUSD':1, 'SOLUSD':1,
     'LTCUSD':1, 'BNBUSD':1, 'ADAUSD':1, 'DOGEUSD':1,
@@ -3637,6 +3634,14 @@ function _posUpdateCalc() {
 
     _posSetStats(lots.toFixed(2), '$' + risk, '1:1');
 
+    /* Show spec source warning in position builder */
+    var specBadge = document.getElementById('calc-spec-badge');
+    if (specBadge && cfg.source !== 'live' && inst !== 'forex') {
+        specBadge.textContent = '⚠ EST — order blocked until LIVE spec loads';
+        specBadge.style.color = '#ff4444';
+        specBadge.style.fontWeight = '700';
+    }
+
     /* Keep main calculator in sync */
     deskCl();
 }
@@ -3732,6 +3737,19 @@ function posConfirmTrade() {
     if (side === 'BUY'  && tp <= ent) { _posFeedback('BUY: TP above entry', '#ff4444'); return; }
     if (side === 'SELL' && sl <= ent) { _posFeedback('SELL: SL above entry', '#ff4444'); return; }
     if (side === 'SELL' && tp >= ent) { _posFeedback('SELL: TP below entry', '#ff4444'); return; }
+
+    /* ── SPEC GUARD: block order if broker spec not confirmed for non-forex ── */
+    var cfg = _instCfg();
+    var inst = (document.getElementById('d-inst') || {}).value || '';
+    if (cfg.source !== 'live' && inst !== 'forex') {
+        _posFeedback('⚠ BLOCKED: Broker spec not loaded yet — wait for ✓ LIVE SPEC badge', '#ff4444');
+        /* trigger immediate re-fetch */
+        fetchSymbolSpec(sym).then(function() {
+            _posFeedback('Spec loaded! Verify lot size then retry.', '#ffcc44');
+            _posUpdateCalc();
+        });
+        return;
+    }
 
     _posSending = true;
     var btn = document.getElementById('pos-confirm-btn');
