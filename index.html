@@ -3183,12 +3183,13 @@ function deskCl(){
     }
 
     /* ── Lot size — rounded DOWN to broker vol_step ── */
-    var rawLots = rm / (effectiveSL * cfg.mult);
-    var step    = cfg.vol_step || 0.01;
-    var l       = Math.floor(rawLots / step) * step;
-    l           = Math.round(l * 1e8) / 1e8;   /* float cleanup */
-    l           = Math.max(cfg.vol_min || 0.01, l);
-    var ar      = l * effectiveSL * cfg.mult;
+    var rawLots    = rm / (effectiveSL * cfg.mult);
+    var step       = cfg.vol_step || 0.01;
+    var l          = Math.floor(rawLots / step) * step;
+    l              = Math.round(l * 1e8) / 1e8;   /* float cleanup */
+    var minForced  = l < (cfg.vol_min || 0.01);    /* vol_min will push lots UP = more risk */
+    l              = Math.max(cfg.vol_min || 0.01, l);
+    var ar         = l * effectiveSL * cfg.mult;
     var slPips = Math.round(slDist*cfg.pip*10)/10;
     var tpPips = tpP ? Math.round(Math.abs(tpP-ent)*cfg.pip*10)/10 : 0;
     var pp     = (tpP && l>0) ? l*Math.abs(tpP-ent)*cfg.mult : 0;
@@ -3196,9 +3197,26 @@ function deskCl(){
     var pvl    = cfg.mult/cfg.pip; // pip value per standard lot
 
     deskSv('d-rl',  l.toFixed(2));
-    var specSrc = (cfg.source === 'live') ? '✓ LIVE SPEC' : '⚠ EST (connecting...)';     
-    deskSv('d-rls', specSrc);;
-    deskSv('d-rr2', '$'+ar.toFixed(2));
+
+    /* ── Status line: spec source OR vol_min warning ── */
+    var rlsEl = document.getElementById('d-rls');
+    if (minForced) {
+        /* Can't achieve target risk — minimum lot forces risk higher */
+        if (rlsEl) {
+            rlsEl.textContent = '⚠ MIN LOTS ' + l.toFixed(2) + ' → actual $' + ar.toFixed(2) + ' (target was $' + rm.toFixed(2) + ')';
+            rlsEl.style.color = '#ff6600';
+        }
+    } else {
+        var specSrc = (cfg.source === 'live') ? '✓ LIVE SPEC  $/pt=' + cfg.mult.toFixed(cfg.mult < 1 ? 4 : 2) : '⚠ EST (connecting...)';
+        if (rlsEl) { rlsEl.textContent = specSrc; rlsEl.style.color = cfg.source === 'live' ? '#44ff88' : '#ffcc44'; }
+    }
+
+    /* ── Risk amount display: orange if forced above target ── */
+    var rr2El = document.getElementById('d-rr2');
+    if (rr2El) {
+        rr2El.textContent = '$' + ar.toFixed(2);
+        rr2El.style.color = minForced ? '#ff6600' : '';
+    }
     deskSv('d-rrs', b>0 ? ((ar/b)*100).toFixed(2)+'% of bal' : '--');
     deskSv('d-rp2', tpP ? '$'+pp.toFixed(2) : '---');
     deskSv('d-rps', (b>0&&tpP) ? ((pp/b)*100).toFixed(2)+'% of bal' : '--');
@@ -3598,10 +3616,11 @@ function _posDrawLines(entry, sl, tp, side) {
 
 /* ── Recalculate lots/risk/RR from current SL ──────────────── */
 function _posUpdateCalc() {
-    var ent = _posEntrySnap;
-    var sl  = parseFloat(document.getElementById('pos-sl-input').value) || 0;
-    var tp  = parseFloat(document.getElementById('pos-tp-input').value) || 0;
-    var cfg = _instCfg();
+    var ent  = _posEntrySnap;
+    var sl   = parseFloat(document.getElementById('pos-sl-input').value) || 0;
+    var tp   = parseFloat(document.getElementById('pos-tp-input').value) || 0;
+    var cfg  = _instCfg();
+    var inst = (document.getElementById('d-inst') || {}).value || 'forex';  /* fix: define inst */
 
     /* Show snapshot entry */
     var ed = document.getElementById('pos-entry-display');
@@ -3624,23 +3643,31 @@ function _posUpdateCalc() {
 
     if (!rm) { _posSetStats('---', 'Set risk $', '1:1'); return; }
 
-   var spreadDist = _spreadPrice();
-    var effSL = slDist;   // spread removed from lot denominator
-    var step  = cfg.vol_step || 0.01;
-    var lots  = Math.floor(rm / (effSL * cfg.mult) / step) * step;
-    lots      = Math.round(lots * 1e8) / 1e8;
-    lots      = Math.max(cfg.vol_min || 0.01, lots);
-    var risk  = parseFloat((lots * effSL * cfg.mult).toFixed(2));
+    var spreadDist = _spreadPrice();
+    var effSL      = slDist;
+    var step       = cfg.vol_step || 0.01;
+    var rawLots    = rm / (effSL * cfg.mult);
+    var lots       = Math.floor(rawLots / step) * step;
+    lots           = Math.round(lots * 1e8) / 1e8;
+    var minForced  = lots < (cfg.vol_min || 0.01);
+    lots           = Math.max(cfg.vol_min || 0.01, lots);
+    var risk       = parseFloat((lots * effSL * cfg.mult).toFixed(2));
 
-    _posSetStats(lots.toFixed(2), '$' + risk, '1:1');
-
-    /* Show spec source warning in position builder */
+    /* Show vol_min warning or spec source */
     var specBadge = document.getElementById('calc-spec-badge');
-    if (specBadge && cfg.source !== 'live' && inst !== 'forex') {
-        specBadge.textContent = '⚠ EST — order blocked until LIVE spec loads';
-        specBadge.style.color = '#ff4444';
-        specBadge.style.fontWeight = '700';
+    if (specBadge) {
+        if (minForced) {
+            specBadge.textContent = '⚠ MIN LOTS ' + lots.toFixed(2) + ' → $' + risk.toFixed(2) + ' actual (target $' + rm.toFixed(2) + ')';
+            specBadge.style.color = '#ff6600';
+            specBadge.style.fontWeight = '700';
+        } else if (cfg.source !== 'live' && inst !== 'forex') {
+            specBadge.textContent = '⚠ EST — order blocked until LIVE spec loads';
+            specBadge.style.color = '#ff4444';
+            specBadge.style.fontWeight = '700';
+        }
     }
+
+    _posSetStats(lots.toFixed(2), (minForced ? '⚠ $' : '$') + risk.toFixed(2), '1:1');
 
     /* Keep main calculator in sync */
     deskCl();
@@ -3740,7 +3767,7 @@ function posConfirmTrade() {
 
     /* ── SPEC GUARD: block order if broker spec not confirmed for non-forex ── */
     var cfg = _instCfg();
-    var inst = (document.getElementById('d-inst') || {}).value || '';
+    var inst = (document.getElementById('d-inst') || {}).value || 'forex';
     if (cfg.source !== 'live' && inst !== 'forex') {
         _posFeedback('⚠ BLOCKED: Broker spec not loaded yet — wait for ✓ LIVE SPEC badge', '#ff4444');
         /* trigger immediate re-fetch */
@@ -3748,6 +3775,20 @@ function posConfirmTrade() {
             _posFeedback('Spec loaded! Verify lot size then retry.', '#ffcc44');
             _posUpdateCalc();
         });
+        return;
+    }
+
+    /* ── VOL_MIN GUARD: block if minimum lots force risk more than 20% above target ── */
+    var slDist = Math.abs(ent - sl);
+    var rawL   = lots / 1;   /* lots already read from display */
+    var actualRisk = lots * slDist * cfg.mult;
+    var targetRisk = parseFloat(document.getElementById('d-ra').value) || 0;
+    if (!targetRisk && parseFloat(document.getElementById('d-rp').value) > 0) {
+        var bal = parseFloat(document.getElementById('d-bal').value) || 0;
+        targetRisk = bal * parseFloat(document.getElementById('d-rp').value) / 100;
+    }
+    if (targetRisk > 0 && actualRisk > targetRisk * 1.20) {
+        _posFeedback('⚠ BLOCKED: Min lots force $' + actualRisk.toFixed(2) + ' risk — target was $' + targetRisk.toFixed(2) + '. Widen SL or increase risk target.', '#ff6600');
         return;
     }
 
