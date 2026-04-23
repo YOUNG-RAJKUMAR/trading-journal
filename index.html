@@ -1311,6 +1311,7 @@ body.theme-frosted .stat-val {
                 <div style="font-size:.44rem;color:#333;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Lot Size</div>
                 <div id="d-rl" style="font-size:1.4rem;color:#44ff88;font-weight:700;">---</div>
                 <div id="d-rls" style="font-size:.44rem;color:#2a2a2a;margin-top:2px;">Enter values</div>
+                <div id="calc-spec-badge" style="font-size:.40rem;color:#ffcc44;margin-top:3px;letter-spacing:.3px;font-family:'Courier New',monospace;min-height:10px;">fetching broker spec...</div>
             </div>
         </div>
      
@@ -2886,6 +2887,68 @@ var _calcLiveAsk = 0;
 var _calcSide    = 'BUY';
 var _calcSymbol  = 'NAS100';
 
+/* ══════════════════════════════════════════════════════════════
+   LIVE BROKER SPEC CACHE
+   Fetches trade_tick_value / trade_tick_size from /api/symbol_info
+   These are the ONLY accurate source — broker-specific, account-specific.
+   Formula: lots = risk / (sl_dist * dollar_per_point)
+   ══════════════════════════════════════════════════════════════ */
+window._symbolSpecs     = {};   // plain_sym → full spec object
+window._symbolSpecFetch = {};   // plain_sym → Promise (dedup in-flight)
+
+function fetchSymbolSpec(sym) {
+    if (!sym) return Promise.resolve(null);
+    const plain = sym.toUpperCase().replace(/\.[a-zA-Z]+$/, '');
+    if (window._symbolSpecs[plain]) return Promise.resolve(window._symbolSpecs[plain]);
+    if (window._symbolSpecFetch[plain]) return window._symbolSpecFetch[plain];
+
+    const actual = (window.getActualSymbol ? window.getActualSymbol(plain) : plain);
+    const url    = 'http://localhost:8766/api/symbol_info?symbol=' + encodeURIComponent(actual);
+
+    window._symbolSpecFetch[plain] = fetch(url)
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(data => {
+            if (!data.dollar_per_point && data.dollar_per_point !== 0) throw new Error('bad response');
+            window._symbolSpecs[plain] = data;
+            delete window._symbolSpecFetch[plain];
+
+            /* Update the spec badge in UI */
+            var specEl = document.getElementById('calc-spec-badge');
+            if (specEl) {
+                specEl.textContent = '$/pt=' + data.dollar_per_point.toFixed(data.dollar_per_point < 1 ? 6 : 2)
+                    + '  min=' + data.volume_min + '  step=' + data.volume_step;
+                specEl.style.color = '#44ff88';
+            }
+            console.log('[SPEC] ' + plain + ' → $/pt=' + data.dollar_per_point
+                + '  vol_min=' + data.volume_min + '  step=' + data.volume_step
+                + '  digits=' + data.digits);
+            deskCl();   /* recalculate with fresh data */
+            return data;
+        })
+        .catch(err => {
+            delete window._symbolSpecFetch[plain];
+            console.warn('[SPEC] fetch failed for ' + plain + ': ' + err.message);
+            var specEl = document.getElementById('calc-spec-badge');
+            if (specEl) { specEl.textContent = '⚠ using estimate'; specEl.style.color = '#ffcc44'; }
+            return null;
+        });
+
+    return window._symbolSpecFetch[plain];
+}
+
+/* Pre-fetch specs for ALL live symbols as soon as MT5 loads */
+function prefetchAllSymbolSpecs() {
+    var data = window.MT5Feed && MT5Feed.lastData;
+    if (!data || Object.keys(data).length === 0) {
+        setTimeout(prefetchAllSymbolSpecs, 2000); return;
+    }
+    Object.keys(data).forEach(function(actual) {
+        var plain = window.getPlainSymbol ? window.getPlainSymbol(actual) : actual;
+        fetchSymbolSpec(plain);
+    });
+}
+setTimeout(prefetchAllSymbolSpecs, 8000);   /* run 8s after page load */
+
 function deskDetectInst(sym) {
     sym = sym.toUpperCase();
 
@@ -2988,21 +3051,40 @@ var SYM_TICK = {
 
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 
-function _instCfg(){
+function _instCfg() {
     var inst = document.getElementById('d-inst').value;
     var sym  = (window._calcSymbol || '').toUpperCase();
 
-    /* Look up exact symbol first, then fall back to instrument type */
+    /* ── PRIORITY 1: Live broker spec (100% accurate) ── */
+    var spec = window._symbolSpecs && window._symbolSpecs[sym];
+    if (spec && spec.dollar_per_point > 0) {
+        var lbl2 = (inst === 'forex') ? 'pips' : 'pts';
+        var pip2 = (spec.point > 0) ? Math.round(1 / spec.point) : (INST_PIP[inst] || 10000);
+        return {
+            mult:     spec.dollar_per_point,   /* ← THE key number: USD per 1.0 price move per lot */
+            pip:      pip2,
+            lbl:      lbl2,
+            vol_min:  spec.volume_min  > 0 ? spec.volume_min  : 0.01,
+            vol_step: spec.volume_step > 0 ? spec.volume_step : 0.01,
+            digits:   spec.digits      > 0 ? spec.digits      : 5,
+            source:   'live',
+        };
+    }
+
+    /* ── PRIORITY 2: Hardcoded fallback (estimate — trigger fetch) ── */
+    fetchSymbolSpec(sym);   /* fire-and-forget so next calc has real data */
     var mult = SYM_TICK[sym] || INST_MULT[inst] || 100000;
-    var pip  = INST_PIP[inst]  || 10000;
-    var lbl  = INST_LBL[inst]  || 'pips';
-
-    /* Auto pip label */
-    if(inst === 'gold' || inst === 'indices' || inst === 'crypto') lbl = 'pts';
-
-    return { mult: mult, pip: pip, lbl: lbl };
+    var lbl  = (inst === 'gold' || inst === 'indices' || inst === 'crypto') ? 'pts' : 'pips';
+    return {
+        mult:     mult,
+        pip:      INST_PIP[inst]  || 10000,
+        lbl:      lbl,
+        vol_min:  0.01,
+        vol_step: 0.01,
+        digits:   5,
+        source:   'estimate',
+    };
 }
-
 /* ── Calculate spread in price units from MT5 spread (in points) ── */
 function _spreadPrice() {
     var bid = window._calcLiveBid;
@@ -3103,8 +3185,13 @@ function deskCl(){
         deskSv('d-rls','Set risk amount'); return;
     }
 
-    var l      = Math.floor(rm/(effectiveSL*cfg.mult)*100)/100;
-    var ar     = l*effectiveSL*cfg.mult;
+    /* ── Lot size — rounded DOWN to broker vol_step ── */
+    var rawLots = rm / (effectiveSL * cfg.mult);
+    var step    = cfg.vol_step || 0.01;
+    var l       = Math.floor(rawLots / step) * step;
+    l           = Math.round(l * 1e8) / 1e8;   /* float cleanup */
+    l           = Math.max(cfg.vol_min || 0.01, l);
+    var ar      = l * effectiveSL * cfg.mult;
     var slPips = Math.round(slDist*cfg.pip*10)/10;
     var tpPips = tpP ? Math.round(Math.abs(tpP-ent)*cfg.pip*10)/10 : 0;
     var pp     = (tpP && l>0) ? l*Math.abs(tpP-ent)*cfg.mult : 0;
@@ -3112,7 +3199,7 @@ function deskCl(){
     var pvl    = cfg.mult/cfg.pip; // pip value per standard lot
 
     deskSv('d-rl',  l.toFixed(2));
-    deskSv('d-rls', 'Standard lots');
+    var specSrc = (cfg.source === 'live') ? '✓ LIVE SPEC' : '⚠ EST (connecting...)';     deskSv('d-rls', specSrc);;
     deskSv('d-rr2', '$'+ar.toFixed(2));
     deskSv('d-rrs', b>0 ? ((ar/b)*100).toFixed(2)+'% of bal' : '--');
     deskSv('d-rp2', tpP ? '$'+pp.toFixed(2) : '---');
@@ -3150,6 +3237,7 @@ function deskBuildPills() {
 // ========== UPDATED deskSelectSymbol ==========
 function deskSelectSymbol(sym) {
     sym = sym.toUpperCase();
+    fetchSymbolSpec(sym);   /* ← fetch broker spec immediately on symbol change */
 
     // Auto-reset position builder when symbol changes
     if (sym !== _calcSymbol) {
@@ -3540,7 +3628,10 @@ function _posUpdateCalc() {
 
     var spreadDist = _spreadPrice();
     var effSL = slDist + spreadDist;
-    var lots  = Math.floor(rm / (effSL * cfg.mult) * 100) / 100;
+    var step  = cfg.vol_step || 0.01;
+    var lots  = Math.floor(rm / (effSL * cfg.mult) / step) * step;
+    lots      = Math.round(lots * 1e8) / 1e8;
+    lots      = Math.max(cfg.vol_min || 0.01, lots);
     var risk  = parseFloat((lots * effSL * cfg.mult).toFixed(2));
 
     _posSetStats(lots.toFixed(2), '$' + risk, '1:1');
