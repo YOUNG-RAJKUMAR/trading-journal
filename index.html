@@ -3175,9 +3175,9 @@ function deskCl(){
   var slDist = Math.abs(ent - slP);
     if(slDist===0){ deskSv('d-rl','ERR'); deskSv('d-rls','SL = Entry!'); return; }
 
-    /* ── Add spread to SL distance (spread widens your effective risk) ── */
-    var spreadDist = _spreadPrice();
-    var effectiveSL = slDist + spreadDist;
+ 
+   var spreadDist = _spreadPrice();
+    var effectiveSL = slDist;   // spread is informational only — SL price placed is unchanged
 
     var rm = _dm==='amt' ? ra : (b>0 ? b*rp/100 : 0);
     if(!rm){
@@ -3627,8 +3627,8 @@ function _posUpdateCalc() {
 
     if (!rm) { _posSetStats('---', 'Set risk $', '1:1'); return; }
 
-    var spreadDist = _spreadPrice();
-    var effSL = slDist + spreadDist;
+   var spreadDist = _spreadPrice();
+    var effSL = slDist;   // spread removed from lot denominator
     var step  = cfg.vol_step || 0.01;
     var lots  = Math.floor(rm / (effSL * cfg.mult) / step) * step;
     lots      = Math.round(lots * 1e8) / 1e8;
