@@ -3677,13 +3677,12 @@ function _posUpdateCalc() {
             specBadge.style.fontWeight = '700';
         } else {
             /* live spec loaded — clear any warning */
-            if (specBadge) {
-                specBadge.textContent = '✓ LIVE  $/pt=' + cfg.mult.toFixed(cfg.mult < 1 ? 4 : 2)
-                    + '  min=' + cfg.vol_min + '  step=' + cfg.vol_step;
-                specBadge.style.color = '#44ff88';
-                specBadge.style.fontWeight = '400';
-            }
+            specBadge.textContent = '✓ LIVE  $/pt=' + cfg.mult.toFixed(cfg.mult < 1 ? 4 : 2)
+                + '  min=' + cfg.vol_min + '  step=' + cfg.vol_step;
+            specBadge.style.color = '#44ff88';
+            specBadge.style.fontWeight = '400';
         }
+    }
 
     _posSetStats(lots.toFixed(2), (minForced ? '⚠ $' : '$') + risk.toFixed(2), '1:1');
 
