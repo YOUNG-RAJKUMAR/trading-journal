@@ -2905,33 +2905,61 @@ function fetchSymbolSpec(sym) {
     const actual = (window.getActualSymbol ? window.getActualSymbol(plain) : plain);
     const url    = 'http://localhost:8766/api/symbol_info?symbol=' + encodeURIComponent(actual);
 
-    window._symbolSpecFetch[plain] = fetch(url)
-        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(data => {
-            if (!data.dollar_per_point && data.dollar_per_point !== 0) throw new Error('bad response');
-            window._symbolSpecs[plain] = data;
-            delete window._symbolSpecFetch[plain];
+    /* Retry wrapper — retries up to 6 times with 3 s spacing so a slow bridge startup
+       doesn't leave the spec permanently missing.  No fallback values are ever used;
+       orders are blocked until this succeeds. */
+    function _doFetch(attempt) {
+        return fetch(url)
+            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(function(data) {
+                if (data.dollar_per_point == null) throw new Error('dollar_per_point missing');
+                if (data.dollar_per_point <= 0)   throw new Error('dollar_per_point=' + data.dollar_per_point + ' (must be > 0)');
+                window._symbolSpecs[plain] = data;
+                delete window._symbolSpecFetch[plain];
 
-            /* Update the spec badge in UI */
-            var specEl = document.getElementById('calc-spec-badge');
-            if (specEl) {
-                specEl.textContent = '$/pt=' + data.dollar_per_point.toFixed(data.dollar_per_point < 1 ? 6 : 2)
-                    + '  min=' + data.volume_min + '  step=' + data.volume_step;
-                specEl.style.color = '#44ff88';
-            }
-            console.log('[SPEC] ' + plain + ' → $/pt=' + data.dollar_per_point
-                + '  vol_min=' + data.volume_min + '  step=' + data.volume_step
-                + '  digits=' + data.digits);
-            deskCl();   /* recalculate with fresh data */
-            return data;
-        })
-        .catch(err => {
-            delete window._symbolSpecFetch[plain];
-            console.warn('[SPEC] fetch failed for ' + plain + ': ' + err.message);
-            var specEl = document.getElementById('calc-spec-badge');
-            if (specEl) { specEl.textContent = '⚠ using estimate'; specEl.style.color = '#ffcc44'; }
-            return null;
-        });
+                var specEl = document.getElementById('calc-spec-badge');
+                if (specEl) {
+                    specEl.textContent = '✓ LIVE  $/pt='
+                        + data.dollar_per_point.toFixed(data.dollar_per_point < 1 ? 6 : 2)
+                        + '  min=' + data.volume_min + '  step=' + data.volume_step;
+                    specEl.style.color = '#44ff88';
+                    specEl.style.fontWeight = '700';
+                }
+                console.log('[SPEC] ' + plain + ' → $/pt=' + data.dollar_per_point
+                    + '  tick_size=' + data.trade_tick_size
+                    + '  tick_val='  + data.trade_tick_value
+                    + '  contract='  + data.trade_contract_size
+                    + '  vol_min='   + data.volume_min
+                    + '  step='      + data.volume_step
+                    + '  digits='    + data.digits);
+                deskCl();
+                _posUpdateCalc && _posUpdateCalc();
+                return data;
+            })
+            .catch(function(err) {
+                if (attempt < 6) {
+                    console.warn('[SPEC] attempt ' + attempt + ' failed for ' + plain + ': ' + err.message + ' — retrying in 3s');
+                    var specEl = document.getElementById('calc-spec-badge');
+                    if (specEl) {
+                        specEl.textContent = '⏳ fetching spec… (attempt ' + attempt + '/6)';
+                        specEl.style.color = '#ffcc44';
+                    }
+                    return new Promise(function(res) { setTimeout(res, 3000); })
+                        .then(function() { return _doFetch(attempt + 1); });
+                }
+                delete window._symbolSpecFetch[plain];
+                console.error('[SPEC] all retries failed for ' + plain + ': ' + err.message);
+                var specEl = document.getElementById('calc-spec-badge');
+                if (specEl) {
+                    specEl.textContent = '✗ SPEC UNAVAILABLE — bridge offline?';
+                    specEl.style.color = '#ff4444';
+                    specEl.style.fontWeight = '700';
+                }
+                return null;
+            });
+    }
+
+    window._symbolSpecFetch[plain] = _doFetch(1);
 
     return window._symbolSpecFetch[plain];
 }
@@ -3006,45 +3034,15 @@ deskRefreshPrice();
     deskAtp();
     deskCl();
 }
-/* Instrument multiplier: lots = risk / (priceDist * mult)
-   Forex  EURUSD: 50 pip SL, $100 risk → 0.20 lots  (mult=100000 = pips*$10/pip/lot)
-   Gold   XAUUSD: 20 pt  SL, $100 risk → 0.05 lots  (mult=100   = pts*$100/lot)
-   Index  US30  : 20 pt  SL, $100 risk → 0.50 lots  (mult=10    = pts*$10/lot)
-   Crypto BTC   : 500 pt SL, $100 risk → 0.20 lots  (mult=1)
-*/
-/* INST_MULT: fallback $/price-unit/lot — only used when live broker spec unavailable.
-   indices=10 matches Pepperstone NAS100/US100 (tick_val=1.0, tick_size=0.1 → $/pt=10).
-   Live broker spec via /api/symbol_info always overrides this. */
-var INST_MULT = { 'forex':100000, 'gold':100, 'indices':10, 'crypto':1 };
-var INST_PIP  = { 'forex':10000,  'gold':10,  'indices':1,  'crypto':1 };
-var INST_LBL  = { 'forex':'pips', 'gold':'pts','indices':'pts','crypto':'pts' };
-
-/* ── Per-symbol tick value overrides ($ per 1.0 price move per standard lot) ──
-   Formula: lots = risk / (slDist * tickVal)
-   where slDist is in raw price units (e.g. 0.0010 for EURUSD = 10 pips)
-*/
-var SYM_TICK = {
-    /* Forex — $10/pip/lot, pip=0.0001, so $100,000 per price unit */
-    'EURUSD':100000,'GBPUSD':100000,'AUDUSD':100000,'NZDUSD':100000,
-    'USDCHF':100000,'USDCAD':100000,'EURGBP':100000,'EURJPY':100000,
-    'GBPJPY':100000,'USDJPY':100000,'AUDJPY':100000,'CADJPY':100000,
-    'CHFJPY':100000,'EURCHF':100000,'EURAUD':100000,'EURCAD':100000,
-    'GBPAUD':100000,'GBPCAD':100000,'GBPCHF':100000,'AUDCAD':100000,
-    'AUDCHF':100000,'AUDNZD':100000,'NZDCAD':100000,'NZDCHF':100000,
-    'NZDJPY':100000,'EURNZD':100000,'GBPNZD':100000,
-    /* Gold / Silver */
-    'XAUUSD':100,   /* $100/point/lot (100 oz contract) */
-    'XAGUSD':50,    /* $50/point/lot  (5000 oz contract) */
-    'GOLD':100,
-    /* Indices — DO NOT hardcode here; actual $/pt varies by broker.
-       Pepperstone NAS100/US100: tick_size=0.1, tick_val=1.0  → $/pt=10
-       Pepperstone US30/DJ30:    tick_size=1.0, tick_val=1.0  → $/pt=1
-       Exness may differ. ALWAYS rely on live broker spec (priority 1).
-       INST_MULT['indices']=10 is the safe fallback for NAS100-like instruments. */
-    /* Crypto — $1/point/lot */
-    'BTCUSD':1, 'ETHUSD':1, 'XRPUSD':1, 'SOLUSD':1,
-    'LTCUSD':1, 'BNBUSD':1, 'ADAUSD':1, 'DOGEUSD':1,
-};
+/* ─────────────────────────────────────────────────────────────────────────────
+   ALL lot-size arithmetic uses ONLY the live broker spec fetched from
+   /api/symbol_info (trade_tick_value / trade_tick_size → dollar_per_point).
+   There are NO hardcoded fallback multipliers.  Orders are blocked until the
+   live spec is confirmed — this prevents 10× (or any) sizing errors caused by
+   guessing the wrong contract specification for an instrument.
+   ───────────────────────────────────────────────────────────────────────────── */
+var INST_PIP  = { 'forex':10000, 'gold':10, 'indices':1, 'crypto':1 };  /* display-only */
+var INST_LBL  = { 'forex':'pips','gold':'pts','indices':'pts','crypto':'pts' };
 
 function deskSv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 
@@ -3052,13 +3050,17 @@ function _instCfg() {
     var inst = document.getElementById('d-inst').value;
     var sym  = (window._calcSymbol || '').toUpperCase();
 
-    /* ── PRIORITY 1: Live broker spec (100% accurate) ── */
+    /* ══ ONLY SOURCE: Live broker spec from /api/symbol_info ══
+       dollar_per_point = trade_tick_value / trade_tick_size
+       = USD gained/lost per 1.0 raw price-unit move per 1 standard lot.
+       This value is broker-specific, account-specific, and instrument-specific.
+       NO hardcoded values are used — ever. */
     var spec = window._symbolSpecs && window._symbolSpecs[sym];
     if (spec && spec.dollar_per_point > 0) {
         var lbl2 = (inst === 'forex') ? 'pips' : 'pts';
         var pip2 = (spec.point > 0) ? Math.round(1 / spec.point) : (INST_PIP[inst] || 10000);
         return {
-            mult:     spec.dollar_per_point,   /* ← THE key number: USD per 1.0 price move per lot */
+            mult:     spec.dollar_per_point,   /* ← THE key number: USD / 1.0 price unit / lot */
             pip:      pip2,
             lbl:      lbl2,
             vol_min:  spec.volume_min  > 0 ? spec.volume_min  : 0.01,
@@ -3068,19 +3070,12 @@ function _instCfg() {
         };
     }
 
-    /* ── PRIORITY 2: Hardcoded fallback (estimate — trigger fetch) ── */
-    fetchSymbolSpec(sym);   /* fire-and-forget so next calc has real data */
-    var mult = SYM_TICK[sym] || INST_MULT[inst] || 100000;
-    var lbl  = (inst === 'gold' || inst === 'indices' || inst === 'crypto') ? 'pts' : 'pips';
-    return {
-        mult:     mult,
-        pip:      INST_PIP[inst]  || 10000,
-        lbl:      lbl,
-        vol_min:  0.01,
-        vol_step: 0.01,
-        digits:   5,
-        source:   'estimate',
-    };
+    /* ── Spec not yet loaded → trigger fetch and return pending state ──
+       Callers MUST check cfg.source === 'pending' and show a waiting UI.
+       No calculation is performed and no order is allowed until live data arrives. */
+    fetchSymbolSpec(sym);
+    return { source: 'pending', mult: 0, pip: 0, lbl: 'pts',
+             vol_min: 0.01, vol_step: 0.01, digits: 5 };
 }
 /* ── Calculate spread in price units from MT5 spread (in points) ── */
 function _spreadPrice() {
@@ -3159,6 +3154,14 @@ function deskCl(){
     var cfg = _instCfg();
 
 
+    /* ── Guard: need live broker spec ── */
+    if (cfg.source === 'pending') {
+        ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
+        var rlsEl2 = document.getElementById('d-rls');
+        if (rlsEl2) { rlsEl2.textContent = '⏳ Fetching live broker spec…'; rlsEl2.style.color = '#ffcc44'; }
+        return;
+    }
+
     /* ── Guard: need live price + SL ── */
     if(!ent){
         ['d-rl','d-rr2','d-rp2','d-rsout','d-rt','d-rrr','d-rtv'].forEach(function(i){deskSv(i,'---');});
@@ -3207,8 +3210,8 @@ function deskCl(){
             rlsEl.style.color = '#ff6600';
         }
     } else {
-        var specSrc = (cfg.source === 'live') ? '✓ LIVE SPEC  $/pt=' + cfg.mult.toFixed(cfg.mult < 1 ? 4 : 2) : '⚠ EST (connecting...)';
-        if (rlsEl) { rlsEl.textContent = specSrc; rlsEl.style.color = cfg.source === 'live' ? '#44ff88' : '#ffcc44'; }
+        var specSrc = '✓ LIVE  $/pt=' + cfg.mult.toFixed(cfg.mult < 1 ? 4 : 2);
+        if (rlsEl) { rlsEl.textContent = specSrc; rlsEl.style.color = '#44ff88'; }
     }
 
     /* ── Risk amount display: orange if forced above target ── */
@@ -3628,6 +3631,18 @@ function _posUpdateCalc() {
 
     if (!ent || !sl) { _posSetStats('---', '---', '1:1'); return; }
 
+    /* ── Guard: live broker spec required — no fallback values ── */
+    if (cfg.source === 'pending') {
+        _posSetStats('---', '---', '1:1');
+        var specBadgePend = document.getElementById('calc-spec-badge');
+        if (specBadgePend) {
+            specBadgePend.textContent = '⏳ Fetching live broker spec — waiting…';
+            specBadgePend.style.color = '#ffcc44';
+            specBadgePend.style.fontWeight = '700';
+        }
+        return;
+    }
+
     var slDist = Math.abs(ent - sl);
     if (slDist === 0) { _posSetStats('ERR', 'SL=Entry', '1:1'); return; }
 
@@ -3660,12 +3675,15 @@ function _posUpdateCalc() {
             specBadge.textContent = '⚠ MIN LOTS ' + lots.toFixed(2) + ' → $' + risk.toFixed(2) + ' actual (target $' + rm.toFixed(2) + ')';
             specBadge.style.color = '#ff6600';
             specBadge.style.fontWeight = '700';
-        } else if (cfg.source !== 'live' && inst !== 'forex') {
-            specBadge.textContent = '⚠ EST — order blocked until LIVE spec loads';
-            specBadge.style.color = '#ff4444';
-            specBadge.style.fontWeight = '700';
+        } else {
+            /* live spec loaded — clear any warning */
+            if (specBadge) {
+                specBadge.textContent = '✓ LIVE  $/pt=' + cfg.mult.toFixed(cfg.mult < 1 ? 4 : 2)
+                    + '  min=' + cfg.vol_min + '  step=' + cfg.vol_step;
+                specBadge.style.color = '#44ff88';
+                specBadge.style.fontWeight = '400';
+            }
         }
-    }
 
     _posSetStats(lots.toFixed(2), (minForced ? '⚠ $' : '$') + risk.toFixed(2), '1:1');
 
@@ -3765,11 +3783,12 @@ function posConfirmTrade() {
     if (side === 'SELL' && sl <= ent) { _posFeedback('SELL: SL above entry', '#ff4444'); return; }
     if (side === 'SELL' && tp >= ent) { _posFeedback('SELL: TP below entry', '#ff4444'); return; }
 
-    /* ── SPEC GUARD: block order if broker spec not confirmed for non-forex ── */
+    /* ── SPEC GUARD: live broker spec required for ALL instruments ──
+       Without the exact $/pt value from the broker there is no safe way to
+       calculate lots.  No hardcoded fallback is ever used. */
     var cfg = _instCfg();
-    var inst = (document.getElementById('d-inst') || {}).value || 'forex';
-    if (cfg.source !== 'live' && inst !== 'forex') {
-        _posFeedback('⚠ BLOCKED: Broker spec not loaded yet — wait for ✓ LIVE SPEC badge', '#ff4444');
+    if (cfg.source !== 'live') {
+        _posFeedback('⚠ BLOCKED: Live broker spec not confirmed yet — wait for ✓ LIVE badge', '#ff4444');
         /* trigger immediate re-fetch */
         fetchSymbolSpec(sym).then(function() {
             _posFeedback('Spec loaded! Verify lot size then retry.', '#ffcc44');
