@@ -6239,21 +6239,48 @@ setInterval(function() {
 <script>
 /* ═══════════════════════════════════════════════════════════════════
    COPY TRADE PANEL — full UI controller
-   Connects to:
-     GET  http://localhost:8766/api/copytrade/config
-     POST http://localhost:8766/api/copytrade/config
-     GET  http://localhost:8766/api/copytrade/status
-     POST http://localhost:8766/api/copytrade/start
-     POST http://localhost:8766/api/copytrade/stop
-     GET  http://localhost:8766/api/copytrade/logs
 ═══════════════════════════════════════════════════════════════════ */
  
-var CT_BASE         = 'http://localhost:8766';
-var _ctOpen         = false;
-var _ctPollTimer    = null;
-var _ctSlaves       = [];   // in-memory slave list
-var _ctLogCache     = [];   // accumulated log lines
-var _ctRunning      = false;
+var CT_BASE      = 'http://localhost:8766';
+var _ctOpen      = false;
+var _ctPollTimer = null;
+var _ctSlaves    = [];
+var _ctLogCache  = [];
+var _ctRunning   = false;
+var _CT_SLAVE_KEY = 'rk_ct_slaves';
+ 
+/* ─── Slave persistence ───────────────────────────────────────── */
+function ctPersistSlaves() {
+    try {
+        localStorage.setItem(_CT_SLAVE_KEY, JSON.stringify(_ctSlaves));
+    } catch(e) {
+        console.warn('[CT] Could not persist slaves:', e.message);
+    }
+}
+ 
+function ctRestoreSlaves() {
+    try {
+        var raw = localStorage.getItem(_CT_SLAVE_KEY);
+        if (!raw) return false;
+        var saved = JSON.parse(raw);
+        if (!Array.isArray(saved) || saved.length === 0) return false;
+        _ctSlaves = saved.map(function(sl, i) {
+            return {
+                id:       Date.now() + i,
+                login:    sl.login    || '',
+                password: sl.password || '',
+                server:   sl.server   || '',
+                risk_pct: sl.risk_pct || 1.0,
+                label:    sl.label    || ('SLAVE-' + (i + 1)),
+                enabled:  sl.enabled  !== false,
+            };
+        });
+        return true;
+    } catch(e) {
+        console.warn('[CT] Could not restore slaves:', e.message);
+        return false;
+    }
+}
  
 /* ─── Toggle overlay ─────────────────────────────────────────── */
 function ctTogglePanel() {
@@ -6274,7 +6301,7 @@ function ctTogglePanel() {
 function ctStartPoll() {
     ctStopPoll();
     _ctPollTimer = setInterval(ctPollStatus, 2000);
-    ctPollStatus();   // immediate
+    ctPollStatus();
 }
 function ctStopPoll() {
     clearInterval(_ctPollTimer);
@@ -6288,10 +6315,7 @@ async function ctPollStatus() {
         var d = await r.json();
         _ctRunning = d.running;
         ctUpdateStatusUI(d);
-        // Append new log lines
-        if (d.logs && d.logs.length > 0) {
-            ctAppendLogs(d.logs);
-        }
+        if (d.logs && d.logs.length > 0) ctAppendLogs(d.logs);
         ctUpdateToolbarBadge();
     } catch(e) {
         ctSetStatusLine('⚠ Bridge offline — start mt5_bridge.py first', '#ff4444');
@@ -6300,11 +6324,10 @@ async function ctPollStatus() {
  
 /* ─── Update status UI ───────────────────────────────────────── */
 function ctUpdateStatusUI(d) {
-    var dot       = document.getElementById('ct-status-dot');
-    var titleSt   = document.getElementById('ct-title-status');
-    var startBtn  = document.getElementById('ct-start-btn');
-    var stopBtn   = document.getElementById('ct-stop-btn');
- 
+    var dot      = document.getElementById('ct-status-dot');
+    var titleSt  = document.getElementById('ct-title-status');
+    var startBtn = document.getElementById('ct-start-btn');
+    var stopBtn  = document.getElementById('ct-stop-btn');
     if (!dot) return;
  
     if (d.running) {
@@ -6319,8 +6342,8 @@ function ctUpdateStatusUI(d) {
         titleSt.textContent = '— NO CONFIG';
         titleSt.style.color = '#888';
         ctSetStatusLine('Fill in master & slave accounts, then SAVE CONFIG to start', '#666');
-        if (startBtn) { startBtn.disabled = true;  startBtn.style.opacity = '.4'; }
-        if (stopBtn)  { stopBtn.disabled  = true;  stopBtn.style.opacity  = '.4'; }
+        if (startBtn) { startBtn.disabled = true; startBtn.style.opacity = '.4'; }
+        if (stopBtn)  { stopBtn.disabled  = true; stopBtn.style.opacity  = '.4'; }
     } else {
         dot.className       = 'ct-status-dot stopped';
         titleSt.textContent = '■ STOPPED';
@@ -6341,32 +6364,20 @@ function ctUpdateToolbarBadge() {
     var dot   = document.getElementById('ct-btn-dot');
     var badge = document.getElementById('ct-btn-badge');
     if (dot) {
-        if (_ctRunning) {
-            dot.style.background = '#44ff88';
-            dot.style.boxShadow  = '0 0 6px rgba(68,255,136,.6)';
-            dot.style.animation  = 'pulse 1.5s infinite';
-        } else {
-            dot.style.background = '#3a3a1a';
-            dot.style.boxShadow  = 'none';
-            dot.style.animation  = 'none';
-        }
+        dot.style.background = _ctRunning ? '#44ff88'  : '#3a3a1a';
+        dot.style.boxShadow  = _ctRunning ? '0 0 6px rgba(68,255,136,.6)' : 'none';
+        dot.style.animation  = _ctRunning ? 'pulse 1.5s infinite' : 'none';
     }
     if (badge) {
-        badge.textContent  = _ctRunning ? '● LIVE' : '■ OFF';
-        badge.style.color  = _ctRunning ? '#44ff88' : '#666';
+        badge.textContent   = _ctRunning ? '● LIVE' : '■ OFF';
+        badge.style.color   = _ctRunning ? '#44ff88' : '#666';
         badge.style.display = 'inline';
     }
 }
  
 /* ─── Log rendering ──────────────────────────────────────────── */
 function ctAppendLogs(lines) {
-    // Keep only the latest 300 unique lines (simple ring)
-    lines.forEach(function(l) {
-        if (_ctLogCache.indexOf(l) === -1 || l.startsWith('===')) {
-            // Allow duplicates for "===" banners
-        }
-        _ctLogCache.push(l);
-    });
+    lines.forEach(function(l) { _ctLogCache.push(l); });
     if (_ctLogCache.length > 300) _ctLogCache = _ctLogCache.slice(-300);
     ctRenderLog();
 }
@@ -6375,7 +6386,7 @@ function ctRenderLog() {
     var el = document.getElementById('ct-log-area');
     if (!el) return;
     el.textContent = _ctLogCache.join('\n');
-    el.scrollTop = el.scrollHeight;   // auto-scroll to bottom
+    el.scrollTop   = el.scrollHeight;
 }
  
 function ctClearLog() {
@@ -6384,34 +6395,72 @@ function ctClearLog() {
     if (el) el.textContent = 'Log cleared.';
 }
  
-/* ─── Load config from bridge → populate form ────────────────── */
+/* ─── Load config (3 steps: localStorage → live account → bridge) */
 async function ctLoadConfig() {
+ 
+    /* Step A: Restore persisted slaves from localStorage FIRST */
+    var hadSavedSlaves = ctRestoreSlaves();
+    if (hadSavedSlaves) ctRenderSlaves();
+ 
+    /* Step B: Auto-fill master login + server from live MT5 session */
+    try {
+        var ar = await fetch(CT_BASE + '/api/account_info');
+        if (ar.ok) {
+            var ai = await ar.json();
+            if (ai.login && ai.server) {
+                var loginEl  = document.getElementById('ct-m-login');
+                var serverEl = document.getElementById('ct-m-server');
+                var isBlankLogin  = !loginEl.value  || loginEl.value  === '12345678';
+                var isBlankServer = !serverEl.value || serverEl.value === 'ICMarkets-Demo01';
+                if (isBlankLogin)  loginEl.value  = ai.login;
+                if (isBlankServer) serverEl.value = ai.server;
+                var lbl = document.getElementById('ct-m-label');
+                if (lbl && (!lbl.value || lbl.value === 'MASTER')) {
+                    lbl.value = 'MASTER — ' + (ai.name || ai.login);
+                }
+                console.log('[CT] Master auto-filled: login=' + ai.login + ' server=' + ai.server);
+            }
+        }
+    } catch(e) {
+        console.warn('[CT] account_info fetch failed (bridge offline?):', e.message);
+    }
+ 
+    /* Step C: Load saved config from copy_config.json via bridge */
     try {
         var r = await fetch(CT_BASE + '/api/copytrade/config');
         var d = await r.json();
         var cfg = d.config;
         if (!cfg) return;
  
-        // Master
-        var setVal = function(id, val) {
+        var setVal = function(id, val, overwrite) {
+            var el = document.getElementById(id);
+            if (!el || val === undefined) return;
+            if (!overwrite && el.value && el.value !== '12345678' && el.value !== 'ICMarkets-Demo01') return;
+            if (val !== null && val !== undefined && val !== 0 && val !== '') el.value = val;
+        };
+ 
+        /* Login & server: don't clobber live auto-fill */
+        setVal('ct-m-login',  cfg.master.login,    false);
+        setVal('ct-m-server', cfg.master.server,   false);
+        /* Password: only restore if not the template placeholder */
+        if (cfg.master.password && cfg.master.password !== 'MasterPassword') {
+            setVal('ct-m-password', cfg.master.password, true);
+        }
+        setVal('ct-m-risk',  cfg.master.risk_pct, true);
+        setVal('ct-m-label', cfg.master.label,    false);
+ 
+        var s = cfg.settings || {};
+        var num = function(id, val) {
             var el = document.getElementById(id);
             if (el && val !== undefined) el.value = val;
         };
-        setVal('ct-m-login',    cfg.master.login);
-        setVal('ct-m-password', cfg.master.password);
-        setVal('ct-m-server',   cfg.master.server);
-        setVal('ct-m-risk',     cfg.master.risk_pct);
-        setVal('ct-m-label',    cfg.master.label || 'MASTER');
- 
-        // Settings
-        var s = cfg.settings || {};
-        setVal('ct-s-poll',      s.poll_interval || 1);
-        setVal('ct-s-maxlot',    s.max_lot        || 10);
-        setVal('ct-s-magic',     s.magic           || 88888);
-        setVal('ct-s-deviation', s.deviation       || 20);
-        setVal('ct-s-prefix',    s.comment_prefix  || 'CP_');
-        setVal('ct-s-whitelist', (s.symbols_whitelist || []).join(','));
-        setVal('ct-s-blacklist', (s.symbols_blacklist || []).join(','));
+        num('ct-s-poll',      s.poll_interval || 1);
+        num('ct-s-maxlot',    s.max_lot        || 10);
+        num('ct-s-magic',     s.magic           || 88888);
+        num('ct-s-deviation', s.deviation       || 20);
+        setVal('ct-s-prefix',    s.comment_prefix            || 'CP_', true);
+        setVal('ct-s-whitelist', (s.symbols_whitelist || []).join(','), true);
+        setVal('ct-s-blacklist', (s.symbols_blacklist || []).join(','), true);
  
         var chk = function(id, val) {
             var el = document.getElementById(id);
@@ -6421,19 +6470,22 @@ async function ctLoadConfig() {
         chk('ct-s-close', s.close_on_master_close  !== false);
         chk('ct-s-retry', s.retry_on_requote        !== false);
  
-        // Slaves
-        _ctSlaves = (cfg.slaves || []).map(function(sl, i) {
-            return {
-                id:       Date.now() + i,
-                login:    sl.login,
-                password: sl.password,
-                server:   sl.server,
-                risk_pct: sl.risk_pct,
-                label:    sl.label || ('SLAVE-' + (i + 1)),
-                enabled:  sl.enabled !== false,
-            };
-        });
-        ctRenderSlaves();
+        /* Slaves: only load from config if localStorage had nothing */
+        if (!hadSavedSlaves && cfg.slaves && cfg.slaves.length > 0) {
+            _ctSlaves = cfg.slaves.map(function(sl, i) {
+                return {
+                    id:       Date.now() + i,
+                    login:    sl.login,
+                    password: sl.password,
+                    server:   sl.server,
+                    risk_pct: sl.risk_pct,
+                    label:    sl.label || ('SLAVE-' + (i + 1)),
+                    enabled:  sl.enabled !== false,
+                };
+            });
+            ctPersistSlaves();
+            ctRenderSlaves();
+        }
     } catch(e) {
         console.warn('[CT] Could not load config:', e.message);
     }
@@ -6507,7 +6559,8 @@ async function ctSaveConfig() {
         });
         var d = await r.json();
         if (d.success) {
-            if (fb)  { fb.textContent = '✓ Saved → copy_config.json'; fb.style.color = '#44ff88'; }
+            ctPersistSlaves();
+            if (fb)  { fb.textContent = '✓ Saved → copy_config.json  (slaves cached locally)'; fb.style.color = '#44ff88'; }
             if (btn) btn.textContent  = '💾 SAVE CONFIG (copy_config.json)';
             setTimeout(ctPollStatus, 300);
         } else {
@@ -6526,9 +6579,7 @@ async function ctStartEngine() {
     try {
         var r = await fetch(CT_BASE + '/api/copytrade/start', { method: 'POST' });
         var d = await r.json();
-        if (!d.success) {
-            ctSetStatusLine('✗ ' + d.error, '#ff4444');
-        }
+        if (!d.success) ctSetStatusLine('✗ ' + d.error, '#ff4444');
         setTimeout(ctPollStatus, 600);
     } catch(e) {
         ctSetStatusLine('✗ Bridge offline', '#ff4444');
@@ -6540,9 +6591,7 @@ async function ctStopEngine() {
     try {
         var r = await fetch(CT_BASE + '/api/copytrade/stop', { method: 'POST' });
         var d = await r.json();
-        if (!d.success) {
-            ctSetStatusLine('✗ ' + d.error, '#ff4444');
-        }
+        if (!d.success) ctSetStatusLine('✗ ' + d.error, '#ff4444');
         setTimeout(ctPollStatus, 600);
     } catch(e) {
         ctSetStatusLine('✗ Bridge offline', '#ff4444');
@@ -6560,26 +6609,28 @@ function ctAddSlave() {
         label:    'SLAVE-' + (_ctSlaves.length + 1),
         enabled:  true,
     });
+    ctPersistSlaves();
     ctRenderSlaves();
-    // Scroll slave list into view
     var last = document.querySelectorAll('.ct-slave-card');
     if (last.length) last[last.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
  
 function ctRemoveSlave(id) {
     _ctSlaves = _ctSlaves.filter(function(s) { return s.id !== id; });
+    ctPersistSlaves();
     ctRenderSlaves();
 }
  
 function ctToggleSlave(id) {
     var sl = _ctSlaves.find(function(s) { return s.id === id; });
     if (sl) sl.enabled = !sl.enabled;
+    ctPersistSlaves();
     ctRenderSlaves();
 }
  
 function ctSlaveField(id, field, value) {
     var sl = _ctSlaves.find(function(s) { return s.id === id; });
-    if (sl) sl[field] = value;
+    if (sl) { sl[field] = value; ctPersistSlaves(); }
 }
  
 function ctRenderSlaves() {
@@ -6593,10 +6644,10 @@ function ctRenderSlaves() {
         return;
     }
     container.innerHTML = _ctSlaves.map(function(sl) {
-        var eid = sl.id;
-        var enCls  = sl.enabled ? 'enabled'  : 'disabled';
-        var enText = sl.enabled ? '● ENABLED' : '○ DISABLED';
-        var cardCls = sl.enabled ? '' : 'disabled-slave';
+        var eid     = sl.id;
+        var enCls   = sl.enabled ? 'enabled'    : 'disabled';
+        var enText  = sl.enabled ? '● ENABLED'  : '○ DISABLED';
+        var cardCls = sl.enabled ? ''            : 'disabled-slave';
         return '<div class="ct-slave-card ' + cardCls + '" id="ct-slave-' + eid + '">'
             + '<div class="ct-slave-header">'
             +   '<input class="ct-slave-label-inp" type="text" value="' + (sl.label || '') + '"'
@@ -6608,44 +6659,31 @@ function ctRenderSlaves() {
             +   '</div>'
             + '</div>'
             + '<div class="ct-row2">'
-            +   '<div class="ct-field">'
-            +     '<label class="ct-label">Login</label>'
+            +   '<div class="ct-field"><label class="ct-label">Login</label>'
             +     '<input class="ct-input" type="number" value="' + (sl.login || '') + '"'
-            +     ' oninput="ctSlaveField(' + eid + ',\'login\',this.value)"'
-            +     ' placeholder="87654321">'
-            +   '</div>'
-            +   '<div class="ct-field">'
-            +     '<label class="ct-label">Password</label>'
+            +     ' oninput="ctSlaveField(' + eid + ',\'login\',this.value)" placeholder="87654321"></div>'
+            +   '<div class="ct-field"><label class="ct-label">Password</label>'
             +     '<input class="ct-input" type="password" value="' + (sl.password || '') + '"'
-            +     ' oninput="ctSlaveField(' + eid + ',\'password\',this.value)"'
-            +     ' placeholder="••••••••">'
-            +   '</div>'
+            +     ' oninput="ctSlaveField(' + eid + ',\'password\',this.value)" placeholder="••••••••"></div>'
             + '</div>'
             + '<div class="ct-row2">'
-            +   '<div class="ct-field">'
-            +     '<label class="ct-label">Server</label>'
+            +   '<div class="ct-field"><label class="ct-label">Server</label>'
             +     '<input class="ct-input" type="text" value="' + (sl.server || '') + '"'
-            +     ' oninput="ctSlaveField(' + eid + ',\'server\',this.value)"'
-            +     ' placeholder="ICMarkets-Demo01">'
-            +   '</div>'
-            +   '<div class="ct-field">'
-            +     '<label class="ct-label">Risk % per trade</label>'
+            +     ' oninput="ctSlaveField(' + eid + ',\'server\',this.value)" placeholder="ICMarkets-Demo01"></div>'
+            +   '<div class="ct-field"><label class="ct-label">Risk % per trade</label>'
             +     '<input class="ct-input" type="number" value="' + (sl.risk_pct || 1.0) + '"'
             +     ' step="0.1" min="0.01"'
-            +     ' oninput="ctSlaveField(' + eid + ',\'risk_pct\',this.value)"'
-            +     ' placeholder="1.0">'
-            +   '</div>'
+            +     ' oninput="ctSlaveField(' + eid + ',\'risk_pct\',this.value)" placeholder="1.0"></div>'
             + '</div>'
             + '</div>';
     }).join('');
 }
  
-/* Dismiss on Escape key */
+/* ─── Keyboard + background poll ────────────────────────────── */
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && _ctOpen) ctTogglePanel();
 });
  
-/* Background poll (even when panel is closed — updates toolbar badge) */
 setInterval(function() {
     if (!_ctOpen) {
         fetch(CT_BASE + '/api/copytrade/status')
@@ -6655,7 +6693,6 @@ setInterval(function() {
     }
 }, 5000);
  
-/* Initial toolbar badge state */
 setTimeout(function() {
     fetch(CT_BASE + '/api/copytrade/status')
         .then(function(r){ return r.json(); })
