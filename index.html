@@ -1234,6 +1234,37 @@ body.theme-frosted .stat-val {
         <span id="d-rrr" style="display:none;"></span>
         <span id="d-rtv" style="display:none;"></span>
 
+        <!-- ── LIVE ACCOUNT BALANCE ── -->
+<div id="calc-acct-card" style="margin-bottom:9px;background:#020a02;
+  border:1px solid #1a3a1a;border-radius:3px;padding:8px 10px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+    <div style="display:flex;align-items:center;gap:5px;">
+      <span id="calc-balance-dot" style="width:5px;height:5px;border-radius:50%;
+        background:#333;display:inline-block;transition:all .3s;"></span>
+      <span style="font-size:.44rem;color:#444;text-transform:uppercase;letter-spacing:1px;">Live Balance</span>
+    </div>
+    <button onclick="fetchAccountBalance()"
+      style="background:transparent;border:1px solid #1a2a1a;color:#2a6a2a;
+             padding:1px 5px;font-size:.44rem;cursor:pointer;border-radius:2px;
+             font-family:inherit;">↺</button>
+  </div>
+  <div id="calc-balance-display"
+    style="font-size:1rem;color:#1a4a1a;font-family:'Courier New',monospace;
+           font-weight:700;letter-spacing:1px;">$---</div>
+  <div style="display:flex;gap:10px;margin-top:4px;">
+    <div>
+      <div style="font-size:.38rem;color:#2a2a2a;text-transform:uppercase;">Equity</div>
+      <div id="calc-equity-display" style="font-size:.6rem;color:#444;
+           font-family:'Courier New',monospace;">---</div>
+    </div>
+    <div>
+      <div style="font-size:.38rem;color:#2a2a2a;text-transform:uppercase;">Free Margin</div>
+      <div id="calc-free-margin-display" style="font-size:.6rem;color:#444;
+           font-family:'Courier New',monospace;">---</div>
+    </div>
+  </div>
+</div>
+
         <!-- RISK MODE TOGGLE -->
         <div style="display:flex;margin-bottom:9px;">
             <button id="d-pb" onclick="deskSm('pct')" style="flex:1;padding:7px;font-size:.6rem;text-transform:uppercase;cursor:pointer;font-family:inherit;letter-spacing:1px;background:#050505;color:#444;border:1px solid #1a1a1a;border-right:none;">Risk %</button>
@@ -3902,7 +3933,49 @@ function _posFeedback(msg, color) {
     var fb = document.getElementById('pos-feedback');
     if (fb) { fb.textContent = msg; fb.style.color = color || '#555'; }
 }
-    </script>
+   /* ═══════════════════════════════════════════════════════
+   LIVE ACCOUNT BALANCE AUTO-FETCH
+   Hits /api/account_info on the exec bridge (port 8766)
+   and auto-populates d-bal so Risk % mode works correctly.
+═══════════════════════════════════════════════════════ */
+async function fetchAccountBalance() {
+    try {
+        var r = await fetch('http://localhost:8766/api/account_info');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        var d = await r.json();
+        var bal = d.balance || 0, eq = d.equity || 0, fm = d.free_margin || 0;
+
+        // Populate hidden input used by deskCl() for Risk % calculation
+        var balInput = document.getElementById('d-bal');
+        if (balInput && bal > 0) balInput.value = bal;
+
+        // Update display
+        var bd = document.getElementById('calc-balance-display');
+        var ed = document.getElementById('calc-equity-display');
+        var fd = document.getElementById('calc-free-margin-display');
+        var dot = document.getElementById('calc-balance-dot');
+
+        if (bd)  { bd.textContent  = '$' + bal.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}); bd.style.color = '#44ff88'; }
+        if (ed)  ed.textContent  = '$' + eq.toFixed(2);
+        if (fd)  fd.textContent  = '$' + fm.toFixed(2);
+        if (dot) { dot.style.background = '#44ff88'; dot.style.boxShadow = '0 0 6px #44ff8844'; }
+
+        // Trigger lot recalculation
+        if (typeof deskCl === 'function') deskCl();
+        console.log('[Account] Balance $' + bal + '  Equity $' + eq + '  FreeMrg $' + fm);
+    } catch(e) {
+        var dot = document.getElementById('calc-balance-dot');
+        if (dot) { dot.style.background = '#ff4444'; dot.style.boxShadow = 'none'; }
+        console.warn('[Account] Fetch failed:', e.message);
+    }
+}
+
+// Fetch 1s after load (bridge startup lag), then every 30s
+setTimeout(fetchAccountBalance, 1000);
+setInterval(fetchAccountBalance, 30000);
+   
+   
+   </script>
 
 <!-- Theme System -->
 <script>
