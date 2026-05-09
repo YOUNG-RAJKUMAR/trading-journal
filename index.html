@@ -1446,6 +1446,26 @@ body.theme-frosted .stat-val {
         <span id="pm-btn-count" style="display:none;background:#33336633;border:1px solid #44448855;color:#aaaaff;padding:0 5px;font-size:.44rem;border-radius:2px;"></span>
     </button>
 
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     SECTION 1 — TOOLBAR BUTTON
+     Paste inside the #charts-toolbar div, after the POSITIONS button
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+ 
+<button id="ct-panel-toggle-btn" onclick="ctTogglePanel()"
+    style="display:flex;align-items:center;gap:5px;padding:6px 14px;
+           font-size:.68rem;font-weight:700;letter-spacing:1px;
+           text-transform:uppercase;cursor:pointer;font-family:inherit;
+           background:#1a1a0a;border:1px solid #5a5a1a;color:#cccc44;
+           flex-shrink:0;transition:all .15s;">
+    <span id="ct-btn-dot"
+          style="width:6px;height:6px;border-radius:50%;background:#3a3a1a;
+                 display:inline-block;transition:all .3s;"></span>
+    ⚡ COPY TRADE
+    <span id="ct-btn-badge"
+          style="display:none;background:#33330033;border:1px solid #55551155;
+                 color:#aaaa44;padding:0 5px;font-size:.44rem;border-radius:2px;"></span>
+</button>
+
     <!-- ACTIVE SYMBOL BADGE -->
     <div id="bottom-sym-badge" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#0a1a0a;border:1px solid #1a3a1a;font-size:.68rem;font-weight:700;color:#44ff88;font-family:'Courier New',monospace;letter-spacing:2px;">
         <span style="width:5px;height:5px;border-radius:50%;background:#44ff88;display:inline-block;animation:pulse 1.5s infinite;"></span>
@@ -5888,6 +5908,761 @@ setInterval(function() {
     }
 }, 3000);
 </script>
+<style>
+/* ── Copy Trade Panel Styles ── */
+#ct-overlay {
+    display:none;position:fixed;inset:0;z-index:9010;
+    align-items:flex-start;justify-content:center;padding-top:50px;
+    background:rgba(0,0,0,0.82);backdrop-filter:blur(3px);
+}
+#ct-overlay.show { display:flex; }
+#ct-panel {
+    width:860px;max-width:97vw;max-height:90vh;display:flex;flex-direction:column;
+    background:#0c0e08;border:1px solid #3a3a1a;
+    box-shadow:0 20px 60px rgba(0,0,0,0.85);overflow:hidden;
+}
+#ct-titlebar {
+    display:flex;align-items:center;justify-content:space-between;
+    background:#141608;border-bottom:1px solid #2a2a12;
+    padding:0 16px;height:42px;flex-shrink:0;
+}
+.ct-title {
+    font-size:.68rem;font-weight:700;color:#aaaa44;
+    letter-spacing:3px;text-transform:uppercase;
+    display:flex;align-items:center;gap:8px;
+}
+.ct-status-dot {
+    width:8px;height:8px;border-radius:50%;background:#3a3a1a;
+    display:inline-block;transition:all .4s;flex-shrink:0;
+}
+.ct-status-dot.running  { background:#44ff88;box-shadow:0 0 8px rgba(68,255,136,.6);animation:pulse 1.5s infinite; }
+.ct-status-dot.stopped  { background:#ff4444;animation:none;box-shadow:none; }
+.ct-status-dot.noconfig { background:#888;animation:none;box-shadow:none; }
+#ct-close-btn {
+    background:transparent;border:1px solid #2a2a1a;color:#666;
+    width:26px;height:26px;cursor:pointer;font-size:.85rem;
+    display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+#ct-close-btn:hover { border-color:#ff4444;color:#ff4444; }
+#ct-body {
+    display:flex;flex:1;min-height:0;overflow:hidden;
+}
+/* ── Left: config form ── */
+#ct-config-col {
+    width:480px;flex-shrink:0;overflow-y:auto;
+    border-right:1px solid #1a1a0a;
+    padding:16px;
+    scrollbar-width:thin;scrollbar-color:#2a2a1a #0c0e08;
+}
+#ct-config-col::-webkit-scrollbar { width:4px; }
+#ct-config-col::-webkit-scrollbar-thumb { background:#2a2a1a; }
+/* ── Right: status + logs ── */
+#ct-log-col {
+    flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;
+}
+#ct-engine-card {
+    flex-shrink:0;padding:12px 14px;border-bottom:1px solid #1a1a0a;
+    background:#0a0c06;
+}
+#ct-log-area {
+    flex:1;overflow-y:auto;padding:10px 12px;
+    font-family:'Courier New',monospace;font-size:.58rem;
+    color:#44aa44;line-height:1.7;white-space:pre-wrap;word-break:break-all;
+    background:#060806;
+    scrollbar-width:thin;scrollbar-color:#1a2a1a #060806;
+}
+#ct-log-area::-webkit-scrollbar { width:4px; }
+#ct-log-area::-webkit-scrollbar-thumb { background:#1a2a1a; }
+/* ── Section labels ── */
+.ct-section {
+    font-size:.5rem;color:#555;text-transform:uppercase;letter-spacing:2px;
+    margin:14px 0 8px;padding-bottom:6px;border-bottom:1px solid #1a1a0a;
+    font-weight:700;
+}
+/* ── Field rows ── */
+.ct-field { margin-bottom:8px; }
+.ct-label {
+    display:block;font-size:.5rem;color:#666;text-transform:uppercase;
+    letter-spacing:1px;margin-bottom:3px;
+}
+.ct-input {
+    width:100%;background:#080a04;border:1px solid #2a2a1a;color:#ddd;
+    padding:7px 9px;font-size:.78rem;font-family:inherit;outline:none;
+    border-radius:2px;box-sizing:border-box;transition:border-color .15s;
+}
+.ct-input:focus { border-color:#aaaa44; }
+.ct-input::placeholder { color:#333; }
+.ct-row2 { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+.ct-row3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px; }
+/* ── Slave cards ── */
+.ct-slave-card {
+    background:#080a04;border:1px solid #1a1a0a;border-radius:2px;
+    padding:10px 12px;margin-bottom:8px;position:relative;
+}
+.ct-slave-card.disabled-slave { opacity:.5; }
+.ct-slave-header {
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:8px;
+}
+.ct-slave-label-inp {
+    background:transparent;border:none;border-bottom:1px solid #2a2a1a;
+    color:#cccc44;font-size:.7rem;font-weight:700;letter-spacing:1px;
+    padding:2px 4px;font-family:inherit;outline:none;width:120px;
+}
+.ct-slave-label-inp:focus { border-bottom-color:#aaaa44; }
+.ct-slave-actions { display:flex;gap:5px;align-items:center; }
+.ct-toggle-btn {
+    font-size:.48rem;padding:3px 8px;cursor:pointer;border-radius:2px;
+    font-family:inherit;text-transform:uppercase;letter-spacing:.5px;
+    border:1px solid #2a2a1a;background:#0a0a06;color:#666;transition:all .15s;
+}
+.ct-toggle-btn.enabled  { background:#001a00;border-color:#1a4a1a;color:#44ff88; }
+.ct-toggle-btn.disabled { background:#1a0000;border-color:#3a1a1a;color:#ff6666; }
+.ct-remove-btn {
+    font-size:.48rem;padding:3px 7px;cursor:pointer;border-radius:2px;
+    font-family:inherit;border:1px solid #2a0000;background:#100000;
+    color:#ff4444;transition:all .15s;
+}
+.ct-remove-btn:hover { background:#1a0000; }
+/* ── Buttons ── */
+.ct-add-slave-btn {
+    width:100%;padding:8px;font-size:.6rem;font-weight:700;
+    letter-spacing:1px;cursor:pointer;font-family:inherit;
+    border:1px dashed #2a2a1a;background:transparent;color:#555;
+    text-transform:uppercase;border-radius:2px;transition:all .15s;
+    margin-top:4px;
+}
+.ct-add-slave-btn:hover { border-color:#aaaa44;color:#aaaa44; }
+.ct-save-btn {
+    width:100%;padding:12px;font-size:.65rem;font-weight:700;
+    letter-spacing:1.5px;cursor:pointer;font-family:inherit;
+    border:1px solid #aaaa44;background:#1a1a04;color:#eeee66;
+    text-transform:uppercase;border-radius:2px;margin-top:14px;
+    transition:all .2s;
+}
+.ct-save-btn:hover { background:#2a2a08;box-shadow:0 0 12px rgba(170,170,68,.2); }
+/* ── Engine buttons ── */
+.ct-start-btn {
+    flex:1;padding:10px;font-size:.62rem;font-weight:700;letter-spacing:1.5px;
+    cursor:pointer;font-family:inherit;border:1px solid #1a5a1a;
+    background:#001a00;color:#44ff88;text-transform:uppercase;
+    border-radius:2px;transition:all .15s;
+}
+.ct-start-btn:hover { background:#002a00; }
+.ct-start-btn:disabled { opacity:.4;cursor:not-allowed; }
+.ct-stop-btn {
+    flex:1;padding:10px;font-size:.62rem;font-weight:700;letter-spacing:1.5px;
+    cursor:pointer;font-family:inherit;border:1px solid #5a1a1a;
+    background:#1a0000;color:#ff4444;text-transform:uppercase;
+    border-radius:2px;transition:all .15s;
+}
+.ct-stop-btn:hover { background:#2a0000; }
+.ct-stop-btn:disabled { opacity:.4;cursor:not-allowed; }
+/* ── Status line ── */
+#ct-status-line {
+    font-size:.6rem;color:#666;letter-spacing:.5px;margin-top:8px;
+    min-height:16px;font-family:'Courier New',monospace;
+}
+/* ── Feedback ── */
+.ct-feedback {
+    font-size:.52rem;color:#555;margin-top:6px;min-height:14px;
+    text-align:center;letter-spacing:.3px;
+}
+/* ── Log header ── */
+#ct-log-header {
+    display:flex;align-items:center;justify-content:space-between;
+    padding:6px 12px;background:#080a06;border-bottom:1px solid #1a1a0a;
+    flex-shrink:0;
+}
+#ct-log-header span { font-size:.48rem;color:#444;text-transform:uppercase;letter-spacing:1.5px; }
+#ct-log-clear-btn {
+    font-size:.44rem;padding:2px 7px;cursor:pointer;
+    background:transparent;border:1px solid #1a1a0a;color:#333;
+    font-family:inherit;letter-spacing:.5px;
+}
+#ct-log-clear-btn:hover { border-color:#555;color:#666; }
+</style>
+ 
+<!-- ── OVERLAY ── -->
+<div id="ct-overlay" onclick="if(event.target===this)ctTogglePanel()">
+  <div id="ct-panel">
+ 
+    <!-- Title bar -->
+    <div id="ct-titlebar">
+      <div class="ct-title">
+        <span class="ct-status-dot noconfig" id="ct-status-dot"></span>
+        ⚡ COPY TRADE ENGINE
+        <span id="ct-title-status"
+              style="font-size:.52rem;color:#444;font-weight:400;letter-spacing:1px;">
+            IDLE
+        </span>
+      </div>
+      <button id="ct-close-btn" onclick="ctTogglePanel()">✕</button>
+    </div>
+ 
+    <!-- Body: config left + log right -->
+    <div id="ct-body">
+ 
+      <!-- ── LEFT: Config Form ── -->
+      <div id="ct-config-col">
+ 
+        <!-- MASTER ACCOUNT -->
+        <div class="ct-section">① Master Account</div>
+        <div class="ct-row2">
+          <div class="ct-field">
+            <label class="ct-label">Login (integer)</label>
+            <input class="ct-input" type="number" id="ct-m-login" placeholder="12345678">
+          </div>
+          <div class="ct-field">
+            <label class="ct-label">Password</label>
+            <input class="ct-input" type="password" id="ct-m-password" placeholder="••••••••">
+          </div>
+        </div>
+        <div class="ct-row2">
+          <div class="ct-field">
+            <label class="ct-label">Server</label>
+            <input class="ct-input" type="text" id="ct-m-server" placeholder="ICMarkets-Demo01">
+          </div>
+          <div class="ct-field">
+            <label class="ct-label">Risk % per trade</label>
+            <input class="ct-input" type="number" id="ct-m-risk" placeholder="1.0" step="0.1" min="0.01">
+          </div>
+        </div>
+        <div class="ct-field">
+          <label class="ct-label">Label</label>
+          <input class="ct-input" type="text" id="ct-m-label" placeholder="MASTER">
+        </div>
+ 
+        <!-- SLAVE ACCOUNTS -->
+        <div class="ct-section">② Slave Accounts</div>
+        <div id="ct-slaves-list"></div>
+        <button class="ct-add-slave-btn" onclick="ctAddSlave()">＋ ADD SLAVE ACCOUNT</button>
+ 
+        <!-- SETTINGS -->
+        <div class="ct-section">③ Engine Settings</div>
+        <div class="ct-row3">
+          <div class="ct-field">
+            <label class="ct-label">Poll interval (s)</label>
+            <input class="ct-input" type="number" id="ct-s-poll" value="1" step="0.1" min="0.1">
+          </div>
+          <div class="ct-field">
+            <label class="ct-label">Max lot size</label>
+            <input class="ct-input" type="number" id="ct-s-maxlot" value="10" step="0.01">
+          </div>
+          <div class="ct-field">
+            <label class="ct-label">EA Magic #</label>
+            <input class="ct-input" type="number" id="ct-s-magic" value="88888">
+          </div>
+        </div>
+        <div class="ct-row2">
+          <div class="ct-field">
+            <label class="ct-label">Slippage (pts)</label>
+            <input class="ct-input" type="number" id="ct-s-deviation" value="20">
+          </div>
+          <div class="ct-field">
+            <label class="ct-label">Comment prefix</label>
+            <input class="ct-input" type="text" id="ct-s-prefix" value="CP_" placeholder="CP_">
+          </div>
+        </div>
+        <div class="ct-row3" style="margin-top:4px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:.58rem;color:#777;cursor:pointer;">
+            <input type="checkbox" id="ct-s-sltp" checked style="accent-color:#aaaa44;">
+            Copy SL/TP
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:.58rem;color:#777;cursor:pointer;">
+            <input type="checkbox" id="ct-s-close" checked style="accent-color:#aaaa44;">
+            Auto-close
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:.58rem;color:#777;cursor:pointer;">
+            <input type="checkbox" id="ct-s-retry" checked style="accent-color:#aaaa44;">
+            Retry requote
+          </label>
+        </div>
+        <div class="ct-field" style="margin-top:10px;">
+          <label class="ct-label">Symbol whitelist (comma-sep, blank = all)</label>
+          <input class="ct-input" type="text" id="ct-s-whitelist" placeholder="EURUSD,XAUUSD,US30">
+        </div>
+        <div class="ct-field">
+          <label class="ct-label">Symbol blacklist (comma-sep)</label>
+          <input class="ct-input" type="text" id="ct-s-blacklist" placeholder="">
+        </div>
+ 
+        <!-- SAVE BUTTON -->
+        <button class="ct-save-btn" onclick="ctSaveConfig()">
+          💾 SAVE CONFIG (copy_config.json)
+        </button>
+        <div class="ct-feedback" id="ct-save-feedback"></div>
+ 
+      </div><!-- /config-col -->
+ 
+      <!-- ── RIGHT: Status + Logs ── -->
+      <div id="ct-log-col">
+ 
+        <!-- Engine control card -->
+        <div id="ct-engine-card">
+          <div style="font-size:.52rem;color:#555;text-transform:uppercase;
+                      letter-spacing:1.5px;margin-bottom:10px;font-weight:700;">
+              Engine Control
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="ct-start-btn" id="ct-start-btn" onclick="ctStartEngine()">
+              ▶ START ENGINE
+            </button>
+            <button class="ct-stop-btn" id="ct-stop-btn" onclick="ctStopEngine()">
+              ■ STOP ENGINE
+            </button>
+          </div>
+          <div id="ct-status-line">—</div>
+          <!-- Slave status summary -->
+          <div id="ct-slave-summary" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+ 
+        <!-- Log header -->
+        <div id="ct-log-header">
+          <span>⬛ LIVE LOG — copy_trade.py</span>
+          <button id="ct-log-clear-btn" onclick="ctClearLog()">✕ CLEAR</button>
+        </div>
+ 
+        <!-- Log body -->
+        <div id="ct-log-area">Waiting for engine…</div>
+ 
+      </div><!-- /log-col -->
+    </div><!-- /body -->
+ 
+  </div><!-- /panel -->
+</div><!-- /overlay -->
 
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     SECTION 3 — JAVASCRIPT  (paste just before </body>)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+ 
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   COPY TRADE PANEL — full UI controller
+   Connects to:
+     GET  http://localhost:8766/api/copytrade/config
+     POST http://localhost:8766/api/copytrade/config
+     GET  http://localhost:8766/api/copytrade/status
+     POST http://localhost:8766/api/copytrade/start
+     POST http://localhost:8766/api/copytrade/stop
+     GET  http://localhost:8766/api/copytrade/logs
+═══════════════════════════════════════════════════════════════════ */
+ 
+var CT_BASE         = 'http://localhost:8766';
+var _ctOpen         = false;
+var _ctPollTimer    = null;
+var _ctSlaves       = [];   // in-memory slave list
+var _ctLogCache     = [];   // accumulated log lines
+var _ctRunning      = false;
+ 
+/* ─── Toggle overlay ─────────────────────────────────────────── */
+function ctTogglePanel() {
+    _ctOpen = !_ctOpen;
+    var ov = document.getElementById('ct-overlay');
+    if (!ov) return;
+    if (_ctOpen) {
+        ov.classList.add('show');
+        ctLoadConfig();
+        ctStartPoll();
+    } else {
+        ov.classList.remove('show');
+        ctStopPoll();
+    }
+}
+ 
+/* ─── Polling ─────────────────────────────────────────────────── */
+function ctStartPoll() {
+    ctStopPoll();
+    _ctPollTimer = setInterval(ctPollStatus, 2000);
+    ctPollStatus();   // immediate
+}
+function ctStopPoll() {
+    clearInterval(_ctPollTimer);
+    _ctPollTimer = null;
+}
+ 
+/* ─── Poll engine status + logs ──────────────────────────────── */
+async function ctPollStatus() {
+    try {
+        var r = await fetch(CT_BASE + '/api/copytrade/status');
+        var d = await r.json();
+        _ctRunning = d.running;
+        ctUpdateStatusUI(d);
+        // Append new log lines
+        if (d.logs && d.logs.length > 0) {
+            ctAppendLogs(d.logs);
+        }
+        ctUpdateToolbarBadge();
+    } catch(e) {
+        ctSetStatusLine('⚠ Bridge offline — start mt5_bridge.py first', '#ff4444');
+    }
+}
+ 
+/* ─── Update status UI ───────────────────────────────────────── */
+function ctUpdateStatusUI(d) {
+    var dot       = document.getElementById('ct-status-dot');
+    var titleSt   = document.getElementById('ct-title-status');
+    var startBtn  = document.getElementById('ct-start-btn');
+    var stopBtn   = document.getElementById('ct-stop-btn');
+ 
+    if (!dot) return;
+ 
+    if (d.running) {
+        dot.className       = 'ct-status-dot running';
+        titleSt.textContent = '● RUNNING  PID ' + (d.pid || '?');
+        titleSt.style.color = '#44ff88';
+        ctSetStatusLine('✓ Engine active — watching master account', '#44ff88');
+        if (startBtn) { startBtn.disabled = true;  startBtn.style.opacity = '.4'; }
+        if (stopBtn)  { stopBtn.disabled  = false; stopBtn.style.opacity  = '1'; }
+    } else if (!d.config_exists) {
+        dot.className       = 'ct-status-dot noconfig';
+        titleSt.textContent = '— NO CONFIG';
+        titleSt.style.color = '#888';
+        ctSetStatusLine('Fill in master & slave accounts, then SAVE CONFIG to start', '#666');
+        if (startBtn) { startBtn.disabled = true;  startBtn.style.opacity = '.4'; }
+        if (stopBtn)  { stopBtn.disabled  = true;  stopBtn.style.opacity  = '.4'; }
+    } else {
+        dot.className       = 'ct-status-dot stopped';
+        titleSt.textContent = '■ STOPPED';
+        titleSt.style.color = '#ff6666';
+        ctSetStatusLine('Engine stopped — click ▶ START ENGINE to begin copying', '#ff8888');
+        if (startBtn) { startBtn.disabled = false; startBtn.style.opacity = '1'; }
+        if (stopBtn)  { stopBtn.disabled  = true;  stopBtn.style.opacity  = '.4'; }
+    }
+}
+ 
+function ctSetStatusLine(msg, color) {
+    var el = document.getElementById('ct-status-line');
+    if (el) { el.textContent = msg; el.style.color = color || '#666'; }
+}
+ 
+/* ─── Toolbar badge ──────────────────────────────────────────── */
+function ctUpdateToolbarBadge() {
+    var dot   = document.getElementById('ct-btn-dot');
+    var badge = document.getElementById('ct-btn-badge');
+    if (dot) {
+        if (_ctRunning) {
+            dot.style.background = '#44ff88';
+            dot.style.boxShadow  = '0 0 6px rgba(68,255,136,.6)';
+            dot.style.animation  = 'pulse 1.5s infinite';
+        } else {
+            dot.style.background = '#3a3a1a';
+            dot.style.boxShadow  = 'none';
+            dot.style.animation  = 'none';
+        }
+    }
+    if (badge) {
+        badge.textContent  = _ctRunning ? '● LIVE' : '■ OFF';
+        badge.style.color  = _ctRunning ? '#44ff88' : '#666';
+        badge.style.display = 'inline';
+    }
+}
+ 
+/* ─── Log rendering ──────────────────────────────────────────── */
+function ctAppendLogs(lines) {
+    // Keep only the latest 300 unique lines (simple ring)
+    lines.forEach(function(l) {
+        if (_ctLogCache.indexOf(l) === -1 || l.startsWith('===')) {
+            // Allow duplicates for "===" banners
+        }
+        _ctLogCache.push(l);
+    });
+    if (_ctLogCache.length > 300) _ctLogCache = _ctLogCache.slice(-300);
+    ctRenderLog();
+}
+ 
+function ctRenderLog() {
+    var el = document.getElementById('ct-log-area');
+    if (!el) return;
+    el.textContent = _ctLogCache.join('\n');
+    el.scrollTop = el.scrollHeight;   // auto-scroll to bottom
+}
+ 
+function ctClearLog() {
+    _ctLogCache = [];
+    var el = document.getElementById('ct-log-area');
+    if (el) el.textContent = 'Log cleared.';
+}
+ 
+/* ─── Load config from bridge → populate form ────────────────── */
+async function ctLoadConfig() {
+    try {
+        var r = await fetch(CT_BASE + '/api/copytrade/config');
+        var d = await r.json();
+        var cfg = d.config;
+        if (!cfg) return;
+ 
+        // Master
+        var setVal = function(id, val) {
+            var el = document.getElementById(id);
+            if (el && val !== undefined) el.value = val;
+        };
+        setVal('ct-m-login',    cfg.master.login);
+        setVal('ct-m-password', cfg.master.password);
+        setVal('ct-m-server',   cfg.master.server);
+        setVal('ct-m-risk',     cfg.master.risk_pct);
+        setVal('ct-m-label',    cfg.master.label || 'MASTER');
+ 
+        // Settings
+        var s = cfg.settings || {};
+        setVal('ct-s-poll',      s.poll_interval || 1);
+        setVal('ct-s-maxlot',    s.max_lot        || 10);
+        setVal('ct-s-magic',     s.magic           || 88888);
+        setVal('ct-s-deviation', s.deviation       || 20);
+        setVal('ct-s-prefix',    s.comment_prefix  || 'CP_');
+        setVal('ct-s-whitelist', (s.symbols_whitelist || []).join(','));
+        setVal('ct-s-blacklist', (s.symbols_blacklist || []).join(','));
+ 
+        var chk = function(id, val) {
+            var el = document.getElementById(id);
+            if (el) el.checked = !!val;
+        };
+        chk('ct-s-sltp',  s.use_sl_tp             !== false);
+        chk('ct-s-close', s.close_on_master_close  !== false);
+        chk('ct-s-retry', s.retry_on_requote        !== false);
+ 
+        // Slaves
+        _ctSlaves = (cfg.slaves || []).map(function(sl, i) {
+            return {
+                id:       Date.now() + i,
+                login:    sl.login,
+                password: sl.password,
+                server:   sl.server,
+                risk_pct: sl.risk_pct,
+                label:    sl.label || ('SLAVE-' + (i + 1)),
+                enabled:  sl.enabled !== false,
+            };
+        });
+        ctRenderSlaves();
+    } catch(e) {
+        console.warn('[CT] Could not load config:', e.message);
+    }
+}
+ 
+/* ─── Build config object from form ─────────────────────────── */
+function ctBuildConfig() {
+    var strList = function(id) {
+        var val = (document.getElementById(id) || {}).value || '';
+        return val.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+    };
+    var num = function(id, def) {
+        var v = parseFloat((document.getElementById(id)||{}).value);
+        return isNaN(v) ? def : v;
+    };
+    var str = function(id, def) {
+        return ((document.getElementById(id)||{}).value || '').trim() || def;
+    };
+    var chk = function(id) {
+        var el = document.getElementById(id); return el ? el.checked : true;
+    };
+ 
+    return {
+        master: {
+            login:    parseInt(str('ct-m-login', '0')) || 0,
+            password: str('ct-m-password', ''),
+            server:   str('ct-m-server', ''),
+            risk_pct: num('ct-m-risk', 1.0),
+            label:    str('ct-m-label', 'MASTER'),
+        },
+        slaves: _ctSlaves.map(function(sl) {
+            return {
+                login:    parseInt(sl.login) || 0,
+                password: sl.password || '',
+                server:   sl.server   || '',
+                risk_pct: parseFloat(sl.risk_pct) || 1.0,
+                label:    sl.label   || 'SLAVE',
+                enabled:  sl.enabled !== false,
+            };
+        }),
+        settings: {
+            poll_interval:         num('ct-s-poll', 1.0),
+            min_lot:               0.01,
+            max_lot:               num('ct-s-maxlot', 10.0),
+            deviation:             parseInt(num('ct-s-deviation', 20)),
+            magic:                 parseInt(num('ct-s-magic', 88888)),
+            comment_prefix:        str('ct-s-prefix', 'CP_'),
+            use_sl_tp:             chk('ct-s-sltp'),
+            close_on_master_close: chk('ct-s-close'),
+            symbols_whitelist:     strList('ct-s-whitelist'),
+            symbols_blacklist:     strList('ct-s-blacklist'),
+            retry_on_requote:      chk('ct-s-retry'),
+            log_every_tick:        false,
+        },
+    };
+}
+ 
+/* ─── Save config ────────────────────────────────────────────── */
+async function ctSaveConfig() {
+    var fb  = document.getElementById('ct-save-feedback');
+    var btn = document.querySelector('.ct-save-btn');
+    if (fb)  fb.textContent  = '';
+    if (btn) btn.textContent = '⟳ SAVING…';
+ 
+    try {
+        var cfg = ctBuildConfig();
+        var r   = await fetch(CT_BASE + '/api/copytrade/config', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(cfg),
+        });
+        var d = await r.json();
+        if (d.success) {
+            if (fb)  { fb.textContent = '✓ Saved → copy_config.json'; fb.style.color = '#44ff88'; }
+            if (btn) btn.textContent  = '💾 SAVE CONFIG (copy_config.json)';
+            setTimeout(ctPollStatus, 300);
+        } else {
+            if (fb)  { fb.textContent = '✗ ' + d.error; fb.style.color = '#ff4444'; }
+            if (btn) btn.textContent  = '💾 SAVE CONFIG (copy_config.json)';
+        }
+    } catch(e) {
+        if (fb)  { fb.textContent = '✗ Bridge offline'; fb.style.color = '#ff4444'; }
+        if (btn) btn.textContent  = '💾 SAVE CONFIG (copy_config.json)';
+    }
+}
+ 
+/* ─── Engine start / stop ────────────────────────────────────── */
+async function ctStartEngine() {
+    ctSetStatusLine('⟳ Starting…', '#ffcc44');
+    try {
+        var r = await fetch(CT_BASE + '/api/copytrade/start', { method: 'POST' });
+        var d = await r.json();
+        if (!d.success) {
+            ctSetStatusLine('✗ ' + d.error, '#ff4444');
+        }
+        setTimeout(ctPollStatus, 600);
+    } catch(e) {
+        ctSetStatusLine('✗ Bridge offline', '#ff4444');
+    }
+}
+ 
+async function ctStopEngine() {
+    ctSetStatusLine('⟳ Stopping…', '#ffcc44');
+    try {
+        var r = await fetch(CT_BASE + '/api/copytrade/stop', { method: 'POST' });
+        var d = await r.json();
+        if (!d.success) {
+            ctSetStatusLine('✗ ' + d.error, '#ff4444');
+        }
+        setTimeout(ctPollStatus, 600);
+    } catch(e) {
+        ctSetStatusLine('✗ Bridge offline', '#ff4444');
+    }
+}
+ 
+/* ─── Slave list management ──────────────────────────────────── */
+function ctAddSlave() {
+    _ctSlaves.push({
+        id:       Date.now(),
+        login:    '',
+        password: '',
+        server:   '',
+        risk_pct: 1.0,
+        label:    'SLAVE-' + (_ctSlaves.length + 1),
+        enabled:  true,
+    });
+    ctRenderSlaves();
+    // Scroll slave list into view
+    var last = document.querySelectorAll('.ct-slave-card');
+    if (last.length) last[last.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+ 
+function ctRemoveSlave(id) {
+    _ctSlaves = _ctSlaves.filter(function(s) { return s.id !== id; });
+    ctRenderSlaves();
+}
+ 
+function ctToggleSlave(id) {
+    var sl = _ctSlaves.find(function(s) { return s.id === id; });
+    if (sl) sl.enabled = !sl.enabled;
+    ctRenderSlaves();
+}
+ 
+function ctSlaveField(id, field, value) {
+    var sl = _ctSlaves.find(function(s) { return s.id === id; });
+    if (sl) sl[field] = value;
+}
+ 
+function ctRenderSlaves() {
+    var container = document.getElementById('ct-slaves-list');
+    if (!container) return;
+    if (_ctSlaves.length === 0) {
+        container.innerHTML =
+            '<div style="text-align:center;padding:16px;font-size:.58rem;'
+          + 'color:#333;letter-spacing:1px;border:1px dashed #1a1a0a;'
+          + 'margin-bottom:8px;">No slave accounts — click ADD below</div>';
+        return;
+    }
+    container.innerHTML = _ctSlaves.map(function(sl) {
+        var eid = sl.id;
+        var enCls  = sl.enabled ? 'enabled'  : 'disabled';
+        var enText = sl.enabled ? '● ENABLED' : '○ DISABLED';
+        var cardCls = sl.enabled ? '' : 'disabled-slave';
+        return '<div class="ct-slave-card ' + cardCls + '" id="ct-slave-' + eid + '">'
+            + '<div class="ct-slave-header">'
+            +   '<input class="ct-slave-label-inp" type="text" value="' + (sl.label || '') + '"'
+            +   ' oninput="ctSlaveField(' + eid + ',\'label\',this.value)" placeholder="SLAVE-1">'
+            +   '<div class="ct-slave-actions">'
+            +     '<button class="ct-toggle-btn ' + enCls + '"'
+            +       ' onclick="ctToggleSlave(' + eid + ')">' + enText + '</button>'
+            +     '<button class="ct-remove-btn" onclick="ctRemoveSlave(' + eid + ')">✕</button>'
+            +   '</div>'
+            + '</div>'
+            + '<div class="ct-row2">'
+            +   '<div class="ct-field">'
+            +     '<label class="ct-label">Login</label>'
+            +     '<input class="ct-input" type="number" value="' + (sl.login || '') + '"'
+            +     ' oninput="ctSlaveField(' + eid + ',\'login\',this.value)"'
+            +     ' placeholder="87654321">'
+            +   '</div>'
+            +   '<div class="ct-field">'
+            +     '<label class="ct-label">Password</label>'
+            +     '<input class="ct-input" type="password" value="' + (sl.password || '') + '"'
+            +     ' oninput="ctSlaveField(' + eid + ',\'password\',this.value)"'
+            +     ' placeholder="••••••••">'
+            +   '</div>'
+            + '</div>'
+            + '<div class="ct-row2">'
+            +   '<div class="ct-field">'
+            +     '<label class="ct-label">Server</label>'
+            +     '<input class="ct-input" type="text" value="' + (sl.server || '') + '"'
+            +     ' oninput="ctSlaveField(' + eid + ',\'server\',this.value)"'
+            +     ' placeholder="ICMarkets-Demo01">'
+            +   '</div>'
+            +   '<div class="ct-field">'
+            +     '<label class="ct-label">Risk % per trade</label>'
+            +     '<input class="ct-input" type="number" value="' + (sl.risk_pct || 1.0) + '"'
+            +     ' step="0.1" min="0.01"'
+            +     ' oninput="ctSlaveField(' + eid + ',\'risk_pct\',this.value)"'
+            +     ' placeholder="1.0">'
+            +   '</div>'
+            + '</div>'
+            + '</div>';
+    }).join('');
+}
+ 
+/* Dismiss on Escape key */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && _ctOpen) ctTogglePanel();
+});
+ 
+/* Background poll (even when panel is closed — updates toolbar badge) */
+setInterval(function() {
+    if (!_ctOpen) {
+        fetch(CT_BASE + '/api/copytrade/status')
+            .then(function(r){ return r.json(); })
+            .then(function(d){ _ctRunning = d.running; ctUpdateToolbarBadge(); })
+            .catch(function(){});
+    }
+}, 5000);
+ 
+/* Initial toolbar badge state */
+setTimeout(function() {
+    fetch(CT_BASE + '/api/copytrade/status')
+        .then(function(r){ return r.json(); })
+        .then(function(d){ _ctRunning = d.running; ctUpdateToolbarBadge(); })
+        .catch(function(){});
+}, 3000);
+</script>
+    
 </body>
 </html>
