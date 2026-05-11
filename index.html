@@ -1879,14 +1879,7 @@ var MT5Feed = (function() {
             }
         };
 
-        ws.onerror = function() {};
-        ws.onclose = function() {
-            setStatus('disconnected','MT5 OFFLINE');
-            if(_countdownTimer) clearInterval(_countdownTimer);
-            scheduleRetry();
-        };
     }
-
     function scheduleRetry() {
         clearTimeout(_retryTimer);
         _retryTimer = setTimeout(connect, 3000);
