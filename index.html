@@ -2239,6 +2239,15 @@ function doLogin(u) {
     document.getElementById('main-content').style.display = 'block';
     document.getElementById('display-user').innerText = u;
     ui.init();
+ 
+    // ── Expose Firestore handle for the Auto-Journal engine ──
+    // This runs AFTER the ES module has db / tradesCol in scope,
+    // so the non-module script can access them.
+    window._ajFirestoreReady = {
+        db:   db,
+        col:  tradesCol,
+        user: u,
+    };
 }
 
 document.addEventListener('paste', e => {
@@ -5880,6 +5889,494 @@ setInterval(function() {
             .catch(function() {});
     }
 }, 3000);
+</script>
+<script> /* ═══════════════════════════════════════════════════════════════════
+   AUTO-JOURNAL + POSITIONS HISTORY TAB  —  Paste before </body>
+   ═══════════════════════════════════════════════════════════════════
+
+   FEATURES
+   ─────────
+   1. Auto-Journal on Close
+      • Polls /api/deals every 30 s
+      • Pairs ENTRY_IN + ENTRY_OUT by position_id (done in bridge)
+      • Deduplicates via Firestore field  auto_position_id
+        (first checks localStorage cache for speed, then Firestore)
+      • Auto-logs: symbol · side · lots · entry · exit · sl · tp ·
+        profit · date · session · notes="[AUTO] ..."
+      • Green toast notification for each new auto-logged trade
+
+   2. History Tab in Positions Panel
+      • "HISTORY" button next to "OPEN" in the panel title bar
+      • Fetches last 100 deals, shows styled table
+      • Columns: Date · Symbol · Side · Lots · Entry → Exit · P/L ·
+        Duration · Session
+      • Color-coded P/L, session badges, duration display
+
+   HOW TO INSTALL
+   ─────────────────
+   Paste this entire <script> block just before </body> in index.html.
+   The patch self-injects into the existing panel HTML after DOM ready.
+═══════════════════════════════════════════════════════════════════ */
+
+/* ── Toast notification helper ───────────────────────────────── */
+(function injectToastStyles() {
+    var s = document.createElement('style');
+    s.textContent = `
+#aj-toast-container {
+    position:fixed;bottom:24px;right:24px;z-index:9999;
+    display:flex;flex-direction:column;gap:8px;pointer-events:none;
+}
+.aj-toast {
+    background:#0d1e0d;border:1px solid #2a6a2a;border-left:3px solid #44ff88;
+    color:#c8f0c8;font-size:.68rem;letter-spacing:.5px;
+    padding:10px 16px;border-radius:3px;max-width:340px;
+    box-shadow:0 4px 20px rgba(0,0,0,.7);
+    animation:aj-slidein .25s ease,aj-fadeout .4s ease 3.6s forwards;
+    pointer-events:auto;
+}
+.aj-toast.warn {
+    background:#1e1500;border-color:#6a4a00;border-left-color:#ffcc44;
+    color:#f0d88a;
+}
+.aj-toast.error {
+    background:#1e0505;border-color:#6a1a1a;border-left-color:#ff4444;
+    color:#f0a0a0;
+}
+@keyframes aj-slidein  { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+@keyframes aj-fadeout  { to{opacity:0;transform:translateX(20px)} }
+
+/* ── History tab styles ── */
+#pm-history-rows::-webkit-scrollbar { width:4px; }
+#pm-history-rows::-webkit-scrollbar-track { background:#0a0e1a; }
+#pm-history-rows::-webkit-scrollbar-thumb { background:#2a3a6a; }
+.pm-hist-row:nth-child(even) { background:#0d1425; }
+.pm-hist-row:hover { background:rgba(68,68,136,0.08) !important; }
+`;
+    document.head.appendChild(s);
+
+    var container = document.createElement('div');
+    container.id = 'aj-toast-container';
+    document.body.appendChild(container);
+})();
+
+function ajToast(msg, type) {
+    var c = document.getElementById('aj-toast-container');
+    if (!c) return;
+    var t = document.createElement('div');
+    t.className = 'aj-toast' + (type ? ' ' + type : '');
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 4200);
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   PATCH POSITIONS PANEL: inject History tab
+══════════════════════════════════════════════════════════════════ */
+function pmInjectHistoryTab() {
+    var titlebar = document.querySelector('#pm-panel > div:first-child');
+    if (!titlebar || document.getElementById('pm-tab-history')) return;
+
+    /* ── Tab buttons row ── */
+    var tabRow = document.createElement('div');
+    tabRow.id = 'pm-tab-row';
+    tabRow.style.cssText =
+        'display:flex;background:#080c18;border-bottom:1px solid #1a2a4a;flex-shrink:0;';
+
+    tabRow.innerHTML =
+        '<button id="pm-tab-open" onclick="pmSwitchTab(\'open\')"'
+        + ' style="flex:1;padding:8px;font-size:.6rem;font-weight:700;letter-spacing:1.5px;'
+        + 'cursor:pointer;font-family:inherit;border:none;background:#0d1525;color:#8888ff;'
+        + 'text-transform:uppercase;border-bottom:2px solid #6666cc;transition:all .15s;">'
+        + '📋 OPEN POSITIONS</button>'
+        + '<button id="pm-tab-history" onclick="pmSwitchTab(\'history\')"'
+        + ' style="flex:1;padding:8px;font-size:.6rem;font-weight:700;letter-spacing:1.5px;'
+        + 'cursor:pointer;font-family:inherit;border:none;background:transparent;color:#3a4a7a;'
+        + 'text-transform:uppercase;border-bottom:2px solid transparent;transition:all .15s;">'
+        + '🕐 TRADE HISTORY</button>';
+
+    /* ── History pane (hidden by default) ── */
+    var histPane = document.createElement('div');
+    histPane.id = 'pm-history-pane';
+    histPane.style.cssText = 'display:none;flex-direction:column;flex:1;overflow:hidden;';
+
+    /* column headers */
+    histPane.innerHTML =
+        '<div style="display:grid;grid-template-columns:90px 80px 55px 60px 95px 95px 90px 60px 70px;'
+        + 'background:#0d1525;border-bottom:1px solid #1a2a4a;padding:0 14px;height:28px;'
+        + 'align-items:center;flex-shrink:0;">'
+        + '<span style="font-size:.44rem;color:#3a4a7a;text-transform:uppercase;letter-spacing:1.5px;">DATE</span>'
+        + '<span style="font-size:.44rem;color:#3a4a7a;text-transform:uppercase;letter-spacing:1.5px;">SYMBOL</span>'
+        + '<span style="font-size:.44rem;color:#3a4a7a;text-transform:uppercase;letter-spacing:1.5px;">SIDE</span>'
+        + '<span style="font-size:.44rem;color:#3a4a7a;text-transform:uppercase;letter-spacing:1.5px;">LOTS</span>'
+        + '<span style="font-size:.44rem;color:#3a4a7a;text-transform:uppercase;letter-spacing:1.5px;">ENTRY</span>'
+        + '<span style="font-size:.44rem;color:#3a4a7a;text-transform:uppercase;letter-spacing:1.5px;">EXIT</span>'
+        + '<span style="font-size:.44rem;color:#3a4a7a;text-transform:uppercase;letter-spacing:1.5px;">P / L</span>'
+        + '<span style="font-size:.44rem;color:#3a4a7a;text-transform:uppercase;letter-spacing:1.5px;">DURATION</span>'
+        + '<span style="font-size:.44rem;color:#3a4a7a;text-transform:uppercase;letter-spacing:1.5px;">SESSION</span>'
+        + '</div>'
+        + '<div id="pm-history-rows" style="overflow-y:auto;flex:1;scrollbar-width:thin;'
+        + 'scrollbar-color:#2a3a6a #0a0e1a;">'
+        + '<div style="padding:30px;text-align:center;font-size:.6rem;color:#2a3a5a;letter-spacing:2px;">LOADING...</div>'
+        + '</div>';
+
+    /* Insert tab row + history pane into the panel */
+    var panel = document.getElementById('pm-panel');
+    if (!panel) return;
+
+    /* Find the column-headers div (2nd child) and insert tabRow before it */
+    var colHeaders = panel.children[1];
+    if (colHeaders) {
+        panel.insertBefore(tabRow, colHeaders);
+        /* Wrap existing open-positions rows in an "open pane" wrapper so we can hide/show it */
+        var openPane = document.createElement('div');
+        openPane.id = 'pm-open-pane';
+        openPane.style.cssText = 'display:flex;flex-direction:column;flex:1;overflow:hidden;';
+
+        /* Move colHeaders and pm-rows into openPane */
+        var pmRows = document.getElementById('pm-rows');
+        openPane.appendChild(colHeaders);
+        if (pmRows) openPane.appendChild(pmRows);
+        panel.insertBefore(openPane, panel.children[2]);
+        panel.insertBefore(histPane, panel.children[3]);
+    }
+}
+
+var _pmActiveTab = 'open';
+
+function pmSwitchTab(tab) {
+    _pmActiveTab = tab;
+    var openPane = document.getElementById('pm-open-pane');
+    var histPane = document.getElementById('pm-history-pane');
+    var btnOpen  = document.getElementById('pm-tab-open');
+    var btnHist  = document.getElementById('pm-tab-history');
+
+    var actStyle   = 'background:#0d1525;color:#8888ff;border-bottom:2px solid #6666cc;';
+    var inactStyle = 'background:transparent;color:#3a4a7a;border-bottom:2px solid transparent;';
+
+    if (tab === 'open') {
+        if (openPane) openPane.style.display = 'flex';
+        if (histPane) histPane.style.display = 'none';
+        if (btnOpen)  btnOpen.style.cssText  += actStyle;
+        if (btnHist)  btnHist.style.cssText  += inactStyle;
+    } else {
+        if (openPane) openPane.style.display = 'none';
+        if (histPane) histPane.style.display = 'flex';
+        if (btnOpen)  btnOpen.style.cssText  += inactStyle;
+        if (btnHist)  btnHist.style.cssText  += actStyle;
+        pmLoadHistory();
+    }
+}
+
+/* ── Format duration from minutes ── */
+function _fmtDuration(mins) {
+    if (mins <= 0)    return '—';
+    if (mins < 60)    return mins + 'm';
+    if (mins < 1440)  return Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm';
+    return Math.floor(mins / 1440) + 'd ' + Math.floor((mins % 1440) / 60) + 'h';
+}
+
+/* ── Session color badge ── */
+function _sessBadge(session) {
+    var colors = {
+        ASIAN:  { bg:'rgba(68,136,255,.12)', bc:'rgba(68,136,255,.3)', c:'#88aaff' },
+        LONDON: { bg:'rgba(255,180,50,.08)', bc:'rgba(255,180,50,.25)',c:'#ffcc66' },
+        NY:     { bg:'rgba(255,80,80,.08)',  bc:'rgba(255,80,80,.25)', c:'#ff8888' },
+    };
+    var cl = colors[session] || { bg:'rgba(100,100,100,.1)', bc:'#333', c:'#888' };
+    return '<span style="font-size:.48rem;padding:1px 6px;border-radius:2px;letter-spacing:.5px;'
+        + 'background:' + cl.bg + ';border:1px solid ' + cl.bc + ';color:' + cl.c + ';">'
+        + (session || '—') + '</span>';
+}
+
+async function pmLoadHistory() {
+    var rowsEl = document.getElementById('pm-history-rows');
+    if (!rowsEl) return;
+    rowsEl.innerHTML = '<div style="padding:20px;text-align:center;font-size:.6rem;color:#2a3a5a;letter-spacing:2px;">⟳ LOADING DEAL HISTORY...</div>';
+
+    try {
+        var r = await fetch('http://localhost:8766/api/deals?limit=100');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        var data = await r.json();
+        var deals = data.deals || [];
+
+        if (deals.length === 0) {
+            rowsEl.innerHTML = '<div style="padding:40px;text-align:center;font-size:.62rem;color:#1a2a4a;letter-spacing:2px;">NO CLOSED TRADES IN LAST 30 DAYS</div>';
+            return;
+        }
+
+        rowsEl.innerHTML = deals.map(function(d) {
+            var isBuy     = d.side === 'BUY';
+            var pnl       = d.profit;
+            var pnlColor  = pnl >= 0 ? '#44ff88' : '#ff4444';
+            var typeColor = isBuy ? '#44ff88' : '#ff5555';
+            var dec       = Math.max(
+                (d.open_price.toString().split('.')[1] || '').length,
+                (d.close_price.toString().split('.')[1] || '').length, 2
+            );
+
+            return '<div class="pm-hist-row" style="display:grid;'
+                + 'grid-template-columns:90px 80px 55px 60px 95px 95px 90px 60px 70px;'
+                + 'padding:0 14px;min-height:36px;align-items:center;'
+                + 'border-bottom:1px solid #0d1420;cursor:default;">'
+
+                /* DATE */
+                + '<div style="display:flex;flex-direction:column;gap:1px;">'
+                + '<span style="font-size:.62rem;color:#6a8ab0;font-weight:600;">' + d.close_date + '</span>'
+                + (d.open_date && d.open_date !== d.close_date
+                    ? '<span style="font-size:.48rem;color:#2a4a6a;">open ' + d.open_date + '</span>' : '')
+                + '</div>'
+
+                /* SYMBOL */
+                + '<span style="font-size:.75rem;font-weight:700;color:#c8d8f0;letter-spacing:.3px;">'
+                + d.plain_symbol + '</span>'
+
+                /* SIDE */
+                + '<span style="font-size:.6rem;font-weight:700;color:' + typeColor + ';'
+                + 'background:' + (isBuy ? 'rgba(68,255,136,.07)' : 'rgba(255,80,80,.07)') + ';'
+                + 'padding:1px 6px;border-radius:2px;">' + d.side + '</span>'
+
+                /* LOTS */
+                + '<span style="font-size:.68rem;color:#8898b0;font-family:\'Courier New\',monospace;">'
+                + d.volume + '</span>'
+
+                /* ENTRY */
+                + '<span style="font-size:.68rem;color:#6a8ab0;font-family:\'Courier New\',monospace;">'
+                + (d.open_price > 0 ? d.open_price.toFixed(dec) : '—') + '</span>'
+
+                /* EXIT */
+                + '<span style="font-size:.68rem;color:#aabbcc;font-family:\'Courier New\',monospace;">'
+                + d.close_price.toFixed(dec) + '</span>'
+
+                /* P/L */
+                + '<span style="font-size:.78rem;font-weight:700;color:' + pnlColor + ';'
+                + 'font-family:\'Courier New\',monospace;">'
+                + (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2)
+                + (d.swap !== 0 || d.commission !== 0
+                    ? '<span style="font-size:.44rem;color:#444;display:block;">sw:'
+                      + d.swap.toFixed(2) + ' cm:' + d.commission.toFixed(2) + '</span>'
+                    : '')
+                + '</span>'
+
+                /* DURATION */
+                + '<span style="font-size:.6rem;color:#4a6a8a;">'
+                + _fmtDuration(d.duration_min) + '</span>'
+
+                /* SESSION */
+                + _sessBadge(d.session)
+
+                + '</div>';
+        }).join('');
+
+    } catch(e) {
+        rowsEl.innerHTML = '<div style="padding:20px;text-align:center;font-size:.62rem;'
+            + 'color:#442222;letter-spacing:1px;">⚠ ' + e.message + '</div>';
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   AUTO-JOURNAL ENGINE
+══════════════════════════════════════════════════════════════════ */
+
+var _ajPollTimer      = null;
+var _ajRunning        = false;
+var _ajSeenIds        = null;   // Set<position_id> — loaded from localStorage
+var _ajFirestore      = null;   // injected below from Firebase module
+var _ajCurrentUser    = null;
+var _ajTradesCol      = null;
+var _ajPollInterval   = 30000; // 30 s
+
+/* ── localStorage cache for already-journaled position IDs ── */
+var AJ_CACHE_KEY = 'rk_aj_seen_ids';
+
+function ajLoadSeenIds() {
+    if (_ajSeenIds) return;
+    try {
+        var raw = localStorage.getItem(AJ_CACHE_KEY);
+        _ajSeenIds = raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch(e) {
+        _ajSeenIds = new Set();
+    }
+}
+
+function ajSaveSeenId(pid) {
+    _ajSeenIds.add(String(pid));
+    try {
+        // Keep last 2000 IDs to prevent unbounded growth
+        var arr = Array.from(_ajSeenIds).slice(-2000);
+        localStorage.setItem(AJ_CACHE_KEY, JSON.stringify(arr));
+    } catch(e) {}
+}
+
+/* Called from the Firebase module after login to wire up Firestore */
+window.ajInit = function(db, tradesCollection, user) {
+    _ajFirestore  = db;
+    _ajTradesCol  = tradesCollection;
+    _ajCurrentUser = user;
+    ajLoadSeenIds();
+    ajStartPolling();
+    console.log('[AutoJournal] Initialized for user', user);
+};
+
+function ajStartPolling() {
+    if (_ajPollTimer) clearInterval(_ajPollTimer);
+    // First run after 10 s (bridge may still be starting)
+    setTimeout(ajPoll, 10000);
+    _ajPollTimer = setInterval(ajPoll, _ajPollInterval);
+}
+
+async function ajPoll() {
+    if (_ajRunning) return;
+    if (!_ajFirestore || !_ajTradesCol || !_ajCurrentUser) return;
+
+    // Only poll if MT5 appears connected
+    var badge = document.getElementById('mt5-status-badge');
+    if (!badge || !badge.classList.contains('connected')) return;
+
+    _ajRunning = true;
+    try {
+        var r = await fetch('http://localhost:8766/api/deals?limit=200');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        var data  = await r.json();
+        var deals = data.deals || [];
+
+        for (var i = 0; i < deals.length; i++) {
+            var d = deals[i];
+            var pid = String(d.position_id);
+
+            // Fast path: already in local cache
+            if (_ajSeenIds && _ajSeenIds.has(pid)) continue;
+
+            // Slow path: check Firestore (handles cross-device dedup)
+            var alreadyLogged = await ajCheckFirestore(pid);
+            if (alreadyLogged) {
+                ajSaveSeenId(pid);
+                continue;
+            }
+
+            // New closed trade — log it
+            await ajLogTrade(d);
+        }
+    } catch(e) {
+        console.warn('[AutoJournal] poll error:', e.message);
+    }
+    _ajRunning = false;
+}
+
+async function ajCheckFirestore(positionId) {
+    try {
+        // Dynamic import of Firestore query helpers
+        var { getDocs, query, where } = await import(
+            'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'
+        );
+        var snap = await getDocs(
+            query(_ajTradesCol,
+                where('user_id',         '==', _ajCurrentUser),
+                where('auto_position_id', '==', String(positionId))
+            )
+        );
+        return !snap.empty;
+    } catch(e) {
+        console.warn('[AutoJournal] Firestore check failed:', e.message);
+        return false;   // assume not logged → safer to re-check next cycle
+    }
+}
+
+async function ajLogTrade(d) {
+    try {
+        var { addDoc } = await import(
+            'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'
+        );
+
+        var tradeDoc = {
+            user_id:          _ajCurrentUser,
+            timestamp:        Date.now(),
+            auto_position_id: String(d.position_id),
+            auto_ticket:      d.ticket,
+            symbol:           d.plain_symbol,
+            lots:             d.volume,
+            side:             d.side,
+            session:          d.session || 'NY',
+            profit:           d.profit,
+            entry:            d.open_price  || 0,
+            exit:             d.close_price || 0,
+            sl:               d.sl          || 0,
+            tp:               d.tp          || 0,
+            date:             d.close_date  || new Date().toISOString().split('T')[0],
+            notes:            '[AUTO] Closed via MT5 bridge · duration: '
+                              + _fmtDuration(d.duration_min)
+                              + (d.comment ? ' · ' + d.comment : ''),
+            img:              '',
+            auto_logged:      true,
+            raw_profit:       d.raw_profit    || 0,
+            swap:             d.swap          || 0,
+            commission:       d.commission    || 0,
+            open_time:        d.open_time     || 0,
+            close_time:       d.close_time    || 0,
+            duration_min:     d.duration_min  || 0,
+        };
+
+        await addDoc(_ajTradesCol, tradeDoc);
+        ajSaveSeenId(d.position_id);
+
+        var pnl = d.profit;
+        var sign = pnl >= 0 ? '+$' : '-$';
+        ajToast(
+            '✓ AUTO-LOGGED  ' + d.plain_symbol + '  '
+            + d.side + '  ' + d.volume + ' lots  '
+            + sign + Math.abs(pnl).toFixed(2)
+        );
+
+        // Re-render journal if it's currently visible
+        if (window.ui && typeof window.ui.syncData === 'function') {
+            window.ui.syncData();
+        }
+
+        console.log('[AutoJournal] Logged position_id=' + d.position_id,
+                    d.plain_symbol, d.side, pnl);
+
+    } catch(e) {
+        console.error('[AutoJournal] Failed to log trade:', e.message);
+        ajToast('⚠ Auto-log FAILED for ' + d.plain_symbol + ': ' + e.message, 'error');
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   WIRING: hook into Firebase login flow
+   The doLogin() function in your app sets window.ui after loading.
+   We wait for it, then call ajInit with the Firestore objects.
+══════════════════════════════════════════════════════════════════ */
+(function waitForFirebase() {
+    /* Poll until the Firebase module has exposed its Firestore handle.
+       We detect this by watching for the global `window._ajFirestoreReady`
+       flag set from within the ES module (see snippet below). */
+    var _ready = setInterval(function() {
+        if (window._ajFirestoreReady) {
+            clearInterval(_ready);
+            window.ajInit(
+                window._ajFirestoreReady.db,
+                window._ajFirestoreReady.col,
+                window._ajFirestoreReady.user
+            );
+        }
+    }, 1000);
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════
+   DOM READY: inject History tab into Positions panel
+══════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+    /* The panel is hidden until the user opens it.
+       We inject the tab structure on first open (see pmTogglePanel patch below). */
+    var _origToggle = window.pmTogglePanel;
+    window.pmTogglePanel = function() {
+        pmInjectHistoryTab();   // idempotent — only runs once
+        if (_origToggle) _origToggle.apply(this, arguments);
+    };
+});
 </script>
 
 </body>
