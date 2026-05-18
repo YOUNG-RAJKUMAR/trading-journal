@@ -2070,9 +2070,9 @@ function startCustomCountdown() {
     _countdownInterval = setInterval(function() {
 
         /* Market closed if no tick in last 3 minutes */
-     var marketOpen = isForexMarketOpen()
-    && window._lastTickReceived
-    && (Date.now() - window._lastTickReceived) < 3 * 60 * 1000;
+   var mt5Badge = document.getElementById('mt5-status-badge');
+var marketOpen = isForexMarketOpen()
+    && mt5Badge && mt5Badge.classList.contains('connected');
 
         var activePanels = _chartLayout === 'single' ? [1] : [1, 2];
 
