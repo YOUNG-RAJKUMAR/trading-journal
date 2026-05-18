@@ -2070,10 +2070,9 @@ function startCustomCountdown() {
     _countdownInterval = setInterval(function() {
 
         /* Market closed if no tick in last 3 minutes */
-
-var mt5Badge = document.getElementById('mt5-status-badge');
-var mt5Connected = mt5Badge && mt5Badge.classList.contains('connected');
-var marketOpen = isForexMarketOpen();  // countdown runs on market hours alone
+     var marketOpen = isForexMarketOpen()
+    && window._lastTickReceived
+    && (Date.now() - window._lastTickReceived) < 3 * 60 * 1000;
 
         var activePanels = _chartLayout === 'single' ? [1] : [1, 2];
 
@@ -2083,20 +2082,14 @@ var marketOpen = isForexMarketOpen();  // countdown runs on market hours alone
             if(!el || !val) return;
 
             /* Market closed → show CLOSED label, stop counting */
-          if (!marketOpen) {
-    val.textContent           = 'CLOSED';
-    val.style.color           = '#555';
-    el.style.borderRightColor = '#333';
-    el.style.display          = 'block';
-    return;
-}
-if (!mt5Connected) {
-    val.textContent           = 'OFFLINE';
-    val.style.color           = '#ff4444';
-    el.style.borderRightColor = '#ff4444';
-    el.style.display          = 'block';
-    return;
-}
+            if(!marketOpen) {
+                val.textContent           = 'CLOSED';
+                val.style.color           = '#555';
+                el.style.borderRightColor = '#333';
+                el.style.boxShadow        = 'none';
+                el.style.display          = 'block';
+                return;
+            }
 
             var tf     = _currentTF[num-1] || '60';
             var tfMins = getTFMinutes(tf);
