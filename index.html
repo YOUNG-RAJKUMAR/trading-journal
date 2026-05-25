@@ -6379,5 +6379,821 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- ═══════════════════════════════════════════════════════════════════════
+     COPY TRADING TAB — paste this entire block just before </body>
+     Requires: copy_trader.py running on http://localhost:8780
+     ═══════════════════════════════════════════════════════════════════════ -->
+
+<style>
+/* ── Copy Trading Tab ── */
+#tab-copy { padding: 0 0 60px; }
+
+/* Slave card */
+.ct-slave-card {
+    background: #080e1a;
+    border: 1px solid #1a2a4a;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+    position: relative;
+}
+.ct-slave-card.enabled  { border-left: 3px solid #44ff88; }
+.ct-slave-card.disabled { border-left: 3px solid #333; opacity: .65; }
+.ct-slave-card:hover    { border-color: #2a4a7a; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
+
+/* status dot */
+.ct-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; flex-shrink: 0;
+    transition: background .3s, box-shadow .3s;
+}
+.ct-dot.online  { background: #44ff88; box-shadow: 0 0 6px #44ff8866; animation: pulse 1.5s infinite; }
+.ct-dot.offline { background: #ff4444; box-shadow: none; }
+.ct-dot.idle    { background: #555; box-shadow: none; }
+
+/* log table */
+.ct-log-row:nth-child(even) { background: #080e1a; }
+.ct-log-row:hover { background: rgba(68,68,136,.08); }
+.ct-status-ok   { color: #44ff88; }
+.ct-status-fail { color: #ff4444; }
+.ct-status-warn { color: #ffcc44; }
+
+/* Add slave form */
+#ct-add-form {
+    background: #070d1a;
+    border: 1px solid #1a2a4a;
+    border-top: 2px solid #3a5a8a;
+}
+.ct-input {
+    background: #050a14 !important;
+    border: 1px solid #1a3a5a !important;
+    color: #c8dff0 !important;
+    border-radius: 3px !important;
+    padding: 9px 11px !important;
+    font-size: .8rem !important;
+    width: 100%;
+    font-family: 'Courier New', monospace;
+    transition: border-color .15s;
+}
+.ct-input:focus { border-color: #3a7ab8 !important; outline: none; box-shadow: 0 0 0 2px rgba(58,122,184,.15); }
+.ct-input::placeholder { color: #2a4a6a; }
+.ct-label { font-size: .5rem; color: #3a6a9a; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; display: block; }
+.ct-btn-primary {
+    background: #0d2a4a; border: 1px solid #2a5a8a; color: #7ab3e0;
+    padding: 10px 20px; font-size: .65rem; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; cursor: pointer; font-family: inherit;
+    border-radius: 3px; transition: all .15s;
+}
+.ct-btn-primary:hover { background: #162a50; border-color: #4a8ac8; color: #aad4f5; }
+.ct-btn-danger  {
+    background: #1a0000; border: 1px solid #4a1a1a; color: #ff5555;
+    padding: 5px 12px; font-size: .52rem; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; font-family: inherit; border-radius: 3px;
+}
+.ct-btn-danger:hover  { background: #2a0000; border-color: #aa2222; }
+.ct-btn-toggle-on  { background: #002200; border: 1px solid #2a6a2a; color: #44ff88; }
+.ct-btn-toggle-off { background: #111; border: 1px solid #222; color: #444; }
+.ct-btn-toggle-on,.ct-btn-toggle-off {
+    padding: 5px 12px; font-size: .52rem; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; font-family: inherit; border-radius: 3px;
+    transition: all .15s;
+}
+
+/* engine status bar */
+#ct-engine-bar {
+    display: flex; align-items: center; gap: 10px;
+    background: #050b15; border: 1px solid #1a2a4a;
+    padding: 8px 16px; border-radius: 3px; margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.ct-stat-pill {
+    display: flex; align-items: center; gap: 5px;
+    font-size: .52rem; color: #4a7aa8; letter-spacing: 1px;
+    text-transform: uppercase;
+    background: rgba(255,255,255,.03); border: 1px solid #1a2a3a;
+    padding: 3px 10px; border-radius: 2px;
+}
+.ct-stat-pill b { color: #c8dff0; font-size: .7rem; }
+</style>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   COPY TRADING UI ENGINE
+   API: http://localhost:8780 (copy_trader.py)
+════════════════════════════════════════════════════════════ */
+
+var CT_API = 'http://localhost:8780';
+
+var _ctSlaves     = [];
+var _ctStatus     = null;
+var _ctLog        = [];
+var _ctPollTimer  = null;
+var _ctSlaveDots  = {};    // id → 'online' | 'offline' | 'idle'
+
+/* ── Inject tab button into existing nav ── */
+(function injectCopyTab() {
+    var nav = document.querySelector('.tab-nav');
+    if (!nav || document.getElementById('btn-copy')) return;
+
+    var btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.id = 'btn-copy';
+    btn.style.color = '#8888ff';
+    btn.style.opacity = '.7';
+    btn.textContent = '⇄ Copy Trading';
+    btn.onclick = function() {
+        if (window.ui) window.ui.switchTab('copy');
+    };
+    nav.appendChild(btn);
+
+    /* Tab content pane */
+    var pane = document.createElement('div');
+    pane.id = 'tab-copy';
+    pane.className = 'tab-content';
+    pane.innerHTML = ctBuildTabHTML();
+
+    var appContainer = document.getElementById('main-content');
+    if (appContainer) appContainer.appendChild(pane);
+
+    /* Patch switchTab to handle 'copy' */
+    var origSwitch = window.ui ? window.ui.switchTab.bind(window.ui) : null;
+    if (window.ui) {
+        window.ui.switchTab = function(id) {
+            if (id === 'copy') {
+                document.querySelectorAll('.tab-content,.tab-btn').forEach(function(el) {
+                    el.classList.remove('active');
+                });
+                document.getElementById('tab-copy').classList.add('active');
+                document.getElementById('btn-copy').classList.add('active');
+                var tb = document.getElementById('charts-toolbar');
+                if (tb) tb.style.display = 'none';
+                ctStartPolling();
+            } else {
+                ctStopPolling();
+                if (origSwitch) origSwitch(id);
+            }
+        };
+    }
+})();
+
+/* ── Build initial HTML for tab ── */
+function ctBuildTabHTML() {
+    return `
+<div style="padding:16px 12px;">
+
+  <!-- ENGINE STATUS BAR -->
+  <div id="ct-engine-bar">
+    <div class="ct-stat-pill">
+      <span class="ct-dot idle" id="ct-engine-dot"></span>
+      <span id="ct-engine-label" style="color:#3a5a7a;letter-spacing:1px;">COPY ENGINE</span>
+    </div>
+    <div class="ct-stat-pill">Master Positions: <b id="ct-master-cnt">—</b></div>
+    <div class="ct-stat-pill">Slaves Active: <b id="ct-slaves-active">—</b></div>
+    <div class="ct-stat-pill">Total Slaves: <b id="ct-slaves-total">—</b></div>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+      <button class="ct-btn-primary" onclick="ctRefresh()" style="padding:5px 14px;font-size:.52rem;">↺ REFRESH</button>
+      <a href="${CT_API}/api/status" target="_blank"
+         style="font-size:.48rem;color:#2a4a6a;letter-spacing:1px;text-decoration:none;
+                border:1px solid #1a2a4a;padding:3px 8px;border-radius:2px;">
+        RAW API ↗
+      </a>
+    </div>
+  </div>
+
+  <!-- TWO-COLUMN LAYOUT -->
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start;">
+
+    <!-- LEFT: Slave Cards -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:.58rem;color:#3a5a8a;text-transform:uppercase;letter-spacing:2px;">
+          Slave Accounts
+        </span>
+        <button class="ct-btn-primary" onclick="ctShowAddForm()"
+                style="display:flex;align-items:center;gap:5px;">
+          ＋ ADD SLAVE ACCOUNT
+        </button>
+      </div>
+
+      <!-- ADD FORM (hidden by default) -->
+      <div id="ct-add-form" style="display:none;padding:20px;border-radius:4px;margin-bottom:16px;">
+        <div style="font-size:.62rem;color:#7ab3e0;letter-spacing:2px;font-weight:700;margin-bottom:16px;">
+          NEW SLAVE ACCOUNT
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <span class="ct-label">Account ID *</span>
+            <input class="ct-input" id="ct-f-account" type="number" placeholder="900909515443">
+          </div>
+          <div>
+            <span class="ct-label">Password *</span>
+            <input class="ct-input" id="ct-f-password" type="password" placeholder="••••••••">
+          </div>
+          <div>
+            <span class="ct-label">Broker Server *</span>
+            <input class="ct-input" id="ct-f-server" placeholder="StoxPips-Trade">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <span class="ct-label">Label</span>
+            <input class="ct-input" id="ct-f-label" placeholder="My Slave 1">
+          </div>
+          <div>
+            <span class="ct-label">Risk % of Starting Bal</span>
+            <input class="ct-input" id="ct-f-risk" type="number" value="1" step="0.1" min="0.01" max="10">
+          </div>
+          <div>
+            <span class="ct-label">Starting Balance ($)</span>
+            <input class="ct-input" id="ct-f-balance" type="number" value="10000" step="100">
+          </div>
+          <div>
+            <span class="ct-label">HTTP Port (0=auto)</span>
+            <input class="ct-input" id="ct-f-port" type="number" value="0" step="1">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div>
+            <span class="ct-label">MT5 Exe Path (optional — auto-filled by setup_slaves.py)</span>
+            <input class="ct-input" id="ct-f-mt5path" placeholder="C:\\MT5_Accounts\\Account_12345678\\terminal64.exe">
+          </div>
+          <div>
+            <span class="ct-label">Notes</span>
+            <input class="ct-input" id="ct-f-notes" placeholder="VPS account, prop firm…">
+          </div>
+        </div>
+
+        <!-- SETUP COMMAND PREVIEW -->
+        <div id="ct-setup-cmd-preview" style="background:#020810;border:1px solid #1a2a4a;padding:10px 14px;
+             border-radius:3px;margin-bottom:14px;font-family:'Courier New',monospace;
+             font-size:.62rem;color:#4a7aa8;line-height:1.7;display:none;">
+          <span style="font-size:.44rem;color:#2a4a6a;letter-spacing:1px;text-transform:uppercase;">
+            Run this in your PC's terminal to create the MT5 folder automatically:
+          </span><br>
+          <span id="ct-setup-cmd-text"></span>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="ct-btn-primary" onclick="ctAddSlave()"
+                  style="background:#0d2a0d;border-color:#2a6a2a;color:#44ff88;">
+            ✓ ADD & REGISTER SLAVE
+          </button>
+          <button class="ct-btn-primary" onclick="ctShowSetupCmd()" style="font-size:.52rem;">
+            🖥 SHOW SETUP COMMAND
+          </button>
+          <button onclick="ctHideAddForm()"
+                  style="background:transparent;border:1px solid #2a2a4a;color:#4a4a8a;
+                         padding:10px 16px;font-size:.62rem;cursor:pointer;border-radius:3px;
+                         font-family:inherit;text-transform:uppercase;letter-spacing:1px;">
+            CANCEL
+          </button>
+          <span id="ct-add-feedback" style="font-size:.58rem;color:#555;margin-left:8px;"></span>
+        </div>
+      </div>
+
+      <!-- SLAVE CARDS CONTAINER -->
+      <div id="ct-slaves-container">
+        <div style="padding:40px;text-align:center;font-size:.62rem;
+                    color:#1a2a4a;letter-spacing:2px;">
+          LOADING SLAVES…
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Log + Stats -->
+    <div>
+      <!-- ENGINE INSTRUCTIONS (shown before first slave) -->
+      <div id="ct-instructions" style="background:#050b15;border:1px solid #1a2a4a;
+           border-left:2px solid #3a5a8a;padding:16px;border-radius:3px;margin-bottom:16px;">
+        <div style="font-size:.58rem;color:#4a7aa8;letter-spacing:2px;font-weight:700;margin-bottom:12px;">
+          🚀 QUICK START
+        </div>
+        <div style="font-size:.62rem;color:#3a5a7a;line-height:2;">
+          <b style="color:#7ab3e0;">1.</b> Run <code style="color:#44ff88;background:#020810;
+             padding:1px 6px;border-radius:2px;">start_copy_system.bat</code> on your PC<br>
+          <b style="color:#7ab3e0;">2.</b> Click <b style="color:#fff;">＋ ADD SLAVE ACCOUNT</b> above<br>
+          <b style="color:#7ab3e0;">3.</b> Enter account details + risk %<br>
+          <b style="color:#7ab3e0;">4.</b> Run the generated <code style="color:#44ff88;
+             background:#020810;padding:1px 6px;border-radius:2px;">setup_slaves.py</code> command on PC<br>
+          <b style="color:#7ab3e0;">5.</b> Slave bridge auto-launches and copies begin<br>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #1a2a3a;
+                    font-size:.52rem;color:#2a4a6a;line-height:1.8;">
+          <b style="color:#4a6a8a;">Lot calc formula:</b><br>
+          lots = (risk% × starting_balance) ÷ (SL_distance × $/pt)<br>
+          $/pt = live from slave's <code style="color:#44ff88;">/api/symbol_info</code>
+        </div>
+      </div>
+
+      <!-- COPY LOG -->
+      <div style="font-size:.52rem;color:#3a5a8a;text-transform:uppercase;
+                  letter-spacing:2px;margin-bottom:8px;
+                  display:flex;align-items:center;justify-content:space-between;">
+        <span>Copy Log</span>
+        <button onclick="ctClearLog()" style="background:transparent;border:1px solid #1a2a3a;
+                color:#2a4a6a;padding:2px 8px;font-size:.44rem;cursor:pointer;letter-spacing:1px;
+                text-transform:uppercase;font-family:inherit;border-radius:2px;">
+          CLEAR
+        </button>
+      </div>
+      <div style="background:#050b15;border:1px solid #1a2a4a;border-radius:3px;overflow:hidden;">
+        <div style="display:grid;grid-template-columns:55px 1fr 55px 55px;
+                    background:#080e1a;border-bottom:1px solid #0d1a2a;
+                    padding:5px 12px;align-items:center;">
+          <span style="font-size:.42rem;color:#2a4a6a;text-transform:uppercase;letter-spacing:1px;">TIME</span>
+          <span style="font-size:.42rem;color:#2a4a6a;text-transform:uppercase;letter-spacing:1px;">EVENT</span>
+          <span style="font-size:.42rem;color:#2a4a6a;text-transform:uppercase;letter-spacing:1px;">LOTS</span>
+          <span style="font-size:.42rem;color:#2a4a6a;text-transform:uppercase;letter-spacing:1px;">STATUS</span>
+        </div>
+        <div id="ct-log-container" style="max-height:420px;overflow-y:auto;
+             scrollbar-width:thin;scrollbar-color:#1a2a4a #050b15;">
+          <div style="padding:20px;text-align:center;font-size:.58rem;color:#1a2a4a;letter-spacing:1px;">
+            No copy events yet
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>`;
+}
+
+/* ── Polling ── */
+function ctStartPolling() {
+    ctRefresh();
+    if (_ctPollTimer) clearInterval(_ctPollTimer);
+    _ctPollTimer = setInterval(ctRefresh, 2000);
+}
+function ctStopPolling() {
+    clearInterval(_ctPollTimer);
+    _ctPollTimer = null;
+}
+
+async function ctRefresh() {
+    await Promise.all([ctFetchStatus(), ctFetchSlaves(), ctFetchLog()]);
+    ctRenderAll();
+}
+
+async function ctFetchStatus() {
+    try {
+        var r = await fetch(CT_API + '/api/status', { signal: AbortSignal.timeout(3000) });
+        _ctStatus = r.ok ? await r.json() : null;
+    } catch(e) { _ctStatus = null; }
+}
+async function ctFetchSlaves() {
+    try {
+        var r = await fetch(CT_API + '/api/slaves', { signal: AbortSignal.timeout(3000) });
+        if (r.ok) _ctSlaves = (await r.json()).slaves || [];
+    } catch(e) {}
+}
+async function ctFetchLog() {
+    try {
+        var r = await fetch(CT_API + '/api/log?limit=100', { signal: AbortSignal.timeout(3000) });
+        if (r.ok) _ctLog = (await r.json()).log || [];
+    } catch(e) {}
+}
+
+/* ── Render everything ── */
+function ctRenderAll() {
+    ctRenderEngineBar();
+    ctRenderSlaves();
+    ctRenderLog();
+}
+
+function ctRenderEngineBar() {
+    var dot   = document.getElementById('ct-engine-dot');
+    var label = document.getElementById('ct-engine-label');
+    var mCnt  = document.getElementById('ct-master-cnt');
+    var sAct  = document.getElementById('ct-slaves-active');
+    var sTot  = document.getElementById('ct-slaves-total');
+
+    if (_ctStatus) {
+        dot.className   = 'ct-dot online';
+        label.textContent = '● COPY ENGINE ONLINE';
+        label.style.color = '#44ff88';
+        if (mCnt) mCnt.textContent = _ctStatus.master_positions;
+        if (sAct) sAct.textContent = _ctStatus.slaves_enabled;
+        if (sTot) sTot.textContent = _ctStatus.slaves_total;
+    } else {
+        dot.className   = 'ct-dot offline';
+        label.textContent = '✗ ENGINE OFFLINE';
+        label.style.color = '#ff4444';
+        if (mCnt) mCnt.textContent = '—';
+        if (sAct) sAct.textContent = '—';
+        if (sTot) sTot.textContent = '—';
+    }
+}
+
+function ctRenderSlaves() {
+    var container = document.getElementById('ct-slaves-container');
+    if (!container) return;
+
+    if (!_ctStatus && _ctSlaves.length === 0) {
+        container.innerHTML = `
+            <div style="padding:30px;text-align:center;border:1px solid #1a2a4a;border-radius:4px;
+                        background:#050b15;">
+                <div style="font-size:.65rem;color:#ff4444;letter-spacing:2px;margin-bottom:8px;">
+                    ⚠ COPY ENGINE OFFLINE
+                </div>
+                <div style="font-size:.58rem;color:#2a4a6a;line-height:2;">
+                    Start <code style="color:#44ff88;background:#020810;padding:1px 6px;">
+                    start_copy_system.bat</code> on your PC
+                </div>
+            </div>`;
+        return;
+    }
+
+    if (_ctSlaves.length === 0) {
+        container.innerHTML = `
+            <div style="padding:40px;text-align:center;font-size:.62rem;
+                        color:#1a2a4a;letter-spacing:2px;border:1px dashed #1a2a4a;border-radius:4px;">
+                NO SLAVE ACCOUNTS — click ＋ ADD SLAVE ACCOUNT
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = _ctSlaves.map(function(slave) {
+        var enabled = slave.enabled !== false;
+        var dotCls  = _ctSlaveDots[slave.id] || 'idle';
+
+        /* Recent copies for this slave */
+        var recentCopies = _ctLog.filter(function(e) {
+            return e.slave === slave.label && e.event === 'COPY_OK';
+        }).slice(0, 3);
+
+        var pnlEntries = _ctLog.filter(function(e) {
+            return e.slave === slave.label;
+        });
+        var wins   = pnlEntries.filter(function(e){ return e.event === 'COPY_OK'; }).length;
+        var fails  = pnlEntries.filter(function(e){ return e.event === 'COPY_FAIL'; }).length;
+
+        /* Find positions currently on this slave from copy_map */
+        var openCount = 0;
+        if (_ctStatus && _ctStatus.copy_map) {
+            Object.values(_ctStatus.copy_map).forEach(function(m) {
+                if (m[slave.id]) openCount++;
+            });
+        }
+
+        return `
+<div class="ct-slave-card ${enabled ? 'enabled' : 'disabled'}" style="margin-bottom:12px;">
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;justify-content:space-between;
+              padding:10px 16px;background:#080f1c;border-bottom:1px solid #0d1a2a;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="ct-dot ${dotCls}" id="ctdot-${slave.id}"></span>
+      <div>
+        <div style="font-size:.78rem;font-weight:700;color:#c8dff0;letter-spacing:.5px;">
+          ${slave.label}
+        </div>
+        <div style="font-size:.52rem;color:#3a5a7a;letter-spacing:.5px;margin-top:1px;">
+          #${slave.account} @ ${slave.server}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:.48rem;color:#3a5a7a;letter-spacing:1px;padding:2px 8px;
+                   border:1px solid #1a2a3a;border-radius:2px;">
+        PORT :${slave.http_port}
+      </span>
+      <button class="ct-btn-toggle-${enabled ? 'on' : 'off'}"
+              onclick="ctToggleSlave('${slave.id}', ${!enabled})">
+        ${enabled ? '● ON' : '○ OFF'}
+      </button>
+      <button onclick="ctTestSlave('${slave.id}')" title="Ping bridge"
+              style="background:transparent;border:1px solid #1a2a4a;color:#4a6a9a;
+                     padding:5px 10px;font-size:.5rem;cursor:pointer;border-radius:3px;
+                     font-family:inherit;text-transform:uppercase;letter-spacing:.5px;">
+        PING
+      </button>
+      <button class="ct-btn-danger" onclick="ctDeleteSlave('${slave.id}', '${slave.label}')">
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr) 1fr;
+              padding:12px 16px;gap:12px;align-items:start;">
+
+    <!-- Risk config -->
+    <div>
+      <div style="font-size:.44rem;color:#2a4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
+        Risk Config
+      </div>
+      <div style="font-size:.78rem;color:#44ff88;font-weight:700;font-family:'Courier New',monospace;">
+        ${slave.risk_pct}%
+      </div>
+      <div style="font-size:.52rem;color:#3a5a7a;margin-top:1px;">
+        of $${Number(slave.starting_balance).toLocaleString()}
+      </div>
+      <div style="font-size:.55rem;color:#4a7aa8;margin-top:3px;font-family:'Courier New',monospace;">
+        ≈ $${(slave.risk_pct * slave.starting_balance / 100).toFixed(2)} / trade
+      </div>
+    </div>
+
+    <!-- Open positions -->
+    <div>
+      <div style="font-size:.44rem;color:#2a4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
+        Open (copied)
+      </div>
+      <div style="font-size:1.4rem;color:#c8dff0;font-weight:300;font-family:'Courier New',monospace;">
+        ${openCount}
+      </div>
+    </div>
+
+    <!-- Copied ok -->
+    <div>
+      <div style="font-size:.44rem;color:#2a4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
+        Copied OK
+      </div>
+      <div style="font-size:1.4rem;color:#44ff88;font-weight:300;">${wins}</div>
+    </div>
+
+    <!-- Copy fails -->
+    <div>
+      <div style="font-size:.44rem;color:#2a4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
+        Failed
+      </div>
+      <div style="font-size:1.4rem;color:${fails > 0 ? '#ff4444' : '#333'};font-weight:300;">${fails}</div>
+    </div>
+
+    <!-- Live balance -->
+    <div>
+      <div style="font-size:.44rem;color:#2a4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
+        Live Balance
+      </div>
+      <div id="ct-bal-${slave.id}"
+           style="font-size:.8rem;color:#1a4a1a;font-family:'Courier New',monospace;font-weight:700;">
+        $—
+      </div>
+      <button onclick="ctFetchSlaveBalance('${slave.id}')"
+              style="background:transparent;border:1px solid #1a2a3a;color:#2a4a6a;
+                     padding:1px 6px;font-size:.44rem;cursor:pointer;border-radius:2px;
+                     font-family:inherit;margin-top:3px;letter-spacing:.5px;">
+        FETCH
+      </button>
+    </div>
+  </div>
+
+  <!-- Recent copy events -->
+  ${recentCopies.length > 0 ? `
+  <div style="border-top:1px solid #0d1420;padding:6px 16px;display:flex;gap:8px;flex-wrap:wrap;">
+    ${recentCopies.map(function(e) {
+        return `<span style="font-size:.48rem;background:#001a08;border:1px solid #1a3a2a;
+                      color:#44cc88;padding:1px 8px;border-radius:2px;">
+                  ${e.time} · ${e.symbol} ${e.side} ${e.lots}L
+                </span>`;
+    }).join('')}
+  </div>` : ''}
+
+  <!-- Status badge -->
+  <div id="ct-slave-status-${slave.id}"
+       style="font-size:.48rem;color:#555;padding:4px 16px;border-top:1px solid #0a1018;
+              font-family:'Courier New',monospace;min-height:22px;">
+    ${enabled ? '● ACTIVE — will receive copies from master' : '○ DISABLED — copies paused'}
+  </div>
+</div>`;
+    }).join('');
+
+    // Auto-fetch balances for online slaves
+    _ctSlaves.forEach(function(slave) {
+        if (slave.enabled !== false) {
+            ctFetchSlaveBalance(slave.id);
+        }
+    });
+}
+
+/* ── Fetch live balance for a single slave ── */
+async function ctFetchSlaveBalance(slaveId) {
+    var el = document.getElementById('ct-bal-' + slaveId);
+    if (!el) return;
+    try {
+        var r = await fetch(CT_API + '/api/slaves/' + slaveId + '/account',
+                            { signal: AbortSignal.timeout(3000) });
+        if (r.ok) {
+            var d = await r.json();
+            if (d.balance) {
+                el.textContent = '$' + Number(d.balance).toLocaleString('en', {
+                    minimumFractionDigits: 2, maximumFractionDigits: 2,
+                });
+                el.style.color = '#44ff88';
+                /* Update dot */
+                var dot = document.getElementById('ctdot-' + slaveId);
+                if (dot) { dot.className = 'ct-dot online'; }
+                _ctSlaveDots[slaveId] = 'online';
+            }
+        }
+    } catch(e) {
+        el.textContent = 'offline';
+        el.style.color = '#ff4444';
+        var dot = document.getElementById('ctdot-' + slaveId);
+        if (dot) dot.className = 'ct-dot offline';
+        _ctSlaveDots[slaveId] = 'offline';
+    }
+}
+
+function ctRenderLog() {
+    var container = document.getElementById('ct-log-container');
+    if (!container) return;
+
+    if (_ctLog.length === 0) {
+        container.innerHTML = `<div style="padding:16px;text-align:center;
+            font-size:.55rem;color:#1a2a4a;letter-spacing:1px;">No copy events yet</div>`;
+        return;
+    }
+
+    container.innerHTML = _ctLog.map(function(e) {
+        var statusCls = e.status === 'OK' ? 'ct-status-ok'
+                      : e.status === 'FAIL' ? 'ct-status-fail'
+                      : 'ct-status-warn';
+        var icon = e.event === 'COPY_OK'    ? '✓'
+                 : e.event === 'CLOSE_OK'   ? '⊠'
+                 : e.event === 'COPY_FAIL'  ? '✗'
+                 : e.event === 'CLOSE_FAIL' ? '✗'
+                 : e.event === 'BRIDGE_DOWN'? '⚡'
+                 : e.event === 'NO_SPEC'    ? '⚠'
+                 : '·';
+
+        var detail = e.symbol
+            ? `${e.symbol} ${e.side || ''} ${e.lots ? e.lots + 'L' : ''}`.trim()
+            : (e.msg || e.event);
+
+        return `<div class="ct-log-row" style="display:grid;
+                    grid-template-columns:55px 1fr 55px 55px;
+                    padding:5px 12px;align-items:center;border-bottom:1px solid #070d18;">
+            <span style="font-size:.58rem;color:#2a4a6a;font-family:'Courier New',monospace;">
+                ${e.time || ''}
+            </span>
+            <div>
+                <span style="font-size:.62rem;color:#c8dff0;">
+                    ${icon} ${e.slave || ''} · ${detail}
+                </span>
+                ${e.risk_usd ? `<span style="font-size:.44rem;color:#3a5a7a;margin-left:6px;">
+                    risk $${e.risk_usd}</span>` : ''}
+            </div>
+            <span style="font-size:.58rem;color:#4a7aa8;font-family:'Courier New',monospace;">
+                ${e.lots || ''}
+            </span>
+            <span class="${statusCls}" style="font-size:.55rem;font-weight:700;">
+                ${e.status || ''}
+            </span>
+        </div>`;
+    }).join('');
+}
+
+/* ── ACTIONS ── */
+function ctShowAddForm() {
+    var f = document.getElementById('ct-add-form');
+    if (f) { f.style.display = 'block'; f.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+}
+function ctHideAddForm() {
+    var f = document.getElementById('ct-add-form');
+    if (f) f.style.display = 'none';
+}
+
+function ctShowSetupCmd() {
+    var account  = document.getElementById('ct-f-account').value.trim();
+    var password = document.getElementById('ct-f-password').value.trim();
+    var server   = document.getElementById('ct-f-server').value.trim();
+    var risk     = document.getElementById('ct-f-risk').value || '1';
+    var balance  = document.getElementById('ct-f-balance').value || '10000';
+    var label    = document.getElementById('ct-f-label').value.trim();
+    var port     = document.getElementById('ct-f-port').value || '0';
+
+    if (!account || !password || !server) {
+        document.getElementById('ct-add-feedback').textContent = 'Fill account, password, server first';
+        document.getElementById('ct-add-feedback').style.color = '#ff4444';
+        return;
+    }
+
+    var cmd = `python setup_slaves.py --account ${account} --password ${password} --server "${server}"${label ? ` --label "${label}"` : ''} --risk-pct ${risk} --starting-balance ${balance}${port !== '0' ? ` --http-port ${port}` : ''}`;
+
+    document.getElementById('ct-setup-cmd-text').textContent = cmd;
+    document.getElementById('ct-setup-cmd-preview').style.display = 'block';
+}
+
+async function ctAddSlave() {
+    var fb = document.getElementById('ct-add-feedback');
+    fb.textContent = ''; fb.style.color = '#555';
+
+    var account  = parseInt(document.getElementById('ct-f-account').value);
+    var password = document.getElementById('ct-f-password').value.trim();
+    var server   = document.getElementById('ct-f-server').value.trim();
+    var risk     = parseFloat(document.getElementById('ct-f-risk').value) || 1;
+    var balance  = parseFloat(document.getElementById('ct-f-balance').value) || 10000;
+    var label    = document.getElementById('ct-f-label').value.trim();
+    var port     = parseInt(document.getElementById('ct-f-port').value) || 0;
+    var mt5path  = document.getElementById('ct-f-mt5path').value.trim();
+    var notes    = document.getElementById('ct-f-notes').value.trim();
+
+    if (!account || !password || !server) {
+        fb.textContent = '✗ Account, password and server are required';
+        fb.style.color = '#ff4444';
+        return;
+    }
+
+    fb.textContent = '⟳ Adding…'; fb.style.color = '#ffcc44';
+
+    try {
+        var r = await fetch(CT_API + '/api/slaves', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                account, password, server,
+                label: label || `Slave ${account}`,
+                risk_pct: risk,
+                starting_balance: balance,
+                http_port: port,
+                mt5_path: mt5path,
+                notes,
+                auto_launch: false,   // user runs .bat manually
+            }),
+        });
+        var result = await r.json();
+        if (result.success) {
+            fb.textContent = `✓ Slave ${account} added on port ${result.slave.http_port}`;
+            fb.style.color = '#44ff88';
+            ctHideAddForm();
+            await ctRefresh();
+        } else {
+            fb.textContent = '✗ ' + (result.error || 'Unknown error');
+            fb.style.color = '#ff4444';
+        }
+    } catch(e) {
+        fb.textContent = '✗ Engine offline — start start_copy_system.bat first';
+        fb.style.color = '#ff4444';
+    }
+}
+
+async function ctDeleteSlave(id, label) {
+    if (!confirm(`Remove slave "${label}"?  Chart lines and copy map cleared.`)) return;
+    try {
+        var r = await fetch(CT_API + '/api/slaves/' + id, { method: 'DELETE' });
+        var result = await r.json();
+        if (result.success) { await ctRefresh(); }
+        else { alert('Delete failed: ' + result.error); }
+    } catch(e) {
+        alert('Engine offline');
+    }
+}
+
+async function ctToggleSlave(id, enable) {
+    try {
+        await fetch(CT_API + '/api/slaves/' + id + '/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled: enable }),
+        });
+        await ctRefresh();
+    } catch(e) {
+        alert('Engine offline');
+    }
+}
+
+async function ctTestSlave(id) {
+    var statusEl = document.getElementById('ct-slave-status-' + id);
+    if (statusEl) { statusEl.textContent = '⟳ Pinging bridge…'; statusEl.style.color = '#ffcc44'; }
+    try {
+        var r = await fetch(CT_API + '/api/slaves/' + id + '/test', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+        });
+        var result = await r.json();
+        if (result.success) {
+            var msg = `✓ Bridge ONLINE — Balance $${Number(result.balance).toFixed(2)}  Equity $${Number(result.equity).toFixed(2)}`;
+            if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#44ff88'; }
+            _ctSlaveDots[id] = 'online';
+            var dot = document.getElementById('ctdot-' + id);
+            if (dot) dot.className = 'ct-dot online';
+        } else {
+            if (statusEl) { statusEl.textContent = '✗ ' + result.error; statusEl.style.color = '#ff4444'; }
+            _ctSlaveDots[id] = 'offline';
+            var dot = document.getElementById('ctdot-' + id);
+            if (dot) dot.className = 'ct-dot offline';
+        }
+    } catch(e) {
+        if (statusEl) { statusEl.textContent = '✗ Copy engine offline'; statusEl.style.color = '#ff4444'; }
+    }
+}
+
+function ctClearLog() {
+    _ctLog = [];
+    ctRenderLog();
+}
+
+/* ── Update form preview on input ── */
+document.addEventListener('input', function(e) {
+    var fields = ['ct-f-account','ct-f-password','ct-f-server',
+                  'ct-f-risk','ct-f-balance','ct-f-label','ct-f-port'];
+    if (fields.indexOf(e.target.id) !== -1) {
+        var preview = document.getElementById('ct-setup-cmd-preview');
+        if (preview && preview.style.display !== 'none') ctShowSetupCmd();
+    }
+});
+
+console.log('[CopyTrading] UI module loaded — engine API:', CT_API);
+</script>
+
 </body>
 </html>
