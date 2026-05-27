@@ -985,54 +985,8 @@ body.theme-frosted .stat-val {
         #mt5-offline-overlay code { background:#111;border:1px solid #333;color:#44ff88;padding:6px 14px;font-size:.7rem;border-radius:3px;display:block;margin-top:4px; }
          .btn-use-tv { background:#fff;color:#000;border:none;padding:8px 20px;font-size:.62rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;margin-top:4px; }
 
-    #tab-charts.active { display:flex !important;}
+        #tab-charts.active { display:flex !important;}
         
-       /* Unified Panel Styling for Charts and Calculator */
-     #tab-calculator, .custom-tab-panel {
-            background: var(--bg);
-            border-radius: var(--r);
-            border: 1px solid var(--sf2);
-            padding: 20px;
-            color: var(--tx);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            margin-top: 15px;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        #tab-charts {
-    border-radius: 0 !important;
-    border: none !important;
-    padding: 0 !important;
-    margin-top: 0 !important;
-    background: transparent !important;
-    overflow: hidden;
-}
-
-      /* Force BOTH Charts and Calculator iframes to stretch full width */
-        #tab-charts iframe, #tab-calculator iframe {
-            border: none;
-            border-radius: 8px;
-            width: 100% !important;
-            min-height: 700px !important; /* Made taller so the calculator isn't cut off */
-            background: transparent; 
-        }
-
-        /* Ensure the calculator tab container expands properly */
-        #tab-calculator {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* Ensure inputs in the calculator match the dark theme */
-        #tab-calculator input, #tab-calculator select {
-            background: var(--sf3);
-            border: 1px solid var(--sf2);
-            color: var(--tl);
-            padding: 10px;
-            border-radius: 6px;
-            outline: none;
-        }
         
     </style>
 </head>
@@ -1093,10 +1047,6 @@ body.theme-frosted .stat-val {
         <button class="tab-btn"        id="btn-charts"    onclick="ui.switchTab('charts')" style="color:#44ff88;opacity:0.7;">📈 Charts & Calculator ↗</button>
         <button class="tab-btn"        id="btn-calendar"  onclick="ui.switchTab('calendar')">Performance Calendar</button>
         <button class="tab-btn"        id="btn-analytics" onclick="ui.switchTab('analytics')">Data & Charts</button>
-        <button class="tab-btn" id="btn-copytrade"
-  onclick="ui.switchTab('copytrade')">
-  📡 Copy Trading
-</button
     
       
     </nav>
@@ -1610,15 +1560,7 @@ body.theme-frosted .stat-val {
             <div class="card"><h3 style="font-size:0.65rem;color:#555;text-transform:uppercase;letter-spacing:2px;margin:0 0 18px;">Avg P&amp;L by Day of Week</h3><canvas id="dowPnlChart" height="160"></canvas></div>
         </div>
     </div>
-<!-- COPY TRADING TAB -->
-<div id="tab-copytrade" class="tab-content">
-  <iframe
-    src="copy_trading_settings.html"
-    style="width:100%;height:calc(100vh - 120px);
-           border:none;display:block;"
-    title="Copy Trading Settings">
-  </iframe>
-</div>
+
 </div><!-- /app -->
 
 <!-- ══════════════════════════════════════════════════════
@@ -2358,7 +2300,6 @@ window.ui = {
     if(id === 'journal')   this.renderJournal();
     if(id === 'charts')    { this.launchTradingDesk(); window.scrollTo(0, document.body.scrollHeight); }
     if(id === 'backtest')  window.initReplayTab && window.initReplayTab();
-       if(id === 'copytrade') {}  // iframe loads itself
 },
 _tvColors() {
     return {
