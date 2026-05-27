@@ -999,12 +999,21 @@ body.theme-frosted .stat-val {
             animation: fadeIn 0.3s ease-in-out;
         }
 
-        #tab-charts iframe {
+      /* Force BOTH Charts and Calculator iframes to stretch full width */
+        #tab-charts iframe, #tab-calculator iframe {
             border: none;
             border-radius: 8px;
+            width: 100% !important;
+            min-height: 700px !important; /* Made taller so the calculator isn't cut off */
+            background: transparent; 
+        }
+
+        /* Ensure the calculator tab container expands properly */
+        #tab-calculator {
             width: 100%;
-            min-height: 550px;
-            background: #04080f; /* Dark background behind chart */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         /* Ensure inputs in the calculator match the dark theme */
