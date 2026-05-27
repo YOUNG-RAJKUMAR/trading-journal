@@ -985,14 +985,16 @@ body.theme-frosted .stat-val {
         #mt5-offline-overlay code { background:#111;border:1px solid #333;color:#44ff88;padding:6px 14px;font-size:.7rem;border-radius:3px;display:block;margin-top:4px; }
          .btn-use-tv { background:#fff;color:#000;border:none;padding:8px 20px;font-size:.62rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;margin-top:4px; }
 
-       #tab-charts.active { display:flex !important;}
+    #tab-charts.active { display:flex !important;}
         
         /* Unified Panel Styling for Charts and Calculator */
         #tab-charts, #tab-calculator, .custom-tab-panel {
             background: var(--bg);
             border-radius: var(--r);
-            border: 1px solid var(--border);
-            color: var(--text);
+            border: 1px solid var(--sf2);
+            padding: 20px;
+            color: var(--tx);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
             margin-top: 15px;
             animation: fadeIn 0.3s ease-in-out;
         }
@@ -1002,14 +1004,14 @@ body.theme-frosted .stat-val {
             border-radius: 8px;
             width: 100%;
             min-height: 550px;
-            background: #04080f;
+            background: #04080f; /* Dark background behind chart */
         }
 
         /* Ensure inputs in the calculator match the dark theme */
         #tab-calculator input, #tab-calculator select {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text-light);
+            background: var(--sf3);
+            border: 1px solid var(--sf2);
+            color: var(--tl);
             padding: 10px;
             border-radius: 6px;
             outline: none;
