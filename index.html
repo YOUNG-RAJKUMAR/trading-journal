@@ -987,8 +987,8 @@ body.theme-frosted .stat-val {
 
     #tab-charts.active { display:flex !important;}
         
-        /* Unified Panel Styling for Charts and Calculator */
-        #tab-charts, #tab-calculator, .custom-tab-panel {
+       /* Unified Panel Styling for Charts and Calculator */
+     #tab-calculator, .custom-tab-panel {
             background: var(--bg);
             border-radius: var(--r);
             border: 1px solid var(--sf2);
@@ -998,6 +998,14 @@ body.theme-frosted .stat-val {
             margin-top: 15px;
             animation: fadeIn 0.3s ease-in-out;
         }
+        #tab-charts {
+    border-radius: 0 !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-top: 0 !important;
+    background: transparent !important;
+    overflow: hidden;
+}
 
       /* Force BOTH Charts and Calculator iframes to stretch full width */
         #tab-charts iframe, #tab-calculator iframe {
