@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Copy Trading Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04080f;--sf:rgba(28,38,68,.72);--sf2:rgba(255,255,255,.08);
+  --ac:#60a8ff;--ac2:rgba(96,168,255,.15);--ac3:rgba(96,168,255,.3);
+  --pos:#30d158;--neg:#ff453a;--warn:#ff9f0a;
+  --tx:#6080a8;--tl:#ddeaff;--r:16px;
+}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;min-height:100vh;padding:20px;}
+h2{color:var(--tl);font-size:.85rem;font-weight:600;letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:4px;}
+.sub{font-size:.55rem;color:var(--tx);letter-spacing:1px;margin-bottom:24px;}
+
+/* ── MASTER BAR ── */
+#master-bar{display:flex;align-items:center;gap:12px;
+  background:rgba(28,38,68,.5);border:0.5px solid var(--sf2);
+  border-radius:var(--r);padding:14px 20px;margin-bottom:20px;flex-wrap:wrap;}
+#master-bar .dot{width:8px;height:8px;border-radius:50%;background:#333;
+  display:inline-block;flex-shrink:0;}
+#master-bar .dot.on{background:var(--pos);box-shadow:0 0 8px rgba(48,209,88,.5);
+  animation:pulse 1.5s infinite;}
+.mstat{display:flex;flex-direction:column;gap:1px;min-width:80px;}
+.mstat-lbl{font-size:.44rem;color:var(--tx);text-transform:uppercase;letter-spacing:1px;}
+.mstat-val{font-size:.88rem;color:var(--tl);font-weight:600;font-family:'Courier New',monospace;}
+
+/* ── TOGGLE BUTTON ── */
+#toggle-btn{margin-left:auto;padding:8px 20px;border-radius:100px;
+  font-size:.6rem;font-weight:700;letter-spacing:1.5px;cursor:pointer;
+  font-family:inherit;text-transform:uppercase;transition:all .2s;border:none;}
+#toggle-btn.on{background:rgba(48,209,88,.18);border:1px solid rgba(48,209,88,.4);color:var(--pos);}
+#toggle-btn.off{background:rgba(255,69,58,.14);border:1px solid rgba(255,69,58,.35);color:var(--neg);}
+
+/* ── SLAVE GRID ── */
+.slaves-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:24px;}
+.slave-card{background:var(--sf);border:0.5px solid var(--sf2);border-radius:var(--r);
+  padding:20px;transition:all .3s;}
+.slave-card.active{border-color:var(--ac3);box-shadow:0 0 0 1px var(--ac2);}
+.slave-card.daily-hit{border-color:rgba(255,69,58,.4);box-shadow:0 0 0 1px rgba(255,69,58,.15);}
+
+.slave-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.slave-dot{width:8px;height:8px;border-radius:50%;background:#333;
+  flex-shrink:0;transition:all .3s;}
+.slave-dot.on{background:var(--pos);box-shadow:0 0 8px rgba(48,209,88,.5);animation:pulse 1.5s infinite;}
+.slave-dot.warn{background:var(--warn);}
+.slave-name{font-size:.78rem;font-weight:700;color:var(--tl);flex:1;}
+.slave-toggle{padding:5px 12px;border-radius:100px;font-size:.52rem;font-weight:700;
+  letter-spacing:1px;cursor:pointer;font-family:inherit;text-transform:uppercase;
+  border:none;transition:all .2s;}
+.slave-toggle.on{background:rgba(48,209,88,.15);border:1px solid rgba(48,209,88,.35);color:var(--pos);}
+.slave-toggle.off{background:rgba(255,255,255,.06);border:0.5px solid var(--sf2);color:var(--tx);}
+
+/* ── FORM FIELDS ── */
+.field-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.field-group.single{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:.5rem;color:var(--tx);text-transform:uppercase;letter-spacing:1px;}
+.field input,.field select{
+  background:rgba(255,255,255,.06);border:0.5px solid var(--sf2);
+  color:var(--tl);border-radius:10px;padding:9px 12px;font-size:.78rem;
+  font-family:inherit;outline:none;transition:all .2s;-moz-appearance:textfield;}
+.field input:focus,.field select:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac2);}
+.field input::placeholder{color:rgba(255,255,255,.2);}
+.field select option{background:#0e1a34;color:var(--tl);}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+
+/* ── RISK TOGGLE ── */
+.risk-tabs{display:flex;background:rgba(255,255,255,.04);border:0.5px solid var(--sf2);
+  border-radius:100px;padding:3px;gap:2px;margin-bottom:10px;}
+.risk-tab{flex:1;padding:6px;font-size:.52rem;font-weight:600;letter-spacing:1px;
+  cursor:pointer;font-family:inherit;border:none;background:transparent;
+  color:rgba(255,255,255,.35);border-radius:100px;text-transform:uppercase;transition:all .2s;}
+.risk-tab.active{background:rgba(96,168,255,.2);color:#fff;
+  box-shadow:0 0 0 1px rgba(96,168,255,.4);}
+
+/* ── SLAVE STATS ── */
+.slave-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;
+  padding-top:12px;border-top:0.5px solid var(--sf2);}
+.slave-stat{background:rgba(255,255,255,.03);border:0.5px solid var(--sf2);
+  border-radius:10px;padding:8px;text-align:center;}
+.slave-stat-lbl{font-size:.42rem;color:var(--tx);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;}
+.slave-stat-val{font-size:.88rem;font-weight:700;color:var(--tl);
+  font-family:'Courier New',monospace;}
+
+/* ── DAILY PROGRESS BAR ── */
+.daily-bar-wrap{margin-top:10px;}
+.daily-bar-lbl{display:flex;justify-content:space-between;
+  font-size:.48rem;color:var(--tx);margin-bottom:4px;}
+.daily-bar-track{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+.daily-bar-fill{height:100%;border-radius:2px;transition:width .6s ease;background:var(--pos);}
+.daily-bar-fill.warn{background:var(--warn);}
+.daily-bar-fill.danger{background:var(--neg);}
+
+/* ── SAVE BTN ── */
+.save-btn{width:100%;padding:11px;background:rgba(96,168,255,.18);
+  border:0.5px solid rgba(96,168,255,.4);color:var(--tl);border-radius:var(--r);
+  font-size:.65rem;font-weight:700;cursor:pointer;font-family:inherit;
+  letter-spacing:1.5px;text-transform:uppercase;transition:all .25s;margin-top:10px;}
+.save-btn:hover{background:rgba(96,168,255,.28);box-shadow:0 4px 20px rgba(96,168,255,.2);}
+.save-btn.saved{background:rgba(48,209,88,.18);border-color:rgba(48,209,88,.4);color:var(--pos);}
+
+/* ── EVENT LOG ── */
+#log-panel{background:var(--sf);border:0.5px solid var(--sf2);border-radius:var(--r);padding:16px;}
+#log-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+#log-title h3{font-size:.6rem;font-weight:700;color:var(--tx);
+  text-transform:uppercase;letter-spacing:2px;}
+#log-clear{padding:4px 12px;font-size:.52rem;background:transparent;
+  border:0.5px solid var(--sf2);color:var(--tx);border-radius:100px;cursor:pointer;}
+#log-box{height:180px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2d5a8e #0e1928;}
+#log-box::-webkit-scrollbar{width:4px;}
+#log-box::-webkit-scrollbar-thumb{background:#2d5a8e;}
+.log-row{display:flex;gap:8px;padding:3px 0;border-bottom:0.5px solid rgba(255,255,255,.04);}
+.log-row:last-child{border-bottom:none;}
+.log-t{font-size:.58rem;color:var(--tx);font-family:'Courier New',monospace;flex-shrink:0;width:60px;}
+.log-s{font-size:.52rem;padding:1px 6px;border-radius:4px;flex-shrink:0;min-width:60px;text-align:center;}
+.log-s.info{background:rgba(96,168,255,.1);color:#88aaff;}
+.log-s.warning{background:rgba(255,159,10,.1);color:var(--warn);}
+.log-s.error{background:rgba(255,69,58,.1);color:var(--neg);}
+.log-m{font-size:.62rem;color:var(--tl);}
+
+/* ── POSITION TABLE ── */
+#pos-panel{background:var(--sf);border:0.5px solid var(--sf2);border-radius:var(--r);
+  padding:16px;margin-bottom:16px;}
+.pos-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.pos-header h3{font-size:.6rem;font-weight:700;color:var(--tx);
+  text-transform:uppercase;letter-spacing:2px;}
+.pos-table{width:100%;border-collapse:collapse;font-size:.68rem;}
+.pos-table th{color:var(--tx);font-size:.48rem;text-transform:uppercase;
+  letter-spacing:1.2px;padding:6px 10px;text-align:left;border-bottom:0.5px solid var(--sf2);}
+.pos-table td{padding:8px 10px;border-bottom:0.5px solid rgba(255,255,255,.04);
+  color:var(--tl);font-family:'Courier New',monospace;font-size:.7rem;}
+.pos-table tr:hover td{background:rgba(255,255,255,.03);}
+.pos-buy{color:var(--pos);}
+.pos-sell{color:var(--neg);}
+.copy-pill{font-size:.44rem;padding:1px 6px;border-radius:4px;
+  letter-spacing:.5px;margin-left:3px;}
+.copy-pill.ok{background:rgba(48,209,88,.12);border:0.5px solid rgba(48,209,88,.3);color:var(--pos);}
+.copy-pill.pending{background:rgba(255,159,10,.1);border:0.5px solid rgba(255,159,10,.3);color:var(--warn);}
+.copy-pill.err{background:rgba(255,69,58,.1);border:0.5px solid rgba(255,69,58,.3);color:var(--neg);}
+
+/* ── REFRESH BALANCE BTN ── */
+.refresh-bal{padding:4px 10px;font-size:.48rem;background:transparent;
+  border:0.5px solid var(--sf2);color:var(--tx);border-radius:8px;
+  cursor:pointer;font-family:inherit;letter-spacing:.5px;text-transform:uppercase;}
+.refresh-bal:hover{border-color:var(--ac3);color:var(--ac);}
+
+/* ── GLOBAL SAVE ── */
+#global-save{display:flex;align-items:center;gap:12px;margin-bottom:20px;
+  background:rgba(255,255,255,.03);border:0.5px solid var(--sf2);
+  border-radius:var(--r);padding:14px 20px;}
+#global-save .hint{font-size:.52rem;color:var(--tx);flex:1;}
+#global-save .big-save{padding:10px 28px;background:rgba(96,168,255,.18);
+  border:0.5px solid rgba(96,168,255,.4);color:var(--tl);border-radius:var(--r);
+  font-size:.65rem;font-weight:700;cursor:pointer;font-family:inherit;
+  letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;flex-shrink:0;}
+#global-save .big-save:hover{background:rgba(96,168,255,.3);}
+
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+.fadeIn{animation:fadeIn .3s ease;}
+</style>
+</head>
+<body>
+
+<h2>📡 Copy Trading</h2>
+<p class="sub">Mirror master MT5 positions to up to 3 slave accounts with auto risk-scaled lots</p>
+
+<!-- MASTER STATUS BAR -->
+<div id="master-bar">
+  <span class="dot" id="bridge-dot"></span>
+  <div class="mstat">
+    <span class="mstat-lbl">Master Bridge</span>
+    <span class="mstat-val" id="bridge-status">Connecting…</span>
+  </div>
+  <div class="mstat">
+    <span class="mstat-lbl">Open Positions</span>
+    <span class="mstat-val" id="master-pos-count">—</span>
+  </div>
+  <div class="mstat">
+    <span class="mstat-lbl">Copy Engine</span>
+    <span class="mstat-val" id="engine-status">—</span>
+  </div>
+  <button id="toggle-btn" class="off" onclick="toggleEngine()">⏸ PAUSED</button>
+</div>
+
+<!-- OPEN POSITIONS TABLE -->
+<div id="pos-panel">
+  <div class="pos-header">
+    <h3>Master Positions</h3>
+    <span style="font-size:.52rem;color:var(--tx);" id="pos-update-time">—</span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="pos-table">
+      <thead>
+        <tr>
+          <th>Ticket</th><th>Symbol</th><th>Side</th><th>Lots</th>
+          <th>Entry</th><th>SL</th><th>TP</th><th>P/L</th>
+          <th>Slave 1</th><th>Slave 2</th><th>Slave 3</th>
+        </tr>
+      </thead>
+      <tbody id="pos-tbody">
+        <tr><td colspan="11" style="text-align:center;color:var(--tx);padding:20px;font-size:.6rem;letter-spacing:1px;">WAITING FOR POSITIONS…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- GLOBAL SAVE HINT -->
+<div id="global-save">
+  <span class="hint">✏  Edit any slave below and press <strong style="color:var(--tl);">SAVE</strong> — settings are applied immediately without restart.</span>
+  <button class="big-save" onclick="saveAllSlaves()">💾 SAVE ALL SLAVES</button>
+</div>
+
+<!-- SLAVE CARDS -->
+<div class="slaves-grid" id="slaves-grid">
+  <!-- populated by JS -->
+</div>
+
+<!-- EVENT LOG -->
+<div id="log-panel">
+  <div id="log-title">
+    <h3>📋 Copy Event Log</h3>
+    <button id="log-clear" onclick="clearLog()">Clear</button>
+  </div>
+  <div id="log-box"></div>
+</div>
+
+<script>
+const COPY_API  = 'http://localhost:8768';
+const MASTER_API = 'http://localhost:8766';
+
+let _status = null;
+let _slaveConfigs = [];
+
+// ─────────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────────
+async function init() {
+  await fetchStatus();
+  renderSlaveCards();
+  setInterval(fetchStatus, 3000);
+  setInterval(renderLog, 3000);
+}
+
+// ─────────────────────────────────────────────────────────────
+//  FETCH STATUS
+// ─────────────────────────────────────────────────────────────
+async function fetchStatus() {
+  try {
+    const r = await fetch(`${COPY_API}/api/copy_status`);
+    _status = await r.json();
+
+    // Bridge dot
+    document.getElementById('bridge-dot').className = 'dot on';
+    document.getElementById('bridge-status').textContent = 'Connected ✓';
+
+    const enabled = _status.enabled;
+    const btn = document.getElementById('toggle-btn');
+    btn.className = enabled ? 'on' : 'off';
+    btn.textContent = enabled ? '▶ RUNNING' : '⏸ PAUSED';
+    document.getElementById('engine-status').textContent = enabled ? '● Running' : '○ Paused';
+    document.getElementById('engine-status').style.color = enabled ? 'var(--pos)' : 'var(--neg)';
+
+    document.getElementById('master-pos-count').textContent = _status.master_positions ?? 0;
+    document.getElementById('pos-update-time').textContent = new Date().toLocaleTimeString();
+
+    renderPositions();
+    updateSlaveStats();
+    renderLog();
+
+  } catch(e) {
+    document.getElementById('bridge-dot').className = 'dot';
+    document.getElementById('bridge-status').textContent = 'Bridge offline';
+    document.getElementById('engine-status').textContent = '✗ Offline';
+    document.getElementById('engine-status').style.color = 'var(--neg)';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  POSITIONS TABLE
+// ─────────────────────────────────────────────────────────────
+function renderPositions() {
+  const tbody = document.getElementById('pos-tbody');
+  const positions = _status?.positions || [];
+  const slaves = _status?.slaves || [];
+
+  if (!positions.length) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--tx);padding:20px;font-size:.6rem;letter-spacing:1px;">NO OPEN POSITIONS</td></tr>`;
+    return;
+  }
+
+  const dec = (v) => {
+    if (!v) return '—';
+    const d = (String(v).split('.')[1] || '').length;
+    return parseFloat(v).toFixed(Math.max(d, 2));
+  };
+
+  tbody.innerHTML = positions.map(pos => {
+    const isBuy = pos.type === 'BUY';
+    const pnl   = parseFloat(pos.profit || 0);
+    const pnlColor = pnl >= 0 ? 'var(--pos)' : 'var(--neg)';
+
+    // Copy status per slave
+    const slaveCells = [1,2,3].map(sid => {
+      const slave = slaves.find(s => s.id === sid);
+      if (!slave?.enabled) return `<td style="color:#333;font-size:.55rem;">disabled</td>`;
+      const hasPos = (slave.open_positions || 0) > 0;
+      const pill = hasPos
+        ? `<span class="copy-pill ok">✓ COPIED</span>`
+        : `<span class="copy-pill pending">⟳ PENDING</span>`;
+      return `<td>${pill}</td>`;
+    }).join('');
+
+    return `<tr>
+      <td style="color:var(--tx);">#${pos.ticket}</td>
+      <td style="font-weight:700;color:var(--tl);">${pos.symbol}</td>
+      <td class="${isBuy ? 'pos-buy' : 'pos-sell'}">${pos.type}</td>
+      <td>${pos.volume}</td>
+      <td>${dec(pos.open_price)}</td>
+      <td style="color:var(--neg);">${dec(pos.sl)}</td>
+      <td style="color:var(--pos);">${dec(pos.tp)}</td>
+      <td style="color:${pnlColor};font-weight:700;">${pnl >= 0 ? '+$' : '-$'}${Math.abs(pnl).toFixed(2)}</td>
+      ${slaveCells}
+    </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────────────────────
+//  SLAVE CARDS
+// ─────────────────────────────────────────────────────────────
+function renderSlaveCards() {
+  const grid = document.getElementById('slaves-grid');
+  if (!grid) return;
+
+  // Use loaded settings if available, else defaults
+  const slaves = _slaveConfigs.length ? _slaveConfigs : (
+    _status?.slaves || [{id:1,name:'CopyTrade 1'},{id:2,name:'CopyTrade 2'},{id:3,name:'CopyTrade 3'}]
+  );
+
+  grid.innerHTML = slaves.map(s => renderSlaveCard(s)).join('');
+}
+
+function renderSlaveCard(s) {
+  const sid = s.id;
+  const enabled = s.enabled;
+  const rmPct = (s.risk_mode || 'percent') === 'percent';
+  const limit = parseFloat(s.daily_loss_limit || 0);
+  const used  = parseFloat(s.daily_loss_used  || 0);
+  const pct   = limit > 0 ? Math.min(100, used / limit * 100).toFixed(0) : 0;
+  const barCls = pct >= 90 ? 'danger' : pct >= 70 ? 'warn' : '';
+
+  // Stats from live status
+  const live  = _status?.slaves?.find(x => x.id === sid) || {};
+  const bal   = live.balance ? `$${parseFloat(live.balance).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+  const stats = live.stats || {};
+
+  return `
+<div class="slave-card ${enabled ? 'active' : ''}" id="slave-card-${sid}">
+  <div class="slave-header">
+    <span class="slave-dot ${enabled ? 'on' : ''}" id="sdot-${sid}"></span>
+    <span class="slave-name">${s.name || `CopyTrade ${sid}`}</span>
+    <span style="font-size:.62rem;color:var(--tx);">${bal}</span>
+    <button class="slave-toggle ${enabled ? 'on' : 'off'}" id="stog-${sid}"
+      onclick="toggleSlave(${sid})">
+      ${enabled ? '● ON' : '○ OFF'}
+    </button>
+  </div>
+
+  <!-- Account Details -->
+  <div style="font-size:.5rem;color:var(--tx);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Account Details</div>
+  <div class="field-group">
+    <div class="field">
+      <label>MT5 Account #</label>
+      <input type="number" id="s${sid}-account" value="${s.account || ''}" placeholder="900000000">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="s${sid}-password" value="${s.password || ''}" placeholder="••••••••">
+    </div>
+  </div>
+  <div class="field-group single" style="margin-bottom:10px;">
+    <div class="field">
+      <label>Broker Server</label>
+      <input type="text" id="s${sid}-server" value="${s.server || ''}" placeholder="StoxPips-Trade">
+    </div>
+  </div>
+  <div class="field-group single" style="margin-bottom:14px;">
+    <div class="field">
+      <label>MT5 Terminal Path</label>
+      <input type="text" id="s${sid}-path" value="${s.path || ''}" placeholder="C:\\Program Files\\CopyTrade ${sid}\\terminal64.exe">
+    </div>
+  </div>
+
+  <!-- Risk Settings -->
+  <div style="font-size:.5rem;color:var(--tx);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Risk Management</div>
+  <div class="risk-tabs">
+    <button class="risk-tab ${rmPct ? 'active' : ''}" id="s${sid}-rm-pct"
+      onclick="setRiskMode(${sid},'percent')">Risk %</button>
+    <button class="risk-tab ${!rmPct ? 'active' : ''}" id="s${sid}-rm-usd"
+      onclick="setRiskMode(${sid},'dollar')">Risk $</button>
+  </div>
+  <div class="field-group">
+    <div class="field">
+      <label id="s${sid}-rv-label">${rmPct ? 'Risk % per trade' : 'Risk $ per trade'}</label>
+      <input type="number" id="s${sid}-risk_value" value="${s.risk_value || 1}" step="0.1" min="0.01" placeholder="${rmPct ? '1.0' : '10'}">
+    </div>
+    <div class="field">
+      <label>Starting Balance ($)</label>
+      <input type="number" id="s${sid}-starting_balance" value="${s.starting_balance || 1000}" step="10" placeholder="1000">
+    </div>
+  </div>
+  <div class="field-group single" style="margin-bottom:10px;">
+    <div class="field">
+      <label>Daily Loss Limit ($) — 0 = unlimited</label>
+      <input type="number" id="s${sid}-daily_loss_limit" value="${s.daily_loss_limit || 0}" step="1" placeholder="50">
+    </div>
+  </div>
+
+  <!-- Daily loss bar -->
+  ${limit > 0 ? `
+  <div class="daily-bar-wrap">
+    <div class="daily-bar-lbl">
+      <span>Daily Loss Used</span>
+      <span>$${used.toFixed(2)} / $${limit.toFixed(2)}</span>
+    </div>
+    <div class="daily-bar-track">
+      <div class="daily-bar-fill ${barCls}" style="width:${pct}%;"></div>
+    </div>
+  </div>` : ''}
+
+  <!-- Live stats -->
+  <div class="slave-stats">
+    <div class="slave-stat">
+      <div class="slave-stat-lbl">Live Balance</div>
+      <div class="slave-stat-val" id="s${sid}-bal">${bal}</div>
+    </div>
+    <div class="slave-stat">
+      <div class="slave-stat-lbl">Opened</div>
+      <div class="slave-stat-val" style="color:var(--pos);">${stats.opened || 0}</div>
+    </div>
+    <div class="slave-stat">
+      <div class="slave-stat-lbl">Errors</div>
+      <div class="slave-stat-val" style="color:${(stats.errors||0)>0?'var(--neg)':'var(--tx)'};">${stats.errors || 0}</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-top:10px;">
+    <button class="save-btn" style="flex:1;" onclick="saveSlave(${sid})">💾 Save Slave ${sid}</button>
+    <button class="refresh-bal" onclick="refreshBalance(${sid})">↺ Balance</button>
+  </div>
+</div>`;
+}
+
+function updateSlaveStats() {
+  if (!_status?.slaves) return;
+  _status.slaves.forEach(live => {
+    const sid = live.id;
+    const balEl = document.getElementById(`s${sid}-bal`);
+    if (balEl && live.balance) {
+      balEl.textContent = `$${parseFloat(live.balance).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    }
+    // Update daily bar
+    const card = document.getElementById(`slave-card-${sid}`);
+    if (card) {
+      const limit = parseFloat(live.daily_loss_limit || 0);
+      const used  = parseFloat(live.daily_loss_used  || 0);
+      if (limit > 0) {
+        const pct = Math.min(100, used / limit * 100);
+        const fill = card.querySelector('.daily-bar-fill');
+        if (fill) fill.style.width = pct + '%';
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+//  RISK MODE TOGGLE
+// ─────────────────────────────────────────────────────────────
+function setRiskMode(sid, mode) {
+  document.getElementById(`s${sid}-rm-pct`).classList.toggle('active', mode === 'percent');
+  document.getElementById(`s${sid}-rm-usd`).classList.toggle('active', mode === 'dollar');
+  document.getElementById(`s${sid}-rv-label`).textContent = mode === 'percent' ? 'Risk % per trade' : 'Risk $ per trade';
+}
+
+function getRiskMode(sid) {
+  return document.getElementById(`s${sid}-rm-pct`)?.classList.contains('active') ? 'percent' : 'dollar';
+}
+
+// ─────────────────────────────────────────────────────────────
+//  TOGGLE SLAVE ON/OFF
+// ─────────────────────────────────────────────────────────────
+async function toggleSlave(sid) {
+  const card = document.getElementById(`slave-card-${sid}`);
+  const dot  = document.getElementById(`sdot-${sid}`);
+  const btn  = document.getElementById(`stog-${sid}`);
+
+  // Read current enabled state from button text
+  const currentlyOn = btn.classList.contains('on');
+  const newState     = !currentlyOn;
+
+  try {
+    const r = await fetch(`${COPY_API}/api/copy_slave/${sid}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: newState }),
+    });
+    if (!r.ok) throw new Error('API error');
+
+    btn.className = `slave-toggle ${newState ? 'on' : 'off'}`;
+    btn.textContent = newState ? '● ON' : '○ OFF';
+    dot.className = `slave-dot ${newState ? 'on' : ''}`;
+    card.className = `slave-card ${newState ? 'active' : ''}`;
+  } catch(e) {
+    alert(`Failed to toggle slave ${sid}: ${e.message}`);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  SAVE SLAVE
+// ─────────────────────────────────────────────────────────────
+async function saveSlave(sid) {
+  const btn = document.querySelector(`#slave-card-${sid} .save-btn`);
+
+  const payload = {
+    account:           parseInt(document.getElementById(`s${sid}-account`)?.value) || 0,
+    password:          document.getElementById(`s${sid}-password`)?.value || '',
+    server:            document.getElementById(`s${sid}-server`)?.value || '',
+    path:              document.getElementById(`s${sid}-path`)?.value || '',
+    risk_mode:         getRiskMode(sid),
+    risk_value:        parseFloat(document.getElementById(`s${sid}-risk_value`)?.value) || 1,
+    starting_balance:  parseFloat(document.getElementById(`s${sid}-starting_balance`)?.value) || 1000,
+    daily_loss_limit:  parseFloat(document.getElementById(`s${sid}-daily_loss_limit`)?.value) || 0,
+  };
+
+  try {
+    const r = await fetch(`${COPY_API}/api/copy_slave/${sid}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) throw new Error('API error');
+
+    if (btn) {
+      btn.classList.add('saved');
+      btn.textContent = '✓ Saved!';
+      setTimeout(() => {
+        btn.classList.remove('saved');
+        btn.textContent = `💾 Save Slave ${sid}`;
+      }, 2000);
+    }
+  } catch(e) {
+    alert(`Save failed: ${e.message}\n\nIs the copy bridge running on port 8768?`);
+  }
+}
+
+async function saveAllSlaves() {
+  for (const sid of [1,2,3]) {
+    await saveSlave(sid);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  REFRESH BALANCE
+// ─────────────────────────────────────────────────────────────
+async function refreshBalance(sid) {
+  try {
+    const r = await fetch(`${COPY_API}/api/copy_refresh_balance`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ id: sid }),
+    });
+    const d = await r.json();
+    const bal = d.balances?.[sid];
+    if (bal) {
+      const el = document.getElementById(`s${sid}-bal`);
+      if (el) el.textContent = `$${parseFloat(bal).toLocaleString('en',{minimumFractionDigits:2})}`;
+    }
+  } catch(e) {}
+}
+
+// ─────────────────────────────────────────────────────────────
+//  TOGGLE ENGINE
+// ─────────────────────────────────────────────────────────────
+async function toggleEngine() {
+  try {
+    const r = await fetch(`${COPY_API}/api/copy_toggle`, { method: 'POST' });
+    const d = await r.json();
+    const btn = document.getElementById('toggle-btn');
+    btn.className = d.enabled ? 'on' : 'off';
+    btn.textContent = d.enabled ? '▶ RUNNING' : '⏸ PAUSED';
+  } catch(e) { alert('Copy bridge offline — is mt5_copy_bridge.py running?'); }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  EVENT LOG
+// ─────────────────────────────────────────────────────────────
+function renderLog() {
+  const entries = _status?.log || [];
+  const box     = document.getElementById('log-box');
+  if (!box) return;
+
+  box.innerHTML = [...entries].reverse().map(e => {
+    const slaveLabel = e.slave ? `[S${e.slave}]` : '[SYS]';
+    return `<div class="log-row">
+      <span class="log-t">${e.t}</span>
+      <span class="log-s ${e.level}">${slaveLabel} ${e.level.toUpperCase()}</span>
+      <span class="log-m">${e.msg}</span>
+    </div>`;
+  }).join('');
+}
+
+function clearLog() {
+  const box = document.getElementById('log-box');
+  if (box) box.innerHTML = '';
+  if (_status) _status.log = [];
+}
+
+// ─────────────────────────────────────────────────────────────
+//  LOAD SETTINGS ON STARTUP
+// ─────────────────────────────────────────────────────────────
+async function loadInitialSettings() {
+  try {
+    const r = await fetch(`${COPY_API}/api/copy_settings`);
+    const d = await r.json();
+    _slaveConfigs = d.slaves || [];
+  } catch(e) {}
+}
+
+// ─────────────────────────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────────────────────────
+(async function boot() {
+  await loadInitialSettings();
+  renderSlaveCards();
+  init();
+})();
+</script>
+</body>
+</html>
