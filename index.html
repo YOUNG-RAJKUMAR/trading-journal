@@ -836,6 +836,27 @@ body.theme-frosted .stat-val {
     transition:background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
+/* ── 3D MINIMALIST BLACK THEME ── */
+body.theme-3d-black {
+    --bg: #0A0A0A; --sf: #121212; --sf2: #1E1E1E; --sf3: #2C2C2C;
+    --ac: #60A8FF; --tx: rgba(255, 255, 255, 0.60); --tl: rgba(255, 255, 255, 0.87);
+    --pos: #30D158; --neg: #FF453A; --border: rgba(255, 255, 255, 0.12);
+    background: var(--bg); color: var(--tx);
+}
+body.theme-3d-black .card, body.theme-3d-black .stat-card, body.theme-3d-black .table-wrap {
+    background: var(--sf2) !important; border: 1px solid var(--border) !important;
+    border-radius: 16px !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+body.theme-3d-black .card:hover, body.theme-3d-black .stat-card:hover {
+    transform: translateY(-4px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 32px rgba(0, 0, 0, 0.7) !important;
+}
+body.theme-3d-black .save-btn {
+    background: var(--sf2) !important; color: var(--ac) !important; border: 1px solid var(--border) !important;
+    border-radius: 8px !important; box-shadow: -2px -2px 6px rgba(255, 255, 255, 0.02), 4px 4px 12px rgba(0,0,0,0.5) !important;
+}
+body.theme-3d-black .save-btn:active { transform: translateY(2px); box-shadow: inset 2px 2px 6px rgba(0,0,0,0.5) !important; }
+body.theme-3d-black .header-top { background: rgba(10, 10, 10, 0.8) !important; backdrop-filter: blur(20px); border-bottom: 1px solid var(--border) !important; }
        body,.card,.stat-card,.table-wrap,.btn-action,.tab-btn,.header-title,.stat-val {
             transition:background 0.3s,color 0.3s,border-color 0.3s,box-shadow 0.3s;
         }
@@ -3982,12 +4003,13 @@ setInterval(fetchAccountBalance, 30000);
 <!-- Theme System -->
 <script>
 var _currentTheme = localStorage.getItem('rk_theme') || 'classic';
-var _allThemes = ['classic','frosted','oled','warm','ocean','violet','emerald','graphite','rose','light',
+var _allThemes = ['3d-black','classic','frosted','oled','warm','ocean','violet','emerald','graphite','rose','light',
                   'apple-blue','apple-green','apple-red','apple-gold','apple-indigo',
                   'apple-teal','apple-orange','apple-pink','apple-midnight','apple-light',
                   'tv-dark','tv-light'];
 
 var _themeConfig = {
+    '3d-black': { label:'3D Black', sub:'Minimalist Depth', bg:'#0A0A0A', ac:'#60A8FF', icon:'立体' },
     'classic':  { label:'Classic',  sub:'iOS 17 Standard Dark',  bg:'#000',    ac:'#0a84ff', icon:'●' },
     'frosted':  { label:'Frosted',  sub:'Glassmorphism Blur',     bg:'#04080f', ac:'#60a8ff', icon:'◈' },
     'oled':     { label:'OLED',     sub:'Pure Black Minimal',     bg:'#000',    ac:'#00e5ff', icon:'◼' },
@@ -4090,7 +4112,7 @@ function setTheme(name) {
 }
 
 (function initTheme() {
-    setTheme('frosted');
+    setTheme('3d-black');
 })();
 </script>
 <script>
