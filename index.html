@@ -83,10 +83,10 @@ window.applySymbolSuffix = function() {
     <script>
 function getSessionHighLowStudy() {
     return {
-        name: "Nepal Session High-Low",
-        metainfo: {
-            _metainfoVersion: 51,
-            id: "nepal-session-high-low@1",
+      name: "nepal-session-high-low",
+metainfo: {
+    id: "nepal-session-high-low",
+    _metainfoVersion: 51,
             description: "Nepal Session High-Low with Breakouts",
             shortDescription: "NSHL",
             isCustomIndicator: true,
@@ -2977,7 +2977,7 @@ if (window._symbolMap && !window._symbolMap[symbol.toUpperCase()]) {
     });
 
 _tvWidgets[num-1].onChartReady(function() {
-    _tvWidgets[num-1].activeChart().createStudy('Nepal Session High-Low', false, false);
+    _tvWidgets[num-1].activeChart().createStudy('nepal-session-high-low', false, false);
     _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
     _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(null, function(interval) {
         _currentTF[num-1] = interval;
