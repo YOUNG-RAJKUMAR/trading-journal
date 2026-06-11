@@ -2977,7 +2977,15 @@ if (window._symbolMap && !window._symbolMap[symbol.toUpperCase()]) {
     });
 
 _tvWidgets[num-1].onChartReady(function() {
-    _tvWidgets[num-1].activeChart().createStudy('nepal-session-high-low', false, false);
+    var studyDef = getSessionHighLowStudy();
+    var studyId = studyDef.metainfo.id;   // "nepal-session-high-low"
+    try {
+        _tvWidgets[num-1].activeChart().createStudy(studyId, false, false);
+    } catch(e) {
+        // Fallback: try the study's name field (maybe normalized)
+        var altName = studyDef.name;      // "nepal-session-high-low"
+        _tvWidgets[num-1].activeChart().createStudy(altName, false, false);
+    }
     _currentTF[num-1] = _tvWidgets[num-1].activeChart().resolution();
     _tvWidgets[num-1].activeChart().onIntervalChanged().subscribe(null, function(interval) {
         _currentTF[num-1] = interval;
