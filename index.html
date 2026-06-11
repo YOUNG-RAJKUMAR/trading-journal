@@ -2950,9 +2950,9 @@ if (window._symbolMap && !window._symbolMap[symbol.toUpperCase()]) {
         autosize:     true,
         fullscreen:   false,
         debug:        false,
-        custom_indicators_getter: function(PineJS) {
-            return [getSessionHighLowStudy()];
-        },
+       custom_indicators_getter: function(PineJS) {
+    return Promise.resolve([getSessionHighLowStudy()]);
+},
         disabled_features: ['volume_force_overlay','create_volume_indicator_by_default','header_saveload','countdown'],
         enabled_features:  ['seconds_resolution','side_toolbar_in_fullscreen_mode','hide_last_na_study_output','move_logo_to_main_pane'],
         overrides: {
@@ -3012,9 +3012,9 @@ function _launchPanelFree(num, containerId, symbol, tf, c) {
         allow_symbol_change: true,
         save_image:          false,
         disabled_features:   ['create_volume_indicator_by_default','volume_force_overlay'],
-        custom_indicators_getter: function(PineJS) {
-            return [getSessionHighLowStudy()];
-        },
+      custom_indicators_getter: function(PineJS) {
+    return Promise.resolve([getSessionHighLowStudy()]);
+},
         overrides: {
             'paneProperties.background':                   c.bg,
             'paneProperties.backgroundType':               'solid',
