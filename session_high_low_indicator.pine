@@ -42,8 +42,10 @@ if isNewDay
     prevDayKey := currentDayKey
 
 // === Utility Function for Line End ===
-f_set_line_end(line_id, breakBar, defaultExtend, startX) =>
-    int endBar = na(breakBar) ? (bar_index + defaultExtend) : (breakBar - 1)
+// If the level hasn't been broken yet, the line continuously extends to the
+// current bar (grows in real time). Once broken, it freezes at the break bar.
+f_set_line_end(line_id, breakBar, startX) =>
+    int endBar = na(breakBar) ? bar_index : (breakBar - 1)
     if endBar < startX
         endBar := startX
     line.set_xy2(line_id, endBar, line.get_price(line_id, line.get_x1(line_id)))
@@ -71,9 +73,9 @@ if not asiaLBroken and low < asiaLow
 
 if not na(asiaHLine)
     line.set_xy1(asiaHLine, line.get_x1(asiaHLine), asiaHigh)
-    f_set_line_end(asiaHLine, asiaHighBreak, 3, line.get_x1(asiaHLine))
+    f_set_line_end(asiaHLine, asiaHighBreak, line.get_x1(asiaHLine))
     line.set_xy1(asiaLLine, line.get_x1(asiaLLine), asiaLow)
-    f_set_line_end(asiaLLine, asiaLowBreak, 3, line.get_x1(asiaLLine))
+    f_set_line_end(asiaLLine, asiaLowBreak, line.get_x1(asiaLLine))
     label.set_xy(asiaLbl, line.get_x1(asiaHLine), asiaHigh)
 
 // === London Session Logic ===
@@ -99,9 +101,9 @@ if not lonLBroken and low < lonLow
 
 if not na(lonHLine)
     line.set_xy1(lonHLine, line.get_x1(lonHLine), lonHigh)
-    f_set_line_end(lonHLine, lonHighBreak, 5, line.get_x1(lonHLine))
+    f_set_line_end(lonHLine, lonHighBreak, line.get_x1(lonHLine))
     line.set_xy1(lonLLine, line.get_x1(lonLLine), lonLow)
-    f_set_line_end(lonLLine, lonLowBreak, 5, line.get_x1(lonLLine))
+    f_set_line_end(lonLLine, lonLowBreak, line.get_x1(lonLLine))
     label.set_xy(lonLbl, line.get_x1(lonHLine), lonHigh)
 
 // === NY Session Logic ===
@@ -127,7 +129,7 @@ if not nyLBroken and low < nyLow
 
 if not na(nyHLine)
     line.set_xy1(nyHLine, line.get_x1(nyHLine), nyHigh)
-    f_set_line_end(nyHLine, nyHighBreak, 5, line.get_x1(nyHLine))
+    f_set_line_end(nyHLine, nyHighBreak, line.get_x1(nyHLine))
     line.set_xy1(nyLLine, line.get_x1(nyLLine), nyLow)
-    f_set_line_end(nyLLine, nyLowBreak, 5, line.get_x1(nyLLine))
+    f_set_line_end(nyLLine, nyLowBreak, line.get_x1(nyLLine))
     label.set_xy(nyLbl, line.get_x1(nyHLine), nyHigh)
