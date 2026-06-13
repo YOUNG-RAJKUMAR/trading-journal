@@ -14,7 +14,8 @@ function getSessionHighLowStudy(PineJS) {
             this._prevTime = time;
         }
 
-        const nepalOffset = 5.75 * 3600 * 1000; // UTC+5:45
+        // Nepal timezone: UTC+5:45
+        const nepalOffset = 5.75 * 3600 * 1000;
         const nepalTime = new Date(time + nepalOffset);
         const dayId = `${nepalTime.getUTCFullYear()}-${String(nepalTime.getUTCMonth() + 1).padStart(2, '0')}-${String(nepalTime.getUTCDate()).padStart(2, '0')}`;
         
@@ -24,23 +25,17 @@ function getSessionHighLowStudy(PineJS) {
                 asia: { 
                     high: NaN, low: NaN, 
                     highBar: null, lowBar: null, 
-                    isActive: false, endBar: null, 
-                    broken: { high: false, low: false },
-                    highBreakBar: null, lowBreakBar: null
+                    isActive: false
                 },
                 london: { 
                     high: NaN, low: NaN, 
                     highBar: null, lowBar: null, 
-                    isActive: false, endBar: null, 
-                    broken: { high: false, low: false },
-                    highBreakBar: null, lowBreakBar: null
+                    isActive: false
                 },
                 newyork: { 
                     high: NaN, low: NaN, 
                     highBar: null, lowBar: null, 
-                    isActive: false, endBar: null, 
-                    broken: { high: false, low: false },
-                    highBreakBar: null, lowBreakBar: null
+                    isActive: false
                 }
             };
         }
@@ -68,7 +63,6 @@ function getSessionHighLowStudy(PineJS) {
             const data = dayData[s.id];
             
             // Determine if we're in the session
-            // Handle sessions that span midnight (like NY: 17:45-02:45)
             const inSession = (s.start < s.end) 
                 ? (currentMinutes >= s.start && currentMinutes < s.end) 
                 : (currentMinutes >= s.start || currentMinutes < s.end);
@@ -81,8 +75,6 @@ function getSessionHighLowStudy(PineJS) {
                     data.low = context.symbol.low;
                     data.highBar = this._barIndex;
                     data.lowBar = this._barIndex;
-                    data.broken.high = false;
-                    data.broken.low = false;
                 } else {
                     // DURING SESSION - Update highs and lows
                     if (context.symbol.high > data.high || isNaN(data.high)) {
@@ -97,19 +89,6 @@ function getSessionHighLowStudy(PineJS) {
             } else if (data.isActive) {
                 // SESSION ENDED
                 data.isActive = false;
-                data.endBar = this._barIndex;
-            }
-
-            // BREAK DETECTION - Check for breaks after session ends
-            if (!data.isActive && !isNaN(data.high)) {
-                if (!data.broken.high && context.symbol.high > data.high) {
-                    data.broken.high = true;
-                    data.highBreakBar = this._barIndex;
-                }
-                if (!data.broken.low && context.symbol.low < data.low) {
-                    data.broken.low = true;
-                    data.lowBreakBar = this._barIndex;
-                }
             }
         });
 
@@ -117,27 +96,11 @@ function getSessionHighLowStudy(PineJS) {
         const getVal = (id, type) => {
             const d = dayData[id];
             
-            // Only return values after session is complete
-            if (isNaN(d.high) || d.isActive) return NaN;
+            // Only return values if session has data
+            if (isNaN(d.high)) return NaN;
             
-            const startBar = (type === 'high') ? d.highBar : d.lowBar;
-            const isBroken = (type === 'high') ? d.broken.high : d.broken.low;
-            const breakBar = (type === 'high') ? d.highBreakBar : d.lowBreakBar;
-            
-            // Calculate end bar for line extension
-            let endBar = d.endBar + extDist;
-            if (isBroken && breakBar) {
-                // If broken, line extends only to break point
-                endBar = breakBar;
-            }
-            
-            // Only return value within the valid bar range
-            // Outside this range, return NaN to prevent line connections
-            if (this._barIndex >= startBar && this._barIndex <= endBar) {
-                return type === 'high' ? d.high : d.low;
-            }
-            
-            return NaN;
+            // Return the value so it extends across the chart
+            return type === 'high' ? d.high : d.low;
         };
 
         // Return all six plot values [asiaHigh, asiaLow, lonHigh, lonLow, nyHigh, nyLow]
