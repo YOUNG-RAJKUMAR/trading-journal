@@ -1,48 +1,273 @@
 //@version=5
-indicator("Nepal Session High-Low Segments", overlay=true, max_lines_count=500, max_labels_count=500)
+indicator("SESSION HIGH LOW - Current Day Only", overlay=true, max_lines_count=500, max_labels_count=500)
 
 // ==========================================
 // INPUTS
 // ==========================================
-extDist = input.int(50, "Extension Distance (Bars)")
-colorAsia = input.color(#2962FF, "Asia")
-colorLon = input.color(#E91E63, "London")
-colorNY = input.color(#FF9800, "New York")
+lineWidth   = input.int(2, "Line Width", minval=1, maxval=5, group="General Styling")
+labelSize   = input.string(size.small, "Label Size", options=[size.tiny, size.small, size.normal, size.large], group="General Styling")
 
-TZ = "UTC+5:45"
+colorAsia   = input.color(color.blue, "Asia Color", group="Colors")
+colorLondon = input.color(color.red, "London Color", group="Colors")
+colorNY     = input.color(color.green, "NY Color", group="Colors")
+
+// === Session Time Inputs ===
+session_asia   = input.session("0545-1445", "Asia Session", group="Sessions")     
+session_london = input.session("1245-2145", "London Session", group="Sessions") 
+session_ny     = input.session("1745-0245", "New York Session", group="Sessions")
+
+extDist = input.int(50, "Extension Distance (Bars)", minval=0, maxval=200, group="Sessions")
+showBreakLines = input.bool(true, "Show Break Detection Lines", group="Sessions")
 
 // ==========================================
-// LOGIC
+// TIMEZONE AND DAY MANAGEMENT
 // ==========================================
-drawSession(sessTime, sessColor, sessLabel) =>
-    var float hi = na
-    var float lo = na
-    var int hiBar = na
-    var int loBar = na
+timezone = "Asia/Kathmandu"
+
+var int prevDayKey = na
+currentDayKey = year * 10000 + month * 100 + dayofmonth
+isNewDay = currentDayKey != prevDayKey
+
+// ==========================================
+// SESSION VARIABLES
+// ==========================================
+// ASIA SESSION
+var float asiaHigh = na, var float asiaLow = na
+var int asiaHighBar = na, var int asiaLowBar = na
+var line asiaHLine = na, var line asiaLLine = na
+var label asiaLbl = na
+var bool asiaHighBroken = false, var bool asiaLowBroken = false
+var line asiaHighBreakLine = na, var line asiaLowBreakLine = na
+
+// LONDON SESSION
+var float lonHigh = na, var float lonLow = na
+var int lonHighBar = na, var int lonLowBar = na
+var line lonHLine = na, var line lonLLine = na
+var label lonLbl = na
+var bool lonHighBroken = false, var bool lonLowBroken = false
+var line lonHighBreakLine = na, var line lonLowBreakLine = na
+
+// NEW YORK SESSION
+var float nyHigh = na, var float nyLow = na
+var int nyHighBar = na, var int nyLowBar = na
+var line nyHLine = na, var line nyLLine = na
+var label nyLbl = na
+var bool nyHighBroken = false, var bool nyLowBroken = false
+var line nyHighBreakLine = na, var line nyLowBreakLine = na
+
+// ==========================================
+// DAY RESET LOGIC
+// ==========================================
+if isNewDay
+    // Clean up Asia lines
+    if not na(asiaHLine)
+        line.delete(asiaHLine)
+    if not na(asiaLLine)
+        line.delete(asiaLLine)
+    if not na(asiaLbl)
+        label.delete(asiaLbl)
+    if not na(asiaHighBreakLine)
+        line.delete(asiaHighBreakLine)
+    if not na(asiaLowBreakLine)
+        line.delete(asiaLowBreakLine)
     
-    inSession = not na(time(timeframe.period, sessTime, TZ))
-    isStart = inSession and not inSession[1]
-    isEnd = not inSession and inSession[1]
+    // Clean up London lines
+    if not na(lonHLine)
+        line.delete(lonHLine)
+    if not na(lonLLine)
+        line.delete(lonLLine)
+    if not na(lonLbl)
+        label.delete(lonLbl)
+    if not na(lonHighBreakLine)
+        line.delete(lonHighBreakLine)
+    if not na(lonLowBreakLine)
+        line.delete(lonLowBreakLine)
+    
+    // Clean up NY lines
+    if not na(nyHLine)
+        line.delete(nyHLine)
+    if not na(nyLLine)
+        line.delete(nyLLine)
+    if not na(nyLbl)
+        label.delete(nyLbl)
+    if not na(nyHighBreakLine)
+        line.delete(nyHighBreakLine)
+    if not na(nyLowBreakLine)
+        line.delete(nyLowBreakLine)
+    
+    // Reset all values
+    asiaHigh := na
+    asiaLow := na
+    asiaHighBar := na
+    asiaLowBar := na
+    asiaHighBroken := false
+    asiaLowBroken := false
+    
+    lonHigh := na
+    lonLow := na
+    lonHighBar := na
+    lonLowBar := na
+    lonHighBroken := false
+    lonLowBroken := false
+    
+    nyHigh := na
+    nyLow := na
+    nyHighBar := na
+    nyLowBar := na
+    nyHighBroken := false
+    nyLowBroken := false
+    
+    prevDayKey := currentDayKey
 
-    if isStart
-        hi := high
-        lo := low
-        hiBar := bar_index
-        loBar := bar_index
+// ==========================================
+// SESSION PROCESSING MACRO
+// ==========================================
+processSession(sessTime, sessColor, sessLabel, inSession) =>
+    // Determine which session we're processing
+    isAsia = sessLabel == "A"
+    isLon = sessLabel == "L"
+    isNY = sessLabel == "N"
+    
+    // Get references
+    ptrHigh = isAsia ? asiaHigh : isLon ? lonHigh : nyHigh
+    ptrLow = isAsia ? asiaLow : isLon ? lonLow : nyLow
+    ptrHighBar = isAsia ? asiaHighBar : isLon ? lonHighBar : nyHighBar
+    ptrLowBar = isAsia ? asiaLowBar : isLon ? lonLowBar : nyLowBar
+    ptrHLine = isAsia ? asiaHLine : isLon ? lonHLine : nyHLine
+    ptrLLine = isAsia ? asiaLLine : isLon ? lonLLine : nyLLine
+    ptrLbl = isAsia ? asiaLbl : isLon ? lonLbl : nyLbl
+    ptrHighBroken = isAsia ? asiaHighBroken : isLon ? lonHighBroken : nyHighBroken
+    ptrLowBroken = isAsia ? asiaLowBroken : isLon ? lonLowBroken : nyLowBroken
+    ptrHighBreakLine = isAsia ? asiaHighBreakLine : isLon ? lonHighBreakLine : nyHighBreakLine
+    ptrLowBreakLine = isAsia ? asiaLowBreakLine : isLon ? lonLowBreakLine : nyLowBreakLine
+    
+    // SESSION START
+    if inSession and not inSession[1]
+        if isAsia
+            asiaHigh := high
+            asiaLow := low
+            asiaHighBar := bar_index
+            asiaLowBar := bar_index
+            asiaHighBroken := false
+            asiaLowBroken := false
+            asiaHLine := line.new(bar_index, high, bar_index + 1, high, color=sessColor, width=lineWidth)
+            asiaLLine := line.new(bar_index, low, bar_index + 1, low, color=sessColor, width=lineWidth)
+            asiaLbl := label.new(bar_index, high, sessLabel, color=sessColor, style=label.style_label_up, yloc=yloc.abovebar, textcolor=color.white, size=labelSize)
+        else if isLon
+            lonHigh := high
+            lonLow := low
+            lonHighBar := bar_index
+            lonLowBar := bar_index
+            lonHighBroken := false
+            lonLowBroken := false
+            lonHLine := line.new(bar_index, high, bar_index + 1, high, color=sessColor, width=lineWidth)
+            lonLLine := line.new(bar_index, low, bar_index + 1, low, color=sessColor, width=lineWidth)
+            lonLbl := label.new(bar_index, high, sessLabel, color=sessColor, style=label.style_label_up, yloc=yloc.abovebar, textcolor=color.white, size=labelSize)
+        else if isNY
+            nyHigh := high
+            nyLow := low
+            nyHighBar := bar_index
+            nyLowBar := bar_index
+            nyHighBroken := false
+            nyLowBroken := false
+            nyHLine := line.new(bar_index, high, bar_index + 1, high, color=sessColor, width=lineWidth)
+            nyLLine := line.new(bar_index, low, bar_index + 1, low, color=sessColor, width=lineWidth)
+            nyLbl := label.new(bar_index, high, sessLabel, color=sessColor, style=label.style_label_up, yloc=yloc.abovebar, textcolor=color.white, size=labelSize)
+    
+    // DURING SESSION - Update highs and lows
     else if inSession
-        if high > hi
-            hi := high
-            hiBar := bar_index
-        if low < lo
-            lo := low
-            loBar := bar_index
+        if isAsia
+            if high > asiaHigh
+                asiaHigh := high
+                asiaHighBar := bar_index
+            if low < asiaLow
+                asiaLow := low
+                asiaLowBar := bar_index
+        else if isLon
+            if high > lonHigh
+                lonHigh := high
+                lonHighBar := bar_index
+            if low < lonLow
+                lonLow := low
+                lonLowBar := bar_index
+        else if isNY
+            if high > nyHigh
+                nyHigh := high
+                nyHighBar := bar_index
+            if low < nyLow
+                nyLow := low
+                nyLowBar := bar_index
     
-    if isEnd
-        // Use line.new to create independent, non-connecting segments
-        line.new(hiBar, hi, bar_index + extDist, hi, color=sessColor, width=2)
-        line.new(loBar, lo, bar_index + extDist, lo, color=sessColor, width=2)
-        label.new(hiBar, hi, sessLabel, color=sessColor, textcolor=color.white, style=label.style_label_down)
+    // OUTSIDE SESSION - Detect breaks and extend lines
+    else if not inSession
+        if isAsia
+            if not asiaHighBroken and high > asiaHigh
+                asiaHighBroken := true
+                if showBreakLines
+                    asiaHighBreakLine := line.new(bar_index, asiaHigh, bar_index, high, color=color.new(sessColor, 50), width=lineWidth, style=line.solid)
+            if not asiaLowBroken and low < asiaLow
+                asiaLowBroken := true
+                if showBreakLines
+                    asiaLowBreakLine := line.new(bar_index, asiaLow, bar_index, low, color=color.new(sessColor, 50), width=lineWidth, style=line.solid)
+        else if isLon
+            if not lonHighBroken and high > lonHigh
+                lonHighBroken := true
+                if showBreakLines
+                    lonHighBreakLine := line.new(bar_index, lonHigh, bar_index, high, color=color.new(sessColor, 50), width=lineWidth, style=line.solid)
+            if not lonLowBroken and low < lonLow
+                lonLowBroken := true
+                if showBreakLines
+                    lonLowBreakLine := line.new(bar_index, lonLow, bar_index, low, color=color.new(sessColor, 50), width=lineWidth, style=line.solid)
+        else if isNY
+            if not nyHighBroken and high > nyHigh
+                nyHighBroken := true
+                if showBreakLines
+                    nyHighBreakLine := line.new(bar_index, nyHigh, bar_index, high, color=color.new(sessColor, 50), width=lineWidth, style=line.solid)
+            if not nyLowBroken and low < nyLow
+                nyLowBroken := true
+                if showBreakLines
+                    nyLowBreakLine := line.new(bar_index, nyLow, bar_index, low, color=color.new(sessColor, 50), width=lineWidth, style=line.solid)
+    
+    // void return
+    [ptrHigh, ptrLow]
 
-drawSession("0545-1445", colorAsia, "A")
-drawSession("1245-2145", colorLon, "L")
-drawSession("1745-0245", colorNY, "N")
+// ==========================================
+// SESSION DETECTION AND PROCESSING
+// ==========================================
+inAsia = not na(time(timeframe.period, session_asia, timezone))
+inLon = not na(time(timeframe.period, session_london, timezone))
+inNY = not na(time(timeframe.period, session_ny, timezone))
+
+processSession(session_asia, colorAsia, "A", inAsia)
+processSession(session_london, colorLondon, "L", inLon)
+processSession(session_ny, colorNY, "N", inNY)
+
+// ==========================================
+// UPDATE LINE ENDPOINTS
+// ==========================================
+if not na(asiaHLine)
+    line.set_xy2(asiaHLine, bar_index + extDist, asiaHigh)
+    line.set_xy1(asiaHLine, asiaHighBar, asiaHigh)
+    label.set_xy(asiaLbl, asiaHighBar, asiaHigh)
+
+if not na(asiaLLine)
+    line.set_xy2(asiaLLine, bar_index + extDist, asiaLow)
+    line.set_xy1(asiaLLine, asiaLowBar, asiaLow)
+
+if not na(lonHLine)
+    line.set_xy2(lonHLine, bar_index + extDist, lonHigh)
+    line.set_xy1(lonHLine, lonHighBar, lonHigh)
+    label.set_xy(lonLbl, lonHighBar, lonHigh)
+
+if not na(lonLLine)
+    line.set_xy2(lonLLine, bar_index + extDist, lonLow)
+    line.set_xy1(lonLLine, lonLowBar, lonLow)
+
+if not na(nyHLine)
+    line.set_xy2(nyHLine, bar_index + extDist, nyHigh)
+    line.set_xy1(nyHLine, nyHighBar, nyHigh)
+    label.set_xy(nyLbl, nyHighBar, nyHigh)
+
+if not na(nyLLine)
+    line.set_xy2(nyLLine, bar_index + extDist, nyLow)
+    line.set_xy1(nyLLine, nyLowBar, nyLow)
