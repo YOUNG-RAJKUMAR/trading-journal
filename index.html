@@ -2847,7 +2847,23 @@ function _sessionHighLowIndicator(PineJS) {
             },
 
             defaults: {
-                inputs: [],
+                inputs: {
+                    lineWidth:  2,
+                    labelSize:  'small',
+                    timezone:   'NPT',
+                    asiaStartH: 5,
+                    asiaStartM: 45,
+                    asiaEndH:   14,
+                    asiaEndM:   45,
+                    londStartH: 12,
+                    londStartM: 45,
+                    londEndH:   21,
+                    londEndM:   45,
+                    nyStartH:   17,
+                    nyStartM:   45,
+                    nyEndH:     2,
+                    nyEndM:     45
+                },
                 styles: {
                     asiaHigh: { linestyle: 0, linewidth: 2, color: '#2196F3', visible: true },
                     asiaLow:  { linestyle: 0, linewidth: 2, color: '#2196F3', visible: true },
