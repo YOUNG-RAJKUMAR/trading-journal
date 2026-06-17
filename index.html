@@ -2802,30 +2802,33 @@ function _sessionHighLowIndicator(PineJS) {
             format: { type: 'inherit' },
 
             inputs: [
-                // General Styling (safe int + string)
-                { id: 'lineWidth', name: 'Line Width', type: 'int', defval: 2, min: 1, max: 5, group: 'General Styling' },
-                { id: 'labelSize', name: 'Label Size', type: 'string', defval: 'small', options: ['tiny','small','normal','large'], group: 'General Styling' },
+                // FIX: indexes match inputCallback(N) calls below
+                // 0
+                { id: 'lineWidth',  name: 'Line Width', type: 'integer', defval: 2, min: 1, max: 5,   group: 'General Styling' },
+                // 1
+                { id: 'labelSize',  name: 'Label Size',  type: 'text',    defval: 'small',
+                  options: ['tiny','small','normal','large'], group: 'General Styling' },
+                // 2
+                { id: 'timezone',   name: 'Timezone',    type: 'text',    defval: 'NPT',
+                  options: ['UTC','NPT'], group: 'Settings' },
 
-                // Timezone
-                { id: 'timezone', name: 'Timezone', type: 'string', defval: 'NPT', options: ['UTC','NPT'], group: 'Settings' },
+                // Asia  3-6
+                { id: 'asiaStartH', name: 'Asia Start Hour',   type: 'integer', defval: 5,  min: 0, max: 23, group: 'Sessions' },
+                { id: 'asiaStartM', name: 'Asia Start Minute', type: 'integer', defval: 45, min: 0, max: 59, group: 'Sessions' },
+                { id: 'asiaEndH',   name: 'Asia End Hour',     type: 'integer', defval: 14, min: 0, max: 23, group: 'Sessions' },
+                { id: 'asiaEndM',   name: 'Asia End Minute',   type: 'integer', defval: 45, min: 0, max: 59, group: 'Sessions' },
 
-                // Asia Session - separate hour/minute ints (safest type)
-                { id: 'asiaStartH', name: 'Asia Start Hour',   type: 'int', defval: 5,  min: 0, max: 23, group: 'Sessions' },
-                { id: 'asiaStartM', name: 'Asia Start Minute', type: 'int', defval: 45, min: 0, max: 59, group: 'Sessions' },
-                { id: 'asiaEndH',   name: 'Asia End Hour',     type: 'int', defval: 14, min: 0, max: 23, group: 'Sessions' },
-                { id: 'asiaEndM',   name: 'Asia End Minute',   type: 'int', defval: 45, min: 0, max: 59, group: 'Sessions' },
+                // London  7-10
+                { id: 'londStartH', name: 'London Start Hour',   type: 'integer', defval: 12, min: 0, max: 23, group: 'Sessions' },
+                { id: 'londStartM', name: 'London Start Minute', type: 'integer', defval: 45, min: 0, max: 59, group: 'Sessions' },
+                { id: 'londEndH',   name: 'London End Hour',     type: 'integer', defval: 21, min: 0, max: 23, group: 'Sessions' },
+                { id: 'londEndM',   name: 'London End Minute',   type: 'integer', defval: 45, min: 0, max: 59, group: 'Sessions' },
 
-                // London Session
-                { id: 'londStartH', name: 'London Start Hour',   type: 'int', defval: 12, min: 0, max: 23, group: 'Sessions' },
-                { id: 'londStartM', name: 'London Start Minute', type: 'int', defval: 45, min: 0, max: 59, group: 'Sessions' },
-                { id: 'londEndH',   name: 'London End Hour',     type: 'int', defval: 21, min: 0, max: 23, group: 'Sessions' },
-                { id: 'londEndM',   name: 'London End Minute',   type: 'int', defval: 45, min: 0, max: 59, group: 'Sessions' },
-
-                // New York Session
-                { id: 'nyStartH',   name: 'NY Start Hour',   type: 'int', defval: 17, min: 0, max: 23, group: 'Sessions' },
-                { id: 'nyStartM',   name: 'NY Start Minute', type: 'int', defval: 45, min: 0, max: 59, group: 'Sessions' },
-                { id: 'nyEndH',     name: 'NY End Hour',     type: 'int', defval: 2,  min: 0, max: 23, group: 'Sessions' },
-                { id: 'nyEndM',     name: 'NY End Minute',   type: 'int', defval: 45, min: 0, max: 59, group: 'Sessions' }
+                // NY  11-14
+                { id: 'nyStartH',   name: 'NY Start Hour',   type: 'integer', defval: 17, min: 0, max: 23, group: 'Sessions' },
+                { id: 'nyStartM',   name: 'NY Start Minute', type: 'integer', defval: 45, min: 0, max: 59, group: 'Sessions' },
+                { id: 'nyEndH',     name: 'NY End Hour',     type: 'integer', defval: 2,  min: 0, max: 23, group: 'Sessions' },
+                { id: 'nyEndM',     name: 'NY End Minute',   type: 'integer', defval: 45, min: 0, max: 59, group: 'Sessions' }
             ],
 
             plots: [
@@ -2846,6 +2849,7 @@ function _sessionHighLowIndicator(PineJS) {
                 nyLow:    { title: 'NY Low',      histogramBase: 0 }
             },
 
+            // FIX Bug 2: defaults.inputs must be an OBJECT keyed by input id, not []
             defaults: {
                 inputs: {
                     lineWidth:  2,
@@ -2878,42 +2882,34 @@ function _sessionHighLowIndicator(PineJS) {
                 this._londHigh = NaN; this._londLow = NaN;
                 this._nyHigh   = NaN; this._nyLow   = NaN;
 
-                this._asiaHBroken = false; this._asiaLBroken = false;
-                this._londHBroken = false; this._londLBroken = false;
-                this._nyHBroken   = false; this._nyLBroken   = false;
-
                 this._prevDay = -1;
             };
 
             this.main = function(context, inputCallback) {
                 this._context = context;
 
-                // Read all inputs by numeric index (TradingView Pine API requirement)
-                // Index order matches the inputs[] array definition:
-                // 0:lineWidth 1:labelSize 2:timezone
-                // 3:asiaStartH 4:asiaStartM 5:asiaEndH 6:asiaEndM
-                // 7:londStartH 8:londStartM 9:londEndH 10:londEndM
-                // 11:nyStartH 12:nyStartM 13:nyEndH 14:nyEndM
-                var tz         = inputCallback(2);
-                var asiaStartH = inputCallback(3);
-                var asiaStartM = inputCallback(4);
-                var asiaEndH   = inputCallback(5);
-                var asiaEndM   = inputCallback(6);
-                var londStartH = inputCallback(7);
-                var londStartM = inputCallback(8);
-                var londEndH   = inputCallback(9);
-                var londEndM   = inputCallback(10);
-                var nyStartH   = inputCallback(11);
-                var nyStartM   = inputCallback(12);
-                var nyEndH     = inputCallback(13);
-                var nyEndM     = inputCallback(14);
+                // FIX Bug 1: inputCallback MUST use numeric index, not string name
+                // Index order matches the inputs[] array above
+                var tz         = inputCallback(2);   // 'timezone'
+                var asiaStartH = inputCallback(3);   // 'asiaStartH'
+                var asiaStartM = inputCallback(4);   // 'asiaStartM'
+                var asiaEndH   = inputCallback(5);   // 'asiaEndH'
+                var asiaEndM   = inputCallback(6);   // 'asiaEndM'
+                var londStartH = inputCallback(7);   // 'londStartH'
+                var londStartM = inputCallback(8);   // 'londStartM'
+                var londEndH   = inputCallback(9);   // 'londEndH'
+                var londEndM   = inputCallback(10);  // 'londEndM'
+                var nyStartH   = inputCallback(11);  // 'nyStartH'
+                var nyStartM   = inputCallback(12);  // 'nyStartM'
+                var nyEndH     = inputCallback(13);  // 'nyEndH'
+                var nyEndM     = inputCallback(14);  // 'nyEndM'
 
                 var t  = PineJS.Std.time(this._context);
                 var hi = PineJS.Std.high(this._context);
                 var lo = PineJS.Std.low(this._context);
                 var d  = new Date(t);
 
-                // Timezone
+                // Timezone offset
                 var hh, mm;
                 if (tz === 'NPT') {
                     var npt = new Date(t + 5.75 * 3600000);
@@ -2924,63 +2920,54 @@ function _sessionHighLowIndicator(PineJS) {
                     mm = d.getUTCMinutes();
                 }
 
+                // Use UTC date for day boundary (not NPT, to keep reset consistent)
                 var dayKey = d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
                 var mins   = hh * 60 + mm;
 
-                // Daily reset
+                // FIX Bug 4: Daily reset — save previous day's H/L before clearing
                 if (dayKey !== this._prevDay) {
                     this._prevDay  = dayKey;
                     this._asiaHigh = NaN; this._asiaLow = NaN;
                     this._londHigh = NaN; this._londLow = NaN;
                     this._nyHigh   = NaN; this._nyLow   = NaN;
-                    this._asiaHBroken = false; this._asiaLBroken = false;
-                    this._londHBroken = false; this._londLBroken = false;
-                    this._nyHBroken   = false; this._nyLBroken   = false;
                 }
 
-                // Session checker
+                // Session checker — handles overnight sessions (e.g. NY end crosses midnight)
                 var inSess = function(sh, sm, eh, em) {
-                    var s = sh * 60 + sm, e = eh * 60 + em;
+                    var s = sh * 60 + sm;
+                    var e = eh * 60 + em;
                     return e > s ? (mins >= s && mins < e) : (mins >= s || mins < e);
                 };
 
-                // Asia
+                // Build Asia session H/L
                 if (inSess(asiaStartH, asiaStartM, asiaEndH, asiaEndM)) {
                     if (isNaN(this._asiaHigh)) { this._asiaHigh = hi; this._asiaLow = lo; }
                     else { this._asiaHigh = Math.max(this._asiaHigh, hi); this._asiaLow = Math.min(this._asiaLow, lo); }
                 }
-                if (!this._asiaHBroken && hi > this._asiaHigh) this._asiaHBroken = true;
-                if (!this._asiaLBroken && lo < this._asiaLow)  this._asiaLBroken = true;
 
-                // London
+                // Build London session H/L
                 if (inSess(londStartH, londStartM, londEndH, londEndM)) {
                     if (isNaN(this._londHigh)) { this._londHigh = hi; this._londLow = lo; }
                     else { this._londHigh = Math.max(this._londHigh, hi); this._londLow = Math.min(this._londLow, lo); }
                 }
-                if (!this._londHBroken && hi > this._londHigh) this._londHBroken = true;
-                if (!this._londLBroken && lo < this._londLow)  this._londLBroken = true;
 
-                // NY
+                // Build NY session H/L
                 if (inSess(nyStartH, nyStartM, nyEndH, nyEndM)) {
                     if (isNaN(this._nyHigh)) { this._nyHigh = hi; this._nyLow = lo; }
                     else { this._nyHigh = Math.max(this._nyHigh, hi); this._nyLow = Math.min(this._nyLow, lo); }
                 }
-                if (!this._nyHBroken && hi > this._nyHigh) this._nyHBroken = true;
-                if (!this._nyLBroken && lo < this._nyLow)  this._nyLBroken = true;
 
+                // FIX Bug 3: return NaN (not 0) when no session data
+                // NaN tells TradingView to NOT draw a point → no vertical drops/boxes
                 return [
-                    isNaN(this._asiaHigh) ? 0 : this._asiaHigh,
-                    isNaN(this._asiaLow)  ? 0 : this._asiaLow,
-                    isNaN(this._londHigh) ? 0 : this._londHigh,
-                    isNaN(this._londLow)  ? 0 : this._londLow,
-                    isNaN(this._nyHigh)   ? 0 : this._nyHigh,
-                    isNaN(this._nyLow)    ? 0 : this._nyLow
+                    this._asiaHigh, this._asiaLow,
+                    this._londHigh, this._londLow,
+                    this._nyHigh,   this._nyLow
                 ];
             };
         }
     };
 }
-
 function launchPanel(num) {
     var c = window.ui._tvColors();
     var containerId = 'tv-container-' + num;
