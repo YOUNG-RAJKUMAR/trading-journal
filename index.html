@@ -2851,18 +2851,12 @@ function _sessionHighLowIndicator(PineJS) {
                     lineWidth:  2,
                     labelSize:  'small',
                     timezone:   'NPT',
-                    asiaStartH: 5,
-                    asiaStartM: 45,
-                    asiaEndH:   14,
-                    asiaEndM:   45,
-                    londStartH: 12,
-                    londStartM: 45,
-                    londEndH:   21,
-                    londEndM:   45,
-                    nyStartH:   17,
-                    nyStartM:   45,
-                    nyEndH:     2,
-                    nyEndM:     45
+                    asiaStartH: 5,  asiaStartM: 45,
+                    asiaEndH:   14, asiaEndM:   45,
+                    londStartH: 12, londStartM: 45,
+                    londEndH:   21, londEndM:   45,
+                    nyStartH:   17, nyStartM:   45,
+                    nyEndH:     2,  nyEndM:     45
                 },
                 styles: {
                     asiaHigh: { linestyle: 0, linewidth: 2, color: '#2196F3', visible: true },
@@ -2894,20 +2888,25 @@ function _sessionHighLowIndicator(PineJS) {
             this.main = function(context, inputCallback) {
                 this._context = context;
 
-                // Read all int inputs (safest type)
-                var tz         = inputCallback('timezone');
-                var asiaStartH = inputCallback('asiaStartH');
-                var asiaStartM = inputCallback('asiaStartM');
-                var asiaEndH   = inputCallback('asiaEndH');
-                var asiaEndM   = inputCallback('asiaEndM');
-                var londStartH = inputCallback('londStartH');
-                var londStartM = inputCallback('londStartM');
-                var londEndH   = inputCallback('londEndH');
-                var londEndM   = inputCallback('londEndM');
-                var nyStartH   = inputCallback('nyStartH');
-                var nyStartM   = inputCallback('nyStartM');
-                var nyEndH     = inputCallback('nyEndH');
-                var nyEndM     = inputCallback('nyEndM');
+                // Read all inputs by numeric index (TradingView Pine API requirement)
+                // Index order matches the inputs[] array definition:
+                // 0:lineWidth 1:labelSize 2:timezone
+                // 3:asiaStartH 4:asiaStartM 5:asiaEndH 6:asiaEndM
+                // 7:londStartH 8:londStartM 9:londEndH 10:londEndM
+                // 11:nyStartH 12:nyStartM 13:nyEndH 14:nyEndM
+                var tz         = inputCallback(2);
+                var asiaStartH = inputCallback(3);
+                var asiaStartM = inputCallback(4);
+                var asiaEndH   = inputCallback(5);
+                var asiaEndM   = inputCallback(6);
+                var londStartH = inputCallback(7);
+                var londStartM = inputCallback(8);
+                var londEndH   = inputCallback(9);
+                var londEndM   = inputCallback(10);
+                var nyStartH   = inputCallback(11);
+                var nyStartM   = inputCallback(12);
+                var nyEndH     = inputCallback(13);
+                var nyEndM     = inputCallback(14);
 
                 var t  = PineJS.Std.time(this._context);
                 var hi = PineJS.Std.high(this._context);
